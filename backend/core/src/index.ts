@@ -10,10 +10,12 @@ import typeDefs from './graphql/typedefs';
 import logger, { loggerMiddleware } from './utils/logger';
 import resolvers from './graphql/resolvers';
 import mongodb from './utils/mongo';
-import { Organization } from './models/organization';
+import { OrganizationModel } from './models/organization';
+import { UserModel } from './models/user';
 
 export interface Context {
-  organizations: Organization;
+  organizations: OrganizationModel;
+  users: UserModel;
 }
 
 const server = new ApolloServer({
@@ -36,7 +38,8 @@ export const handler = startServerAndCreateLambdaHandler(
       const db = await mongodb.db(process.env.MONGODB_NAME!);
 
       return {
-        organizations: new Organization(db),
+        organizations: new OrganizationModel(db),
+        users: new UserModel(db),
         lambdaEvent: event,
         lambdaContext: context,
       };

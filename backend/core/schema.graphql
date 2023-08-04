@@ -33,7 +33,9 @@
     unavailable: Boolean!
     startTime: String!
     endTime: String!
-    user: User!
+    userId: String!
+
+    user: User
   }
 
   type Phone {
@@ -54,32 +56,45 @@
   }
 
   type Member {
-    org: Organization!
+    orgId: String!
     pNumber: String!
     status: MemberStatus
     contactInfo: ContactInfo
     tier: MemberTier
-    rank: Rank!
-    memberSkills: [MemberSkill]!
+    rankID: String
+    memberSkillIds: [String]
     adminNote: String
     deactivationNote: String
+
+    rank: Rank
+    memberSkills: [MemberSkill]
+    org: Organization
   }
 
   type User {
     id: ID!
+    cognitoId: String!
     firstName: String!
     lastName: String!
     createdAt: String!
     updatedAt: String!
-    member: Member
     docType: DocType!
+    member: Member!
   }
 
-  input NewUser {
-    id: String!
+  input UpdateUser {
+    id: ID!
+    cognitoId: String!
     firstName: String!
     lastName: String!
     member: NewMember
+  }
+
+  input NewUser {
+    cognitoId: String!
+    firstName: String!
+    lastName: String!
+    member: NewMember!
   }
 
   input NewPhone {
@@ -125,23 +140,31 @@
     attachment: String!
     startDate: String!
     endDate: String!
-    org: Organization!
+    orgId: String!
     status: EventStatus!
     docType: DocType!
-    assignments: [Assignment]!
+    assignmentIds: [String]
+
+    org: Organization!
+    assignments: [Assignment]
   }
 
   type Assignment {
     id: ID!
     name: String!
     description: String
-    event: Event!
+    eventId: String!
     orgId: String!
     docType: DocType!
-    requiredSkills: [Skill]!
-    ranks: [Rank]!
+    requiredSkillIds: [String]
+    rankIds: [String]
     bwNeeded: Boolean!
-    shifts: [Shift]!
+    shiftIds: [String]
+
+    event: Event!
+    requiredSkills: [Skill]
+    ranks: [Rank]
+    shifts: [Shift]
   }
 
   enum ShiftStatus {
@@ -158,16 +181,20 @@
   }
 
   type Shift {
-    id: String!
+    id: ID!
     shiftId: String!
     startTime: String!
     endTime: String!
-    event: Event!
-    assignment: Assignment!
     status: ShiftStatus!
     docType: DocType!
-    user: User!
     locked: Boolean!
+    eventId: String!
+    assignmentId: String!
+    userId: String!
+
+    user: User!
+    event: Event!
+    assignment: Assignment!
   }
 ###### END Events ######
 
@@ -188,7 +215,6 @@
   type Venue {
     id: ID!
     name: String!
-    org: Organization!
     address: String!
     city: String!
     state: String!
@@ -197,8 +223,11 @@
     contact: VenueContact
     status: VenueStatus
     docType: DocType!
+    orgId: String!
     createdAt: String!
     updatedAt: String!
+
+    org: Organization!
   }
 ###### END Venues ######
 
@@ -211,25 +240,30 @@
 
   type Skill {
     id: ID!
-    org: Organization!
     name: String!
     active: Boolean!
     requiresAdminApproval: Boolean!
     requiresCert: Boolean!
     docType: DocType!
-    ranksOnly: [String]!
+    orgId: String!
+    rankOnlyIds: [String]
     createdAt: String!
     updatedAt: String!
+
+    ranksOnly: [Rank]
+    org: Organization!
   }
 
   type MemberSkill {
     id: ID!
-    skill: Skill!
+    userId: String!
     imagePath: String!
     status: SkillStatus!
     docType: DocType!
     createdAt: String!
     updatedAt: String!
+
+    skill: Skill!
   }
 ###### END Skill ######
 
@@ -237,8 +271,10 @@
   type Rank {
     id: ID!
     name: String!
-    org: Organization!
     docType: DocType!
+    orgId: String!
+
+    org: Organization!
   }
 ###### END Rank ######
 
@@ -290,21 +326,28 @@
     title: String!
     body: String!
     active: Boolean!
-    ranks: [Rank]!
     frequency: NotificationFrequency!
-    createdBy: User!
-    org: Organization!
     docType: DocType!
+    orgId: String!
+    rankIds: [String]
+    createdById: String!
     createdAt: String!
     updatedAt: String!
+
+    createdBy: User!
+    org: Organization!
+    ranks: [Rank]!
   }
 
   type MemberNotification {
     id: ID!
-    notification: Notification!
-    user: User!
+    notificationId: String!
+    userId: String!
     docType: DocType!
     lastSeen: String!
+
+    notification: Notification!
+    user: User!
   }
 ###### END Notifications ######
 
@@ -314,5 +357,6 @@ type Query {
 
 type Mutation {
   organization(org: NewOrganization!): Organization
-  # user(user: NewUser!): User
+  newUser(user: NewUser!): User
+  user(user: UpdateUser!): User
 }

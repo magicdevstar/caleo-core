@@ -14,6 +14,7 @@ import mongoConnect from './utils/mongo';
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  introspection: process.env.STAGE !== 'prod',
 });
 
 export const handler = startServerAndCreateLambdaHandler(
@@ -26,8 +27,8 @@ export const handler = startServerAndCreateLambdaHandler(
   {
     middleware: [loggerMiddleware],
     context: async ({ event, context }) => {
-      const mongo = await mongoConnect();
       logger.addContext(context);
+      const mongo = await mongoConnect();
       return {
         mongo,
         lambdaEvent: event,

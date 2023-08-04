@@ -1,9 +1,10 @@
-service: caleo-mono
+service: caleo-core
 frameworkVersion: '3'
 
 provider:
   name: aws
   runtime: nodejs18.x
+  region: us-west-2
   logRetentionInDays: 3
   environment:
     STAGE: ${sls:stage}
@@ -11,6 +12,10 @@ provider:
 
 plugins:
   - serverless-esbuild
+
+package:
+  patterns:
+    - schema.graphql
 
 custom:
   esbuild:

@@ -1,6 +1,12 @@
 service: caleo-core
 frameworkVersion: '3'
 
+params:
+  default:
+    dbName: caleo-dev
+  prod:
+    dbName: caleo-prod
+
 provider:
   name: aws
   runtime: nodejs18.x
@@ -8,7 +14,9 @@ provider:
   logRetentionInDays: 3
   environment:
     STAGE: ${sls:stage}
-    MONGO_URI: ${ssm:/caleo/mongoURI}
+    MONGODB_URI: ${ssm:/caleo/mongoURI}
+    MONGODB_NAME: ${param:dbName}
+    MONGODB_COLLECTION: core
 
 plugins:
   - serverless-esbuild

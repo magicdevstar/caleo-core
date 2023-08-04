@@ -1,21 +1,3 @@
-import mongoose, { Connection } from 'mongoose';
-import logger from './logger';
+import { MongoClient } from 'mongodb';
 
-let mongo: Connection = null as any;
-
-export default async () => {
-  if (!mongo) {
-    try {
-      mongo = mongoose.createConnection(process.env.MONGO_URI!, {
-        serverSelectionTimeoutMS: 5000
-      });
-  
-      await mongo.asPromise();
-    } catch(error) {
-      logger.error('Error connecting to mongo', { error });
-      throw error;
-    }
-  }
-
-  return mongo;
-};
+export default new MongoClient(process.env.MONGODB_URI!);

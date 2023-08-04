@@ -1,4 +1,8 @@
 ###### START Common ######
+  enum DocType {
+    USER
+    ORGANIZATION
+  }
   enum DayOfWeek {
     SUNDAY
     MONDAY
@@ -68,6 +72,37 @@
     createdAt: String!
     updatedAt: String!
     member: Member
+    docType: DocType!
+  }
+
+  input NewUser {
+    id: String!
+    firstName: String!
+    lastName: String!
+    member: NewMember
+  }
+
+  input NewPhone {
+    number: String!
+    receiveTexts: Boolean!
+  }
+
+  input NewEmail {
+    address: String!
+    receiveEmails: Boolean!
+  }
+
+  input NewContactInfo {
+    primaryPhone: NewPhone!
+    primaryEmail: NewEmail!
+    secondaryPhone: NewPhone
+    secondaryEmail: NewEmail
+  }
+
+  input NewMember {
+    orgId: String!
+    pNumber: String!
+    contactInfo: NewContactInfo!
   }
 ###### END User ######
 
@@ -92,6 +127,7 @@
     endDate: String!
     org: Organization!
     status: EventStatus!
+    docType: DocType!
     assignments: [Assignment]!
   }
 
@@ -101,6 +137,7 @@
     description: String
     event: Event!
     orgId: String!
+    docType: DocType!
     requiredSkills: [Skill]!
     ranks: [Rank]!
     bwNeeded: Boolean!
@@ -128,6 +165,7 @@
     event: Event!
     assignment: Assignment!
     status: ShiftStatus!
+    docType: DocType!
     user: User!
     locked: Boolean!
   }
@@ -158,6 +196,7 @@
     phone: String!
     contact: VenueContact
     status: VenueStatus
+    docType: DocType!
     createdAt: String!
     updatedAt: String!
   }
@@ -177,6 +216,7 @@
     active: Boolean!
     requiresAdminApproval: Boolean!
     requiresCert: Boolean!
+    docType: DocType!
     ranksOnly: [String]!
     createdAt: String!
     updatedAt: String!
@@ -187,6 +227,7 @@
     skill: Skill!
     imagePath: String!
     status: SkillStatus!
+    docType: DocType!
     createdAt: String!
     updatedAt: String!
   }
@@ -197,6 +238,7 @@
     id: ID!
     name: String!
     org: Organization!
+    docType: DocType!
   }
 ###### END Rank ######
 
@@ -215,8 +257,24 @@
     weekBegins: DayOfWeek!
     timezone: String!
     contact: OrganizationContact
+    docType: DocType!
     createdAt: String!
     updatedAt: String!
+  }
+
+  input NewOrganizationContact {
+    phone: String!
+    email: String!
+  }
+
+  input NewOrganization {
+    name: String!
+    address: String!
+    state: String!
+    city: String!
+    weekBegins: DayOfWeek!
+    timezone: String!
+    contact: NewOrganizationContact
   }
 ###### END Organization ######
 
@@ -236,6 +294,7 @@
     frequency: NotificationFrequency!
     createdBy: User!
     org: Organization!
+    docType: DocType!
     createdAt: String!
     updatedAt: String!
   }
@@ -244,10 +303,16 @@
     id: ID!
     notification: Notification!
     user: User!
+    docType: DocType!
     lastSeen: String!
   }
 ###### END Notifications ######
 
 type Query {
   health: String
+}
+
+type Mutation {
+  organization(org: NewOrganization!): Organization
+  # user(user: NewUser!): User
 }

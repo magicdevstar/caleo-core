@@ -9,7 +9,12 @@ import type { APIGatewayProxyEventV2WithLambdaAuthorizer } from 'aws-lambda';
 import typeDefs from './graphql/typedefs';
 import logger, { loggerMiddleware } from './utils/logger';
 import resolvers from './graphql/resolvers';
-import mongoConnect from './utils/mongo';
+import mongodb from './utils/mongo';
+import { Organization } from './models/organization';
+
+export interface Context {
+  organizations: Organization;
+}
 
 const server = new ApolloServer({
   typeDefs,
@@ -28,9 +33,10 @@ export const handler = startServerAndCreateLambdaHandler(
     middleware: [loggerMiddleware],
     context: async ({ event, context }) => {
       logger.addContext(context);
-      const mongo = await mongoConnect();
+      const db = await mongodb.db(process.env.MONGODB_NAME!);
+
       return {
-        mongo,
+        organizations: new Organization(db),
         lambdaEvent: event,
         lambdaContext: context,
       };

@@ -1,0 +1,1 @@
+export { default as RanksAndSkills } from './ranks-and-skills-view';

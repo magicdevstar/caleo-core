@@ -1,0 +1,68 @@
+import { lazy, Suspense } from 'react';
+import { Outlet } from 'react-router-dom';
+// auth
+import { AuthGuard } from 'src/auth/guard';
+// layouts
+import DashboardLayout from 'src/layouts/dashboard';
+// components
+import { LoadingScreen } from 'src/components/loading-screen';
+
+// ----------------------------------------------------------------------
+
+const IndexPage = lazy(() => import('src/pages/dashboard/myOvertime'));
+const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOvertime'));
+const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
+const EmptyPage = lazy(() => import('src/sections/empty/view'));
+const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+
+// ----------------------------------------------------------------------
+
+export const dashboardRoutes = [
+  {
+    path: 'dashboard',
+    element: (
+      <AuthGuard>
+        <DashboardLayout>
+          <Suspense fallback={<LoadingScreen />}>
+            <Outlet />
+          </Suspense>
+        </DashboardLayout>
+      </AuthGuard>
+    ),
+    children: [
+      { element: <IndexPage />, index: true },
+      { path: 'available/overtime', element: <AvailableOvertime /> },
+      { path: 'user', element: <MyProfile /> },
+      {
+        path: 'admin',
+        children: [
+          { path: 'reports', element: <EmptyPage title='Reports' /> },
+          {
+            path: 'overtime',
+            children: [
+              { path: 'events', element: <EmptyPage title='Events' />, index: true },
+              { path: 'venues', element: <EmptyPage title='Venues' /> },
+              { path: 'shifts', element: <EmptyPage title='Shifts' /> },
+            ]
+          },
+          {
+            path: 'users',
+            children: [
+              { element: <EmptyPage title='Search Users' />, index: true },
+              { path: 'requests', element: <EmptyPage title='Manage Requests' /> },
+            ]
+          },
+          {
+            path: 'settings',
+            children: [
+              { element: <EmptyPage title='Overtime' />, index: true },
+              { path: 'ranks-and-skills', element: <RanksAndSkills /> },
+              { path: 'department', element: <EmptyPage title='Department' /> },
+              { path: 'notifications', element: <EmptyPage title='Notifications' /> },
+            ]
+          }
+        ],
+      },
+    ],
+  },
+];

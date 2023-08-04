@@ -1,0 +1,32 @@
+service: caleo-mono
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  logRetentionInDays: 3
+  environment:
+    STAGE: ${sls:stage}
+    MONGO_URI: ${ssm:/caleo/mongoURI}
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    packager: yarn
+
+# Create the authorizer
+# Create a hook that will create a user when a new user signs up
+functions:
+  graphql:
+    handler: src/index.handler
+    events:
+      - httpApi:
+          path: /
+          method: POST
+      - httpApi:
+          path: /
+          method: GET

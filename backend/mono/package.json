@@ -1,0 +1,28 @@
+{
+  "name": "caleo-mono",
+  "version": "0.0.1",
+  "description": "Caleo graphql server",
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "graphql-codegen --config codegen.yml",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "danwakeem",
+  "license": "MIT",
+  "dependencies": {
+    "@apollo/server": "^4.9.0",
+    "@as-integrations/aws-lambda": "^3.0.0",
+    "@aws-lambda-powertools/logger": "^1.12.1",
+    "graphql": "^16.7.1",
+    "mongoose": "^7.4.1"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/typescript": "^4.0.1",
+    "@graphql-codegen/typescript-resolvers": "^4.0.1",
+    "esbuild": "^0.18.17",
+    "serverless": "^3.33.0",
+    "serverless-esbuild": "^1.46.0",
+    "typescript": "^5.1.6"
+  }
+}

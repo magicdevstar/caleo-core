@@ -1,0 +1,253 @@
+###### START Common ######
+  enum DayOfWeek {
+    SUNDAY
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+  }
+###### END Common ######
+
+###### START User ######
+  enum MemberTier {
+    TIER_1
+    TIER_2
+  }
+
+  enum MemberStatus {
+    ACTIVE
+    INACTIVE
+    PENDING
+    REMOVED
+    DELETED
+  }
+
+  type UserAvailability {
+    dayOfWeek: DayOfWeek!
+    unavailable: Boolean!
+    startTime: String!
+    endTime: String!
+    user: User!
+  }
+
+  type Phone {
+    number: String!
+    receiveTexts: Boolean!
+  }
+
+  type Email {
+    address: String!
+    receiveEmails: Boolean!
+  }
+
+  type ContactInfo {
+    primaryPhone: Phone!
+    primaryEmail: Email!
+    secondaryPhone: Phone
+    secondaryEmail: Email
+  }
+
+  type Member {
+    org: Organization!
+    pNumber: String!
+    status: MemberStatus
+    contactInfo: ContactInfo
+    tier: MemberTier
+    rank: Rank!
+    memberSkills: [MemberSkill]!
+    adminNote: String
+    deactivationNote: String
+  }
+
+  type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    createdAt: String!
+    updatedAt: String!
+    member: Member
+  }
+###### END User ######
+
+###### START Events ######
+  enum EventStatus {
+    PENDING
+    PRE_FCFS
+    FCFS
+    PRE_LOTTERY
+    LOTTERY
+    POST_LOTTERY
+    IN_PROGRESS
+    CLOSED
+    REMOVED
+  }
+
+  type Event {
+    id: ID!
+    name: String!
+    attachment: String!
+    startDate: String!
+    endDate: String!
+    org: Organization!
+    status: EventStatus!
+    assignments: [Assignment]!
+  }
+
+  type Assignment {
+    id: ID!
+    name: String!
+    description: String
+    event: Event!
+    orgId: String!
+    requiredSkills: [Skill]!
+    ranks: [Rank]!
+    bwNeeded: Boolean!
+    shifts: [Shift]!
+  }
+
+  enum ShiftStatus {
+    AVAILABLE
+    PENDING
+    ASSIGNED
+    STARTED
+    SECURED
+    UNSECURED
+    UNFULFILLED
+    REMOVED
+    RELINQUISHED
+    LOCKED
+  }
+
+  type Shift {
+    id: String!
+    shiftId: String!
+    startTime: String!
+    endTime: String!
+    event: Event!
+    assignment: Assignment!
+    status: ShiftStatus!
+    user: User!
+    locked: Boolean!
+  }
+###### END Events ######
+
+###### START Venues ######
+  type VenueContact {
+    firstName: String
+    lastName: String
+    email: String
+    phone: String
+  }
+
+  enum VenueStatus {
+    ACTIVE
+    INACTIVE
+    REMOVED
+  }
+
+  type Venue {
+    id: ID!
+    name: String!
+    org: Organization!
+    address: String!
+    city: String!
+    state: String!
+    zip: String!
+    phone: String!
+    contact: VenueContact
+    status: VenueStatus
+    createdAt: String!
+    updatedAt: String!
+  }
+###### END Venues ######
+
+###### START Skill ######
+  enum SkillStatus {
+    APPROVED
+    DENIED
+    PENDING
+  }
+
+  type Skill {
+    id: ID!
+    org: Organization!
+    name: String!
+    active: Boolean!
+    requiresAdminApproval: Boolean!
+    requiresCert: Boolean!
+    ranksOnly: [String]!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type MemberSkill {
+    id: ID!
+    skill: Skill!
+    imagePath: String!
+    status: SkillStatus!
+    createdAt: String!
+    updatedAt: String!
+  }
+###### END Skill ######
+
+###### START Rank ######
+  type Rank {
+    id: ID!
+    name: String!
+    org: Organization!
+  }
+###### END Rank ######
+
+###### START Organization ######
+  type OrganizationContact {
+    phone: String!
+    email: String!
+  }
+
+  type Organization {
+    id: ID!
+    name: String!
+    address: String!
+    state: String!
+    city: String!
+    weekBegins: DayOfWeek!
+    timezone: String!
+    contact: OrganizationContact
+    createdAt: String!
+    updatedAt: String!
+  }
+###### END Organization ######
+
+###### START Notifications ######
+  enum NotificationFrequency {
+    ONCE
+    ALWAYS
+    UNTIL_EXPIRE
+  }
+
+  type Notification {
+    id: ID!
+    title: String!
+    body: String!
+    active: Boolean!
+    ranks: [Rank]!
+    frequency: NotificationFrequency!
+    createdBy: User!
+    org: Organization!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type MemberNotification {
+    id: ID!
+    notification: Notification!
+    user: User!
+    lastSeen: String!
+  }
+###### END Notifications ######
+
+type Query {
+  health: String
+}

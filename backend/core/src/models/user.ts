@@ -11,7 +11,24 @@ export class UserModel {
     this.collection = this.db.collection(this.collectionName);
   }
 
-  public async createUser(inputUser: NewUser): Promise<User> {
+  public async findOne(input: Record<string, any>): Promise<User | null> {
+    const res = await this.collection.findOne({
+      ...input,
+      docType: DocType.User,
+    });
+
+    if (!res) {
+      return null;
+    }
+
+    const { _id, ...rest } = res;
+    return {
+      id: _id.toString(),
+      ...rest,
+    } as any;
+  }
+
+  public async create(inputUser: NewUser): Promise<User> {
     const now = Date.now();
     const insertDoc = {
       ...inputUser,
@@ -25,6 +42,7 @@ export class UserModel {
     const user: User = {
       id: res.insertedId.toString(),
       ...insertDoc,
+      superAdmin: false,
       member: insertDoc.member as any,
       createdAt: insertDoc.createdAt as any,
       updatedAt: insertDoc.updatedAt as any,
@@ -33,10 +51,12 @@ export class UserModel {
     return user;
   }
 
-  public async updateUser(inputUser: UpdateUser): Promise<User> {
+  public async update(inputUser: UpdateUser): Promise<User> {
     const now = Date.now();
 
-    const existingUser = await this.collection.findOne({ _id: new ObjectId(inputUser.id), docType: DocType.User });
+    const existingUser = await this.findOne({
+      _id: new ObjectId(inputUser.id)
+    });
 
     if (!existingUser) {
       throw new GraphQLError('User not found', {
@@ -50,6 +70,7 @@ export class UserModel {
     const updateDoc = {
       ...existingUser,
       ...inputUser,
+      id: new ObjectId(existingUser.id),
       updatedAt: now as any,
     };
     await this.collection.updateOne({ id: inputUser.id }, { $set: updateDoc });

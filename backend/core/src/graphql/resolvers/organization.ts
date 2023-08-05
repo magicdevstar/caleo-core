@@ -8,7 +8,7 @@ export const organization = {
       _parent: unknown,
       { org }: { org: NewOrganization },
       { organizations }: Context
-    ): Promise<Organization> => organizations.createOrganization(org),
+    ): Promise<Organization> => organizations.create(org),
   },
   fields: {
     Organization: {

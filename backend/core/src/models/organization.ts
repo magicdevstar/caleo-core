@@ -21,7 +21,7 @@ export class OrganizationModel {
     } as any;
   }
 
-  public async createOrganization(org: NewOrganization): Promise<Organization> {
+  public async create(org: NewOrganization): Promise<Organization> {
     const now = Date.now();
     const insertDoc = {
       ...org,

@@ -12,6 +12,8 @@ import resolvers from './graphql/resolvers';
 import mongodb from './utils/mongo';
 import { OrganizationModel } from './models/organization';
 import { UserModel } from './models/user';
+import { Db } from 'mongodb';
+import { User } from './__generated__/resolvers-types';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -24,22 +26,27 @@ const server = new ApolloServer({
   introspection: process.env.STAGE !== 'prod',
 });
 
+let db: Db;
+
 export const handler = startServerAndCreateLambdaHandler(
   server,
   handlers.createAPIGatewayProxyEventV2RequestHandler<
     APIGatewayProxyEventV2WithLambdaAuthorizer<{
-      myAuthorizerContext: string;
+      user?: User;
     }>
   >(),
   {
     middleware: [loggerMiddleware],
     context: async ({ event, context }) => {
       logger.addContext(context);
-      const db = await mongodb.db(process.env.MONGODB_NAME!);
+      if (!db) {
+        db = await mongodb.db(process.env.MONGODB_NAME!);
+      }
 
       return {
         organizations: new OrganizationModel(db),
         users: new UserModel(db),
+        user: event.requestContext.authorizer.lambda.user,
         lambdaEvent: event,
         lambdaContext: context,
       };

@@ -4,19 +4,36 @@ frameworkVersion: '3'
 params:
   default:
     dbName: caleo-dev
+    poolId: us-west-2_8023dPQwv
+    serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
   prod:
     dbName: caleo-prod
+    poolId: us-west-2_3enNflKSo
 
 provider:
   name: aws
   runtime: nodejs18.x
   region: us-west-2
   logRetentionInDays: 3
+  httpApi:
+    cors: true
+    authorizers:
+      customAuthorizer:
+        type: request
+        functionName: authorizerFunc
+        enableSimpleResponses: true
+        payloadVersion: '2.0'
+        identitySource:
+          - $request.header.Authorization
+          - $request.header.authorization
   environment:
     STAGE: ${sls:stage}
+    REGION: ${aws:region}
+    COGNITO_POOL_ID: ${param:poolId}
     MONGODB_URI: ${ssm:/caleo/mongoURI}
     MONGODB_NAME: ${param:dbName}
     MONGODB_COLLECTION: core
+    SERVICE_ID: ${param:serviceId}
 
 plugins:
   - serverless-esbuild
@@ -34,12 +51,19 @@ custom:
 # Create the authorizer
 # Create a hook that will create a user when a new user signs up
 functions:
+  authorizerFunc:
+    handler: src/auth/authorizer.handler
   graphql:
     handler: src/index.handler
     events:
       - httpApi:
           path: /
           method: POST
+          authorizer:
+            name: customAuthorizer
       - httpApi:
           path: /
           method: GET
+      - httpApi:
+          path: /
+          method: OPTIONS

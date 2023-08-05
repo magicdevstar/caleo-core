@@ -1,6 +1,10 @@
 import { Context } from "../..";
-import { Member, NewUser, UpdateUser, User } from "../../__generated__/resolvers-types";
-import logger from "../../utils/logger";
+import {
+  Member,
+  NewUser,
+  UpdateUser,
+  User
+} from "../../__generated__/resolvers-types";
 
 export const user = {
   Query: {},
@@ -9,12 +13,12 @@ export const user = {
       _parent: unknown,
       { user }: { user: NewUser },
       { users }: Context
-    ): Promise<User> => users.createUser(user),
+    ): Promise<User> => users.create(user),
     user: async (
       _parent: unknown,
       { user }: { user: UpdateUser },
       { users }: Context
-    ): Promise<User> => users.updateUser(user),
+    ): Promise<User> => users.update(user),
   },
   fields: {
     User: {

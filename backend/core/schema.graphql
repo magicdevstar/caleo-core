@@ -28,6 +28,11 @@
     DELETED
   }
 
+  enum MemberRole {
+    ADMIN
+    MEMBER
+  }
+
   type UserAvailability {
     dayOfWeek: DayOfWeek!
     unavailable: Boolean!
@@ -58,10 +63,11 @@
   type Member {
     orgId: String!
     pNumber: String!
+    role: MemberRole
     status: MemberStatus
     contactInfo: ContactInfo
     tier: MemberTier
-    rankID: String
+    rankId: String
     memberSkillIds: [String]
     adminNote: String
     deactivationNote: String
@@ -76,6 +82,7 @@
     cognitoId: String!
     firstName: String!
     lastName: String!
+    superAdmin: Boolean!
     createdAt: String!
     updatedAt: String!
     docType: DocType!
@@ -117,7 +124,14 @@
   input NewMember {
     orgId: String!
     pNumber: String!
-    contactInfo: NewContactInfo!
+    role: MemberRole
+    tier: MemberTier
+    rankId: String
+    memberSkillIds: [String]
+    adminNote: String
+    status: MemberStatus
+    deactivationNote: String
+    contactInfo: NewContactInfo
   }
 ###### END User ######
 

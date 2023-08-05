@@ -9,7 +9,7 @@ export class OrganizationModel {
     this.collection = this.db.collection(this.collectionName);
   }
 
-  public async getById(id: string): Promise<Organization | null> {
+  public async get(id: string): Promise<Organization | null> {
     const res = await this.collection.findOne({ _id: new ObjectId(id), docType: DocType.Organization });
     if (!res) {
       return null;

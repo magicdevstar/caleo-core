@@ -28,7 +28,7 @@ export const user = {
     Member: {
       rank: () => ({}),
       memberSkills: () => [],
-      org: (member: Member, _, { organizations }: Context) => organizations.getById(member.orgId),
+      org: (member: Member, _, { organizations }: Context) => organizations.get(member.orgId),
     }
   },
 };

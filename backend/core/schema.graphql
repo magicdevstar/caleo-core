@@ -2,6 +2,7 @@
   enum DocType {
     USER
     ORGANIZATION
+    Rank
   }
   enum DayOfWeek {
     SUNDAY
@@ -285,10 +286,19 @@
   type Rank {
     id: ID!
     name: String!
+    active: Boolean!
     docType: DocType!
     orgId: String!
+    createdAt: String!
+    updatedAt: String!
 
-    org: Organization!
+    org: Organization
+  }
+
+  input UpsertRank {
+    id: String
+    name: String
+    active: Boolean
   }
 ###### END Rank ######
 
@@ -367,10 +377,13 @@
 
 type Query {
   health: String
+  ranks: [Rank]
 }
 
 type Mutation {
   organization(org: NewOrganization!): Organization
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User
+  rank(rank: UpsertRank!): Rank
+  removeRank(id: String!): ID!
 }

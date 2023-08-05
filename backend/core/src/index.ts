@@ -14,10 +14,13 @@ import { OrganizationModel } from './models/organization';
 import { UserModel } from './models/user';
 import { Db } from 'mongodb';
 import { User } from './__generated__/resolvers-types';
+import { RankModel } from './models/rank';
 
 export interface Context {
   organizations: OrganizationModel;
   users: UserModel;
+  ranks: RankModel;
+  user?: User;
 }
 
 const server = new ApolloServer({
@@ -46,6 +49,7 @@ export const handler = startServerAndCreateLambdaHandler(
       return {
         organizations: new OrganizationModel(db),
         users: new UserModel(db),
+        ranks: new RankModel(db),
         user: event.requestContext.authorizer.lambda.user,
         lambdaEvent: event,
         lambdaContext: context,

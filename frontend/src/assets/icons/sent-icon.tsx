@@ -20,7 +20,7 @@ function SentIcon({ ...other }: BoxProps) {
       fill="none"
       viewBox="0 0 96 97"
       xmlns="http://www.w3.org/2000/svg"
-      {...other}
+      {...(other as any)}
     >
       <path
         fill={PRIMARY_DARK}

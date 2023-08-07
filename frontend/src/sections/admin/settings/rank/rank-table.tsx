@@ -10,6 +10,8 @@ import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+// @apollo/client
+import { gql, useQuery } from '@apollo/client';
 // routes
 import { useRouter } from 'src/routes/hooks';
 // hooks
@@ -57,12 +59,27 @@ const defaultFilters: IProductTableFilters = {
   active: [],
 };
 
+const GET_RANKS = gql`
+  query GetRanks {
+    ranks {
+      items {
+        id
+        name
+      }
+      total
+    }
+  }
+`;
+
 // ----------------------------------------------------------------------
 
 export default function RankTable() {
   const router = useRouter();
 
+  const { data } = useQuery(GET_RANKS);
   const table = useTable();
+
+  console.log('Get Ranks: ', data);
 
   const [tableData, setTableData] = useState<IProductItem[]>([]);
 

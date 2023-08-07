@@ -11,6 +11,7 @@ export const StyledLabel = styled(Box)(({
   ownerState,
 }: {
   theme: Theme;
+  component?: string;
   ownerState: {
     color: LabelColor;
     variant: LabelVariant;

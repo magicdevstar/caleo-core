@@ -65,7 +65,7 @@ export const handler = startServerAndCreateLambdaHandler(
         venues: new VenueModel(db),
         notifications: new NotificationModel(db),
         memberNotifications: new MemberNotificationModel(db),
-        user: event.requestContext.authorizer.lambda.user,
+        user: event.requestContext?.authorizer?.lambda?.user,
         lambdaEvent: event,
         lambdaContext: context,
       };

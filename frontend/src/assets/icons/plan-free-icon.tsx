@@ -21,7 +21,7 @@ function PlanFreeIcon({ ...other }: BoxProps) {
       height="100%"
       viewBox="0 0 80 80"
       xmlns="http://www.w3.org/2000/svg"
-      {...other}
+      {...(other as any)}
     >
       <g transform="translate(9.167 20)">
         <path fill={PRIMARY_DARK} d="M53.333 17.5H61.666V25H53.333z" />

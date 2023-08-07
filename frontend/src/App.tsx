@@ -1,3 +1,6 @@
+// @apollo/client
+import { ApolloProvider } from '@apollo/client';
+
 // scrollbar
 import 'simplebar-react/dist/simplebar.min.css';
 
@@ -18,6 +21,7 @@ import MotionLazy from 'src/components/animate/motion-lazy';
 import { SettingsProvider, SettingsDrawer } from 'src/components/settings';
 // auth
 import { AuthProvider, AuthConsumer } from 'src/auth/context/amplify';
+import { client } from './utils/apollo';
 
 // ----------------------------------------------------------------------
 
@@ -49,13 +53,15 @@ export default function App() {
         }}
       >
         <ThemeProvider>
-          <MotionLazy>
-            <SettingsDrawer />
-            <ProgressBar />
-            <AuthConsumer>
-              <Router />
-            </AuthConsumer>
-          </MotionLazy>
+          <ApolloProvider client={client}>
+            <MotionLazy>
+              <SettingsDrawer />
+              <ProgressBar />
+              <AuthConsumer>
+                <Router />
+              </AuthConsumer>
+            </MotionLazy>
+          </ApolloProvider>
         </ThemeProvider>
       </SettingsProvider>
     </AuthProvider>

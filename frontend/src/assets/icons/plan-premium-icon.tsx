@@ -21,7 +21,7 @@ function PlanPremiumIcon({ ...other }: BoxProps) {
       height="100%"
       viewBox="0 0 80 80"
       xmlns="http://www.w3.org/2000/svg"
-      {...other}
+      {...(other as any)}
     >
       <g transform="translate(0 -9)">
         <g transform="translate(0 18.271)">

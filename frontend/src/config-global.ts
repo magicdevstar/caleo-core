@@ -31,5 +31,7 @@ export const AUTH0_API = {
 
 export const MAPBOX_API = process.env.REACT_APP_MAPBOX_API;
 
+export const APOLLO_API = process.env.REACT_APP_APOLLO_API;
+
 // ROOT PATH AFTER LOGIN SUCCESSFUL
 export const PATH_AFTER_LOGIN = paths.dashboard.root; // as '/dashboard'

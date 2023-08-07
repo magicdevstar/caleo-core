@@ -22,7 +22,7 @@ function EmailInboxIcon({ ...other }: BoxProps) {
       fill="none"
       viewBox="0 0 96 97"
       xmlns="http://www.w3.org/2000/svg"
-      {...other}
+      {...(other as any)}
     >
       <g filter="url(#filter0_di_1870_133886)">
         <path

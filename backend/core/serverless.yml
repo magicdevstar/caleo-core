@@ -64,6 +64,3 @@ functions:
       - httpApi:
           path: /
           method: GET
-      - httpApi:
-          path: /
-          method: OPTIONS

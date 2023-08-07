@@ -20,7 +20,7 @@ const AmplifyForgotPasswordPage = lazy(() => import('src/pages/auth/amplify/forg
 // ----------------------------------------------------------------------
 
 const authAmplify = {
-  path: 'amplify',
+  path: '',
   element: (
     <GuestGuard>
       <Suspense fallback={<SplashScreen />}>

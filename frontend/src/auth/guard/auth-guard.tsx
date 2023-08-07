@@ -29,7 +29,7 @@ export default function AuthGuard({ children }: Props) {
       const searchParams = new URLSearchParams({
         returnTo: window.location.pathname,
       }).toString();
-
+      
       const loginPath = loginPaths[method];
 
       const href = `${loginPath}?${searchParams}`;

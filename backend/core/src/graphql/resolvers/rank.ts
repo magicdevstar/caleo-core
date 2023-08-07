@@ -1,14 +1,24 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { Rank, UpsertRank } from "../../__generated__/resolvers-types";
+import { Rank, SearchInput, UpsertRank } from "../../__generated__/resolvers-types";
+import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
 export const rank = {
   Query: {
+    rank: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { ranks }: Context,
+    ): Promise<Rank | null> => ranks.get(id),
     ranks: async (
       _parent: unknown,
-      _args: unknown,
-      { ranks }: Context
-    ): Promise<Rank[]> => ranks.search()
+      { limit, skip }: SearchInput,
+      { ranks, user }: Context
+    ): Promise<SearchResults<Rank>> => ranks.search({
+      orgId: user?.member.orgId!,
+      limit,
+      skip,
+    })
   },
   Mutation: {
     removeRank: async (
@@ -30,14 +40,13 @@ export const rank = {
       return ranks.upsert({
         ...rank,
         orgId: user?.member.orgId!,
-      });
+      } as any);
     },
   },
   fields: {
     Rank: {
-      createdAt: (rank) => new Date(rank.createdAt).toISOString(),
-      updatedAt: (rank) => new Date(rank.createdAt).toISOString(),
-      org: (rank: Rank, _, { organizations }: Context) => organizations.get(rank.orgId),
+      ...commonResolvers,
+      org: (rank: Rank, _, { organizations }: Context) => organizations.loader.load(rank.orgId),
     },
   },
 };

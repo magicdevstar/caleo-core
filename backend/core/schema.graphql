@@ -2,7 +2,12 @@
   enum DocType {
     USER
     ORGANIZATION
-    Rank
+    RANK
+    SKILL
+    MEMBER_SKILL
+    VENUE
+    NOTIFICATION
+    MEMBER_NOTIFICATION
   }
   enum DayOfWeek {
     SUNDAY
@@ -244,6 +249,25 @@
 
     org: Organization!
   }
+
+  input UpsertVenueContact {
+    firstName: String
+    lastName: String
+    email: String
+    phone: String
+  }
+
+  input UpsertVenue {
+    id: ID!
+    name: String!
+    address: String
+    city: String
+    state: String
+    zip: String
+    phone: String
+    contact: UpsertVenueContact
+    status: VenueStatus
+  }
 ###### END Venues ######
 
 ###### START Skill ######
@@ -273,12 +297,32 @@
     id: ID!
     userId: String!
     imagePath: String!
+    skillId: String!
+    orgId: String!
     status: SkillStatus!
     docType: DocType!
     createdAt: String!
     updatedAt: String!
 
     skill: Skill!
+    user: User
+  }
+
+  input UpsertSkill {
+    id: String
+    name: String
+    active: Boolean
+    requiresAdminApproval: Boolean
+    requiresCert: Boolean
+    rankOnlyIds: [String]
+  }
+
+  input UpsertMemberSkill {
+    id: String
+    imagePath: String
+    status: SkillStatus
+    skillId: String!
+    userId: String!
   }
 ###### END Skill ######
 
@@ -351,9 +395,9 @@
     body: String!
     active: Boolean!
     frequency: NotificationFrequency!
+    rankIds: [String]
     docType: DocType!
     orgId: String!
-    rankIds: [String]
     createdById: String!
     createdAt: String!
     updatedAt: String!
@@ -361,6 +405,7 @@
     createdBy: User!
     org: Organization!
     ranks: [Rank]!
+    memberNotification: MemberNotification
   }
 
   type MemberNotification {
@@ -373,17 +418,88 @@
     notification: Notification!
     user: User!
   }
+
+  input UpsertNotification {
+    id: String
+    title: String!
+    body: String
+    active: Boolean
+    frequency: NotificationFrequency
+    rankIds: [String]
+  }
 ###### END Notifications ######
+
+###### START Pagination ######
+  input SearchInput {
+    limit: Int
+    skip: Int
+    query: Int
+  }
+
+  type RankSearchResult {
+    items: [Rank]
+    total: Int!
+  }
+
+  type SkillSearchResult {
+    items: [Skill]
+    total: Int!
+  }
+
+  type VenueSearchResult {
+    items: [Venue]
+    total: Int!
+  }
+
+  type NotificationSearchResult {
+    items: [Notification]
+    total: Int!
+  }
+
+  type UserSearchResult {
+    items: [User]
+    total: Int!
+  }
+###### END Pagination ######
 
 type Query {
   health: String
-  ranks: [Rank]
+  me: User
+
+  users(input: SearchInput): UserSearchResult
+
+  rank(id: String!): Rank
+  ranks(input: SearchInput): RankSearchResult
+  
+  skill(id: String!): Skill
+  skills(input: SearchInput): SkillSearchResult
+  
+  venue(id: String!): Venue
+  venues(input: SearchInput): VenueSearchResult
+
+  notification(id: String!): Notification
+  notifications(input: SearchInput): NotificationSearchResult
+  activeNotifications(input: SearchInput): NotificationSearchResult
 }
 
 type Mutation {
   organization(org: NewOrganization!): Organization
+
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User
+
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!
+
+  skill(skill: UpsertSkill!): Skill
+  removeSkill(id: String!): ID!
+  userSkill(userSkill: UpsertMemberSkill!): MemberSkill
+  removeUserSkill(id: String!): ID!
+
+  venue(venue: UpsertVenue!): Venue
+  removeVenue(id: String!): ID!
+
+  notification(notification: UpsertNotification!): Notification
+  removeNotification(id: String!): ID!
+  seenNotifications(notificationIds: [String]!): Boolean
 }

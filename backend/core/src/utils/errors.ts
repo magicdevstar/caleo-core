@@ -1,9 +1,19 @@
 export const userErrors = {
-  USER_NOT_FOUND: 'USER_NOT_FOUND',
+  NOT_FOUND: 'USER_NOT_FOUND',
 };
 
 export const rankErrors = {
-  RANK_NOT_FOUND: 'RANK_NOT_FOUND',
-  RANK_NAME_MUST_BE_UNIQUE: 'RANK_NAME_MUST_BE_UNIQUE',
+  NOT_FOUND: 'RANK_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'RANK_NAME_MUST_BE_UNIQUE',
+};
+
+export const skillErrors = {
+  NOT_FOUND: 'SKILL_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'SKILL_NAME_MUST_BE_UNIQUE',
+};
+
+export const venueErrors = {
+  NOT_FOUND: 'VENUE_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'VENUE_NAME_MUST_BE_UNIQUE',
 };
 

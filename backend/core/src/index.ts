@@ -15,11 +15,21 @@ import { UserModel } from './models/user';
 import { Db } from 'mongodb';
 import { User } from './__generated__/resolvers-types';
 import { RankModel } from './models/rank';
+import { SkillModel } from './models/skill';
+import { MemberSkillModel } from './models/memberSkill';
+import { VenueModel } from './models/venue';
+import { NotificationModel } from './models/nontification';
+import { MemberNotificationModel } from './models/memberNotification';
 
 export interface Context {
   organizations: OrganizationModel;
   users: UserModel;
   ranks: RankModel;
+  skills: SkillModel;
+  memberSkills: MemberSkillModel;
+  venues: VenueModel;
+  notifications: NotificationModel;
+  memberNotifications: MemberNotificationModel;
   user?: User;
 }
 
@@ -50,6 +60,11 @@ export const handler = startServerAndCreateLambdaHandler(
         organizations: new OrganizationModel(db),
         users: new UserModel(db),
         ranks: new RankModel(db),
+        skills: new SkillModel(db),
+        memberSkills: new MemberSkillModel(db),
+        venues: new VenueModel(db),
+        notifications: new NotificationModel(db),
+        memberNotifications: new MemberNotificationModel(db),
         user: event.requestContext.authorizer.lambda.user,
         lambdaEvent: event,
         lambdaContext: context,

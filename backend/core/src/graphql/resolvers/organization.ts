@@ -1,5 +1,6 @@
 import { Context } from "../..";
 import { NewOrganization, Organization } from "../../__generated__/resolvers-types";
+import { commonResolvers } from "../../utils/common.resolvers";
 
 export const organization = {
   Query: {},
@@ -12,8 +13,7 @@ export const organization = {
   },
   fields: {
     Organization: {
-      createdAt: (org) => new Date(org.createdAt).toISOString(),
-      updatedAt: (org) => new Date(org.createdAt).toISOString(),
+      ...commonResolvers,
     },
   },
 };

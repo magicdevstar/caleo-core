@@ -1,30 +1,18 @@
-import { Db, Collection, ObjectId } from 'mongodb';
+import { Db } from 'mongodb';
 import { DocType, NewOrganization, Organization } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
+import { BaseModel } from './base';
 
-export class OrganizationModel {
-  collectionName: string = process.env.MONGODB_COLLECTION!;
-  collection: Collection;
-  constructor(private db: Db) {
-    this.collection = this.db.collection(this.collectionName);
+export class OrganizationModel extends BaseModel<Organization> {
+  constructor(db: Db) {
+    super(db, DocType.Organization);
   }
 
-  public async get(id: string): Promise<Organization | null> {
-    const res = await this.collection.findOne({ _id: new ObjectId(id), docType: DocType.Organization });
-    if (!res) {
-      return null;
-    }
-    const { _id, ...rest } = res;
-    return {
-      id: _id.toString(),
-      ...rest,
-    } as any;
-  }
-
-  public async create(org: NewOrganization): Promise<Organization> {
+  public async create(org: any): Promise<any> {
+    const inputOrg = org as NewOrganization;
     const now = Date.now();
     const insertDoc = {
-      ...org,
+      ...inputOrg,
       docType: DocType.Organization,
       createdAt: now,
       updatedAt: now,
@@ -39,6 +27,6 @@ export class OrganizationModel {
 
     logger.info('Organization created', { res, organization });
 
-    return organization;
+    return organization as Organization;
   }
 }

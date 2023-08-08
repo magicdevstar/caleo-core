@@ -1,7 +1,8 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { Rank, SearchInput, UpsertRank } from "../../__generated__/resolvers-types";
+import { Rank, RankSearchInput, UpsertRank } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import logger from "../../utils/logger";
 
 export const rank = {
   Query: {
@@ -12,13 +13,13 @@ export const rank = {
     ): Promise<Rank | null> => ranks.get(id),
     ranks: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: RankSearchInput },
       { ranks, user }: Context
     ): Promise<SearchResults<Rank>> => ranks.search({
       orgId: user?.member.orgId!,
-      limit,
-      skip,
-    })
+      queryField: 'name',
+      ...input,
+    }),
   },
   Mutation: {
     removeRank: async (

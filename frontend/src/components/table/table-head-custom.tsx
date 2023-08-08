@@ -63,15 +63,19 @@ export default function TableHeadCustom({
           <TableCell
             key={headCell.id}
             align={headCell.align || 'left'}
-            sortDirection={orderBy === headCell.id ? order : false}
+            sortDirection={orderBy === headCell.id && !headCell.noSort ? order : false}
             sx={{ width: headCell.width, minWidth: headCell.minWidth }}
           >
-            {onSort ? (
+            {onSort && !headCell.noSort ? (
               <TableSortLabel
                 hideSortIcon
                 active={orderBy === headCell.id}
                 direction={orderBy === headCell.id ? order : 'asc'}
-                onClick={() => onSort(headCell.id)}
+                onClick={() => {
+                  if (!headCell.noSort) {
+                    onSort(headCell.id)
+                  }
+                }}
               >
                 {headCell.label}
 

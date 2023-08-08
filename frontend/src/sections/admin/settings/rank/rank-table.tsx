@@ -11,18 +11,12 @@ import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 // @apollo/client
-import { gql, useQuery } from '@apollo/client';
-// routes
-import { useRouter } from 'src/routes/hooks';
+import { useMutation, useQuery } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
-// api
-import { useGetProducts } from 'src/api/product';
 // components
 import {
   useTable,
-  getComparator,
-  emptyRows,
   TableNoData,
   TableSkeleton,
   TableEmptyRows,
@@ -34,11 +28,13 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
-import { IProductItem, IProductTableFilters, IProductTableFilterValue } from 'src/types/product';
+import { Rank } from 'src/__generated__/resolvers-types';
+import { GET_RANKS, RankTableFilters, RankTableFilterValue, REMOVE_RANK, UPSERT_RANK } from 'src/api/rank';
 //
 import RankTableRow from './rank-table-row';
 import RankTableToolbar from './rank-table-toolbar';
 import RankTableFiltersResult from './rank-table-filters-result';
+import UpsertRankDialogue from './upsert-rank-dialogue';
 
 // ----------------------------------------------------------------------
 
@@ -54,66 +50,62 @@ const ACTIVE_OPTIONS = [
   { value: 'inactive', label: 'InActive' },
 ];
 
-const defaultFilters: IProductTableFilters = {
+const defaultFilters: RankTableFilters = {
   name: '',
   active: [],
 };
 
-const GET_RANKS = gql`
-  query GetRanks {
-    ranks {
-      items {
-        id
-        name
-      }
-      total
-    }
-  }
-`;
-
 // ----------------------------------------------------------------------
 
 export default function RankTable() {
-  const router = useRouter();
-
-  const { data } = useQuery(GET_RANKS);
-  const table = useTable();
-
-  console.log('Get Ranks: ', data);
-
-  const [tableData, setTableData] = useState<IProductItem[]>([]);
-
+  const table = useTable({
+    defaultOrderBy: 'createdAt',
+    defaultOrder: 'desc',
+  });
+  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
+  const [removeRank] = useMutation(REMOVE_RANK, {
+    refetchQueries: [GET_RANKS],
+  });
+  const { data, loading } = useQuery(GET_RANKS, {
+    variables: {
+      input: {
+        limit: table.rowsPerPage,
+        skip: table.page * table.rowsPerPage,
+        orderBy: table.orderBy,
+        order: table.order,
+        ...(filters.name.trim() !== '' ? { query: filters.name } : {}),
+        ...(filters.active.length === 1 ? { active: filters.active[0] === 'active' } : {}),
+      },
+    }
+  });
+  const [updateRank] = useMutation(UPSERT_RANK, {
+    refetchQueries: [GET_RANKS],
+  });
+  const { ranks: { items: ranks, total: apiTotal } } = data || { ranks: { items: [], total: 0 } };
+  const isEmpty = total === 0;
 
-  const { products, productsLoading, productsEmpty } = useGetProducts();
+  const [editRank, setEditRank] = useState<Rank | null>(null);
+  const [tableData, setTableData] = useState<Rank[]>([]);
 
-  const confirm = useBoolean();
+  const deleteConfirm = useBoolean();
+  const upsertRank = useBoolean();
 
   useEffect(() => {
-    if (products.length) {
-      setTableData(products);
+    if (ranks.length) {
+      setTotal(apiTotal);
+      setTableData(ranks);
     }
-  }, [products]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
+  }, [ranks, apiTotal]);
 
   const denseHeight = 60;
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || productsEmpty;
+  const notFound = (!ranks.length && canReset) || (isEmpty && !loading);
 
   const handleFilters = useCallback(
-    (name: string, value: IProductTableFilterValue) => {
+    (name: string, value: RankTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -125,12 +117,13 @@ export default function RankTable() {
 
   const handleDeleteRow = useCallback(
     (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
+      removeRank({
+        variables: {
+          id,
+        },
+      });
     },
-    [dataInPage.length, table, tableData]
+    [removeRank]
   );
 
   const handleDeleteRows = useCallback(() => {
@@ -138,24 +131,40 @@ export default function RankTable() {
     setTableData(deleteRows);
 
     table.onUpdatePageDeleteRows({
-      totalRows: tableData.length,
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
+      totalRows: total,
+      totalRowsInPage: ranks.length,
+      totalRowsFiltered: ranks.length,
     });
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [total, ranks.length, table, tableData]);
 
   const handleEditRow = useCallback(
-    (id: string) => {
-      router.push('#');
+    (rank: Rank) => {
+      setEditRank(rank);
+      upsertRank.onTrue();
     },
-    [router]
+    [upsertRank]
   );
 
-  const handleViewRow = useCallback(
-    (id: string) => {
-      router.push('#');
+  const handleUpsert = useCallback(
+    () => {
+      setEditRank(null);
     },
-    [router]
+    []
+  );
+
+  const handleToggleActivation = useCallback(
+    (rank: Rank, active: boolean) => {
+      updateRank({
+        variables: {
+          input: {
+            id: rank.id,
+            active,
+            name: rank.name,
+          },
+        },
+      });
+    },
+    [updateRank],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -174,7 +183,11 @@ export default function RankTable() {
           pb: 0,
         }}>
           <Typography variant="h4"> Ranks </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="ic:baseline-add"/>}>Create Rank</Button>
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="ic:baseline-add"/>}
+            onClick={upsertRank.onTrue}
+          >Create Rank</Button>
         </Box>
         <RankTableToolbar
           filters={filters}
@@ -190,7 +203,7 @@ export default function RankTable() {
             //
             onResetFilters={handleResetFilters}
             //
-            results={dataFiltered.length}
+            results={total}
             sx={{ p: 2.5, pt: 0 }}
           />
         )}
@@ -199,16 +212,16 @@ export default function RankTable() {
           <TableSelectedAction
             dense
             numSelected={table.selected.length}
-            rowCount={tableData.length}
+            rowCount={ranks.length}
             onSelectAllRows={(checked) =>
               table.onSelectAllRows(
                 checked,
-                tableData.map((row) => row.id)
+                ranks.map((row: Rank) => row.id)
               )
             }
             action={
               <Tooltip title="Delete">
-                <IconButton color="primary" onClick={confirm.onTrue}>
+                <IconButton color="primary" onClick={deleteConfirm.onTrue}>
                   <Iconify icon="solar:trash-bin-trash-bold" />
                 </IconButton>
               </Tooltip>
@@ -221,47 +234,43 @@ export default function RankTable() {
                 order={table.order}
                 orderBy={table.orderBy}
                 headLabel={TABLE_HEAD}
-                rowCount={tableData.length}
+                rowCount={ranks.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    tableData.map((row) => row.id)
+                    ranks.map((row: Rank) => row.id)
                   )
                 }
               />
 
               <TableBody>
-                {productsLoading ? (
+                {loading ? (
                   [...Array(table.rowsPerPage)].map((i, index) => (
                     <TableSkeleton key={index} sx={{ height: denseHeight }} />
                   ))
                 ) : (
                   <>
-                    {dataFiltered
-                      .slice(
-                        table.page * table.rowsPerPage,
-                        table.page * table.rowsPerPage + table.rowsPerPage
-                      )
-                      .map((row) => (
+                    {ranks
+                      .map((rank: Rank) => (
                         <RankTableRow
-                          key={row.id}
-                          row={row}
-                          selected={table.selected.includes(row.id)}
-                          onSelectRow={() => table.onSelectRow(row.id)}
-                          onDeleteRow={() => handleDeleteRow(row.id)}
-                          onEditRow={() => handleEditRow(row.id)}
-                          onViewRow={() => handleViewRow(row.id)}
+                          key={rank.id}
+                          row={rank}
+                          selected={table.selected.includes(rank.id)}
+                          onSelectRow={() => table.onSelectRow(rank.id)}
+                          onToggleActivation={(active) => handleToggleActivation(rank, active)}
+                          onDeleteRow={() => handleDeleteRow(rank.id)}
+                          onEditRow={() => handleEditRow(rank)}
                         />
                       ))}
                   </>
                 )}
 
-                <TableEmptyRows
+                {!loading && !notFound && <TableEmptyRows
                   height={denseHeight}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, tableData.length)}
-                />
+                  emptyRows={table.rowsPerPage - ranks.length}
+                />}
 
                 <TableNoData notFound={notFound} />
               </TableBody>
@@ -270,7 +279,7 @@ export default function RankTable() {
         </TableContainer>
 
         <TablePaginationCustom
-          count={dataFiltered.length}
+          count={total}
           page={table.page}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
@@ -280,8 +289,8 @@ export default function RankTable() {
       </Card>
 
       <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
+        open={deleteConfirm.value}
+        onClose={deleteConfirm.onFalse}
         title="Delete"
         content={
           <>
@@ -294,54 +303,21 @@ export default function RankTable() {
             color="error"
             onClick={() => {
               handleDeleteRows();
-              confirm.onFalse();
+              deleteConfirm.onFalse();
             }}
           >
             Delete
           </Button>
         }
       />
+
+      <UpsertRankDialogue
+        upsertRank={upsertRank}
+        rank={editRank}
+        onUpsertRank={handleUpsert}
+      />
     </>
   )
 };
 
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IProductItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IProductTableFilters;
-}) {
-  const { name, active } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (product) => product.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-  if (active?.length) {
-    inputData = inputData.filter((product) => {
-      if (active.length === ACTIVE_OPTIONS.length) return true;
-      if (active.includes('active') && product.isActive) return true;
-      if (active.includes('inactive') && !product.isActive) return true;
-      return false;
-    });
-  }
-
-  return inputData;
-}
 

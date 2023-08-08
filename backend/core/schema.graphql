@@ -433,12 +433,32 @@
   input SearchInput {
     limit: Int
     skip: Int
-    query: Int
+    query: String
+  }
+
+  input RankSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
   }
 
   type RankSearchResult {
     items: [Rank]
     total: Int!
+  }
+
+  input SkillSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    requiresCert: Boolean
+    requiresAdminApproval: Boolean
+    active: Boolean
+    orderBy: String
+    order: String
   }
 
   type SkillSearchResult {
@@ -469,10 +489,10 @@ type Query {
   users(input: SearchInput): UserSearchResult
 
   rank(id: String!): Rank
-  ranks(input: SearchInput): RankSearchResult
+  ranks(input: RankSearchInput): RankSearchResult
   
   skill(id: String!): Skill
-  skills(input: SearchInput): SkillSearchResult
+  skills(input: SkillSearchInput): SkillSearchResult
   
   venue(id: String!): Venue
   venues(input: SearchInput): VenueSearchResult

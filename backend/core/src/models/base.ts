@@ -145,11 +145,38 @@ export class BaseModel<T> {
     return this.update(item as UpdateModel) as Promise<T>;
   }
 
-  async search(query: any = {}): Promise<SearchResults<T>> {
-    const { skip, limit, ...rest } = query;
+  async search(searchInput: any = {}): Promise<SearchResults<T>> {
+    const {
+      skip,
+      limit,
+      order,
+      orderBy,
+      query,
+      queryField,
+      ...rest
+    } = searchInput;
     const transaction = this.collection.find({
       ...rest,
+      ...(query ? {
+        $text: {
+          $search: query,
+          $caseSensitive: false,
+        }
+      } : {}),
       docType: this.docType,
+    });
+
+    logger.info('Search', {
+      find: {
+        ...rest,
+        ...(query ? {
+          $text: {
+            $search: query,
+            $caseSensitive: false,
+          }
+        } : {}),
+        docType: this.docType,
+      }
     });
 
     if (skip) {
@@ -157,6 +184,12 @@ export class BaseModel<T> {
     }
     if (limit) {
       transaction.limit(limit);
+    }
+
+    if (order && orderBy) {
+      transaction.sort({ [orderBy]: order === 'asc' ? 1 : -1 });
+    } else {
+      transaction.sort({ createdAt: -1 });
     }
 
     const res = await transaction.toArray();

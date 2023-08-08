@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
 // @mui
-import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -8,6 +7,7 @@ import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // components
@@ -16,15 +16,16 @@ import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 // types
-import { IProductItem } from 'src/types/product';
+import { Rank } from 'src/__generated__/resolvers-types';
+
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: IProductItem;
+  row: Rank;
   selected: boolean;
   onEditRow: VoidFunction;
-  onViewRow: VoidFunction;
+  onToggleActivation: (active: boolean) => void;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
 };
@@ -34,12 +35,12 @@ export default function RankTableRow({
   selected,
   onSelectRow,
   onDeleteRow,
+  onToggleActivation,
   onEditRow,
-  onViewRow,
 }: Props) {
   const {
     name,
-    isActive,
+    active,
     createdAt,
   } = row;
 
@@ -58,22 +59,16 @@ export default function RankTableRow({
           <ListItemText
             disableTypography
             primary={
-              <Link
-                noWrap
-                color="inherit"
-                variant="subtitle2"
-                onClick={onViewRow}
-                sx={{ cursor: 'pointer' }}
-              >
+              <Typography variant="subtitle2" noWrap color="inherit">
                 {name}
-              </Link>
+              </Typography>
             }
           />
         </TableCell>
 
         <TableCell>
-          <Label variant="soft" color={(isActive && 'info') || 'default'}>
-            {isActive ? 'Active' : 'InActive'}
+          <Label variant="soft" color={(active && 'info') || 'default'}>
+            {active ? 'Active' : 'InActive'}
           </Label>
         </TableCell>
 
@@ -111,6 +106,16 @@ export default function RankTableRow({
         >
           <Iconify icon="solar:pen-bold" />
           Edit
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            onToggleActivation(!active);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon={active ? "solar:close-circle-bold" : "solar:check-circle-bold"} />
+          {active ? 'Deactivate' : 'Activate'}
         </MenuItem>
 
         <MenuItem

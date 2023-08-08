@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import {  MemberSkill, SearchInput, Skill, SkillStatus, UpsertMemberSkill, UpsertSkill } from "../../__generated__/resolvers-types";
+import {  MemberSkill, SkillSearchInput, Skill, SkillStatus, UpsertMemberSkill, UpsertSkill } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 
@@ -13,12 +13,12 @@ export const skill = {
     ): Promise<Skill | null> => skills.get(id),
     skills: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: SkillSearchInput },
       { skills, user }: Context
     ): Promise<SearchResults<Skill>> => skills.search({
       orgId: user?.member.orgId!,
-      limit,
-      skip,
+      queryField: 'name',
+      ...input,
     })
   },
   Mutation: {
@@ -78,6 +78,7 @@ export const skill = {
     Skill: {
       ...commonResolvers,
       org: (skill: Skill, _, { organizations }: Context) => organizations.loader.load(skill.orgId),
+      ranksOnly: (skill: Skill, _, { ranks }: Context) => skill.rankOnlyIds && skill.rankOnlyIds.length > 0 ? ranks.loader.loadMany((skill.rankOnlyIds || []) as any) : [],
     },
     MemberSkill: {
       skill: (memberSkill: MemberSkill, _, { skills }: Context) => skills.loader.load(memberSkill.skillId),

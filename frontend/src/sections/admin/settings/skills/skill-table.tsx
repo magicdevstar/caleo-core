@@ -1,5 +1,8 @@
-import isEqual from 'lodash/isEqual';
 import { useState, useEffect, useCallback } from 'react';
+// @apollo/client
+import { useMutation, useQuery } from '@apollo/client';
+// lodash
+import isEqual from 'lodash/isEqual';
 // @mui
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -10,16 +13,11 @@ import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-// routes
-import { useRouter } from 'src/routes/hooks';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
-// api
-import { useGetProducts } from 'src/api/product';
 // components
 import {
   useTable,
-  getComparator,
   emptyRows,
   TableNoData,
   TableSkeleton,
@@ -32,16 +30,20 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
-import { IProductItem, IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
+import { IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
+import { Skill } from 'src/__generated__/resolvers-types';
+import { GET_SKILLS, REMOVE_SKILL, UPSERT_SKILL } from 'src/api/skill';
 //
 import SkillTableRow from './skill-table-row';
 import SkillTableToolbar from './skill-table-toolbar';
 import SkillTableFiltersResult from './skill-table-filters-result';
+import UpsertSkillDialogue from './upsert-skill-dialogue';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Skill' },
+  { id: 'ranks', label: 'Ranks', width: 200, noSort: true },
   { id: 'certRequired', label: 'Cert Required', width: 160 },
   { id: 'adminApproval', label: 'Admin Approval', width: 160 },
   { id: 'isActive', label: 'Active', width: 110 },
@@ -74,40 +76,55 @@ const defaultFilters: ISkillTableFilters = {
 // ----------------------------------------------------------------------
 
 export default function SkillTable() {
-  const router = useRouter();
-
-  const table = useTable();
-
-  const [tableData, setTableData] = useState<IProductItem[]>([]);
-
+  const table = useTable({
+    defaultOrderBy: 'createdAt',
+    defaultOrder: 'desc',
+  });
+  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
 
-  const { products, productsLoading, productsEmpty } = useGetProducts();
-
-  const confirm = useBoolean();
-
-  useEffect(() => {
-    if (products.length) {
-      setTableData(products);
+  const [removeSkill] = useMutation(REMOVE_SKILL, {
+    refetchQueries: [GET_SKILLS],
+  });
+  const { data, loading } = useQuery(GET_SKILLS, {
+    variables: {
+      input: {
+        limit: table.rowsPerPage,
+        skip: table.page * table.rowsPerPage,
+        orderBy: table.orderBy,
+        order: table.order,
+        ...(filters.name.trim() !== '' ? { query: filters.name } : {}),
+        ...(filters.active.length === 1 ? { active: filters.active[0] === 'active' } : {}),
+        ...(filters.cert.length === 1 ? { requiresCert: filters.cert[0] === 'yes' } : {}),
+        ...(filters.admin.length === 1 ? { requiresAdminApproval: filters.cert[0] === 'yes' } : {}),
+      },
     }
-  }, [products]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
+  });
+  const [updateSkill] = useMutation(UPSERT_SKILL, {
+    refetchQueries: [GET_SKILLS],
   });
 
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
+  const { skills: { items: skills, total: apiTotal } } = data || { skills: { items: [], total: 0 } };
+  const isEmpty = total === 0;
+
+  const [editSkill, setEditSkill] = useState<Skill | null>(null);
+  const [tableData, setTableData] = useState<Skill[]>([]);
+
+  const deleteConfirm = useBoolean();
+  const upsertSkill = useBoolean();
+
+  useEffect(() => {
+    if (skills.length) {
+      setTotal(apiTotal);
+      setTableData(skills);
+    }
+  }, [skills, apiTotal]);
 
   const denseHeight = 60;
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || productsEmpty;
+  const notFound = (!skills.length && canReset) || (isEmpty && !loading);
 
   const handleFilters = useCallback(
     (name: string, value: IProductTableFilterValue) => {
@@ -122,12 +139,13 @@ export default function SkillTable() {
 
   const handleDeleteRow = useCallback(
     (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
+      removeSkill({
+        variables: {
+          id,
+        },
+      });
     },
-    [dataInPage.length, table, tableData]
+    [removeSkill]
   );
 
   const handleDeleteRows = useCallback(() => {
@@ -135,24 +153,43 @@ export default function SkillTable() {
     setTableData(deleteRows);
 
     table.onUpdatePageDeleteRows({
-      totalRows: tableData.length,
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
+      totalRows: total,
+      totalRowsInPage: skills.length,
+      totalRowsFiltered: skills.length,
     });
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [total, skills.length, table, tableData]);
 
   const handleEditRow = useCallback(
-    (id: string) => {
-      router.push('#');
+    (skill: Skill) => {
+      setEditSkill(skill);
+      upsertSkill.onTrue();
     },
-    [router]
+    [upsertSkill]
   );
 
-  const handleViewRow = useCallback(
-    (id: string) => {
-      router.push('#');
+  const handleUpsert = useCallback(
+    () => {
+      setEditSkill(null);
     },
-    [router]
+    []
+  );
+
+  const handleToggleActivation = useCallback(
+    (skill: Skill, active: boolean) => {
+      updateSkill({
+        variables: {
+          input: {
+            id: skill.id,
+            active,
+            name: skill.name,
+            requiresCert: skill.requiresCert,
+            requiresAdminApproval: skill.requiresAdminApproval,
+            rankOnlyIds: skill.rankOnlyIds,
+          },
+        },
+      });
+    },
+    [updateSkill],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -171,7 +208,11 @@ export default function SkillTable() {
           pb: 0,
         }}>
           <Typography variant="h4"> Skill </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="ic:baseline-add"/>}>Create Skill</Button>
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="ic:baseline-add"/>}
+            onClick={upsertSkill.onTrue}
+          >Create Skill</Button>
         </Box>
         <SkillTableToolbar
           filters={filters}
@@ -189,7 +230,7 @@ export default function SkillTable() {
             //
             onResetFilters={handleResetFilters}
             //
-            results={dataFiltered.length}
+            results={total}
             sx={{ p: 2.5, pt: 0 }}
           />
         )}
@@ -207,7 +248,7 @@ export default function SkillTable() {
             }
             action={
               <Tooltip title="Delete">
-                <IconButton color="primary" onClick={confirm.onTrue}>
+                <IconButton color="primary" onClick={deleteConfirm.onTrue}>
                   <Iconify icon="solar:trash-bin-trash-bold" />
                 </IconButton>
               </Tooltip>
@@ -232,35 +273,31 @@ export default function SkillTable() {
               />
 
               <TableBody>
-                {productsLoading ? (
+                {loading ? (
                   [...Array(table.rowsPerPage)].map((i, index) => (
                     <TableSkeleton key={index} sx={{ height: denseHeight }} />
                   ))
                 ) : (
                   <>
-                    {dataFiltered
-                      .slice(
-                        table.page * table.rowsPerPage,
-                        table.page * table.rowsPerPage + table.rowsPerPage
-                      )
-                      .map((row) => (
+                    {skills
+                      .map((row: Skill) => (
                         <SkillTableRow
                           key={row.id}
                           row={row}
                           selected={table.selected.includes(row.id)}
                           onSelectRow={() => table.onSelectRow(row.id)}
+                          onToggleActivation={(active) => handleToggleActivation(row, active)}
                           onDeleteRow={() => handleDeleteRow(row.id)}
-                          onEditRow={() => handleEditRow(row.id)}
-                          onViewRow={() => handleViewRow(row.id)}
+                          onEditRow={() => handleEditRow(row)}
                         />
                       ))}
                   </>
                 )}
 
-                <TableEmptyRows
+                {!loading && !notFound && <TableEmptyRows
                   height={denseHeight}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, tableData.length)}
-                />
+                  emptyRows={table.rowsPerPage - skills.length}
+                />}
 
                 <TableNoData notFound={notFound} />
               </TableBody>
@@ -269,7 +306,7 @@ export default function SkillTable() {
         </TableContainer>
 
         <TablePaginationCustom
-          count={dataFiltered.length}
+          count={total}
           page={table.page}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
@@ -279,8 +316,8 @@ export default function SkillTable() {
       </Card>
 
       <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
+        open={deleteConfirm.value}
+        onClose={deleteConfirm.onFalse}
         title="Delete"
         content={
           <>
@@ -293,71 +330,19 @@ export default function SkillTable() {
             color="error"
             onClick={() => {
               handleDeleteRows();
-              confirm.onFalse();
+              deleteConfirm.onFalse();
             }}
           >
             Delete
           </Button>
         }
       />
+
+      <UpsertSkillDialogue
+        upsertSkill={upsertSkill}
+        skill={editSkill}
+        onUpsertSkill={handleUpsert}
+      />
     </>
   )
 };
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IProductItem[];
-  comparator: (a: any, b: any) => number;
-  filters: ISkillTableFilters;
-}) {
-  const { name, active, cert, admin } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (product) => product.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-  if (active?.length) {
-    inputData = inputData.filter((product) => {
-      if (active.length === ACTIVE_OPTIONS.length) return true;
-      if (active.includes('active') && product.isActive) return true;
-      if (active.includes('inactive') && !product.isActive) return true;
-      return false;
-    });
-  }
-  if (cert?.length) {
-    inputData = inputData.filter((product) => {
-      if (cert.length === CERT_OPTIONS.length) return true;
-      if (cert.includes('yes') && product.certRequired) return true;
-      if (cert.includes('no') && !product.certRequired) return true;
-      return false;
-    });
-  }
-
-  if (admin?.length) {
-    inputData = inputData.filter((product) => {
-      if (admin.length === ADMIN_OPTIONS.length) return true;
-      if (admin.includes('yes') && product.adminApproval) return true;
-      if (admin.includes('no') && !product.adminApproval) return true;
-      return false;
-    });
-  }
-
-  return inputData;
-}
-

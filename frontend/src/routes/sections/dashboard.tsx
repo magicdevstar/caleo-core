@@ -14,6 +14,7 @@ const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOverti
 const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
 const EmptyPage = lazy(() => import('src/sections/empty/view'));
 const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
 
 // ----------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ export const dashboardRoutes = [
           {
             path: 'users',
             children: [
-              { element: <EmptyPage title='Search Users' />, index: true },
+              { element: <UserSearch />, index: true },
               { path: 'requests', element: <EmptyPage title='Manage Requests' /> },
             ]
           },

@@ -22,6 +22,7 @@ import { SettingsProvider, SettingsDrawer } from 'src/components/settings';
 // auth
 import { AuthProvider, AuthConsumer } from 'src/auth/context/amplify';
 import { client } from './utils/apollo';
+import { SnackbarProvider } from './components/snackbar';
 
 // ----------------------------------------------------------------------
 
@@ -55,11 +56,13 @@ export default function App() {
         <ThemeProvider>
           <ApolloProvider client={client}>
             <MotionLazy>
-              <SettingsDrawer />
-              <ProgressBar />
-              <AuthConsumer>
-                <Router />
-              </AuthConsumer>
+              <SnackbarProvider>
+                <SettingsDrawer />
+                <ProgressBar />
+                <AuthConsumer>
+                  <Router />
+                </AuthConsumer>
+              </SnackbarProvider>
             </MotionLazy>
           </ApolloProvider>
         </ThemeProvider>

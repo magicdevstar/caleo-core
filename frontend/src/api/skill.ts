@@ -43,3 +43,10 @@ export type SkillTableFilters = {
 };
 
 export type SkillTableFilterValue = string | string[];
+
+export type ISkillTableFilters = {
+  name: string;
+  cert: string[];
+  admin: string[];
+  active: string[];
+};

@@ -13,6 +13,7 @@ interface Props<
 > extends AutocompleteProps<T, Multiple, DisableClearable, FreeSolo> {
   name: string;
   label?: string;
+  valueKey?: string;
   placeholder?: string;
   helperText?: React.ReactNode;
 }
@@ -27,6 +28,7 @@ export default function RHFAutocomplete<
   label,
   placeholder,
   helperText,
+  valueKey,
   ...other
 }: Omit<Props<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'>) {
   const { control, setValue } = useFormContext();
@@ -38,7 +40,13 @@ export default function RHFAutocomplete<
       render={({ field, fieldState: { error } }) => (
         <Autocomplete
           {...field}
-          onChange={(event, newValue) => setValue(name, newValue, { shouldValidate: true })}
+          onChange={(event, newValue: any) => {
+            if (valueKey) {
+              setValue(name, newValue[valueKey], { shouldValidate: true })
+            } else {
+              setValue(name, newValue, { shouldValidate: true })
+            }
+          }}
           renderInput={(params) => (
             <TextField
               label={label}

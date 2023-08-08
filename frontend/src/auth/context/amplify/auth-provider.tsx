@@ -3,6 +3,9 @@ import { Auth } from '@aws-amplify/auth';
 // config
 import { AMPLIFY_API } from 'src/config-global';
 import { _mock } from 'src/_mock';
+import { client } from 'src/utils/apollo';
+import { ME } from 'src/api/user';
+import { User } from 'src/__generated__/resolvers-types';
 //
 import { AuthContext } from './auth-context';
 import { ActionMapType, AuthStateType, AuthUserType } from '../../types';
@@ -64,15 +67,19 @@ export function AuthProvider({ children }: Props) {
   const initialize = useCallback(async () => {
     try {
       const currentUser = await Auth.currentAuthenticatedUser();
-      // TODO: Fetch user from our backend
+      const res = await client.query<{ me: User }>({
+        query: ME,
+      });
+      const me = res.data.me;
       if (currentUser) {
         dispatch({
           type: Types.INITIAL,
           payload: {
             user: {
               ...currentUser,
-              id: currentUser.attributes.sub,
-              displayName: `${currentUser.attributes.given_name} ${currentUser.attributes.family_name}`,
+              ...me,
+              id: me.id,
+              displayName: `${me.firstName} ${me.lastName}`,
               email: currentUser.attributes.email,
               photoURL: _mock.image.avatar(24),
               role: 'admin',
@@ -105,14 +112,21 @@ export function AuthProvider({ children }: Props) {
   // LOGIN
   const login = useCallback(async (email: string, password: string) => {
     const currentUser = await Auth.signIn(email, password);
+
+    const res = await client.query<{ me: User }>({
+      query: ME,
+    });
+    const me = res.data.me;
+
     // TODO: Fetch user from our backend
     dispatch({
       type: Types.INITIAL,
       payload: {
         user: {
           ...currentUser,
-          id: currentUser.attributes.sub,
-          displayName: `${currentUser.attributes.given_name} ${currentUser.attributes.family_name}`,
+          ...me,
+          id: me.id,
+          displayName: `${me.firstName} ${me.lastName}`,
           email: currentUser.attributes.email,
           photoURL: _mock.image.avatar(24),
           role: 'admin',

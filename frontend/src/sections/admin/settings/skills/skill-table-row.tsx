@@ -8,6 +8,7 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import Tooltip from '@mui/material/Tooltip';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // components
@@ -20,7 +21,7 @@ import { Skill } from 'src/__generated__/resolvers-types';
 
 // ----------------------------------------------------------------------
 
-const MAX_RANKS = 3;
+const MAX_RANKS = 1;
 
 type Props = {
   row: Skill;
@@ -51,7 +52,6 @@ export default function SkillTableRow({
   const confirm = useBoolean();
 
   const popover = usePopover();
-
   return (
     <>
       <TableRow hover selected={selected}>
@@ -83,7 +83,7 @@ export default function SkillTableRow({
                 {
                   (ranksOnly || []).length > MAX_RANKS && (
                     <Label sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
-                      + {((ranksOnly || []).length - 1)} more
+                      + {((ranksOnly || []).length - MAX_RANKS)}
                     </Label>
                   )
                 }

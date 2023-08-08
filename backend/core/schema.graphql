@@ -88,6 +88,7 @@
     cognitoId: String!
     firstName: String!
     lastName: String!
+    name: String!
     superAdmin: Boolean!
     createdAt: String!
     updatedAt: String!
@@ -480,13 +481,27 @@
     items: [User]
     total: Int!
   }
+
+  input UserSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    pNumber: String
+    rankIds: [String]
+    statuses: [MemberStatus]
+    skillIds: [String]
+    tiers: [MemberTier]
+    admin: Boolean
+    orderBy: String
+    order: String
+  }
 ###### END Pagination ######
 
 type Query {
   health: String
   me: User
 
-  users(input: SearchInput): UserSearchResult
+  users(input: UserSearchInput): UserSearchResult
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

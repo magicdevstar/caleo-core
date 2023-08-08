@@ -2,7 +2,7 @@ import { Context } from "../..";
 import {
   Member,
   NewUser,
-  SearchInput,
+  UserSearchInput,
   UpdateUser,
   User
 } from "../../__generated__/resolvers-types";
@@ -17,12 +17,19 @@ export const user = {
     ): Promise<User | null> => users.get(user!.id),
     users: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: UserSearchInput },
       { users, user }: Context
     ): Promise<SearchResults<User>> => users.search({
-      limit,
-      skip,
-      orgId: user?.member.orgId!,
+      limit: input.limit,
+      skip: input.skip,
+      queryField: 'name',
+      query: input.query,
+      pNumber: input.pNumber,
+      ...(input.rankIds ? {'member.rankId': { $in: input.rankIds }} : {}),
+      ...(input.statuses ? {'member.status': { $in: input.statuses }} : {}),
+      ...(input.tiers ? {'member.tier': { $in: input.tiers }} : {}),
+      ...(input.admin ? {'member.admin': { $in: input.admin }} : {}),
+      'member.orgId': user?.member.orgId!,
     }),
   },
   Mutation: {
@@ -30,12 +37,18 @@ export const user = {
       _parent: unknown,
       { user }: { user: NewUser },
       { users }: Context
-    ): Promise<User> => users.create(user as any),
+    ): Promise<User> => users.create({
+      ...user,
+      name: `${user.firstName} ${user.lastName}`,
+    } as any),
     user: async (
       _parent: unknown,
       { user }: { user: UpdateUser },
       { users }: Context
-    ): Promise<User> => users.update(user as any),
+    ): Promise<User> => users.update({
+      ...user,
+      name: `${user.firstName} ${user.lastName}`,
+    } as any),
   },
   fields: {
     User: {

@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql';
+
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -393,7 +394,7 @@ export type QueryRankArgs = {
 
 
 export type QueryRanksArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<RankSearchInput>;
 };
 
 
@@ -403,7 +404,7 @@ export type QuerySkillArgs = {
 
 
 export type QuerySkillsArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<SkillSearchInput>;
 };
 
 
@@ -433,6 +434,15 @@ export type Rank = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type RankSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type RankSearchResult = {
   __typename?: 'RankSearchResult';
   items?: Maybe<Array<Maybe<Rank>>>;
@@ -441,7 +451,7 @@ export type RankSearchResult = {
 
 export type SearchInput = {
   limit?: InputMaybe<Scalars['Int']['input']>;
-  query?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -489,6 +499,17 @@ export type Skill = {
   requiresAdminApproval: Scalars['Boolean']['output'];
   requiresCert: Scalars['Boolean']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+export type SkillSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
+  requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type SkillSearchResult = {
@@ -571,6 +592,7 @@ export type User = {
   id: Scalars['ID']['output'];
   lastName: Scalars['String']['output'];
   member: Member;
+  name: Scalars['String']['output'];
   superAdmin: Scalars['Boolean']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -583,6 +605,20 @@ export type UserAvailability = {
   unavailable: Scalars['Boolean']['output'];
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
+};
+
+export type UserSearchInput = {
+  admin?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  pNumber?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  statuses?: InputMaybe<Array<InputMaybe<MemberStatus>>>;
+  tiers?: InputMaybe<Array<InputMaybe<MemberTier>>>;
 };
 
 export type UserSearchResult = {
@@ -733,11 +769,13 @@ export type ResolversTypes = ResolversObject<{
   Phone: ResolverTypeWrapper<Phone>;
   Query: ResolverTypeWrapper<{}>;
   Rank: ResolverTypeWrapper<Rank>;
+  RankSearchInput: RankSearchInput;
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
   SearchInput: SearchInput;
   Shift: ResolverTypeWrapper<Shift>;
   ShiftStatus: ShiftStatus;
   Skill: ResolverTypeWrapper<Skill>;
+  SkillSearchInput: SkillSearchInput;
   SkillSearchResult: ResolverTypeWrapper<SkillSearchResult>;
   SkillStatus: SkillStatus;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -750,6 +788,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertVenueContact: UpsertVenueContact;
   User: ResolverTypeWrapper<User>;
   UserAvailability: ResolverTypeWrapper<UserAvailability>;
+  UserSearchInput: UserSearchInput;
   UserSearchResult: ResolverTypeWrapper<UserSearchResult>;
   Venue: ResolverTypeWrapper<Venue>;
   VenueContact: ResolverTypeWrapper<VenueContact>;
@@ -784,10 +823,12 @@ export type ResolversParentTypes = ResolversObject<{
   Phone: Phone;
   Query: {};
   Rank: Rank;
+  RankSearchInput: RankSearchInput;
   RankSearchResult: RankSearchResult;
   SearchInput: SearchInput;
   Shift: Shift;
   Skill: Skill;
+  SkillSearchInput: SkillSearchInput;
   SkillSearchResult: SkillSearchResult;
   String: Scalars['String']['output'];
   UpdateUser: UpdateUser;
@@ -799,6 +840,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertVenueContact: UpsertVenueContact;
   User: User;
   UserAvailability: UserAvailability;
+  UserSearchInput: UserSearchInput;
   UserSearchResult: UserSearchResult;
   Venue: Venue;
   VenueContact: VenueContact;
@@ -1044,6 +1086,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   member?: Resolver<ResolversTypes['Member'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   superAdmin?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

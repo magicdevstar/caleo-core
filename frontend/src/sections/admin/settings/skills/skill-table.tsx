@@ -30,9 +30,14 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
-import { IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
 import { Skill } from 'src/__generated__/resolvers-types';
-import { GET_SKILLS, REMOVE_SKILL, UPSERT_SKILL } from 'src/api/skill';
+import {
+  GET_SKILLS,
+  REMOVE_SKILL,
+  UPSERT_SKILL,
+  ISkillTableFilters,
+  SkillTableFilterValue
+} from 'src/api/skill';
 //
 import SkillTableRow from './skill-table-row';
 import SkillTableToolbar from './skill-table-toolbar';
@@ -127,7 +132,7 @@ export default function SkillTable() {
   const notFound = (!skills.length && canReset) || (isEmpty && !loading);
 
   const handleFilters = useCallback(
-    (name: string, value: IProductTableFilterValue) => {
+    (name: string, value: SkillTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,

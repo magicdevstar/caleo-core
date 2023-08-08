@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useMutation, useQuery } from '@apollo/client';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Box from '@mui/material/Box';
@@ -8,26 +10,56 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // components
+import { UPDATE_USER } from 'src/api/user';
+import { GET_RANKS } from 'src/api/rank';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
+  RHFAutocomplete,
+  RHFSelect,
   RHFTextField,
 } from 'src/components/hook-form';
 import Image from 'src/components/image/image';
+import { MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
 
 // ----------------------------------------------------------------------
+
+const tierNames = {
+  [MemberTier.Tier_1]: 'Tier 1',
+  [MemberTier.Tier_2]: 'Tier 2',
+}
+
+const statusNames = {
+  [MemberStatus.Active]: 'Active',
+  [MemberStatus.Inactive]: 'Inactive',
+  [MemberStatus.Pending]: 'Pending',
+  [MemberStatus.Removed]: 'Removed',
+}
 
 export default function AccountGeneral() {
   const { enqueueSnackbar } = useSnackbar();
 
   const { user } = useAuthContext();
+  const [updateUser] = useMutation(UPDATE_USER);
+
+  const [rankQuery, setRankQuery] = useState('');
+  const { data, loading } = useQuery(GET_RANKS, {
+    variables: {
+      input: {
+        limit: 100,
+        query: rankQuery,
+      },
+    },
+  });
+  const { ranks: { items: ranks } } = data || { ranks: { items: [] } };
 
   const UpdateUserSchema = Yup.object().shape({
     firstName: Yup.string().required('First name is required'),
     lastName: Yup.string().required('Last name is required'),
-    rank: Yup.string().required('Rank is required'),
+    rank: Yup.object().required('Rank is required'),
     pNumber: Yup.string().required('P# Number is required'),
     status: Yup.string().required('Status is required'),
     tier: Yup.string().required('Tier is required'),
@@ -36,15 +68,15 @@ export default function AccountGeneral() {
   });
 
   const defaultValues = {
-    firstName: (user?.displayName as string) || '',
-    lastName: (user?.displayName as string) || '',
-    rank: 'Police Lieutenant',
-    pNumber: 'P123456',
-    status: 'Active',
-    tier: 'Tier 1',
+    firstName: (user?.firstName as string) || '',
+    lastName: (user?.lastName as string) || '',
+    rank: (user?.member?.rank as Rank) || {},
+    pNumber: (user?.member?.pNumber as string) || '',
+    status: (user?.member?.status) || MemberStatus.Active,
+    tier: (user?.member?.tier) || MemberTier.Tier_1,
     tierExpiration: 0,
     deactivatedDate: 0,
-  };
+  } as any;
 
   const methods = useForm({
     resolver: yupResolver(UpdateUserSchema),
@@ -56,11 +88,25 @@ export default function AccountGeneral() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = handleSubmit(async (d) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await updateUser({
+        variables: {
+          input: {
+            id: user?.id,
+            cognitoId: user?.cognitoId,
+            firstName: d.firstName,
+            lastName: d.lastName,
+            member: {
+              orgId: user?.member?.orgId,
+              pNumber: d.pNumber,
+              rankId: d.rank.id,
+              tier: d.tier,
+            }
+          }
+        }
+      })
       enqueueSnackbar('Update success!');
-      console.info('DATA', data);
     } catch (error) {
       console.error(error);
     }
@@ -98,10 +144,66 @@ export default function AccountGeneral() {
             >
               <RHFTextField name="firstName" label="First Name" />
               <RHFTextField name="lastName" label="Last Name" />
-              <RHFTextField name="rank" label="Rank" />
+
+              <RHFAutocomplete
+                name="rank"
+                label="Rank"
+                options={ranks}
+                getOptionLabel={(option: any) => (option as Rank).name}
+                renderOption={(props, option) => {
+                  const rank = ranks.find(
+                    (r: Rank) => r.id === option.id,
+                  );
+
+                  if (!rank) {
+                    return null;
+                  }
+
+                  return (
+                    <li {...props} key={rank.id}>
+                      {rank.name}
+                    </li>
+                  );
+                }}
+              />
               <RHFTextField name="pNumber" label="PNumber" />
-              <RHFTextField name="status" label="Status" />
-              <RHFTextField name="tier" label="Tier" />
+
+              <RHFSelect
+                fullWidth
+                name="status"
+                label="Status"
+                disabled
+                InputLabelProps={{ shrink: true }}
+                PaperPropsSx={{ textTransform: 'capitalize' }}
+              >
+                {[
+                  MemberStatus.Pending,
+                  MemberStatus.Active,
+                  MemberStatus.Inactive,
+                  MemberStatus.Removed,
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {(statusNames as any)[option]}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+              <RHFSelect
+                fullWidth
+                name="tier"
+                label="Tier"
+                disabled
+                InputLabelProps={{ shrink: true }}
+                PaperPropsSx={{ textTransform: 'capitalize' }}
+              >
+                {[
+                  MemberTier.Tier_1,
+                  MemberTier.Tier_2,
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {tierNames[option]}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
             </Box>
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>

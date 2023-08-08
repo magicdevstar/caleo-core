@@ -134,6 +134,7 @@ export default function UpsertSkillDialogue({
             multiple
             id="checkboxes-tags-demo"
             options={ranks}
+            defaultValue={(skill?.ranksOnly || []) as any}
             disableCloseOnSelect
             fullWidth
             sx={{ mt: 2 }}

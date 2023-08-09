@@ -35,6 +35,7 @@ const defaultSkill = {
   active: true,
   requiresAdminApproval: false,
   requiresCert: false,
+  ranksOnly: [],
   rankOnlyIds: []
 }
 
@@ -47,7 +48,7 @@ export default function UpsertSkillDialogue({
   const [skillMutation, { loading, error: skillError }] = useMutation(UPSERT_SKILL, {
     refetchQueries: [GET_SKILLS],
   });
-  const { data, loading: loadingRanks } = useQuery(GET_RANKS, {
+  const { data } = useQuery(GET_RANKS, {
     variables: {
       input: {
         limit: 10,
@@ -68,6 +69,7 @@ export default function UpsertSkillDialogue({
         active: skill.active,
         requiresAdminApproval: skill.requiresAdminApproval,
         requiresCert: skill.requiresCert,
+        ranksOnly: (skill.ranksOnly || []) as any,
         rankOnlyIds: (skill.rankOnlyIds || []) as any,
       });
     }
@@ -134,14 +136,15 @@ export default function UpsertSkillDialogue({
             multiple
             id="checkboxes-tags-demo"
             options={ranks}
-            defaultValue={(skill?.ranksOnly || []) as any}
             disableCloseOnSelect
             fullWidth
+            value={(skillMod?.ranksOnly || []) as any}
             sx={{ mt: 2 }}
             getOptionLabel={(option: Rank) => option.name}
             onChange={(_, value) => {
               setSkillMod((c) => ({
                 ...c,
+                ranksOnly: value as any,
                 rankOnlyIds: value.map((v) => v.id) as any,
               }));
             }}
@@ -170,8 +173,34 @@ export default function UpsertSkillDialogue({
           />
 
           <FormGroup sx={{ mt: 1 }}>
-            <FormControlLabel control={<Switch onChange={(_, checked) => setSkillMod((c) => ({ ...c, requiresAdminApproval: checked }))} value={skillMod.requiresAdminApproval} />} label="Requires admin approval" />
-            <FormControlLabel control={<Switch onChange={(_, checked) => setSkillMod((c) => ({ ...c, requiresCert: checked }))} value={skillMod.requiresCert} />} label="Requires certification" />
+            <FormControlLabel
+              control={
+                <Switch
+                  onChange={
+                    (_, checked) =>
+                      setSkillMod((c) =>
+                      ({
+                        ...c,
+                        requiresAdminApproval: checked
+                      }))
+                  }
+                  checked={skillMod.requiresAdminApproval} />
+              }
+              label="Requires admin approval"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  onChange={(_, checked) =>
+                  setSkillMod((c) => ({
+                    ...c,
+                    requiresCert: checked
+                  }))}
+                  checked={skillMod.requiresCert}
+                />
+              }
+              label="Requires certification"
+            />
           </FormGroup>
         </>
       }

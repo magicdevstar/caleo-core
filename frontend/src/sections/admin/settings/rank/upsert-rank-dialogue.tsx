@@ -35,6 +35,8 @@ export default function UpsertRankDialogue({
   useEffect(() => {
     if (rank) {
       setName(rank.name);
+    } else {
+      setName('');
     }
   }, [rank])
 

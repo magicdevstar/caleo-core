@@ -7,20 +7,20 @@ import Stack, { StackProps } from '@mui/material/Stack';
 // components
 import Iconify from 'src/components/iconify';
 // types
-import { UserTableFilterValue, UserTableFilters } from 'src/api/user';
+import { IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
 type Props = StackProps & {
-  filters: UserTableFilters;
-  onFilters: (name: string, value: UserTableFilterValue) => void;
+  filters: any;
+  onFilters: (name: string, value: any) => void;
   //
   onResetFilters: VoidFunction;
   //
   results: number;
 };
 
-export default function UserTableFiltersResult({
+export default function SkillTableFiltersResult({
   filters,
   onFilters,
   //
@@ -29,8 +29,8 @@ export default function UserTableFiltersResult({
   results,
   ...other
 }: Props) {
-  const handleRemove = (type: keyof Omit<UserTableFilters, 'name'>) => (inputValue: string) => {
-    const newValue = (filters[type] as any).filter((item: any) => item !== inputValue);
+  const handleRemove = (type: any) => (inputValue: string) => {
+    const newValue = filters[type].filter((item: any) => item !== inputValue);
     onFilters(type, newValue);
   };
 
@@ -44,9 +44,9 @@ export default function UserTableFiltersResult({
       </Box>
 
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
-        {/* {!!filters.active.length && (
+        {!!filters.active.length && (
           <Block label="Active:">
-            {filters.active.map((item) => (
+            {filters.active.map((item: any) => (
               <Chip
                 key={item}
                 label={item}
@@ -59,7 +59,7 @@ export default function UserTableFiltersResult({
 
         {!!filters.cert.length && (
           <Block label="Cert:">
-            {filters.cert.map((item) => (
+            {filters.cert.map((item: any) => (
               <Chip
                 key={item}
                 label={item}
@@ -72,7 +72,7 @@ export default function UserTableFiltersResult({
 
         {!!filters.admin.length && (
           <Block label="Admin:">
-            {filters.admin.map((item) => (
+            {filters.admin.map((item: any) => (
               <Chip
                 key={item}
                 label={item}
@@ -81,7 +81,7 @@ export default function UserTableFiltersResult({
               />
             ))}
           </Block>
-        )} */}
+        )}
 
         <Button
           color="error"

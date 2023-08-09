@@ -7,33 +7,18 @@ import Stack, { StackProps } from '@mui/material/Stack';
 // components
 import Iconify from 'src/components/iconify';
 // types
-import { IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
+import { Filter } from '../table-config';
 
 // ----------------------------------------------------------------------
 
 type Props = StackProps & {
-  filters: ISkillTableFilters;
-  onFilters: (name: string, value: IProductTableFilterValue) => void;
-  //
-  onResetFilters: VoidFunction;
-  //
+  filters: Filter[];
+  onFilters: (id: string, value: any) => any;
   results: number;
+  onResetFilters: VoidFunction;
 };
 
-export default function SkillTableFiltersResult({
-  filters,
-  onFilters,
-  //
-  onResetFilters,
-  //
-  results,
-  ...other
-}: Props) {
-  const handleRemove = (type: keyof Omit<ISkillTableFilters, 'name'>) => (inputValue: string) => {
-    const newValue = filters[type].filter((item) => item !== inputValue);
-    onFilters(type, newValue);
-  };
-
+export default function TableFiltersResult({ filters, onFilters, results, onResetFilters, ...other}: Props) {
   return (
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>
@@ -44,44 +29,22 @@ export default function SkillTableFiltersResult({
       </Box>
 
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
-        {!!filters.active.length && (
-          <Block label="Active:">
-            {filters.active.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                size="small"
-                onDelete={() => handleRemove('active')(item)}
-              />
-            ))}
-          </Block>
-        )}
-
-        {!!filters.cert.length && (
-          <Block label="Cert:">
-            {filters.cert.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                size="small"
-                onDelete={() => handleRemove('cert')(item)}
-              />
-            ))}
-          </Block>
-        )}
-
-        {!!filters.admin.length && (
-          <Block label="Admin:">
-            {filters.admin.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                size="small"
-                onDelete={() => handleRemove('admin')(item)}
-              />
-            ))}
-          </Block>
-        )}
+        {
+          filters
+            .filter((filter) => filter.type === 'select' && filter.value.length)
+            .map((filter) => (
+              <Block key={filter.id} label={`${filter.label}:`}>
+                {filter.value.map((item: any) => (
+                  <Chip
+                    key={item}
+                    label={item}
+                    size="small"
+                    onDelete={() => onFilters(filter.id, filter.value.filter((value: any) => value !== item))}
+                  />
+                ))}
+              </Block>
+            ))
+        }
 
         <Button
           color="error"

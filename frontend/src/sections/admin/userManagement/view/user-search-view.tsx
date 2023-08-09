@@ -19,7 +19,7 @@ export default function ProductListView() {
       <CustomBreadcrumbs
         heading="User Search"
         links={[
-          { name: 'UserSearch' },
+          { name: 'User Search' },
         ]}
         action={
           <Button
@@ -33,7 +33,7 @@ export default function ProductListView() {
           </Button>
         }
         sx={{
-          mb: { xs: 3, md: 5 },
+          mb: { xs: 3, md: 3 },
         }}
       />
 

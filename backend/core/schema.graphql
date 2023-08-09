@@ -487,6 +487,8 @@
     skip: Int
     query: String
     pNumber: String
+    phone: String
+    email: String
     rankIds: [String]
     statuses: [MemberStatus]
     skillIds: [String]

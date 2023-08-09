@@ -27,8 +27,10 @@ export default function TableToolbar({
 
   return (
     <Stack
-      spacing={2}
+      spacing={{ xs: 1, sm: 2 }}
       alignItems={{ xs: 'flex-end', md: 'center' }}
+      useFlexGap
+      flexWrap="wrap"
       direction={{
         xs: 'column',
         md: 'row',
@@ -36,6 +38,9 @@ export default function TableToolbar({
       sx={{
         p: 2.5,
         pr: { xs: 2.5, md: 1 },
+        '& .MuiStack-root': {
+          width: 'inherit',
+        },
       }}
     >
       {filters.map((filter) => {
@@ -83,6 +88,12 @@ export default function TableToolbar({
               value={filter.value}
               onChange={(event) => onFilters(filter.id, event.target.value)}
               placeholder={`${filter.label}...`}
+              sx={{
+                minWidth: {
+                  xs: '100%',
+                  md: 300,
+                }
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

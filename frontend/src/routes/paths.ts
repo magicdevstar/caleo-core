@@ -46,6 +46,7 @@ export const paths = {
       },
       users: {
         root: `${ROOTS.DASHBOARD}/admin/users`,
+        userDetail: `${ROOTS.DASHBOARD}/admin/users/:id`,
         requests: `${ROOTS.DASHBOARD}/admin/users/requests`,
       },
     }

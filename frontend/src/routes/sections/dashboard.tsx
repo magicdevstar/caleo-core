@@ -15,6 +15,7 @@ const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
 const EmptyPage = lazy(() => import('src/sections/empty/view'));
 const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
 const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
+const AdminUserDetails = lazy(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +51,7 @@ export const dashboardRoutes = [
             path: 'users',
             children: [
               { element: <UserSearch />, index: true },
+              { path: ':id', element: <AdminUserDetails /> },
               { path: 'requests', element: <EmptyPage title='Manage Requests' /> },
             ]
           },

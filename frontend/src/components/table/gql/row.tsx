@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import get from 'lodash/get';
+import { Link as RouterLink } from "react-router-dom";
 // @mui
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -7,6 +8,7 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -45,21 +47,45 @@ const DateCell = ({value}: {value: string;}) =>
     />
   </TableCell>;
 
-const StringCell = ({value, labelColor} : {value: string; labelColor?: string}) => (
-  <TableCell>
-    {
-      labelColor ? (
+const StringCell = ({value, labelColor, href} : {value: string; labelColor?: string, href?: string}) => {
+  if (href) {
+    return (
+      <TableCell>
+        <ListItemText
+          disableTypography
+          primary={
+            <Link
+              noWrap
+              component={RouterLink}
+              color="inherit"
+              variant="subtitle2"
+              to={href}
+              sx={{ cursor: 'pointer' }}
+            >
+              {value}
+            </Link>
+          }
+        />
+      </TableCell>
+    );
+  }
+  if (labelColor) {
+    return (
+      <TableCell>
         <Label variant="soft" color={labelColor as any}>
           {value}
         </Label>
-      ) : (
-        <Typography variant="subtitle2" noWrap color="inherit">
-          {value}
-        </Typography>
-      )
-    }
-  </TableCell>
-);
+      </TableCell>
+    )
+  }
+  return (
+    <TableCell>
+      <Typography variant="subtitle2" noWrap color="inherit">
+        {value}
+      </Typography>
+    </TableCell>
+  );
+};
 
 const ArrayCell = ({value, maxRender} : {value: string[]; maxRender: number}) => (
   <TableCell>
@@ -109,7 +135,7 @@ export default function GQLTableRow({
               case 'date':
                 return (<DateCell key={column.id} value={value} />);
               case 'string':
-                return (<StringCell key={column.id} value={value} labelColor={column.getLabelColor?.(row)} />);
+                return (<StringCell key={column.id} value={value} href={column.getHref?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array': 
                 return (<ArrayCell key={column.id} value={value} maxRender={column.maxRender || 1} />);
               case 'action': 

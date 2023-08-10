@@ -39,7 +39,10 @@ export default function TableToolbar({
         p: 2.5,
         pr: { xs: 2.5, md: 1 },
         '& .MuiStack-root': {
-          width: 'inherit',
+          width: {
+            md: 'inherit',
+            xs: '100%',
+          },
         },
       }}
     >

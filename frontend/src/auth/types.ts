@@ -1,4 +1,5 @@
 import { LogoutOptions, RedirectLoginOptions, PopupLoginOptions } from '@auth0/auth0-react';
+import { FrontendUser } from 'src/api/user';
 
 // ----------------------------------------------------------------------
 
@@ -72,7 +73,7 @@ export type FirebaseContextType = CanRemove & {
 };
 
 export type AmplifyContextType = CanRemove & {
-  user: AuthUserType;
+  user: FrontendUser;
   method: string;
   loading: boolean;
   authenticated: boolean;

@@ -6,6 +6,7 @@ import {
   UpdateUser,
   User
 } from "../../__generated__/resolvers-types";
+import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
 export const user = {
@@ -15,6 +16,14 @@ export const user = {
       _args: unknown,
       { users, user }: Context
     ): Promise<User | null> => users.get(user!.id),
+    user: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { users, user }: Context
+    ): Promise<User | null> => {
+      adminOnly(user);
+      return users.get(id);
+    },
     users: async (
       _parent: unknown,
       { input }: { input: UserSearchInput },
@@ -42,6 +51,36 @@ export const user = {
     ): Promise<User> => users.create({
       ...user,
       name: `${user.firstName} ${user.lastName}`,
+      availability: {
+        monday: {
+          available: false,
+          times: [],
+        },
+        tuesday: {
+          available: false,
+          times: [],
+        },
+        wednesday: {
+          available: false,
+          times: [],
+        },
+        thursday: {
+          available: false,
+          times: [],
+        },
+        friday: {
+          available: false,
+          times: [],
+        },
+        saturday: {
+          available: false,
+          times: [],
+        },
+        sunday: {
+          available: false,
+          times: [],
+        },
+      },
     } as any),
     user: async (
       _parent: unknown,
@@ -66,6 +105,6 @@ export const user = {
         return [];
       },
       org: (member: Member, _, { organizations }: Context) => organizations.loader.load(member.orgId),
-    }
+    },
   },
 };

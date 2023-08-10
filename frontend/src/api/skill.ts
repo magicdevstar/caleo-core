@@ -6,6 +6,18 @@ export const REMOVE_SKILL = gql`
   }
 `;
 
+export const GET_BASE_SKILLS = gql`
+  query GetBaseSkills($input: SkillSearchInput!) {
+    skills(input: $input) {
+      items {
+        id
+        name
+      }
+      total
+    }
+  }
+`;
+
 export const GET_SKILLS = gql`
   query GetSkills($input: SkillSearchInput!) {
     skills(input: $input) {

@@ -2,14 +2,14 @@ import { useState, useCallback } from 'react';
 // @mui
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-// _mock
-import { _userAbout, _userPlans, _userPayment, _userInvoices, _userAddressBook } from 'src/_mock';
 // components
 import Iconify from 'src/components/iconify';
+// types
+import { FrontendUser } from 'src/api/user';
 //
 import AccountGeneral from './account-general';
-import AccountSocialLinks from './account-social-links';
-import AccountNotifications from './account-notifications';
+import AccountSkills from './account-skills';
+import AccountOvertime from './account-overtime';
 import AccountChangePassword from './account-change-password';
 
 // ----------------------------------------------------------------------
@@ -41,7 +41,9 @@ const TABS = [
 
 export default function MainAccountView({
   excludePassword,
+  user,
 } : {
+  user: FrontendUser;
   excludePassword?: boolean;
 }) {
   
@@ -65,11 +67,11 @@ export default function MainAccountView({
         ))}
       </Tabs>
 
-      {currentTab === 'general' && <AccountGeneral />}
+      {currentTab === 'general' && <AccountGeneral user={user} />}
 
-      {currentTab === 'overtime' && <AccountNotifications />}
+      {currentTab === 'overtime' && <AccountOvertime user={user} />}
 
-      {currentTab === 'skills' && <AccountSocialLinks socialLinks={_userAbout.socialLinks} />}
+      {currentTab === 'skills' && <AccountSkills user={user} />}
 
       {currentTab === 'security' && <AccountChangePassword />}
     </>

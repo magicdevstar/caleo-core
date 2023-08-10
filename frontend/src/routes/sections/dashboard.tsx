@@ -14,6 +14,8 @@ const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOverti
 const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
 const EmptyPage = lazy(() => import('src/sections/empty/view'));
 const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+const AdminNotifications = lazy(() => import('src/pages/dashboard/admin/settings/notifications'));
+const EditNotification = lazy(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
 const AdminUserDetails = lazy(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
 
@@ -61,7 +63,8 @@ export const dashboardRoutes = [
               { element: <EmptyPage title='Overtime' />, index: true },
               { path: 'ranks-and-skills', element: <RanksAndSkills /> },
               { path: 'department', element: <EmptyPage title='Department' /> },
-              { path: 'notifications', element: <EmptyPage title='Notifications' /> },
+              { path: 'notifications', element: <AdminNotifications /> },
+              { path: 'notifications/:id', element: <EditNotification /> },
             ]
           }
         ],

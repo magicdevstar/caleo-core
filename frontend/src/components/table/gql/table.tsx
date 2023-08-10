@@ -39,7 +39,8 @@ export default function GQLTable({
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(config.filters);
 
-  const { data, loading } = useQuery(config.search.query, {
+  const { data, loading: gqlLoading } = useQuery(config.search.query, {
+    skip: !!config.search.data,
     variables: {
       input: {
         limit: table.rowsPerPage,
@@ -54,7 +55,8 @@ export default function GQLTable({
     }
   });
 
-  const { items, total: apiTotal } = config.search.processResult(data);
+  const loading = config.search.loading || gqlLoading;
+  const { items, total: apiTotal } = config.search.processResult(data || config.search.data);
   const isEmpty = total === 0;
 
   useEffect(() => {

@@ -11,6 +11,8 @@ export interface TableConfig<T> {
     },
   },
   search: {
+    data?: T[],
+    loading?: boolean;
     query: DocumentNode;
     processResult: (value: any) => {
       items: T[];

@@ -39,14 +39,24 @@
     MEMBER
   }
 
-  type UserAvailability {
-    dayOfWeek: DayOfWeek!
-    unavailable: Boolean!
+  type AvailabilityTime {
     startTime: String!
     endTime: String!
-    userId: String!
+  }
 
-    user: User
+  type DayAvailability {
+    available: Boolean!
+    times: [AvailabilityTime!]
+  }
+
+  type UserAvailability {
+    monday: DayAvailability!
+    tuesday: DayAvailability!
+    wednesday: DayAvailability!
+    thursday: DayAvailability!
+    friday: DayAvailability!
+    saturday: DayAvailability!
+    sunday: DayAvailability!
   }
 
   type Phone {
@@ -78,6 +88,7 @@
     adminNote: String
     deactivationNote: String
 
+    availability: UserAvailability!
     rank: Rank
     memberSkills: [MemberSkill]
     org: Organization
@@ -94,6 +105,26 @@
     updatedAt: String!
     docType: DocType!
     member: Member!
+  }
+
+  input InputAvailabilityTime {
+    startTime: String!
+    endTime: String!
+  }
+
+  input InputDayAvailability {
+    available: Boolean!
+    times: [InputAvailabilityTime!]
+  }
+
+  input InputUserAvailability {
+    monday: InputDayAvailability!
+    tuesday: InputDayAvailability!
+    wednesday: InputDayAvailability!
+    thursday: InputDayAvailability!
+    friday: InputDayAvailability!
+    saturday: InputDayAvailability!
+    sunday: InputDayAvailability!
   }
 
   input UpdateUser {
@@ -139,6 +170,7 @@
     status: MemberStatus
     deactivationNote: String
     contactInfo: NewContactInfo
+    availability: InputUserAvailability
   }
 ###### END User ######
 
@@ -456,6 +488,7 @@
     skip: Int
     query: String
     requiresCert: Boolean
+    rankOnlyIds: [String]
     requiresAdminApproval: Boolean
     active: Boolean
     orderBy: String
@@ -475,6 +508,15 @@
   type NotificationSearchResult {
     items: [Notification]
     total: Int!
+  }
+
+  input NotificationSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
   }
 
   type UserSearchResult {
@@ -504,6 +546,7 @@ type Query {
   me: User
 
   users(input: UserSearchInput): UserSearchResult
+  user(id: String!): User
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult
@@ -515,7 +558,7 @@ type Query {
   venues(input: SearchInput): VenueSearchResult
 
   notification(id: String!): Notification
-  notifications(input: SearchInput): NotificationSearchResult
+  notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
 }
 

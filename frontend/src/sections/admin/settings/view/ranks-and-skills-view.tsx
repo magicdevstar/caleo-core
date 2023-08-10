@@ -8,7 +8,7 @@ import SkillTable from '../skills/skill-table';
 
 // ----------------------------------------------------------------------
 
-export default function ProductListView() {
+export default function RanksAndSkillsView() {
   const settings = useSettingsContext();
 
   return (

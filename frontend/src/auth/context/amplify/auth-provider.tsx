@@ -4,11 +4,11 @@ import { Auth } from '@aws-amplify/auth';
 import { AMPLIFY_API } from 'src/config-global';
 import { _mock } from 'src/_mock';
 import { client } from 'src/utils/apollo';
-import { ME } from 'src/api/user';
+import { FrontendUser, ME } from 'src/api/user';
 import { User } from 'src/__generated__/resolvers-types';
 //
 import { AuthContext } from './auth-context';
-import { ActionMapType, AuthStateType, AuthUserType } from '../../types';
+import { ActionMapType, AuthStateType } from '../../types';
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ enum Types {
 
 type Payload = {
   [Types.INITIAL]: {
-    user: AuthUserType;
+    user: FrontendUser | null;
   };
   [Types.LOGOUT]: undefined;
 };
@@ -67,10 +67,9 @@ export function AuthProvider({ children }: Props) {
   const initialize = useCallback(async () => {
     try {
       const currentUser = await Auth.currentAuthenticatedUser();
-      const res = await client.query<{ me: User }>({
+      const { data: { me } } = await client.query<{ me: User }>({
         query: ME,
       });
-      const me = res.data.me;
       if (currentUser) {
         dispatch({
           type: Types.INITIAL,
@@ -113,10 +112,9 @@ export function AuthProvider({ children }: Props) {
   const login = useCallback(async (email: string, password: string) => {
     const currentUser = await Auth.signIn(email, password);
 
-    const res = await client.query<{ me: User }>({
+    const { data: { me } } = await client.query<{ me: User }>({
       query: ME,
     });
-    const me = res.data.me;
 
     // TODO: Fetch user from our backend
     dispatch({
@@ -216,5 +214,5 @@ export function AuthProvider({ children }: Props) {
     ]
   );
 
-  return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={memoizedValue as any}>{children}</AuthContext.Provider>;
 }

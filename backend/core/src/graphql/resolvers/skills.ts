@@ -13,12 +13,18 @@ export const skill = {
     ): Promise<Skill | null> => skills.get(id),
     skills: async (
       _parent: unknown,
-      { input }: { input: SkillSearchInput },
+      { input: { rankOnlyIds, ...input } }: { input: SkillSearchInput },
       { skills, user }: Context
     ): Promise<SearchResults<Skill>> => skills.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
+      ...(rankOnlyIds ? {
+        $or: [
+          { rankOnlyIds: [] },
+          { rankOnlyIds: { $in: rankOnlyIds } },
+        ]
+      } : {}),
     })
   },
   Mutation: {
@@ -35,10 +41,23 @@ export const skill = {
     removeUserSkill: async (
       _parent: unknown,
       { id }: { id: string },
-      { memberSkills, user }: Context
+      { memberSkills, users, user }: Context
     ): Promise<string> => {
       adminOrOwnerOnly(id, user);
+      const memberSkill = await memberSkills.get(id);
+      if (!memberSkill) {
+        throw new GraphQLError('Could not find member skill');
+      }
       await memberSkills.removeDoc(id);
+      const skillUser = await users.get(memberSkill.userId);
+
+      if (skillUser) {
+        skillUser.member.memberSkillIds = skillUser.member.memberSkillIds?.filter((s) => s !== id);
+        await users.update(skillUser as any, {
+          skipMerge: true,
+        });
+      }
+
       return id;
     },
     skill: async (
@@ -81,6 +100,7 @@ export const skill = {
       ranksOnly: (skill: Skill, _, { ranks }: Context) => skill.rankOnlyIds && skill.rankOnlyIds.length > 0 ? ranks.loader.loadMany((skill.rankOnlyIds || []) as any) : [],
     },
     MemberSkill: {
+      ...commonResolvers,
       skill: (memberSkill: MemberSkill, _, { skills }: Context) => skills.loader.load(memberSkill.skillId),
       user: (memberSkill: MemberSkill, _, { users }: Context) => users.loader.load(memberSkill.userId),
     },

@@ -35,12 +35,24 @@ export type Assignment = {
   shifts?: Maybe<Array<Maybe<Shift>>>;
 };
 
+export type AvailabilityTime = {
+  __typename?: 'AvailabilityTime';
+  endTime: Scalars['String']['output'];
+  startTime: Scalars['String']['output'];
+};
+
 export type ContactInfo = {
   __typename?: 'ContactInfo';
   primaryEmail: Email;
   primaryPhone: Phone;
   secondaryEmail?: Maybe<Email>;
   secondaryPhone?: Maybe<Phone>;
+};
+
+export type DayAvailability = {
+  __typename?: 'DayAvailability';
+  available: Scalars['Boolean']['output'];
+  times?: Maybe<Array<AvailabilityTime>>;
 };
 
 export enum DayOfWeek {
@@ -97,9 +109,30 @@ export enum EventStatus {
   Removed = 'REMOVED'
 }
 
+export type InputAvailabilityTime = {
+  endTime: Scalars['String']['input'];
+  startTime: Scalars['String']['input'];
+};
+
+export type InputDayAvailability = {
+  available: Scalars['Boolean']['input'];
+  times?: InputMaybe<Array<InputAvailabilityTime>>;
+};
+
+export type InputUserAvailability = {
+  friday: InputDayAvailability;
+  monday: InputDayAvailability;
+  saturday: InputDayAvailability;
+  sunday: InputDayAvailability;
+  thursday: InputDayAvailability;
+  tuesday: InputDayAvailability;
+  wednesday: InputDayAvailability;
+};
+
 export type Member = {
   __typename?: 'Member';
   adminNote?: Maybe<Scalars['String']['output']>;
+  availability: UserAvailability;
   contactInfo?: Maybe<ContactInfo>;
   deactivationNote?: Maybe<Scalars['String']['output']>;
   memberSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -260,6 +293,7 @@ export type NewEmail = {
 
 export type NewMember = {
   adminNote?: InputMaybe<Scalars['String']['input']>;
+  availability?: InputMaybe<InputUserAvailability>;
   contactInfo?: InputMaybe<NewContactInfo>;
   deactivationNote?: InputMaybe<Scalars['String']['input']>;
   memberSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -323,6 +357,15 @@ export enum NotificationFrequency {
   UntilExpire = 'UNTIL_EXPIRE'
 }
 
+export type NotificationSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type NotificationSearchResult = {
   __typename?: 'NotificationSearchResult';
   items?: Maybe<Array<Maybe<Notification>>>;
@@ -367,6 +410,7 @@ export type Query = {
   ranks?: Maybe<RankSearchResult>;
   skill?: Maybe<Skill>;
   skills?: Maybe<SkillSearchResult>;
+  user?: Maybe<User>;
   users?: Maybe<UserSearchResult>;
   venue?: Maybe<Venue>;
   venues?: Maybe<VenueSearchResult>;
@@ -384,7 +428,7 @@ export type QueryNotificationArgs = {
 
 
 export type QueryNotificationsArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<NotificationSearchInput>;
 };
 
 
@@ -408,8 +452,13 @@ export type QuerySkillsArgs = {
 };
 
 
+export type QueryUserArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryUsersArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<UserSearchInput>;
 };
 
 
@@ -507,6 +556,7 @@ export type SkillSearchInput = {
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+  rankOnlyIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
   requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
@@ -599,20 +649,23 @@ export type User = {
 
 export type UserAvailability = {
   __typename?: 'UserAvailability';
-  dayOfWeek: DayOfWeek;
-  endTime: Scalars['String']['output'];
-  startTime: Scalars['String']['output'];
-  unavailable: Scalars['Boolean']['output'];
-  user?: Maybe<User>;
-  userId: Scalars['String']['output'];
+  friday: DayAvailability;
+  monday: DayAvailability;
+  saturday: DayAvailability;
+  sunday: DayAvailability;
+  thursday: DayAvailability;
+  tuesday: DayAvailability;
+  wednesday: DayAvailability;
 };
 
 export type UserSearchInput = {
   admin?: InputMaybe<Scalars['Boolean']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   pNumber?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -738,14 +791,19 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Assignment: ResolverTypeWrapper<Assignment>;
+  AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
+  DayAvailability: ResolverTypeWrapper<DayAvailability>;
   DayOfWeek: DayOfWeek;
   DocType: DocType;
   Email: ResolverTypeWrapper<Email>;
   Event: ResolverTypeWrapper<Event>;
   EventStatus: EventStatus;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  InputAvailabilityTime: InputAvailabilityTime;
+  InputDayAvailability: InputDayAvailability;
+  InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Member: ResolverTypeWrapper<Member>;
   MemberNotification: ResolverTypeWrapper<MemberNotification>;
@@ -763,6 +821,7 @@ export type ResolversTypes = ResolversObject<{
   NewUser: NewUser;
   Notification: ResolverTypeWrapper<Notification>;
   NotificationFrequency: NotificationFrequency;
+  NotificationSearchInput: NotificationSearchInput;
   NotificationSearchResult: ResolverTypeWrapper<NotificationSearchResult>;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
@@ -799,11 +858,16 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Assignment: Assignment;
+  AvailabilityTime: AvailabilityTime;
   Boolean: Scalars['Boolean']['output'];
   ContactInfo: ContactInfo;
+  DayAvailability: DayAvailability;
   Email: Email;
   Event: Event;
   ID: Scalars['ID']['output'];
+  InputAvailabilityTime: InputAvailabilityTime;
+  InputDayAvailability: InputDayAvailability;
+  InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
   Member: Member;
   MemberNotification: MemberNotification;
@@ -817,6 +881,7 @@ export type ResolversParentTypes = ResolversObject<{
   NewPhone: NewPhone;
   NewUser: NewUser;
   Notification: Notification;
+  NotificationSearchInput: NotificationSearchInput;
   NotificationSearchResult: NotificationSearchResult;
   Organization: Organization;
   OrganizationContact: OrganizationContact;
@@ -865,11 +930,23 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type AvailabilityTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailabilityTime'] = ResolversParentTypes['AvailabilityTime']> = ResolversObject<{
+  endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type ContactInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContactInfo'] = ResolversParentTypes['ContactInfo']> = ResolversObject<{
   primaryEmail?: Resolver<ResolversTypes['Email'], ParentType, ContextType>;
   primaryPhone?: Resolver<ResolversTypes['Phone'], ParentType, ContextType>;
   secondaryEmail?: Resolver<Maybe<ResolversTypes['Email']>, ParentType, ContextType>;
   secondaryPhone?: Resolver<Maybe<ResolversTypes['Phone']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DayAvailabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['DayAvailability'] = ResolversParentTypes['DayAvailability']> = ResolversObject<{
+  available?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  times?: Resolver<Maybe<Array<ResolversTypes['AvailabilityTime']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -896,6 +973,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
 
 export type MemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member']> = ResolversObject<{
   adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
   contactInfo?: Resolver<Maybe<ResolversTypes['ContactInfo']>, ParentType, ContextType>;
   deactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   memberSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -1016,6 +1094,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Maybe<ResolversTypes['SkillSearchResult']>, ParentType, ContextType, Partial<QuerySkillsArgs>>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<QueryVenueArgs, 'id'>>;
   venues?: Resolver<Maybe<ResolversTypes['VenueSearchResult']>, ParentType, ContextType, Partial<QueryVenuesArgs>>;
@@ -1093,12 +1172,13 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 }>;
 
 export type UserAvailabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserAvailability'] = ResolversParentTypes['UserAvailability']> = ResolversObject<{
-  dayOfWeek?: Resolver<ResolversTypes['DayOfWeek'], ParentType, ContextType>;
-  endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  unavailable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  friday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  monday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  saturday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  sunday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  thursday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  tuesday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
+  wednesday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1142,7 +1222,9 @@ export type VenueSearchResultResolvers<ContextType = any, ParentType extends Res
 
 export type Resolvers<ContextType = any> = ResolversObject<{
   Assignment?: AssignmentResolvers<ContextType>;
+  AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
+  DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
   Event?: EventResolvers<ContextType>;
   Member?: MemberResolvers<ContextType>;

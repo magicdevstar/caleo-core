@@ -5,6 +5,9 @@ import { rank } from './rank';
 import { skill } from './skills';
 import { user } from './user';
 import { venue } from './venue';
+import { event } from './event';
+import { assignments } from './assignments';
+import { shift } from './shifts';
 
 export default {
   Query: {
@@ -15,6 +18,9 @@ export default {
     ...skill.Query,
     ...venue.Query,
     ...notification.Query,
+    ...event.Query,
+    ...assignments.Query,
+    ...shift.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -24,6 +30,9 @@ export default {
     ...skill.Mutation,
     ...venue.Mutation,
     ...notification.Mutation,
+    ...event.Mutation,
+    ...assignments.Mutation,
+    ...shift.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -32,4 +41,7 @@ export default {
   ...skill.fields,
   ...venue.fields,
   ...notification.fields,
+  ...event.fields,
+  ...assignments.fields,
+  ...shift.fields,
 };

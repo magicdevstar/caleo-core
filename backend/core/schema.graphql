@@ -8,6 +8,9 @@
     VENUE
     NOTIFICATION
     MEMBER_NOTIFICATION
+    EVENT
+    ASSIGNMENT
+    SHIFT
   }
   enum DayOfWeek {
     SUNDAY
@@ -190,16 +193,18 @@
   type Event {
     id: ID!
     name: String!
-    attachment: String!
+    attachment: String
     startDate: String!
     endDate: String!
     orgId: String!
     status: EventStatus!
     docType: DocType!
     assignmentIds: [String]
+    createdAt: String!
+    updatedAt: String!
 
     org: Organization!
-    assignments: [Assignment]
+    assignments: [Assignment!]
   }
 
   type Assignment {
@@ -213,11 +218,14 @@
     rankIds: [String]
     bwNeeded: Boolean!
     shiftIds: [String]
+    createdAt: String!
+    updatedAt: String!
 
     event: Event!
     requiredSkills: [Skill]
     ranks: [Rank]
     shifts: [Shift]
+    org: Organization!
   }
 
   enum ShiftStatus {
@@ -240,14 +248,50 @@
     endTime: String!
     status: ShiftStatus!
     docType: DocType!
+    orgId: String!
     locked: Boolean!
     eventId: String!
     assignmentId: String!
-    userId: String!
+    userId: String
+    createdAt: String!
+    updatedAt: String!
 
-    user: User!
+    user: User
     event: Event!
     assignment: Assignment!
+    org: Organization!
+  }
+
+  input UpsertEvent {
+    id: String
+    name: String!
+    attachment: String
+    startDate: String
+    endDate: String
+    status: EventStatus
+    assignmentIds: [String]
+  }
+
+  input UpsertAssignment {
+    id: String
+    name: String!
+    description: String
+    eventId: String!
+    requiredSkillIds: [String]
+    rankIds: [String]
+    bwNeeded: Boolean
+    shiftIds: [String]
+  }
+
+  input UpsertShift {
+    id: String
+    startTime: String
+    endTime: String
+    status: ShiftStatus
+    locked: Boolean
+    eventId: String!
+    assignmentId: String!
+    userId: String
   }
 ###### END Events ######
 
@@ -622,6 +666,21 @@
     total: Int!
   }
 
+  type EventSearchResult {
+    items: [Event]
+    total: Int!
+  }
+
+  type AssignmentSearchResult {
+    items: [Assignment]
+    total: Int!
+  }
+
+  type ShiftSearchResult {
+    items: [Shift]
+    total: Int!
+  }
+
   type NotificationSearchResult {
     items: [Notification]
     total: Int!
@@ -675,6 +734,15 @@ type Query {
   venue(id: String!): Venue
   venues(input: SearchInput): VenueSearchResult
 
+  event(id: String!): Event
+  events(input: SearchInput): EventSearchResult
+
+  assignment(id: String!): Assignment
+  assignments(input: SearchInput): AssignmentSearchResult
+
+  shift(id: String!): Shift
+  shifts(input: SearchInput): ShiftSearchResult
+
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
@@ -696,6 +764,15 @@ type Mutation {
 
   venue(venue: UpsertVenue!): Venue
   removeVenue(id: String!): ID!
+
+  event(event: UpsertEvent!): Event
+  removeEvent(id: String!): ID!
+
+  assignment(assignment: UpsertAssignment!): Assignment
+  removeAssignment(id: String!): ID!
+
+  shift(shift: UpsertShift!): Shift
+  removeShift(id: String!): ID!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

@@ -385,33 +385,150 @@
     email: String!
   }
 
+  enum ShiftReminderUnit {
+    MINUTE
+    HOUR
+    DAY
+  }
+
   type Organization {
     id: ID!
     name: String!
     address: String!
     state: String!
     city: String!
+    zip: String!
     weekBegins: DayOfWeek!
     timezone: String!
     contact: OrganizationContact
     docType: DocType!
     createdAt: String!
     updatedAt: String!
+    settings: OrganizationOvertimeSettings
   }
 
-  input NewOrganizationContact {
+  type OrganizationOvertimeSettings {
+    shiftsPerWeek: Int!
+    lottery: LotterySettings!
+    shiftBuffer: ShiftBuffer!
+    userRelinquishShift: UserRelinquishShift!
+    shiftReminder: ShiftReminder!
+  }
+
+  type UserRelinquishShift {
+    enabled: Boolean!
+    # Number of hours to wait before shift starts to allow users to relinquish
+    # their shift
+    afterShiftRemove: AfterShiftRemove!
+    requireNoteWhenRelinquishing: Boolean!
+  }
+
+  type ShiftBuffer {
+    enabled: Boolean!
+    minuteShiftBuffer: Int!
+    adminOverrideShiftBuffer: Boolean!
+  }
+
+  type ShiftReminder {
+    enabled: Boolean!
+    # Number of hours before shift to send reminder
+    time: Int!
+    unit: ShiftReminderUnit!
+  }
+
+  # What tier should members be moved to if they relinquish their shift
+  # and for how long
+  type AfterShiftRemove {
+    tier: MemberTier!
+    days: Int!
+  }
+
+  type LotterySettings {
+    enabled: Boolean!
+    # The number of hours to notify users before the lottery window closes
+    notifyUsersBeforeClose: Int!
+    # Number of hours to wait before showing FCFS shifts
+    fcfsShiftsDelay: Int!
+    open: LotteryDate!
+    close: LotteryDate!
+  }
+
+  type LotteryDate {
+    dayOfWeek: DayOfWeek!
+    ## This will be a full ISO string but we will only
+    ## use the hour and minute portion of the ISO
+    time: String!
+  }
+
+  input UpsertOrganizationContact {
     phone: String!
     email: String!
   }
 
-  input NewOrganization {
-    name: String!
-    address: String!
-    state: String!
-    city: String!
-    weekBegins: DayOfWeek!
-    timezone: String!
-    contact: NewOrganizationContact
+  input UpsertOrganization {
+    id: String
+    name: String
+    address: String
+    state: String
+    city: String
+    zip: String
+    weekBegins: DayOfWeek
+    timezone: String
+    contact: UpsertOrganizationContact
+    settings: UpsertOrganizationOvertimeSettings
+  }
+
+  input UpsertOrganizationOvertimeSettings {
+    shiftsPerWeek: Int!
+    lottery: UpsertLotterySettings!
+    shiftBuffer: UpsertShiftBuffer!
+    userRelinquishShift: UpsertUserRelinquishShift!
+    shiftReminder: UpsertShiftReminder!
+  }
+
+  input UpsertUserRelinquishShift {
+    enabled: Boolean!
+    # Number of hours to wait before shift starts to allow users to relinquish
+    # their shift
+    afterShiftRemove: UpsertAfterShiftRemove!
+    requireNoteWhenRelinquishing: Boolean!
+  }
+
+  input UpsertShiftBuffer {
+    enabled: Boolean!
+    minuteShiftBuffer: Int!
+    adminOverrideShiftBuffer: Boolean!
+  }
+
+  input UpsertShiftReminder {
+    enabled: Boolean!
+    # Number of hours before shift to send reminder
+    time: Int!
+    unit: ShiftReminderUnit!
+  }
+
+  # What tier should members be moved to if they relinquish their shift
+  # and for how long
+  input UpsertAfterShiftRemove {
+    tier: MemberTier!
+    days: Int!
+  }
+
+  input UpsertLotterySettings {
+    enabled: Boolean!
+    # The number of hours to notify users before the lottery window closes
+    notifyUsersBeforeClose: Int!
+    # Number of hours to wait before showing FCFS shifts
+    fcfsShiftsDelay: Int!
+    open: UpsertLotteryDate!
+    close: UpsertLotteryDate!
+  }
+
+  input UpsertLotteryDate {
+    dayOfWeek: DayOfWeek!
+    ## This will be a full ISO string but we will only
+    ## use the hour and minute portion of the ISO
+    time: String!
   }
 ###### END Organization ######
 
@@ -544,6 +661,7 @@
 type Query {
   health: String
   me: User
+  organization: Organization
 
   users(input: UserSearchInput): UserSearchResult
   user(id: String!): User
@@ -563,7 +681,7 @@ type Query {
 }
 
 type Mutation {
-  organization(org: NewOrganization!): Organization
+  organization(organization: UpsertOrganization!): Organization
 
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User

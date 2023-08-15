@@ -17,6 +17,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type AfterShiftRemove = {
+  __typename?: 'AfterShiftRemove';
+  days: Scalars['Int']['output'];
+  tier: MemberTier;
+};
+
 export type Assignment = {
   __typename?: 'Assignment';
   bwNeeded: Scalars['Boolean']['output'];
@@ -129,6 +135,21 @@ export type InputUserAvailability = {
   wednesday: InputDayAvailability;
 };
 
+export type LotteryDate = {
+  __typename?: 'LotteryDate';
+  dayOfWeek: DayOfWeek;
+  time: Scalars['String']['output'];
+};
+
+export type LotterySettings = {
+  __typename?: 'LotterySettings';
+  close: LotteryDate;
+  enabled: Scalars['Boolean']['output'];
+  fcfsShiftsDelay: Scalars['Int']['output'];
+  notifyUsersBeforeClose: Scalars['Int']['output'];
+  open: LotteryDate;
+};
+
 export type Member = {
   __typename?: 'Member';
   adminNote?: Maybe<Scalars['String']['output']>;
@@ -221,7 +242,7 @@ export type MutationNotificationArgs = {
 
 
 export type MutationOrganizationArgs = {
-  org: NewOrganization;
+  organization: UpsertOrganization;
 };
 
 
@@ -305,21 +326,6 @@ export type NewMember = {
   tier?: InputMaybe<MemberTier>;
 };
 
-export type NewOrganization = {
-  address: Scalars['String']['input'];
-  city: Scalars['String']['input'];
-  contact?: InputMaybe<NewOrganizationContact>;
-  name: Scalars['String']['input'];
-  state: Scalars['String']['input'];
-  timezone: Scalars['String']['input'];
-  weekBegins: DayOfWeek;
-};
-
-export type NewOrganizationContact = {
-  email: Scalars['String']['input'];
-  phone: Scalars['String']['input'];
-};
-
 export type NewPhone = {
   number: Scalars['String']['input'];
   receiveTexts: Scalars['Boolean']['input'];
@@ -381,16 +387,27 @@ export type Organization = {
   docType: DocType;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  settings?: Maybe<OrganizationOvertimeSettings>;
   state: Scalars['String']['output'];
   timezone: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
   weekBegins: DayOfWeek;
+  zip: Scalars['String']['output'];
 };
 
 export type OrganizationContact = {
   __typename?: 'OrganizationContact';
   email: Scalars['String']['output'];
   phone: Scalars['String']['output'];
+};
+
+export type OrganizationOvertimeSettings = {
+  __typename?: 'OrganizationOvertimeSettings';
+  lottery: LotterySettings;
+  shiftBuffer: ShiftBuffer;
+  shiftReminder: ShiftReminder;
+  shiftsPerWeek: Scalars['Int']['output'];
+  userRelinquishShift: UserRelinquishShift;
 };
 
 export type Phone = {
@@ -406,6 +423,7 @@ export type Query = {
   me?: Maybe<User>;
   notification?: Maybe<Notification>;
   notifications?: Maybe<NotificationSearchResult>;
+  organization?: Maybe<Organization>;
   rank?: Maybe<Rank>;
   ranks?: Maybe<RankSearchResult>;
   skill?: Maybe<Skill>;
@@ -521,6 +539,26 @@ export type Shift = {
   userId: Scalars['String']['output'];
 };
 
+export type ShiftBuffer = {
+  __typename?: 'ShiftBuffer';
+  adminOverrideShiftBuffer: Scalars['Boolean']['output'];
+  enabled: Scalars['Boolean']['output'];
+  minuteShiftBuffer: Scalars['Int']['output'];
+};
+
+export type ShiftReminder = {
+  __typename?: 'ShiftReminder';
+  enabled: Scalars['Boolean']['output'];
+  time: Scalars['Int']['output'];
+  unit: ShiftReminderUnit;
+};
+
+export enum ShiftReminderUnit {
+  Day = 'DAY',
+  Hour = 'HOUR',
+  Minute = 'MINUTE'
+}
+
 export enum ShiftStatus {
   Assigned = 'ASSIGNED',
   Available = 'AVAILABLE',
@@ -582,6 +620,24 @@ export type UpdateUser = {
   member?: InputMaybe<NewMember>;
 };
 
+export type UpsertAfterShiftRemove = {
+  days: Scalars['Int']['input'];
+  tier: MemberTier;
+};
+
+export type UpsertLotteryDate = {
+  dayOfWeek: DayOfWeek;
+  time: Scalars['String']['input'];
+};
+
+export type UpsertLotterySettings = {
+  close: UpsertLotteryDate;
+  enabled: Scalars['Boolean']['input'];
+  fcfsShiftsDelay: Scalars['Int']['input'];
+  notifyUsersBeforeClose: Scalars['Int']['input'];
+  open: UpsertLotteryDate;
+};
+
 export type UpsertMemberSkill = {
   id?: InputMaybe<Scalars['String']['input']>;
   imagePath?: InputMaybe<Scalars['String']['input']>;
@@ -599,10 +655,48 @@ export type UpsertNotification = {
   title: Scalars['String']['input'];
 };
 
+export type UpsertOrganization = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  contact?: InputMaybe<UpsertOrganizationContact>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
+  state?: InputMaybe<Scalars['String']['input']>;
+  timezone?: InputMaybe<Scalars['String']['input']>;
+  weekBegins?: InputMaybe<DayOfWeek>;
+  zip?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpsertOrganizationContact = {
+  email: Scalars['String']['input'];
+  phone: Scalars['String']['input'];
+};
+
+export type UpsertOrganizationOvertimeSettings = {
+  lottery: UpsertLotterySettings;
+  shiftBuffer: UpsertShiftBuffer;
+  shiftReminder: UpsertShiftReminder;
+  shiftsPerWeek: Scalars['Int']['input'];
+  userRelinquishShift: UpsertUserRelinquishShift;
+};
+
 export type UpsertRank = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpsertShiftBuffer = {
+  adminOverrideShiftBuffer: Scalars['Boolean']['input'];
+  enabled: Scalars['Boolean']['input'];
+  minuteShiftBuffer: Scalars['Int']['input'];
+};
+
+export type UpsertShiftReminder = {
+  enabled: Scalars['Boolean']['input'];
+  time: Scalars['Int']['input'];
+  unit: ShiftReminderUnit;
 };
 
 export type UpsertSkill = {
@@ -612,6 +706,12 @@ export type UpsertSkill = {
   rankOnlyIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
   requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpsertUserRelinquishShift = {
+  afterShiftRemove: UpsertAfterShiftRemove;
+  enabled: Scalars['Boolean']['input'];
+  requireNoteWhenRelinquishing: Scalars['Boolean']['input'];
 };
 
 export type UpsertVenue = {
@@ -656,6 +756,13 @@ export type UserAvailability = {
   thursday: DayAvailability;
   tuesday: DayAvailability;
   wednesday: DayAvailability;
+};
+
+export type UserRelinquishShift = {
+  __typename?: 'UserRelinquishShift';
+  afterShiftRemove: AfterShiftRemove;
+  enabled: Scalars['Boolean']['output'];
+  requireNoteWhenRelinquishing: Scalars['Boolean']['output'];
 };
 
 export type UserSearchInput = {
@@ -790,6 +897,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
+  AfterShiftRemove: ResolverTypeWrapper<AfterShiftRemove>;
   Assignment: ResolverTypeWrapper<Assignment>;
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
@@ -805,6 +913,8 @@ export type ResolversTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  LotteryDate: ResolverTypeWrapper<LotteryDate>;
+  LotterySettings: ResolverTypeWrapper<LotterySettings>;
   Member: ResolverTypeWrapper<Member>;
   MemberNotification: ResolverTypeWrapper<MemberNotification>;
   MemberRole: MemberRole;
@@ -815,8 +925,6 @@ export type ResolversTypes = ResolversObject<{
   NewContactInfo: NewContactInfo;
   NewEmail: NewEmail;
   NewMember: NewMember;
-  NewOrganization: NewOrganization;
-  NewOrganizationContact: NewOrganizationContact;
   NewPhone: NewPhone;
   NewUser: NewUser;
   Notification: ResolverTypeWrapper<Notification>;
@@ -825,6 +933,7 @@ export type ResolversTypes = ResolversObject<{
   NotificationSearchResult: ResolverTypeWrapper<NotificationSearchResult>;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
+  OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
   Phone: ResolverTypeWrapper<Phone>;
   Query: ResolverTypeWrapper<{}>;
   Rank: ResolverTypeWrapper<Rank>;
@@ -832,6 +941,9 @@ export type ResolversTypes = ResolversObject<{
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
   SearchInput: SearchInput;
   Shift: ResolverTypeWrapper<Shift>;
+  ShiftBuffer: ResolverTypeWrapper<ShiftBuffer>;
+  ShiftReminder: ResolverTypeWrapper<ShiftReminder>;
+  ShiftReminderUnit: ShiftReminderUnit;
   ShiftStatus: ShiftStatus;
   Skill: ResolverTypeWrapper<Skill>;
   SkillSearchInput: SkillSearchInput;
@@ -839,14 +951,24 @@ export type ResolversTypes = ResolversObject<{
   SkillStatus: SkillStatus;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UpdateUser: UpdateUser;
+  UpsertAfterShiftRemove: UpsertAfterShiftRemove;
+  UpsertLotteryDate: UpsertLotteryDate;
+  UpsertLotterySettings: UpsertLotterySettings;
   UpsertMemberSkill: UpsertMemberSkill;
   UpsertNotification: UpsertNotification;
+  UpsertOrganization: UpsertOrganization;
+  UpsertOrganizationContact: UpsertOrganizationContact;
+  UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertRank: UpsertRank;
+  UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftReminder: UpsertShiftReminder;
   UpsertSkill: UpsertSkill;
+  UpsertUserRelinquishShift: UpsertUserRelinquishShift;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
   User: ResolverTypeWrapper<User>;
   UserAvailability: ResolverTypeWrapper<UserAvailability>;
+  UserRelinquishShift: ResolverTypeWrapper<UserRelinquishShift>;
   UserSearchInput: UserSearchInput;
   UserSearchResult: ResolverTypeWrapper<UserSearchResult>;
   Venue: ResolverTypeWrapper<Venue>;
@@ -857,6 +979,7 @@ export type ResolversTypes = ResolversObject<{
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
+  AfterShiftRemove: AfterShiftRemove;
   Assignment: Assignment;
   AvailabilityTime: AvailabilityTime;
   Boolean: Scalars['Boolean']['output'];
@@ -869,6 +992,8 @@ export type ResolversParentTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
+  LotteryDate: LotteryDate;
+  LotterySettings: LotterySettings;
   Member: Member;
   MemberNotification: MemberNotification;
   MemberSkill: MemberSkill;
@@ -876,8 +1001,6 @@ export type ResolversParentTypes = ResolversObject<{
   NewContactInfo: NewContactInfo;
   NewEmail: NewEmail;
   NewMember: NewMember;
-  NewOrganization: NewOrganization;
-  NewOrganizationContact: NewOrganizationContact;
   NewPhone: NewPhone;
   NewUser: NewUser;
   Notification: Notification;
@@ -885,6 +1008,7 @@ export type ResolversParentTypes = ResolversObject<{
   NotificationSearchResult: NotificationSearchResult;
   Organization: Organization;
   OrganizationContact: OrganizationContact;
+  OrganizationOvertimeSettings: OrganizationOvertimeSettings;
   Phone: Phone;
   Query: {};
   Rank: Rank;
@@ -892,24 +1016,42 @@ export type ResolversParentTypes = ResolversObject<{
   RankSearchResult: RankSearchResult;
   SearchInput: SearchInput;
   Shift: Shift;
+  ShiftBuffer: ShiftBuffer;
+  ShiftReminder: ShiftReminder;
   Skill: Skill;
   SkillSearchInput: SkillSearchInput;
   SkillSearchResult: SkillSearchResult;
   String: Scalars['String']['output'];
   UpdateUser: UpdateUser;
+  UpsertAfterShiftRemove: UpsertAfterShiftRemove;
+  UpsertLotteryDate: UpsertLotteryDate;
+  UpsertLotterySettings: UpsertLotterySettings;
   UpsertMemberSkill: UpsertMemberSkill;
   UpsertNotification: UpsertNotification;
+  UpsertOrganization: UpsertOrganization;
+  UpsertOrganizationContact: UpsertOrganizationContact;
+  UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertRank: UpsertRank;
+  UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftReminder: UpsertShiftReminder;
   UpsertSkill: UpsertSkill;
+  UpsertUserRelinquishShift: UpsertUserRelinquishShift;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
   User: User;
   UserAvailability: UserAvailability;
+  UserRelinquishShift: UserRelinquishShift;
   UserSearchInput: UserSearchInput;
   UserSearchResult: UserSearchResult;
   Venue: Venue;
   VenueContact: VenueContact;
   VenueSearchResult: VenueSearchResult;
+}>;
+
+export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends ResolversParentTypes['AfterShiftRemove'] = ResolversParentTypes['AfterShiftRemove']> = ResolversObject<{
+  days?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  tier?: Resolver<ResolversTypes['MemberTier'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
@@ -971,6 +1113,21 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type LotteryDateResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotteryDate'] = ResolversParentTypes['LotteryDate']> = ResolversObject<{
+  dayOfWeek?: Resolver<ResolversTypes['DayOfWeek'], ParentType, ContextType>;
+  time?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type LotterySettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotterySettings'] = ResolversParentTypes['LotterySettings']> = ResolversObject<{
+  close?: Resolver<ResolversTypes['LotteryDate'], ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  fcfsShiftsDelay?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  notifyUsersBeforeClose?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  open?: Resolver<ResolversTypes['LotteryDate'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member']> = ResolversObject<{
   adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
@@ -1018,7 +1175,7 @@ export type MemberSkillResolvers<ContextType = any, ParentType extends Resolvers
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
-  organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'org'>>;
+  organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
@@ -1065,16 +1222,27 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   weekBegins?: Resolver<ResolversTypes['DayOfWeek'], ParentType, ContextType>;
+  zip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationContact'] = ResolversParentTypes['OrganizationContact']> = ResolversObject<{
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
+  lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
+  shiftBuffer?: Resolver<ResolversTypes['ShiftBuffer'], ParentType, ContextType>;
+  shiftReminder?: Resolver<ResolversTypes['ShiftReminder'], ParentType, ContextType>;
+  shiftsPerWeek?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  userRelinquishShift?: Resolver<ResolversTypes['UserRelinquishShift'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1090,6 +1258,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QueryNotificationArgs, 'id'>>;
   notifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryNotificationsArgs>>;
+  organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
@@ -1132,6 +1301,20 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   status?: Resolver<ResolversTypes['ShiftStatus'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftBufferResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftBuffer'] = ResolversParentTypes['ShiftBuffer']> = ResolversObject<{
+  adminOverrideShiftBuffer?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  minuteShiftBuffer?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftReminderResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftReminder'] = ResolversParentTypes['ShiftReminder']> = ResolversObject<{
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  time?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  unit?: Resolver<ResolversTypes['ShiftReminderUnit'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1182,6 +1365,13 @@ export type UserAvailabilityResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type UserRelinquishShiftResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserRelinquishShift'] = ResolversParentTypes['UserRelinquishShift']> = ResolversObject<{
+  afterShiftRemove?: Resolver<ResolversTypes['AfterShiftRemove'], ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  requireNoteWhenRelinquishing?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type UserSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserSearchResult'] = ResolversParentTypes['UserSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1221,12 +1411,15 @@ export type VenueSearchResultResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type Resolvers<ContextType = any> = ResolversObject<{
+  AfterShiftRemove?: AfterShiftRemoveResolvers<ContextType>;
   Assignment?: AssignmentResolvers<ContextType>;
   AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
   Event?: EventResolvers<ContextType>;
+  LotteryDate?: LotteryDateResolvers<ContextType>;
+  LotterySettings?: LotterySettingsResolvers<ContextType>;
   Member?: MemberResolvers<ContextType>;
   MemberNotification?: MemberNotificationResolvers<ContextType>;
   MemberSkill?: MemberSkillResolvers<ContextType>;
@@ -1235,15 +1428,19 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   NotificationSearchResult?: NotificationSearchResultResolvers<ContextType>;
   Organization?: OrganizationResolvers<ContextType>;
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
+  OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Rank?: RankResolvers<ContextType>;
   RankSearchResult?: RankSearchResultResolvers<ContextType>;
   Shift?: ShiftResolvers<ContextType>;
+  ShiftBuffer?: ShiftBufferResolvers<ContextType>;
+  ShiftReminder?: ShiftReminderResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
   SkillSearchResult?: SkillSearchResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserAvailability?: UserAvailabilityResolvers<ContextType>;
+  UserRelinquishShift?: UserRelinquishShiftResolvers<ContextType>;
   UserSearchResult?: UserSearchResultResolvers<ContextType>;
   Venue?: VenueResolvers<ContextType>;
   VenueContact?: VenueContactResolvers<ContextType>;

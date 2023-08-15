@@ -53,7 +53,7 @@ export default function App() {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <SettingsProvider
           defaultSettings={{
-            themeMode: 'light', // 'light' | 'dark'
+            themeMode: 'dark', // 'light' | 'dark'
             themeDirection: 'ltr', //  'rtl' | 'ltr'
             themeContrast: 'default', // 'default' | 'bold'
             themeLayout: 'vertical', // 'vertical' | 'horizontal' | 'mini'

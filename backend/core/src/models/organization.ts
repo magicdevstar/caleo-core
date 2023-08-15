@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { DocType, NewOrganization, Organization } from '../__generated__/resolvers-types';
+import { DocType, UpsertOrganization, Organization } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { BaseModel } from './base';
 
@@ -9,7 +9,7 @@ export class OrganizationModel extends BaseModel<Organization> {
   }
 
   public async create(org: any): Promise<any> {
-    const inputOrg = org as NewOrganization;
+    const inputOrg = org as UpsertOrganization;
     const now = Date.now();
     const insertDoc = {
       ...inputOrg,

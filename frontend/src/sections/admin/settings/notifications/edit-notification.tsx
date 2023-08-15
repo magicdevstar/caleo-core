@@ -58,7 +58,7 @@ export default function EditNotification({ currentNotification }: Props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const NewBlogSchema = Yup.object().shape({
+  const NewNotificationSchema = Yup.object().shape({
     id: Yup.string(),
     title: Yup.string().required('Title is required'),
     body: Yup.string().required('Body is required'),
@@ -80,7 +80,7 @@ export default function EditNotification({ currentNotification }: Props) {
   );
 
   const methods = useForm({
-    resolver: yupResolver(NewBlogSchema),
+    resolver: yupResolver(NewNotificationSchema),
     defaultValues,
   });
 

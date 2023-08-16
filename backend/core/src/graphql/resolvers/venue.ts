@@ -1,5 +1,5 @@
 import { Context } from "../..";
-import { Venue, UpsertVenue, SearchInput } from "../../__generated__/resolvers-types";
+import { Venue, UpsertVenue, VenueSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
@@ -12,12 +12,12 @@ export const venue = {
     ): Promise<Venue | null> => venues.get(id),
     venues: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: VenueSearchInput },
       { venues, user }: Context
     ): Promise<SearchResults<Venue>> => venues.search({
-      limit,
-      skip,
       orgId: user?.member.orgId!,
+      queryField: 'name',
+      ...input,
     })
   },
   Mutation: {

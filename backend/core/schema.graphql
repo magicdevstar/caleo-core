@@ -312,11 +312,12 @@
   type Venue {
     id: ID!
     name: String!
-    address: String!
-    city: String!
-    state: String!
-    zip: String!
-    phone: String!
+    address: String
+    city: String
+    state: String
+    zip: String
+    phone: String
+    notes: String
     contact: VenueContact
     status: VenueStatus
     docType: DocType!
@@ -335,13 +336,14 @@
   }
 
   input UpsertVenue {
-    id: ID!
+    id: String
     name: String!
     address: String
     city: String
     state: String
     zip: String
     phone: String
+    notes: String
     contact: UpsertVenueContact
     status: VenueStatus
   }
@@ -661,6 +663,15 @@
     total: Int!
   }
 
+  input VenueSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
   type VenueSearchResult {
     items: [Venue]
     total: Int!
@@ -732,7 +743,7 @@ type Query {
   skills(input: SkillSearchInput): SkillSearchResult
   
   venue(id: String!): Venue
-  venues(input: SearchInput): VenueSearchResult
+  venues(input: VenueSearchInput): VenueSearchResult
 
   event(id: String!): Event
   events(input: SearchInput): EventSearchResult

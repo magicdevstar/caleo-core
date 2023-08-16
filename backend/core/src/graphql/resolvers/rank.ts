@@ -2,7 +2,6 @@ import { GraphQLError } from "graphql";
 import { Context } from "../..";
 import { Rank, RankSearchInput, UpsertRank } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import logger from "../../utils/logger";
 
 export const rank = {
   Query: {

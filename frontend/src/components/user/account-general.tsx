@@ -11,10 +11,8 @@ import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
-// hooks
-import { useAuthContext } from 'src/auth/hooks';
 // components
-import { UPDATE_USER } from 'src/api/user';
+import { FrontendUser, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -39,18 +37,18 @@ const statusNames = {
   [MemberStatus.Removed]: 'Removed',
 }
 
-export default function AccountGeneral() {
+export default function AccountGeneral({
+  user
+}: {
+  user: FrontendUser
+}) {
   const { enqueueSnackbar } = useSnackbar();
 
-  const { user } = useAuthContext();
   const [updateUser] = useMutation(UPDATE_USER);
-
-  const [rankQuery, setRankQuery] = useState('');
   const { data, loading } = useQuery(GET_RANKS, {
     variables: {
       input: {
-        limit: 100,
-        query: rankQuery,
+        limit: 1000,
       },
     },
   });

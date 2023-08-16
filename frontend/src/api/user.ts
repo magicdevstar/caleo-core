@@ -1,51 +1,131 @@
 import { gql } from "@apollo/client";
+import { User } from "src/__generated__/resolvers-types";
 
-export const ME = gql`
-  query Query {
-    me {
-      id
-      firstName
-      lastName
-      superAdmin
-      cognitoId,
-      member {
-        orgId
-        contactInfo {
-          primaryEmail {
-            address
-            receiveEmails
-          }
-          primaryPhone {
-            number
-            receiveTexts
-          }
-          secondaryEmail {
-            address
-            receiveEmails
-          }
-          secondaryPhone {
-            number
-            receiveTexts
-          }
-        }
-        memberSkills {
-          id
-          status
-          skill {
-            id
-            name
-          }
-        }
-        pNumber
-        rank {
-          id
-          name
-        }
-        role
-        status
-        tier
+const userDetailProperties = `
+  id
+  firstName
+  lastName
+  superAdmin
+  cognitoId,
+  member {
+    orgId
+    contactInfo {
+      primaryEmail {
+        address
+        receiveEmails
+      }
+      primaryPhone {
+        number
+        receiveTexts
+      }
+      secondaryEmail {
+        address
+        receiveEmails
+      }
+      secondaryPhone {
+        number
+        receiveTexts
       }
     }
+    memberSkills {
+      id
+      status
+      skillId
+      createdAt
+      skill {
+        id
+        name
+      }
+    }
+    availability {
+      monday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      tuesday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      wednesday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      thursday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      friday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      saturday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+      sunday {
+        available
+        times {
+          startTime
+          endTime
+        }
+      }
+    }
+    pNumber
+    rank {
+      id
+      name
+    }
+    role
+    status
+    tier
+  }
+`
+
+export const ME = gql`
+  query Me {
+    me {
+      ${userDetailProperties}
+    }
+  }
+`;
+
+export const GET_USER = gql`
+  query GetUser($id: String!) {
+    user(id: $id) {
+      ${userDetailProperties}
+    }
+  }
+`;
+
+export const UPSERT_MEMBER_SKILL = gql`
+  mutation UpsertMemberSkill($input: UpsertMemberSkill!) {
+    userSkill(userSkill: $input) {
+      id
+    }
+  }
+`;
+
+export const REMOVE_MEMBER_SKILL = gql`
+  mutation RemoveMemberSkill($id: String!) {
+    removeUserSkill(id: $id)
   }
 `;
 
@@ -78,6 +158,13 @@ export const UPDATE_USER = gql`
     }
   }
 `;
+
+export interface FrontendUser extends User {
+  displayName: string;
+  email: string;
+  photoURL: string;
+  role: string;
+}
 
 export type UserTableFilterValue = string | string[];
 

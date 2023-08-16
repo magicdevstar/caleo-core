@@ -1,11 +1,13 @@
+import { useNavigate } from "react-router";
 // Types
 import { MemberStatus, MemberTier, User } from "src/__generated__/resolvers-types";
 import GQLTable from "src/components/table/gql/table"
 // Components
-import { TableConfig } from "src/components/table/table-config"
+import { TableConfig, getBooleanFilters, getStatusFilter, getTierFilter } from "src/components/table/table-config"
 import { GET_USERS } from "src/api/user";
 
 export default function UserTable() {
+  const navigate = useNavigate();
   const config: TableConfig<User> = {
     header: {
       title: 'Users',
@@ -24,7 +26,9 @@ export default function UserTable() {
       {
         getName: () => 'Edit',
         getIcon: () => 'solar:pen-bold',
-        onClick: (row: User) => {},
+        onClick: (row: User) => {
+          navigate(`/dashboard/admin/users/${row.id}`);
+        },
       },
       {
         getName: () => 'Delete',
@@ -33,7 +37,12 @@ export default function UserTable() {
       }
     ],
     columns: [
-      { id: 'name', label: 'Name', columnType: 'string' },
+      {
+        id: 'name',
+        label: 'Name',
+        columnType: 'string',
+        getHref: (row) => `/dashboard/admin/users/${row.id}`
+      },
       { id: 'member.pNumber', label: 'P#', width: 200, columnType: 'string' },
       { id: 'member.rank.name', label: 'Rank', width: 160, columnType: 'string' },
       {
@@ -65,11 +74,57 @@ export default function UserTable() {
     ],
     filters: [
       {
-        id: 'name',
+        id: 'query',
         type: 'text',
         label: 'Name',
         defaultValue: '',
         value: '',
+      },
+      {
+        id: 'pNumber',
+        type: 'text',
+        label: 'P#',
+        defaultValue: '',
+        value: '',
+      },
+      {
+        id: 'phone',
+        type: 'text',
+        label: 'Phone Number',
+        defaultValue: '',
+        value: '',
+      },
+      {
+        id: 'email',
+        type: 'text',
+        label: 'Email',
+        defaultValue: '',
+        value: '',
+      },
+      {
+        id: 'statuses',
+        type: 'select',
+        label: 'Status',
+        defaultValue: [],
+        value: [],
+        fetchOptions: getStatusFilter,
+      },
+      {
+        id: 'tiers',
+        type: 'select',
+        label: 'Tier',
+        defaultValue: [],
+        value: [],
+        fetchOptions: getTierFilter,
+      },
+      {
+        id: 'admin',
+        type: 'select',
+        label: 'Admin',
+        defaultValue: [],
+        value: [],
+        fetchOptions: getBooleanFilters,
+        resolveAsBoolean: true,
       },
     ]
   };

@@ -1,80 +1,45 @@
-import { useState, useCallback } from 'react';
 // @mui
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+import { useQuery } from '@apollo/client';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-// _mock
-import { _userAbout, _userPlans, _userPayment, _userInvoices, _userAddressBook } from 'src/_mock';
+import { _mock } from 'src/_mock';
+import { FrontendUser, GET_USER } from 'src/api/user';
+import { useAuthContext } from 'src/auth/hooks';
 // components
-import Iconify from 'src/components/iconify';
+import { LoadingScreen } from 'src/components/loading-screen';
 import { useSettingsContext } from 'src/components/settings';
-//
-import AccountGeneral from '../account-general';
-import AccountSocialLinks from '../account-social-links';
-import AccountNotifications from '../account-notifications';
-import AccountChangePassword from '../account-change-password';
-
-// ----------------------------------------------------------------------
-
-const TABS = [
-  {
-    value: 'general',
-    label: 'General',
-    icon: <Iconify icon="solar:user-id-bold" width={24} />,
-  },
-  {
-    value: 'overtime',
-    label: 'Overtime Availability',
-    icon: <Iconify icon="solar:bell-bing-bold" width={24} />,
-  },
-  {
-    value: 'skills',
-    label: 'Skills',
-    icon: <Iconify icon="solar:share-bold" width={24} />,
-  },
-  {
-    value: 'security',
-    label: 'Password',
-    icon: <Iconify icon="ic:round-vpn-key" width={24} />,
-  },
-];
+import MainAccountView from 'src/components/user/account-view';
 
 // ----------------------------------------------------------------------
 
 export default function AccountView() {
-
+  const { user } = useAuthContext();
+  const { data, loading } = useQuery(GET_USER, {
+    variables: {
+      id: user.id,
+    }, 
+  });
   const settings = useSettingsContext();
-
-  const [currentTab, setCurrentTab] = useState('general');
-
-  const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
-    setCurrentTab(newValue);
-  }, []);
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <Typography variant="h4"> Profile </Typography>
-
-      <Tabs
-        value={currentTab}
-        onChange={handleChangeTab}
-        sx={{
-          mb: { xs: 3, md: 5 },
-        }}
-      >
-        {TABS.map((tab) => (
-          <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
-        ))}
-      </Tabs>
-
-      {currentTab === 'general' && <AccountGeneral />}
-
-      {currentTab === 'overtime' && <AccountNotifications />}
-
-      {currentTab === 'skills' && <AccountSocialLinks socialLinks={_userAbout.socialLinks} />}
-
-      {currentTab === 'security' && <AccountChangePassword />}
+      {
+        loading ? (
+          <LoadingScreen
+            sx={{
+              borderRadius: 1.5,
+              bgcolor: 'background.default',
+            }}
+          />
+        ) : (
+          <MainAccountView user={{
+            ...data?.user,
+            displayName: data?.user?.name,
+            photoURL: _mock.image.avatar(24),
+          } as FrontendUser} />
+        )
+      }
     </Container>
   );
 }

@@ -14,7 +14,14 @@ const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOverti
 const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
 const EmptyPage = lazy(() => import('src/sections/empty/view'));
 const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+const AdminNotifications = lazy(() => import('src/pages/dashboard/admin/settings/notifications'));
+const EditNotification = lazy(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
+const AdminUserDetails = lazy(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
+const OvertimeSettings = lazy(() => import('src/pages/dashboard/admin/settings/overtime'));
+const DepartmentSettings = lazy(() => import('src/pages/dashboard/admin/settings/department'));
+const Venues = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/venues'));
+const EditVenue = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
 
 // ----------------------------------------------------------------------
 
@@ -42,24 +49,26 @@ export const dashboardRoutes = [
             path: 'overtime',
             children: [
               { path: 'events', element: <EmptyPage title='Events' />, index: true },
-              { path: 'venues', element: <EmptyPage title='Venues' /> },
-              { path: 'shifts', element: <EmptyPage title='Shifts' /> },
+              { path: 'venues', element: <Venues /> },
+              { path: 'venues/:id', element: <EditVenue /> },
             ]
           },
           {
             path: 'users',
             children: [
               { element: <UserSearch />, index: true },
+              { path: ':id', element: <AdminUserDetails /> },
               { path: 'requests', element: <EmptyPage title='Manage Requests' /> },
             ]
           },
           {
             path: 'settings',
             children: [
-              { element: <EmptyPage title='Overtime' />, index: true },
+              { element: <OvertimeSettings />, index: true },
               { path: 'ranks-and-skills', element: <RanksAndSkills /> },
-              { path: 'department', element: <EmptyPage title='Department' /> },
-              { path: 'notifications', element: <EmptyPage title='Notifications' /> },
+              { path: 'department', element: <DepartmentSettings /> },
+              { path: 'notifications', element: <AdminNotifications /> },
+              { path: 'notifications/:id', element: <EditNotification /> },
             ]
           }
         ],

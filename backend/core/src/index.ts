@@ -20,6 +20,9 @@ import { MemberSkillModel } from './models/memberSkill';
 import { VenueModel } from './models/venue';
 import { NotificationModel } from './models/nontification';
 import { MemberNotificationModel } from './models/memberNotification';
+import { EventModel } from './models/event';
+import { AssignmentModel } from './models/assignment';
+import { ShiftModel } from './models/shift';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -29,6 +32,9 @@ export interface Context {
   memberSkills: MemberSkillModel;
   venues: VenueModel;
   notifications: NotificationModel;
+  events: EventModel;
+  assignments: AssignmentModel;
+  shifts: ShiftModel;
   memberNotifications: MemberNotificationModel;
   user?: User;
 }
@@ -63,6 +69,9 @@ export const handler = startServerAndCreateLambdaHandler(
         skills: new SkillModel(db),
         memberSkills: new MemberSkillModel(db),
         venues: new VenueModel(db),
+        events: new EventModel(db),
+        assignments: new AssignmentModel(db),
+        shifts: new ShiftModel(db),
         notifications: new NotificationModel(db),
         memberNotifications: new MemberNotificationModel(db),
         user: event.requestContext?.authorizer?.lambda?.user,

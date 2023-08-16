@@ -1,5 +1,5 @@
 import { Context } from "../..";
-import { Notification, SearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
+import { Notification, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
@@ -12,16 +12,16 @@ export const notification = {
     ): Promise<Notification | null> => notifications.get(id),
     notifications: async (
       _parent: unknown,
-      input: SearchInput,
+      { input }: {input: NotificationSearchInput},
       { notifications, user }: Context
     ): Promise<SearchResults<Notification>> => await notifications.search({
         orgId: user?.member.orgId!,
-        limit: input.limit,
-        skip: input.skip,
+        queryField: 'title',
+        ...input,
       }),
     activeNotifications: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { limit, skip }: NotificationSearchInput,
       { notifications, user }: Context
     ): Promise<SearchResults<Notification>> => notifications.search({
       limit,
@@ -48,6 +48,7 @@ export const notification = {
       adminOnly(user);
       return notifications.upsert({
         ...notification,
+        createdById: user?.id!,
         orgId: user?.member.orgId!,
       } as any);
     },

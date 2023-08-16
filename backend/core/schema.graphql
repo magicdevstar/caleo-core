@@ -8,6 +8,9 @@
     VENUE
     NOTIFICATION
     MEMBER_NOTIFICATION
+    EVENT
+    ASSIGNMENT
+    SHIFT
   }
   enum DayOfWeek {
     SUNDAY
@@ -39,14 +42,24 @@
     MEMBER
   }
 
-  type UserAvailability {
-    dayOfWeek: DayOfWeek!
-    unavailable: Boolean!
+  type AvailabilityTime {
     startTime: String!
     endTime: String!
-    userId: String!
+  }
 
-    user: User
+  type DayAvailability {
+    available: Boolean!
+    times: [AvailabilityTime!]
+  }
+
+  type UserAvailability {
+    monday: DayAvailability!
+    tuesday: DayAvailability!
+    wednesday: DayAvailability!
+    thursday: DayAvailability!
+    friday: DayAvailability!
+    saturday: DayAvailability!
+    sunday: DayAvailability!
   }
 
   type Phone {
@@ -78,6 +91,7 @@
     adminNote: String
     deactivationNote: String
 
+    availability: UserAvailability!
     rank: Rank
     memberSkills: [MemberSkill]
     org: Organization
@@ -94,6 +108,26 @@
     updatedAt: String!
     docType: DocType!
     member: Member!
+  }
+
+  input InputAvailabilityTime {
+    startTime: String!
+    endTime: String!
+  }
+
+  input InputDayAvailability {
+    available: Boolean!
+    times: [InputAvailabilityTime!]
+  }
+
+  input InputUserAvailability {
+    monday: InputDayAvailability!
+    tuesday: InputDayAvailability!
+    wednesday: InputDayAvailability!
+    thursday: InputDayAvailability!
+    friday: InputDayAvailability!
+    saturday: InputDayAvailability!
+    sunday: InputDayAvailability!
   }
 
   input UpdateUser {
@@ -139,6 +173,7 @@
     status: MemberStatus
     deactivationNote: String
     contactInfo: NewContactInfo
+    availability: InputUserAvailability
   }
 ###### END User ######
 
@@ -158,16 +193,18 @@
   type Event {
     id: ID!
     name: String!
-    attachment: String!
+    attachment: String
     startDate: String!
     endDate: String!
     orgId: String!
     status: EventStatus!
     docType: DocType!
     assignmentIds: [String]
+    createdAt: String!
+    updatedAt: String!
 
     org: Organization!
-    assignments: [Assignment]
+    assignments: [Assignment!]
   }
 
   type Assignment {
@@ -181,11 +218,14 @@
     rankIds: [String]
     bwNeeded: Boolean!
     shiftIds: [String]
+    createdAt: String!
+    updatedAt: String!
 
     event: Event!
     requiredSkills: [Skill]
     ranks: [Rank]
     shifts: [Shift]
+    org: Organization!
   }
 
   enum ShiftStatus {
@@ -208,14 +248,50 @@
     endTime: String!
     status: ShiftStatus!
     docType: DocType!
+    orgId: String!
     locked: Boolean!
     eventId: String!
     assignmentId: String!
-    userId: String!
+    userId: String
+    createdAt: String!
+    updatedAt: String!
 
-    user: User!
+    user: User
     event: Event!
     assignment: Assignment!
+    org: Organization!
+  }
+
+  input UpsertEvent {
+    id: String
+    name: String!
+    attachment: String
+    startDate: String
+    endDate: String
+    status: EventStatus
+    assignmentIds: [String]
+  }
+
+  input UpsertAssignment {
+    id: String
+    name: String!
+    description: String
+    eventId: String!
+    requiredSkillIds: [String]
+    rankIds: [String]
+    bwNeeded: Boolean
+    shiftIds: [String]
+  }
+
+  input UpsertShift {
+    id: String
+    startTime: String
+    endTime: String
+    status: ShiftStatus
+    locked: Boolean
+    eventId: String!
+    assignmentId: String!
+    userId: String
   }
 ###### END Events ######
 
@@ -236,11 +312,12 @@
   type Venue {
     id: ID!
     name: String!
-    address: String!
-    city: String!
-    state: String!
-    zip: String!
-    phone: String!
+    address: String
+    city: String
+    state: String
+    zip: String
+    phone: String
+    notes: String
     contact: VenueContact
     status: VenueStatus
     docType: DocType!
@@ -259,13 +336,14 @@
   }
 
   input UpsertVenue {
-    id: ID!
+    id: String
     name: String!
     address: String
     city: String
     state: String
     zip: String
     phone: String
+    notes: String
     contact: UpsertVenueContact
     status: VenueStatus
   }
@@ -353,33 +431,150 @@
     email: String!
   }
 
+  enum ShiftReminderUnit {
+    MINUTE
+    HOUR
+    DAY
+  }
+
   type Organization {
     id: ID!
     name: String!
     address: String!
     state: String!
     city: String!
+    zip: String!
     weekBegins: DayOfWeek!
     timezone: String!
     contact: OrganizationContact
     docType: DocType!
     createdAt: String!
     updatedAt: String!
+    settings: OrganizationOvertimeSettings
   }
 
-  input NewOrganizationContact {
+  type OrganizationOvertimeSettings {
+    shiftsPerWeek: Int!
+    lottery: LotterySettings!
+    shiftBuffer: ShiftBuffer!
+    userRelinquishShift: UserRelinquishShift!
+    shiftReminder: ShiftReminder!
+  }
+
+  type UserRelinquishShift {
+    enabled: Boolean!
+    # Number of hours to wait before shift starts to allow users to relinquish
+    # their shift
+    afterShiftRemove: AfterShiftRemove!
+    requireNoteWhenRelinquishing: Boolean!
+  }
+
+  type ShiftBuffer {
+    enabled: Boolean!
+    minuteShiftBuffer: Int!
+    adminOverrideShiftBuffer: Boolean!
+  }
+
+  type ShiftReminder {
+    enabled: Boolean!
+    # Number of hours before shift to send reminder
+    time: Int!
+    unit: ShiftReminderUnit!
+  }
+
+  # What tier should members be moved to if they relinquish their shift
+  # and for how long
+  type AfterShiftRemove {
+    tier: MemberTier!
+    days: Int!
+  }
+
+  type LotterySettings {
+    enabled: Boolean!
+    # The number of hours to notify users before the lottery window closes
+    notifyUsersBeforeClose: Int!
+    # Number of hours to wait before showing FCFS shifts
+    fcfsShiftsDelay: Int!
+    open: LotteryDate!
+    close: LotteryDate!
+  }
+
+  type LotteryDate {
+    dayOfWeek: DayOfWeek!
+    ## This will be a full ISO string but we will only
+    ## use the hour and minute portion of the ISO
+    time: String!
+  }
+
+  input UpsertOrganizationContact {
     phone: String!
     email: String!
   }
 
-  input NewOrganization {
-    name: String!
-    address: String!
-    state: String!
-    city: String!
-    weekBegins: DayOfWeek!
-    timezone: String!
-    contact: NewOrganizationContact
+  input UpsertOrganization {
+    id: String
+    name: String
+    address: String
+    state: String
+    city: String
+    zip: String
+    weekBegins: DayOfWeek
+    timezone: String
+    contact: UpsertOrganizationContact
+    settings: UpsertOrganizationOvertimeSettings
+  }
+
+  input UpsertOrganizationOvertimeSettings {
+    shiftsPerWeek: Int!
+    lottery: UpsertLotterySettings!
+    shiftBuffer: UpsertShiftBuffer!
+    userRelinquishShift: UpsertUserRelinquishShift!
+    shiftReminder: UpsertShiftReminder!
+  }
+
+  input UpsertUserRelinquishShift {
+    enabled: Boolean!
+    # Number of hours to wait before shift starts to allow users to relinquish
+    # their shift
+    afterShiftRemove: UpsertAfterShiftRemove!
+    requireNoteWhenRelinquishing: Boolean!
+  }
+
+  input UpsertShiftBuffer {
+    enabled: Boolean!
+    minuteShiftBuffer: Int!
+    adminOverrideShiftBuffer: Boolean!
+  }
+
+  input UpsertShiftReminder {
+    enabled: Boolean!
+    # Number of hours before shift to send reminder
+    time: Int!
+    unit: ShiftReminderUnit!
+  }
+
+  # What tier should members be moved to if they relinquish their shift
+  # and for how long
+  input UpsertAfterShiftRemove {
+    tier: MemberTier!
+    days: Int!
+  }
+
+  input UpsertLotterySettings {
+    enabled: Boolean!
+    # The number of hours to notify users before the lottery window closes
+    notifyUsersBeforeClose: Int!
+    # Number of hours to wait before showing FCFS shifts
+    fcfsShiftsDelay: Int!
+    open: UpsertLotteryDate!
+    close: UpsertLotteryDate!
+  }
+
+  input UpsertLotteryDate {
+    dayOfWeek: DayOfWeek!
+    ## This will be a full ISO string but we will only
+    ## use the hour and minute portion of the ISO
+    time: String!
   }
 ###### END Organization ######
 
@@ -456,6 +651,7 @@
     skip: Int
     query: String
     requiresCert: Boolean
+    rankOnlyIds: [String]
     requiresAdminApproval: Boolean
     active: Boolean
     orderBy: String
@@ -467,14 +663,47 @@
     total: Int!
   }
 
+  input VenueSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
   type VenueSearchResult {
     items: [Venue]
+    total: Int!
+  }
+
+  type EventSearchResult {
+    items: [Event]
+    total: Int!
+  }
+
+  type AssignmentSearchResult {
+    items: [Assignment]
+    total: Int!
+  }
+
+  type ShiftSearchResult {
+    items: [Shift]
     total: Int!
   }
 
   type NotificationSearchResult {
     items: [Notification]
     total: Int!
+  }
+
+  input NotificationSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
   }
 
   type UserSearchResult {
@@ -487,6 +716,8 @@
     skip: Int
     query: String
     pNumber: String
+    phone: String
+    email: String
     rankIds: [String]
     statuses: [MemberStatus]
     skillIds: [String]
@@ -500,8 +731,10 @@
 type Query {
   health: String
   me: User
+  organization: Organization
 
   users(input: UserSearchInput): UserSearchResult
+  user(id: String!): User
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult
@@ -510,15 +743,24 @@ type Query {
   skills(input: SkillSearchInput): SkillSearchResult
   
   venue(id: String!): Venue
-  venues(input: SearchInput): VenueSearchResult
+  venues(input: VenueSearchInput): VenueSearchResult
+
+  event(id: String!): Event
+  events(input: SearchInput): EventSearchResult
+
+  assignment(id: String!): Assignment
+  assignments(input: SearchInput): AssignmentSearchResult
+
+  shift(id: String!): Shift
+  shifts(input: SearchInput): ShiftSearchResult
 
   notification(id: String!): Notification
-  notifications(input: SearchInput): NotificationSearchResult
+  notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
 }
 
 type Mutation {
-  organization(org: NewOrganization!): Organization
+  organization(organization: UpsertOrganization!): Organization
 
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User
@@ -533,6 +775,15 @@ type Mutation {
 
   venue(venue: UpsertVenue!): Venue
   removeVenue(id: String!): ID!
+
+  event(event: UpsertEvent!): Event
+  removeEvent(id: String!): ID!
+
+  assignment(assignment: UpsertAssignment!): Assignment
+  removeAssignment(id: String!): ID!
+
+  shift(shift: UpsertShift!): Shift
+  removeShift(id: String!): ID!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

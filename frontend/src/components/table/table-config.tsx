@@ -1,4 +1,5 @@
 import { DocumentNode } from "graphql";
+import { MemberStatus, MemberTier } from "src/__generated__/resolvers-types";
 
 export interface TableConfig<T> {
   header: {
@@ -10,6 +11,8 @@ export interface TableConfig<T> {
     },
   },
   search: {
+    data?: T[],
+    loading?: boolean;
     query: DocumentNode;
     processResult: (value: any) => {
       items: T[];
@@ -30,6 +33,7 @@ export interface TableConfig<T> {
     maxRender?: number;
     renderValue?: (row: any) => any;
     getLabelColor?: (row: T) => string;
+    getHref?: (row: T) => string;
   }[];
   filters: {
     id: string;
@@ -61,6 +65,19 @@ export interface Filter {
 export const getBooleanFilters = () => [
   { value: 'yes', label: 'Yes' },
   { value: 'no', label: 'No' },
+];
+
+export const getStatusFilter = () => [
+  { value: MemberStatus.Active, label: 'Active' },
+  { value: MemberStatus.Inactive, label: 'InActive' },
+  { value: MemberStatus.Pending, label: 'Pending' },
+  { value: MemberStatus.Removed, label: 'Removed' },
+  { value: MemberStatus.Deleted, label: 'Deleted' },
+];
+
+export const getTierFilter = () => [
+  { value: MemberTier.Tier_1, label: 'Tier 1' },
+  { value: MemberTier.Tier_2, label: 'Tier 2' },
 ];
 
 export const resolveFilterValue = (filter: Filter) => {

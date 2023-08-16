@@ -194,15 +194,17 @@
     id: ID!
     name: String!
     attachment: String
-    startDate: String!
-    endDate: String!
+    startDate: String
+    endDate: String
     orgId: String!
     status: EventStatus!
     docType: DocType!
+    venueId: String!
     assignmentIds: [String]
     createdAt: String!
     updatedAt: String!
 
+    venue: Venue!
     org: Organization!
     assignments: [Assignment!]
   }
@@ -269,6 +271,7 @@
     startDate: String
     endDate: String
     status: EventStatus
+    venueId: String
     assignmentIds: [String]
   }
 
@@ -682,6 +685,14 @@
     total: Int!
   }
 
+  input EventSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
+  }
+
   type AssignmentSearchResult {
     items: [Assignment]
     total: Int!
@@ -746,7 +757,7 @@ type Query {
   venues(input: VenueSearchInput): VenueSearchResult
 
   event(id: String!): Event
-  events(input: SearchInput): EventSearchResult
+  events(input: EventSearchInput): EventSearchResult
 
   assignment(id: String!): Assignment
   assignments(input: SearchInput): AssignmentSearchResult

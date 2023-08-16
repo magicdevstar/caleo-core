@@ -107,14 +107,24 @@ export type Event = {
   attachment?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
-  endDate: Scalars['String']['output'];
+  endDate?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   org: Organization;
   orgId: Scalars['String']['output'];
-  startDate: Scalars['String']['output'];
+  startDate?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
   updatedAt: Scalars['String']['output'];
+  venue: Venue;
+  venueId: Scalars['String']['output'];
+};
+
+export type EventSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type EventSearchResult = {
@@ -518,7 +528,7 @@ export type QueryEventArgs = {
 
 
 export type QueryEventsArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<EventSearchInput>;
 };
 
 
@@ -578,7 +588,7 @@ export type QueryVenueArgs = {
 
 
 export type QueryVenuesArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<VenueSearchInput>;
 };
 
 export type Rank = {
@@ -746,6 +756,7 @@ export type UpsertEvent = {
   name: Scalars['String']['input'];
   startDate?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
+  venueId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertLotteryDate = {
@@ -852,7 +863,7 @@ export type UpsertVenue = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   contact?: InputMaybe<UpsertVenueContact>;
-  id: Scalars['ID']['input'];
+  id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
@@ -924,21 +935,21 @@ export type UserSearchResult = {
 
 export type Venue = {
   __typename?: 'Venue';
-  address: Scalars['String']['output'];
-  city: Scalars['String']['output'];
+  address?: Maybe<Scalars['String']['output']>;
+  city?: Maybe<Scalars['String']['output']>;
   contact?: Maybe<VenueContact>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  notes: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
-  phone: Scalars['String']['output'];
-  state: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  state?: Maybe<Scalars['String']['output']>;
   status?: Maybe<VenueStatus>;
   updatedAt: Scalars['String']['output'];
-  zip: Scalars['String']['output'];
+  zip?: Maybe<Scalars['String']['output']>;
 };
 
 export type VenueContact = {
@@ -1053,6 +1064,7 @@ export type ResolversTypes = ResolversObject<{
   DocType: DocType;
   Email: ResolverTypeWrapper<Email>;
   Event: ResolverTypeWrapper<Event>;
+  EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
@@ -1140,6 +1152,7 @@ export type ResolversParentTypes = ResolversObject<{
   DayAvailability: DayAvailability;
   Email: Email;
   Event: Event;
+  EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   ID: Scalars['ID']['output'];
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1272,14 +1285,16 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   attachment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
-  endDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  endDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  startDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  startDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  venue?: Resolver<ResolversTypes['Venue'], ParentType, ContextType>;
+  venueId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1577,21 +1592,21 @@ export type UserSearchResultResolvers<ContextType = any, ParentType extends Reso
 }>;
 
 export type VenueResolvers<ContextType = any, ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue']> = ResolversObject<{
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['VenueContact']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  notes?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['VenueStatus']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  zip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  zip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

@@ -22,6 +22,7 @@ const OvertimeSettings = lazy(() => import('src/pages/dashboard/admin/settings/o
 const DepartmentSettings = lazy(() => import('src/pages/dashboard/admin/settings/department'));
 const Venues = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/venues'));
 const EditVenue = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
+const Events = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 
 // ----------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ export const dashboardRoutes = [
           {
             path: 'overtime',
             children: [
-              { path: 'events', element: <EmptyPage title='Events' />, index: true },
+              { path: 'events', element: <Events />, index: true },
               { path: 'venues', element: <Venues /> },
               { path: 'venues/:id', element: <EditVenue /> },
             ]

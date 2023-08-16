@@ -1,5 +1,5 @@
 import { Context } from "../..";
-import { SearchInput, Event, UpsertEvent } from "../../__generated__/resolvers-types";
+import { EventSearchInput, Event, UpsertEvent } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
@@ -12,12 +12,11 @@ export const event = {
     ): Promise<Event | null> => events.get(id),
     events: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => events.search({
-      limit,
-      skip,
       orgId: user?.member.orgId!,
+      ...input,
     })
   },
   Mutation: {
@@ -59,6 +58,7 @@ export const event = {
     Event: {
       ...commonResolvers,
       org: (event: Event, _, { organizations }: Context) => organizations.loader.load(event.orgId),
+      venue: (event: Event, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId) : null,
       assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),
     },
   },

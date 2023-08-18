@@ -14,7 +14,6 @@ import { Event } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
 
-
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
@@ -53,7 +52,7 @@ export default function EventsTable() {
         getName: () => 'Edit',
         getIcon: () => 'solar:pen-bold',
         onClick: (row: Event) => {
-          navigate(`/dashboard/admin/overtime/venues/${row.id}`);
+          navigate(`/dashboard/admin/overtime/events/${row.id}`);
         },
       },
       {

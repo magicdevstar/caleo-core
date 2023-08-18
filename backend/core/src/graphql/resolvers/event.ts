@@ -1,5 +1,6 @@
+import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { EventSearchInput, Event, UpsertEvent } from "../../__generated__/resolvers-types";
+import { EventSearchInput, Event, UpsertEvent, EventStatus } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
@@ -45,9 +46,29 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, user }: Context
+      { events, shifts, user }: Context
     ): Promise<Event> => {
       adminOnly(user);
+
+      if (event.id) {
+        const currentEvent = await events.get(event.id);
+        if (!currentEvent) {
+          throw new GraphQLError('Could not find event');
+        }
+        if (!event.assignmentIds || event.assignmentIds.length === 0) {
+          (event as any).status = EventStatus.Draft;
+        } else if (currentEvent?.status === EventStatus.Draft) {
+          const { items: eventShifts } = await shifts.search({
+            eventId: event.id
+          });
+          if (eventShifts.length > 0) {
+            (event as any).status = EventStatus.ReadyForLottery;
+          }
+        }
+      } else {
+        (event as any).status = EventStatus.Draft;
+      }
+
       return events.upsert({
         ...event,
         orgId: user?.member.orgId!,

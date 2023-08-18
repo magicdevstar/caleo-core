@@ -108,6 +108,7 @@ export default function GQLTable({
         <Typography variant="h4"> { config.header.title } </Typography>
         {config.header.button && <Button
           variant="contained"
+          disabled={config.header.button.disabled}
           startIcon={<Iconify icon={config.header.button.icon}/>}
           onClick={config.header.button.onClick}
         >{config.header.button.text}</Button>}

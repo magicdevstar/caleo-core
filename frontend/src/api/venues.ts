@@ -25,6 +25,23 @@ export const GET_ALL_VENUES = gql`
   }
 `;
 
+export const GET_VENUE_LIST = gql`
+  query GetAllVenues($input: VenueSearchInput!) {
+    venues(input: $input) {
+      items {
+        id
+        name
+        address
+        city
+        state
+        zip
+        notes
+      }
+      total
+    }
+  }
+`;
+
 export const GET_VENUE = gql`
   query GetVenue($id: String!) {
     venue(id: $id) {

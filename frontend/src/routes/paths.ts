@@ -33,6 +33,7 @@ export const paths = {
       overtime: {
         root: `${ROOTS.DASHBOARD}/admin/overtime`,
         events: `${ROOTS.DASHBOARD}/admin/overtime/events`,
+        eventDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:id`,
         venues: `${ROOTS.DASHBOARD}/admin/overtime/venues`,
         shifts: `${ROOTS.DASHBOARD}/admin/overtime/shifts`,
       },

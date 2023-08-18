@@ -110,6 +110,7 @@ export type Event = {
   endDate?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   startDate?: Maybe<Scalars['String']['output']>;
@@ -134,15 +135,10 @@ export type EventSearchResult = {
 };
 
 export enum EventStatus {
-  Closed = 'CLOSED',
-  Fcfs = 'FCFS',
-  InProgress = 'IN_PROGRESS',
-  Lottery = 'LOTTERY',
-  Pending = 'PENDING',
-  PostLottery = 'POST_LOTTERY',
-  PreFcfs = 'PRE_FCFS',
-  PreLottery = 'PRE_LOTTERY',
-  Removed = 'REMOVED'
+  Complete = 'COMPLETE',
+  Draft = 'DRAFT',
+  FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
+  ReadyForLottery = 'READY_FOR_LOTTERY'
 }
 
 export type InputAvailabilityTime = {
@@ -749,14 +745,12 @@ export type UpsertAssignment = {
 };
 
 export type UpsertEvent = {
-  assignmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachment?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  startDate?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<EventStatus>;
-  venueId?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  venueId: Scalars['String']['input'];
 };
 
 export type UpsertLotteryDate = {
@@ -1288,6 +1282,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   endDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

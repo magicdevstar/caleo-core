@@ -66,8 +66,6 @@ export default function EditVenue({ currentVenue }: Props) {
     status: Yup.boolean().required('Status is required'),
   });
 
-  console.log('currentVenue', currentVenue);
-
   const defaultValues = useMemo(
     () => ({
       id: currentVenue?.id,

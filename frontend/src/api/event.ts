@@ -31,8 +31,8 @@ export const GET_EVENT = gql`
       attachment
       status
       venueId
+      notes
       assignmentIds
-      shiftIds
 
       venue {
         id
@@ -56,13 +56,14 @@ export const GET_EVENT = gql`
           id
           name
         }
+
+        shifts {
+          id
+          shiftId
+          status
+        }
       }
 
-      shifts {
-        id
-        shiftId
-        status
-      }
     }
   }
 `;

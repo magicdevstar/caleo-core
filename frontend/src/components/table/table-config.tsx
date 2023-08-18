@@ -7,6 +7,7 @@ export interface TableConfig<T> {
     button?: {
       text: string;
       icon: string;
+      disabled?: boolean;
       onClick: () => void;
     },
   },

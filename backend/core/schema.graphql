@@ -179,15 +179,10 @@
 
 ###### START Events ######
   enum EventStatus {
-    PENDING
-    PRE_FCFS
-    FCFS
-    PRE_LOTTERY
-    LOTTERY
-    POST_LOTTERY
-    IN_PROGRESS
-    CLOSED
-    REMOVED
+    DRAFT
+    READY_FOR_LOTTERY
+    FIRST_COME_FIRST_SERVE
+    COMPLETE
   }
 
   type Event {
@@ -196,6 +191,7 @@
     attachment: String
     startDate: String
     endDate: String
+    notes: String
     orgId: String!
     status: EventStatus!
     docType: DocType!
@@ -268,11 +264,9 @@
     id: String
     name: String!
     attachment: String
-    startDate: String
-    endDate: String
-    status: EventStatus
-    venueId: String
-    assignmentIds: [String]
+    notes: String
+    venueId: String!
+    assignmentIds: [String]!
   }
 
   input UpsertAssignment {

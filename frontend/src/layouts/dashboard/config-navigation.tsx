@@ -76,7 +76,6 @@ export function useNavData() {
               children: [
                 { title: 'Events', path: paths.dashboard.admin.overtime.events },
                 { title: 'Venues', path: paths.dashboard.admin.overtime.venues },
-                { title: 'Shifts', path: paths.dashboard.admin.overtime.shifts },
               ],
             },
             {

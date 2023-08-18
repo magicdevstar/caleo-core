@@ -1,27 +1,55 @@
+// @apollo/client
+import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
+// hooks
+import { useParams } from 'src/routes/hooks';
+// types
+import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import VenuesTable from '../venues/venues-table';
+import { LoadingScreen } from 'src/components/loading-screen';
+import { GET_VENUE } from 'src/api/venues';
+import EditVenue from '../venues/edit-venue';
 
 // ----------------------------------------------------------------------
 
-export default function EventView() {
+export default function VenueDetail() {
   const settings = useSettingsContext();
+  const params = useParams();
+
+  const { data, loading } = useQuery(GET_VENUE, {
+    variables: {
+      id: params.id,
+    }, 
+  });
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Venues"
+        heading="Venue Detail"
         links={[
-          { name: 'Venues' },
+          { name: 'Venues', href: paths.dashboard.admin.overtime.venues },
+          {
+            name: 'Venue Detail',
+          },
         ]}
-        sx={{
-          mb: { xs: 3, md: 3 },
-        }}
+        sx={{ mb: 1 }}
       />
-      <VenuesTable />
+
+      {
+        loading ? (
+          <LoadingScreen
+            sx={{
+              borderRadius: 1.5,
+              bgcolor: 'background.default',
+            }}
+          />
+        ) : (
+          <EditVenue currentVenue={data?.venue} />
+        )
+      }
     </Container>
   );
 }

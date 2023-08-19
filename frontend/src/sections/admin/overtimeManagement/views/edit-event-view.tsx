@@ -21,8 +21,9 @@ export default function VenueDetail() {
 
   const { data, loading } = useQuery(GET_EVENT, {
     variables: {
-      id: params.id,
-    }, 
+      id: params.eventId,
+    },
+    skip: !params.eventId || params.eventId === 'new',
   });
 
   return (

@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useCallback, useState } from 'react';
 import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -13,9 +13,9 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
+import Divider from '@mui/material/Divider';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -34,7 +34,9 @@ import FormProvider, {
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
 import { GET_VENUE_LIST } from 'src/api/venues';
-import { AssignmentList } from './edit/assignmentList';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { REMOVE_ASSIGNMENT } from 'src/api/assignment';
 
 // ----------------------------------------------------------------------
 
@@ -44,13 +46,15 @@ type Props = {
 
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
-
   const { data } = useQuery(GET_VENUE_LIST, {
     variables: {
       input: {
         limit: 1000,
       },
     },
+  });
+  const [removeAssignment] = useMutation(REMOVE_ASSIGNMENT, {
+    refetchQueries: [GET_ALL_EVENTS, GET_EVENT],
   });
   const [upsertEvent] = useMutation(UPSERT_EVENT, {
     refetchQueries: [GET_ALL_EVENTS, GET_EVENT],
@@ -59,6 +63,8 @@ export default function EditEvent({ currentEvent }: Props) {
   const venues = useMemo(() => data?.venues?.items || [], [data]);
   const mdUp = useResponsive('up', 'md');
 
+  const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>();
+  const deleteConfirm = useBoolean();
   const { enqueueSnackbar } = useSnackbar();
 
   const NewEventSchema = Yup.object().shape({
@@ -103,7 +109,7 @@ export default function EditEvent({ currentEvent }: Props) {
   }, [currentEvent, defaultValues, reset]);
 
 
-  const formSubmit = async (formData: any) => {
+  const formSubmit = async (formData: any, shouldReroute = true) => {
     try {
       const res = await upsertEvent({
         variables: {
@@ -119,15 +125,36 @@ export default function EditEvent({ currentEvent }: Props) {
           },
         },
       });
-      enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
-      if (!currentEvent) {
-        router.push(paths.dashboard.admin.overtime.eventDetail.replace(':id', res.data?.event?.id));
+      if (shouldReroute) {
+        enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
+        if (!currentEvent) {
+          router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', res.data?.event?.id));
+        }
       }
+      return res.data?.event.id;
     } catch (error) {
       console.error(error);
+      return '';
     }
   };
-  const onSubmit = handleSubmit(formSubmit);
+
+  const openRemoveAssignment = useCallback((assignmentId: string) => {
+    setRemoveAssignmentId(assignmentId);
+    deleteConfirm.onTrue();
+  }, [deleteConfirm, setRemoveAssignmentId]);
+  const handleRemoveAssignment = useCallback(async () => {
+    await removeAssignment({
+      variables: {
+        id: removeAssignmentId,
+      },
+    });
+    setRemoveAssignmentId(null);
+    deleteConfirm.onFalse();
+  }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
+
+  const onSubmit = handleSubmit(async (formData) => {
+    await formSubmit(formData);
+  });
 
   const renderDetails = (
     <>
@@ -176,7 +203,7 @@ export default function EditEvent({ currentEvent }: Props) {
             Assignments
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            You must save the event before creating an assignment
+            All assignments for this event
           </Typography>
         </Grid>
       )}
@@ -186,41 +213,62 @@ export default function EditEvent({ currentEvent }: Props) {
           {!mdUp && <CardHeader title="Assignments" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
+          {(currentEvent?.assignments || []).length > 0 && (
+              <Stack spacing={3} sx={{ p: 3 }}>
+                {
+                  (currentEvent?.assignments || []).map((assignment, index) => (
+                    <>
+                      <Stack spacing={1}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography color="text.primary">{ assignment.name }</Typography>
+                          <Stack direction='row' spacing={1}>
+                            <Button
+                              component={RouterLink}
+                              href={paths.dashboard.admin.overtime.eventAssignmentDetail
+                                .replace(':eventId', currentEvent?.id || '')
+                                .replace(':assignmentId', assignment.id)}
+                              variant="outlined"
+                              startIcon={<Iconify icon="ic:baseline-open-in-new" />}
+                            >
+                              Edit Assignment
+                            </Button>
+                            <IconButton onClick={() => openRemoveAssignment(assignment.id)}>
+                              <Iconify icon="solar:trash-bin-trash-bold" />
+                            </IconButton>
+                          </Stack>
+                        </Box>
+                        <Stack direction='row' spacing={2}>
+                          {/* TODO: Implement chips */}
+                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>Start: </span>N/A</Typography>)} />
+                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>End: </span>N/A</Typography>)} />
+                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>Open Shifts: </span>0</Typography>)} />
+                        </Stack>
+                      </Stack>
+                      {index !== (currentEvent?.assignments?.length || 1) - 1 && <Divider />}
+                    </>
+                  ))
+                }
+              </Stack>
+            )
+          }
+            <Button
+              fullWidth
+              variant="outlined"
+              disabled={!currentEvent?.id && !isValid}
+              startIcon={<Iconify icon="ic:baseline-add" />}
+              onClick={async () => {
+                let eventId = currentEvent?.id;
+                if (!eventId) {
+                  eventId = await formSubmit(getValues(), false);
+                  enqueueSnackbar('Created Event!');
+                }
+                router.push(
+                  paths.dashboard.admin.overtime.eventAssignmentDetail
+                  .replace(':eventId', eventId!)
+                  .replace(':assignmentId', 'new')
+                );
               }}
-            >
-              {/* TODO: This button will open an edit assignment page */}
-              <Button
-                variant="contained"
-                disabled={!currentEvent?.id || !isValid}
-                startIcon={<Iconify icon="ic:baseline-add" />}
-                onClick={() => {}}
-              >Add Assignment</Button>
-            </Box>
-            {/* TODO: This will render a standard list that shows the assignment name, start/end date, # open shifts */}
-            {
-              (currentEvent?.assignments || []).map((assignment) => (
-                <Accordion>
-                  <AccordionSummary
-                    expandIcon={<Iconify icon="mdi:chevron-down" />}
-                    aria-controls="panel1a-content"
-                    id="panel1a-header"
-                  >
-                    <Typography>{ assignment.name }</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-                      malesuada lacus ex, sit amet blandit leo lobortis eget.
-                    </Typography>
-                  </AccordionDetails>
-                </Accordion>
-              ))
-            }
+            >Add Assignment</Button>
           </Stack>
         </Card>
       </Grid>
@@ -258,6 +306,18 @@ export default function EditEvent({ currentEvent }: Props) {
         {renderAssignments}
 
         {renderActions}
+
+        <ConfirmDialog
+          open={deleteConfirm.value}
+          onClose={deleteConfirm.onFalse}
+          title="Delete"
+          content="Are you sure want to delete?"
+          action={
+            <Button variant="contained" color="error" onClick={handleRemoveAssignment}>
+              Delete
+            </Button>
+          }
+        />
       </Grid>
     </FormProvider>
   );

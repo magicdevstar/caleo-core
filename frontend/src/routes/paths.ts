@@ -1,5 +1,3 @@
-import { _id } from 'src/_mock/assets';
-
 // ----------------------------------------------------------------------
 
 const ROOTS = {
@@ -33,7 +31,8 @@ export const paths = {
       overtime: {
         root: `${ROOTS.DASHBOARD}/admin/overtime`,
         events: `${ROOTS.DASHBOARD}/admin/overtime/events`,
-        eventDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:id`,
+        eventDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId`,
+        eventAssignmentDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId/assignment/:assignmentId`,
         venues: `${ROOTS.DASHBOARD}/admin/overtime/venues`,
         shifts: `${ROOTS.DASHBOARD}/admin/overtime/shifts`,
       },

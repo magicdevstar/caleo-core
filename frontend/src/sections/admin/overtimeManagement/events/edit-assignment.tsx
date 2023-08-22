@@ -1,8 +1,9 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState, useCallback } from 'react';
 import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
+import { format, isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -13,6 +14,8 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -30,10 +33,13 @@ import FormProvider, {
   RHFAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
-import { GET_EVENT } from 'src/api/event';
+import { GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
 import { GET_RANKS } from 'src/api/rank';
 import { GET_SKILL_SLIM } from 'src/api/skill';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import { REMOVE_SHIFT } from 'src/api/shifts';
 
 // ----------------------------------------------------------------------
 
@@ -42,11 +48,46 @@ type Props = {
   currentAssignment?: Assignment;
 };
 
+const formatTime = (time: string) =>
+  format(new Date(time), 'MM/dd/yyyy h:mm a');
+
+const formatShiftTitle = (shift: Shift) => {
+  const { startTime, endTime } = shift;
+  return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+}
+
 export default function EditAssignment({
   eventId,
   currentAssignment,
 }: Props) {
   const router = useRouter();
+
+  const [removeShiftId, setRemoveShiftId] = useState<string | null>();
+  const deleteConfirm = useBoolean();
+
+  const shiftMeta = useMemo(() =>
+    Object.values((currentAssignment?.shifts || []).reduce((acc, shift) => {
+      const { shiftId } = shift!;
+      if (!acc[shiftId]) {
+        acc[shiftId] = {
+          shiftId,
+          openShifts: 0,
+          startTime: shift!.startTime,
+          endTime: shift!.endTime,
+        };
+      }
+      acc[shiftId].openShifts += shift?.userId ? 0 : 1;
+
+      if (isBefore(new Date(shift!.startTime), new Date(acc[shiftId].startTime))) {
+        acc[shiftId].startTime = shift!.startTime;
+      }
+      if (isAfter(new Date(shift!.endTime), new Date(acc[shiftId].endTime))) {
+        acc[shiftId].endTime = shift!.endTime;
+      }
+
+      return acc;
+    }, {} as any)),
+  [currentAssignment?.shifts]);
 
   const { data: rankData } = useQuery(GET_RANKS, {
     variables: {
@@ -64,10 +105,27 @@ export default function EditAssignment({
       }
     },
   });
+  const [removeShift] = useMutation(REMOVE_SHIFT, {
+    refetchQueries: [GET_ALL_EVENTS, GET_EVENT, GET_ASSIGNMENT],
+  });
   const [upsertAssignment] = useMutation(UPSERT_ASSIGNMENT, {
     refetchQueries: [GET_EVENT, GET_ASSIGNMENT],
   });
 
+  const openRemoveShift = useCallback((shiftId: string) => {
+    setRemoveShiftId(shiftId);
+    deleteConfirm.onTrue();
+  }, [deleteConfirm, setRemoveShiftId]);
+
+  const handleRemoveShift = useCallback(async () => {
+    await removeShift({
+      variables: {
+        id: removeShiftId,
+      },
+    });
+    setRemoveShiftId(null);
+    deleteConfirm.onFalse();
+  }, [removeShift, setRemoveShiftId, removeShiftId, deleteConfirm]);
 
   const skills = skillData?.skills?.items || [];
   const ranks = rankData?.ranks?.items || [];
@@ -108,6 +166,7 @@ export default function EditAssignment({
   const {
     reset,
     handleSubmit,
+    getValues,
     formState: { isSubmitting, isValid },
   } = methods;
 
@@ -118,7 +177,7 @@ export default function EditAssignment({
   }, [currentAssignment, defaultValues, reset]);
 
 
-  const formSubmit = async (formData: any) => {
+  const formSubmit = async (formData: any, shouldReroute = true) => {
     try {
       const res = await upsertAssignment({
         variables: {
@@ -134,18 +193,25 @@ export default function EditAssignment({
           },
         },
       });
-      enqueueSnackbar(currentAssignment ? 'Update success!' : 'Create success!');
-      if (!currentAssignment) {
-        router.push(paths.dashboard.admin.overtime.eventAssignmentDetail
-          .replace(':eventId', res.data?.assignment?.eventId)
-          .replace(':assignmentId', res.data?.assignment?.id)
-        );
+      if (shouldReroute) {
+        enqueueSnackbar(currentAssignment ? 'Update success!' : 'Create success!');
+        if (!currentAssignment) {
+          router.push(paths.dashboard.admin.overtime.eventAssignmentDetail
+            .replace(':eventId', res.data?.assignment?.eventId)
+            .replace(':assignmentId', res.data?.assignment?.id)
+          );
+        }
       }
+      return res.data?.assignment.id;
     } catch (error) {
       console.error(error);
+      return null;
     }
   };
-  const onSubmit = handleSubmit(formSubmit);
+
+  const onSubmit = handleSubmit(async (formData) => {
+    await formSubmit(formData);
+  });
 
   const renderDetails = (
     <>
@@ -233,7 +299,7 @@ export default function EditAssignment({
     </>
   );
 
-  const renderAssignments = (
+  const renderShifts = (
     <>
       {mdUp && (
         <Grid md={4}>
@@ -251,21 +317,63 @@ export default function EditAssignment({
           {!mdUp && <CardHeader title="Assignments" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
+          {shiftMeta.length > 0 && (
+              <Stack spacing={3} sx={{ p: 3 }}>
+                {
+                  shiftMeta.map((meta: any, index) => (
+                    <>
+                      <Stack spacing={1}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography color="text.primary">{ formatShiftTitle(meta as Shift) }</Typography>
+                          <Stack direction='row' spacing={1}>
+                            <Button
+                              component={RouterLink}
+                              href={paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                                .replace(':eventId', currentAssignment?.eventId || '')
+                                .replace(':assignmentId', currentAssignment?.id || '')
+                                .replace(':shiftId', meta.shiftId || '')}
+                              variant="outlined"
+                              startIcon={<Iconify icon="ic:baseline-open-in-new" />}
+                            >
+                              Edit Shift
+                            </Button>
+                            <IconButton onClick={() => openRemoveShift(meta.shiftId)}>
+                              <Iconify icon="solar:trash-bin-trash-bold" />
+                            </IconButton>
+                          </Stack>
+                        </Box>
+                        <Stack direction='row' spacing={2}>
+                          <Chip color='info' label={(
+                            <Typography variant='caption'><span style={{fontWeight: 'bold'}}>Open Shifts: </span>{ meta.openShifts }</Typography>
+                          )} />
+                        </Stack>
+                      </Stack>
+                      {index !== (currentAssignment?.shifts?.length || 1) - 1 && <Divider />}
+                    </>
+                  ))
+                }
+              </Stack>
+            )
+          }
+            <Button
+              fullWidth
+              variant="outlined"
+              disabled={!currentAssignment?.id && !isValid}
+              startIcon={<Iconify icon="ic:baseline-add" />}
+              onClick={async () => {
+                let assignmentId = currentAssignment?.id;
+                if (!assignmentId) {
+                  assignmentId = await formSubmit(getValues(), false);
+                  enqueueSnackbar('Created Assignment!');
+                }
+                router.push(
+                  paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                  .replace(':eventId', eventId!)
+                  .replace(':assignmentId', assignmentId!)
+                  .replace(':shiftId', 'new')
+                );
               }}
-            >
-              {/* TODO: This button will open an edit assignment page */}
-              <Button
-                variant="contained"
-                disabled={!currentAssignment?.id && !isValid}
-                startIcon={<Iconify icon="ic:baseline-add" />}
-                onClick={() => {}}
-              >Add Shift</Button>
-            </Box>
+            >Add Shift</Button>
           </Stack>
         </Card>
       </Grid>
@@ -300,9 +408,21 @@ export default function EditAssignment({
       <Grid container spacing={3}>
         {renderDetails}
 
-        {renderAssignments}
+        {renderShifts}
 
         {renderActions}
+
+        <ConfirmDialog
+          open={deleteConfirm.value}
+          onClose={deleteConfirm.onFalse}
+          title="Delete"
+          content="Are you sure want to delete?"
+          action={
+            <Button variant="contained" color="error" onClick={handleRemoveShift}>
+              Delete
+            </Button>
+          }
+        />
       </Grid>
     </FormProvider>
   );

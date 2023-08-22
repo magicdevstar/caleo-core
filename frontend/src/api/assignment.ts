@@ -66,6 +66,8 @@ export const GET_ASSIGNMENT = gql`
         shiftId
         status
         userId
+        startTime
+        endTime
       }
     }
   }

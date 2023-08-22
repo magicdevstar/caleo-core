@@ -189,8 +189,8 @@
     id: ID!
     name: String!
     attachment: String
-    startDate: String
-    endDate: String
+    startTime: String
+    endTime: String
     notes: String
     orgId: String!
     status: EventStatus!
@@ -228,15 +228,7 @@
 
   enum ShiftStatus {
     AVAILABLE
-    PENDING
     ASSIGNED
-    STARTED
-    SECURED
-    UNSECURED
-    UNFULFILLED
-    REMOVED
-    RELINQUISHED
-    LOCKED
   }
 
   type Shift {
@@ -247,7 +239,7 @@
     status: ShiftStatus!
     docType: DocType!
     orgId: String!
-    locked: Boolean!
+    locked: Boolean
     eventId: String!
     assignmentId: String!
     userId: String
@@ -282,8 +274,9 @@
 
   input UpsertShift {
     id: String
-    startTime: String
-    endTime: String
+    shiftId: String!
+    startTime: String!
+    endTime: String!
     status: ShiftStatus
     locked: Boolean
     eventId: String!
@@ -757,6 +750,7 @@ type Query {
   assignments(input: SearchInput): AssignmentSearchResult
 
   shift(id: String!): Shift
+  groupedShifts(shiftId: String!): [Shift]
   shifts(input: SearchInput): ShiftSearchResult
 
   notification(id: String!): Notification
@@ -787,7 +781,7 @@ type Mutation {
   assignment(assignment: UpsertAssignment!): Assignment
   removeAssignment(id: String!): ID!
 
-  shift(shift: UpsertShift!): Shift
+  shifts(shifts: [UpsertShift]!): [Shift]
   removeShift(id: String!): ID!
 
   notification(notification: UpsertNotification!): Notification

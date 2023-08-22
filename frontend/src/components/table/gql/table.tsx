@@ -131,7 +131,7 @@ export default function GQLTable({
 
       <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
         <Scrollbar>
-          <Table size='small' sx={{ minWidth: 960 }}>
+          <Table size='small' sx={{ minWidth: config?.table?.minWidth || 960 }}>
             <TableHeadCustom
               order={table.order}
               orderBy={table.orderBy}
@@ -149,10 +149,11 @@ export default function GQLTable({
               ) : (
                 <>
                   {items
-                    .map((row: any) => (
+                    .map((row: any, index) => (
                       <GQLTableRow
                         key={row.id}
                         row={row}
+                        index={index}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         config={config}

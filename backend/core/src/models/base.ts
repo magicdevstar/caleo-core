@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectId } from "mongodb";
+import { AnyBulkWriteOperation, Collection, Db, ObjectId } from "mongodb";
 import DataLoader from 'dataloader';
 import merge from 'lodash.merge';
 import { DocType } from "../__generated__/resolvers-types";
@@ -106,6 +106,54 @@ export class BaseModel<T> {
       ...(rest as any),
       id: _id.toString(),
     } as T;
+  }
+
+  async bulkWrite<T extends UpdateModel>(items: T[]): Promise<T[]> {
+    const now = Date.now();
+
+    const bulkDocs = items.map((item) => {
+      if (item.id) {
+        const { id, ...restOfItem } = item;
+        return {
+          updateOne: {
+            filter: { _id: new ObjectId(id) },
+            update: {
+              $set: {
+                ...restOfItem,
+                docType: this.docType,
+                updatedAt: now as any,
+              }
+            },
+          }
+        }
+      }
+      return {
+        insertOne: {
+          document: {
+            ...item,
+            docType: this.docType,
+            updatedAt: now as any,
+          }
+        },
+      };
+    }) as any;
+    logger.info('Bulk write input', { bulkDocs });
+    const updateRes = await this.collection.bulkWrite(bulkDocs);
+    logger.info('Bulk write response', { updateRes });
+
+    return bulkDocs.map((doc) => {
+      if (doc.updateOne) {
+        return {
+          ...doc.updateOne.update.$set,
+          id: doc.updateOne.filter._id.toString(),
+        };
+      }
+      const { _id: id, ...rest } = doc.insertOne.document;
+      return {
+        ...rest,
+        id: id.toString(),
+      };
+    });
   }
 
   async update<T extends UpdateModel>(item: T, options: { skipMerge?: boolean } = {}): Promise<T> {

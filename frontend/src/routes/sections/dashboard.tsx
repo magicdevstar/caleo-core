@@ -25,6 +25,7 @@ const EditVenue = lazy(() => import('src/pages/dashboard/admin/overtimeManagemen
 const Events = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 const EditEvent = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
 const EditEventAssignment = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
+const EditEventAssignmentShift = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
 
 // ----------------------------------------------------------------------
 
@@ -54,6 +55,7 @@ export const dashboardRoutes = [
               { path: 'events', element: <Events />, index: true },
               { path: 'events/:eventId', element: <EditEvent /> },
               { path: 'events/:eventId/assignment/:assignmentId', element: <EditEventAssignment /> },
+              { path: 'events/:eventId/assignment/:assignmentId/shifts/:shiftId', element: <EditEventAssignmentShift /> },
               { path: 'venues', element: <Venues /> },
               { path: 'venues/:id', element: <EditVenue /> },
             ]

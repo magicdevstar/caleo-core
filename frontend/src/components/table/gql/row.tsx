@@ -20,21 +20,22 @@ import { TableConfig } from '../table-config';
 
 type Props = {
   row: any;
+  index: number;
   selected: boolean;
   onSelectRow: VoidFunction;
   config: TableConfig<any>;
 };
 
-const BooleanCell = ({value}: {value: boolean;}) => (
-  <TableCell>
+const BooleanCell = ({value, width}: {width?: number | string; value: boolean;}) => (
+  <TableCell width={width}>
     <Label variant="soft" color={(value && 'info') || 'default'}>
       {value ? 'Yes' : 'No'}
     </Label>
   </TableCell>
 );
 
-const DateCell = ({value}: {value: string;}) =>
-  <TableCell>
+const DateCell = ({value, width}: {width?: number | string; value: string;}) =>
+  <TableCell width={width}>
     <ListItemText
       primary={format(new Date(value), 'dd MMM yyyy')}
       secondary={format(new Date(value), 'p')}
@@ -47,10 +48,10 @@ const DateCell = ({value}: {value: string;}) =>
     />
   </TableCell>;
 
-const StringCell = ({value, labelColor, href} : {value: string; labelColor?: string, href?: string}) => {
+const StringCell = ({value, labelColor, href, width} : { width?: number | string; value: string; labelColor?: string, href?: string}) => {
   if (href) {
     return (
-      <TableCell>
+      <TableCell width={width}>
         <ListItemText
           disableTypography
           primary={
@@ -71,7 +72,7 @@ const StringCell = ({value, labelColor, href} : {value: string; labelColor?: str
   }
   if (labelColor) {
     return (
-      <TableCell>
+      <TableCell width={width}>
         <Label variant="soft" color={labelColor as any}>
           {value}
         </Label>
@@ -79,7 +80,7 @@ const StringCell = ({value, labelColor, href} : {value: string; labelColor?: str
     )
   }
   return (
-    <TableCell>
+    <TableCell width={width}>
       <Typography variant="subtitle2" noWrap color="inherit">
         {value}
       </Typography>
@@ -87,8 +88,8 @@ const StringCell = ({value, labelColor, href} : {value: string; labelColor?: str
   );
 };
 
-const ArrayCell = ({value, maxRender} : {value: string[]; maxRender: number}) => (
-  <TableCell>
+const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number}) => (
+  <TableCell width={width}>
     {!value || (value || []).length === 0 ? (
       <Label variant="soft" color="info">
         All
@@ -119,6 +120,7 @@ const ArrayCell = ({value, maxRender} : {value: string[]; maxRender: number}) =>
 export default function GQLTableRow({
   row,
   selected,
+  index,
   onSelectRow,
   config,
 }: Props) {
@@ -128,20 +130,20 @@ export default function GQLTableRow({
       <TableRow hover selected={selected}>
         {
           config.columns.map((column) => {
-            const value = column.renderValue ? column.renderValue(get(row, column.id)) : get(row, column.id);
+            const value = column.renderValue ? column.renderValue(get(row, column.id), index) : get(row, column.id);
             switch(column.columnType) {
               case 'boolean':
-                return (<BooleanCell key={column.id} value={value} />);
+                return (<BooleanCell width={column.width} key={column.id} value={value} />);
               case 'date':
-                return (<DateCell key={column.id} value={value} />);
+                return (<DateCell width={column.width} key={column.id} value={value} />);
               case 'string':
-                return (<StringCell key={column.id} value={value} href={column.getHref?.(row)} labelColor={column.getLabelColor?.(row)} />);
+                return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array': 
-                return (<ArrayCell key={column.id} value={value} maxRender={column.maxRender || 1} />);
+                return (<ArrayCell width={column.width} key={column.id} value={value} maxRender={column.maxRender || 1} />);
               case 'action': 
               default:
                 return (
-                  <TableCell key={column.id} align="right">
+                  <TableCell key={column.id} align="right" width={column.width}>
                     <IconButton color={popover.open ? 'primary' : 'default'} onClick={popover.onOpen}>
                       <Iconify icon="eva:more-vertical-fill" />
                     </IconButton>

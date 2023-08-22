@@ -11,6 +11,9 @@ export interface TableConfig<T> {
       onClick: () => void;
     },
   },
+  table?: {
+    minWidth?: number | string;
+  },
   search: {
     data?: T[],
     loading?: boolean;
@@ -28,11 +31,11 @@ export interface TableConfig<T> {
   columns: {
     id: string;
     label: string;
-    width?: number;
+    width?: number | string;
     noSort?: boolean;
     columnType: 'string' | 'date' | 'boolean' | 'array' | 'action';
     maxRender?: number;
-    renderValue?: (row: any) => any;
+    renderValue?: (row: any, index: number) => any;
     getLabelColor?: (row: T) => string;
     getHref?: (row: T) => string;
   }[];

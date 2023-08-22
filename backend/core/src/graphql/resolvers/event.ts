@@ -81,6 +81,8 @@ export const event = {
       org: (event: Event, _, { organizations }: Context) => organizations.loader.load(event.orgId),
       venue: (event: Event, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId) : null,
       assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),
+      startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
+      endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
     },
   },
 };

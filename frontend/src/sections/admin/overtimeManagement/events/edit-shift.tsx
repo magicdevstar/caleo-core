@@ -48,7 +48,17 @@ export default function EditShift({
   const router = useRouter();
 
   const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
-    refetchQueries: [GET_EVENT, GET_ASSIGNMENT, GET_GROUPED_SHIFTS],
+    refetchQueries: [{
+      query: GET_EVENT,
+      variables: {
+        id: eventId,
+      }
+    }, {
+      query: GET_ASSIGNMENT,
+      variables: {
+        id: assignmentId,
+      }
+    }, GET_GROUPED_SHIFTS],
   });
 
   const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : null);
@@ -60,9 +70,9 @@ export default function EditShift({
 
   const config: TableConfig<Shift> = {
     header: {
-      title: 'Shifts',
+      title: 'Shifts Slots',
       button: {
-        text: 'Add Shift',
+        text: 'Add Shift Slot',
         icon: 'ic:baseline-add',
         disabled: !startTime || !endTime,
         onClick: async () => {
@@ -92,7 +102,9 @@ export default function EditShift({
       }
     },
     table: {
-      minWidth: 'inherit',
+      sx: {
+        minWidth: 'inherit',
+      },
     },
     search: {
       data: currentShifts || [],
@@ -241,7 +253,9 @@ export default function EditShift({
           component={RouterLink}
           variant='outlined'
           size="large"
-          href={paths.dashboard.admin.overtime.eventDetail.replace(':eventId', eventId)}
+          href={paths.dashboard.admin.overtime.eventAssignmentDetail
+            .replace(':eventId', eventId!)
+            .replace(':assignmentId', assignmentId!)}
         >Cancel</Button>
         <LoadingButton
           type="submit"

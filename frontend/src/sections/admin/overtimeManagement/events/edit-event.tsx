@@ -12,19 +12,15 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Event } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, Shift } from 'src/__generated__/resolvers-types';
 // components
-import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFEditor,
@@ -36,7 +32,9 @@ import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
 import { GET_VENUE_LIST } from 'src/api/venues';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { REMOVE_ASSIGNMENT } from 'src/api/assignment';
+import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
+import { TableConfig } from 'src/components/table/table-config';
+import GQLTable from 'src/components/table/gql/table';
 
 // ----------------------------------------------------------------------
 
@@ -46,7 +44,7 @@ type Props = {
 
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
-  const { data } = useQuery(GET_VENUE_LIST, {
+  const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     variables: {
       input: {
         limit: 1000,
@@ -60,7 +58,7 @@ export default function EditEvent({ currentEvent }: Props) {
     refetchQueries: [GET_ALL_EVENTS, GET_EVENT],
   });
 
-  const venues = useMemo(() => data?.venues?.items || [], [data]);
+  const venues = useMemo(() => venueRes?.venues?.items || [], [venueRes]);
   const mdUp = useResponsive('up', 'md');
 
   const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>();
@@ -108,6 +106,103 @@ export default function EditEvent({ currentEvent }: Props) {
     }
   }, [currentEvent, defaultValues, reset]);
 
+  const config: TableConfig<Assignment> = {
+    header: {
+      title: 'Assignments',
+      button: {
+        text: 'Add Assignment',
+        icon: 'ic:baseline-add',
+        disabled: !currentEvent?.id && !isValid,
+        onClick: async () => {
+          let eventId = currentEvent?.id;
+          if (!eventId) {
+            eventId = await formSubmit(getValues(), false);
+            enqueueSnackbar('Created Event!');
+          }
+          router.push(
+            paths.dashboard.admin.overtime.eventAssignmentDetail
+            .replace(':eventId', eventId!)
+            .replace(':assignmentId', 'new')
+          );
+        }
+      }
+    },
+    table: {
+      sx: {
+        minWidth: 'inherit',
+      }
+    },
+    search: {
+      data: (currentEvent?.assignments || []) as any,
+      query: GET_ALL_ASSIGNMENT,
+      processResult: (data: any) => ({
+        total: data.length,
+        items: data,
+      }),
+    },
+    rowActions: [
+      {
+        getName: () => 'Edit',
+        getIcon: () => 'solar:pen-bold',
+        onClick: (row: Assignment) => {
+          router.push(
+            paths.dashboard.admin.overtime.eventAssignmentDetail
+              .replace(':eventId', currentEvent?.id || '')
+              .replace(':assignmentId', row.id)
+          );
+        },
+      },
+      {
+        getName: () => 'Delete',
+        getIcon: () => 'solar:trash-bin-trash-bold',
+        onClick: (row: Assignment) => {
+          openRemoveAssignment(row.id)
+        },
+      }
+    ],
+    columns: [
+      {
+        id: 'name',
+        label: 'Name',
+        columnType: 'string',
+        width: '40%',
+      },
+      {
+        id: 'startTime',
+        label: 'Start',
+        // TODO: Change to date
+        columnType: 'string',
+        renderValue: (row: Assignment) => 'N/A',
+        width: '20%',
+      },
+      {
+        id: 'endTime',
+        label: 'End',
+        // TODO: Change to date
+        columnType: 'string',
+        renderValue: (row: Assignment) => 'N/A',
+        width: '20%',
+      },
+      {
+        id: 'shifts',
+        width: '10%',
+        label: 'Open Shifts',
+        // TODO: Add calculation to backend resolvers
+        columnType: 'string',
+        renderValue: (shifts: Shift[]) => {
+          const openShifts = (shifts || []).reduce((sum, shift) => {
+            if (!shift!.userId) {
+              sum += 1;
+            }
+            return sum;
+          }, 0);
+          return openShifts;
+        },
+      },
+      { id: '', width: '10%', columnType: 'action', label: '' },
+    ],
+    filters: []
+  };
 
   const formSubmit = async (formData: any, shouldReroute = true) => {
     try {
@@ -189,6 +284,34 @@ export default function EditEvent({ currentEvent }: Props) {
               <Typography variant="subtitle2">Notes</Typography>
               <RHFEditor simple name="notes" />
             </Stack>
+
+            <Stack>
+              <Stack direction="row" spacing={1.5}>
+                <DateTimePicker
+                  label="Start time"
+                  value={currentEvent?.startTime ? new Date(currentEvent.startTime) : null}
+                  disabled
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: 'normal',
+                    },
+                  }}
+                />
+                <DateTimePicker
+                  label="End time"
+                  value={currentEvent?.endTime ? new Date(currentEvent.endTime) : null}
+                  disabled
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: 'normal',
+                    },
+                  }}
+                />
+              </Stack>
+              <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
+            </Stack>
           </Stack>
         </Card>
       </Grid>
@@ -212,64 +335,7 @@ export default function EditEvent({ currentEvent }: Props) {
         <Card>
           {!mdUp && <CardHeader title="Assignments" />}
 
-          <Stack spacing={3} sx={{ p: 3 }}>
-          {(currentEvent?.assignments || []).length > 0 && (
-              <Stack spacing={3} sx={{ p: 3 }}>
-                {
-                  (currentEvent?.assignments || []).map((assignment, index) => (
-                    <>
-                      <Stack spacing={1}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography color="text.primary">{ assignment.name }</Typography>
-                          <Stack direction='row' spacing={1}>
-                            <Button
-                              component={RouterLink}
-                              href={paths.dashboard.admin.overtime.eventAssignmentDetail
-                                .replace(':eventId', currentEvent?.id || '')
-                                .replace(':assignmentId', assignment.id)}
-                              variant="outlined"
-                              startIcon={<Iconify icon="ic:baseline-open-in-new" />}
-                            >
-                              Edit Assignment
-                            </Button>
-                            <IconButton onClick={() => openRemoveAssignment(assignment.id)}>
-                              <Iconify icon="solar:trash-bin-trash-bold" />
-                            </IconButton>
-                          </Stack>
-                        </Box>
-                        <Stack direction='row' spacing={2}>
-                          {/* TODO: Implement chips */}
-                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>Start: </span>N/A</Typography>)} />
-                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>End: </span>N/A</Typography>)} />
-                          <Chip color='info' label={(<Typography variant='caption'><span style={{fontWeight: 'bold'}}>Open Shifts: </span>0</Typography>)} />
-                        </Stack>
-                      </Stack>
-                      {index !== (currentEvent?.assignments?.length || 1) - 1 && <Divider />}
-                    </>
-                  ))
-                }
-              </Stack>
-            )
-          }
-            <Button
-              fullWidth
-              variant="outlined"
-              disabled={!currentEvent?.id && !isValid}
-              startIcon={<Iconify icon="ic:baseline-add" />}
-              onClick={async () => {
-                let eventId = currentEvent?.id;
-                if (!eventId) {
-                  eventId = await formSubmit(getValues(), false);
-                  enqueueSnackbar('Created Event!');
-                }
-                router.push(
-                  paths.dashboard.admin.overtime.eventAssignmentDetail
-                  .replace(':eventId', eventId!)
-                  .replace(':assignmentId', 'new')
-                );
-              }}
-            >Add Assignment</Button>
-          </Stack>
+          <GQLTable config={config} />
         </Card>
       </Grid>
     </>

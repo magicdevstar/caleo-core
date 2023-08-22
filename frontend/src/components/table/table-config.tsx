@@ -12,7 +12,9 @@ export interface TableConfig<T> {
     },
   },
   table?: {
-    minWidth?: number | string;
+    sx?: {
+      minWidth?: number | string;
+    }
   },
   search: {
     data?: T[],

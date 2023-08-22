@@ -12,10 +12,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import Divider from '@mui/material/Divider';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -24,7 +21,6 @@ import { useRouter } from 'src/routes/hooks';
 // types
 import { Assignment, Rank, Shift, Skill } from 'src/__generated__/resolvers-types';
 // components
-import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFEditor,
@@ -39,7 +35,9 @@ import { GET_RANKS } from 'src/api/rank';
 import { GET_SKILL_SLIM } from 'src/api/skill';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { REMOVE_SHIFT } from 'src/api/shifts';
+import { GET_ALL_SHIFTS, REMOVE_SHIFT, REMOVE_SHIFTS } from 'src/api/shifts';
+import { TableConfig } from 'src/components/table/table-config';
+import GQLTable from 'src/components/table/gql/table';
 
 // ----------------------------------------------------------------------
 
@@ -50,11 +48,6 @@ type Props = {
 
 const formatTime = (time: string) =>
   format(new Date(time), 'MM/dd/yyyy h:mm a');
-
-const formatShiftTitle = (shift: Shift) => {
-  const { startTime, endTime } = shift;
-  return `${formatTime(startTime)} - ${formatTime(endTime)}`;
-}
 
 export default function EditAssignment({
   eventId,
@@ -105,7 +98,7 @@ export default function EditAssignment({
       }
     },
   });
-  const [removeShift] = useMutation(REMOVE_SHIFT, {
+  const [removeShifts] = useMutation(REMOVE_SHIFTS, {
     refetchQueries: [GET_ALL_EVENTS, GET_EVENT, GET_ASSIGNMENT],
   });
   const [upsertAssignment] = useMutation(UPSERT_ASSIGNMENT, {
@@ -118,14 +111,14 @@ export default function EditAssignment({
   }, [deleteConfirm, setRemoveShiftId]);
 
   const handleRemoveShift = useCallback(async () => {
-    await removeShift({
+    await removeShifts({
       variables: {
         id: removeShiftId,
       },
     });
     setRemoveShiftId(null);
     deleteConfirm.onFalse();
-  }, [removeShift, setRemoveShiftId, removeShiftId, deleteConfirm]);
+  }, [removeShifts, setRemoveShiftId, removeShiftId, deleteConfirm]);
 
   const skills = skillData?.skills?.items || [];
   const ranks = rankData?.ranks?.items || [];
@@ -176,6 +169,80 @@ export default function EditAssignment({
     }
   }, [currentAssignment, defaultValues, reset]);
 
+  const config: TableConfig<Shift> = {
+    header: {
+      title: 'Shifts',
+      button: {
+        text: 'Add Shift',
+        icon: 'ic:baseline-add',
+        disabled: !currentAssignment?.id && !isValid,
+        onClick: async () => {
+          let assignmentId = currentAssignment?.id;
+          if (!assignmentId) {
+            assignmentId = await formSubmit(getValues(), false);
+            enqueueSnackbar('Created Assignment!');
+          }
+          router.push(
+            paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+            .replace(':eventId', eventId!)
+            .replace(':assignmentId', assignmentId!)
+            .replace(':shiftId', 'new')
+          );
+        }
+      }
+    },
+    table: {
+      sx: {
+        minWidth: 'inherit',
+      }
+    },
+    search: {
+      data: (shiftMeta || []) as any,
+      query: GET_ALL_SHIFTS,
+      processResult: (data: any) => ({
+        total: data.length,
+        items: data,
+      }),
+    },
+    rowActions: [
+      {
+        getName: () => 'Edit',
+        getIcon: () => 'solar:pen-bold',
+        onClick: (row: Shift) => {
+          router.push(
+            paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+              .replace(':eventId', currentAssignment?.eventId || '')
+              .replace(':assignmentId', currentAssignment?.id || '')
+              .replace(':shiftId', row.shiftId || '')
+          );
+        },
+      },
+      {
+        getName: () => 'Delete',
+        getIcon: () => 'solar:trash-bin-trash-bold',
+        onClick: (row: Shift) => {
+          openRemoveShift(row.shiftId)
+        },
+      }
+    ],
+    columns: [
+      {
+        id: 'startTime',
+        label: 'Start',
+        columnType: 'date',
+        width: '20%',
+      },
+      {
+        id: 'endTime',
+        label: 'End',
+        columnType: 'date',
+        width: '20%',
+      },
+      { id: 'openShifts', width: '50%', label: 'Open Shifts', columnType: 'string' },
+      { id: '', width: '10%', columnType: 'action', label: '' },
+    ],
+    filters: []
+  };
 
   const formSubmit = async (formData: any, shouldReroute = true) => {
     try {
@@ -314,67 +381,9 @@ export default function EditAssignment({
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Assignments" />}
+          {!mdUp && <CardHeader title="Shifts" />}
 
-          <Stack spacing={3} sx={{ p: 3 }}>
-          {shiftMeta.length > 0 && (
-              <Stack spacing={3} sx={{ p: 3 }}>
-                {
-                  shiftMeta.map((meta: any, index) => (
-                    <>
-                      <Stack spacing={1}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography color="text.primary">{ formatShiftTitle(meta as Shift) }</Typography>
-                          <Stack direction='row' spacing={1}>
-                            <Button
-                              component={RouterLink}
-                              href={paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
-                                .replace(':eventId', currentAssignment?.eventId || '')
-                                .replace(':assignmentId', currentAssignment?.id || '')
-                                .replace(':shiftId', meta.shiftId || '')}
-                              variant="outlined"
-                              startIcon={<Iconify icon="ic:baseline-open-in-new" />}
-                            >
-                              Edit Shift
-                            </Button>
-                            <IconButton onClick={() => openRemoveShift(meta.shiftId)}>
-                              <Iconify icon="solar:trash-bin-trash-bold" />
-                            </IconButton>
-                          </Stack>
-                        </Box>
-                        <Stack direction='row' spacing={2}>
-                          <Chip color='info' label={(
-                            <Typography variant='caption'><span style={{fontWeight: 'bold'}}>Open Shifts: </span>{ meta.openShifts }</Typography>
-                          )} />
-                        </Stack>
-                      </Stack>
-                      {index !== (currentAssignment?.shifts?.length || 1) - 1 && <Divider />}
-                    </>
-                  ))
-                }
-              </Stack>
-            )
-          }
-            <Button
-              fullWidth
-              variant="outlined"
-              disabled={!currentAssignment?.id && !isValid}
-              startIcon={<Iconify icon="ic:baseline-add" />}
-              onClick={async () => {
-                let assignmentId = currentAssignment?.id;
-                if (!assignmentId) {
-                  assignmentId = await formSubmit(getValues(), false);
-                  enqueueSnackbar('Created Assignment!');
-                }
-                router.push(
-                  paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
-                  .replace(':eventId', eventId!)
-                  .replace(':assignmentId', assignmentId!)
-                  .replace(':shiftId', 'new')
-                );
-              }}
-            >Add Shift</Button>
-          </Stack>
+          <GQLTable config={config} />
         </Card>
       </Grid>
     </>

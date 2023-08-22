@@ -783,6 +783,7 @@ type Mutation {
 
   shifts(shifts: [UpsertShift]!): [Shift]
   removeShift(id: String!): ID!
+  removeShifts(shiftId: String!): [String]!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

@@ -6,6 +6,12 @@ export const REMOVE_SHIFT = gql`
   }
 `;
 
+export const REMOVE_SHIFTS = gql`
+  mutation RemoveShifts($id: String!) {
+    removeShifts(shiftId: $id)
+  }
+`;
+
 export const GET_ALL_SHIFTS = gql`
   query GetAllShifts($input: SearchInput!) {
     shifts(input: $input) {

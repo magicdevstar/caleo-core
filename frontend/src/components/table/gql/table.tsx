@@ -131,7 +131,7 @@ export default function GQLTable({
 
       <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
         <Scrollbar>
-          <Table size='small' sx={{ minWidth: config?.table?.minWidth || 960 }}>
+          <Table size='small' sx={{ minWidth: config?.table?.sx?.minWidth || 960 }}>
             <TableHeadCustom
               order={table.order}
               orderBy={table.orderBy}

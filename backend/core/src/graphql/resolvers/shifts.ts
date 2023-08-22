@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql";
 import uniq from 'lodash.uniq';
 import { Context } from "../..";
-import { SearchInput, Shift, ShiftStatus, UpsertShift } from "../../__generated__/resolvers-types";
+import { DocType, SearchInput, Shift, ShiftStatus, UpsertShift } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { isAfter, isBefore } from "date-fns";
@@ -94,6 +94,80 @@ export const shift = {
       }
 
       return id;
+    },
+    removeShifts: async (
+      _parent: unknown,
+      { shiftId }: { shiftId: string },
+      { assignments, events, shifts, user }: Context
+    ): Promise<string[]> => {
+      adminOnly(user);
+
+      const { items: allShifts } = await shifts.search({
+        shiftId,
+      });
+      if (allShifts.length === 0) {
+        throw new GraphQLError("No shifts found");
+      }
+
+      await shifts.collection.deleteMany({
+        shiftId,
+        docType: DocType.Shift,
+        orgId: user?.member.orgId!,
+      });
+
+      // Remove from shift
+      const assignmentId = allShifts[0].assignmentId;
+      const eventId = allShifts[0].eventId;
+      const shiftIds = allShifts.map(({ id }) => id);
+      const assignment = await assignments.get(assignmentId);
+      if (assignment) {
+        await assignments.update({
+          ...assignment,
+          shiftIds: (assignment.shiftIds || []).filter((sId) => !shiftIds.includes(sId!)),
+        } as any, { skipMerge: true });
+      }
+
+      // Set event start/end date
+      const event = await events.get(eventId);
+      if (event) {
+        const {items: filteredShifts} = await shifts.search({
+          limit: 1000,
+          eventId: event.id,
+          shiftId: { $ne: shiftId },
+        });
+        const startTime = filteredShifts.reduce((curr: Date | null, shift) => {
+          const start = new Date(shift.startTime);
+          if (!curr || isBefore(start, curr)) {
+            logger.info('Setting startTime', { start });
+            return start;
+          }
+          return curr;
+        }, null);
+        const endTime = filteredShifts.reduce((curr: Date | null, shift) => {
+          const end = new Date(shift.endTime);
+          if (!curr || isAfter(end, curr)) {
+            logger.info('Setting endTime', { end });
+            return end;
+          }
+          return curr;
+        }, null);
+
+        logger.info('Updating event', {
+          ...event,
+          startTime: startTime ? startTime.getTime() : null,
+          endTime: endTime ? endTime.getTime() : null,
+        });
+
+        await events.update({
+          ...event,
+          startTime: startTime ? startTime.getTime() : null,
+          endTime: endTime ? endTime.getTime() : null,
+        }, {
+          skipMerge: true,
+        });
+      }
+
+      return shiftIds;
     },
     shifts: async (
       _parent: unknown,

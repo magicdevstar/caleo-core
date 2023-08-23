@@ -26,32 +26,63 @@ type Props = {
   config: TableConfig<any>;
 };
 
-const BooleanCell = ({value, width}: {width?: number | string; value: boolean;}) => (
-  <TableCell width={width}>
+const BooleanCell = ({value, width, key}: {width?: number | string; value: boolean; key: any;}) => (
+  <TableCell width={width} key={key}>
     <Label variant="soft" color={(value && 'info') || 'default'}>
       {value ? 'Yes' : 'No'}
     </Label>
   </TableCell>
 );
 
-const DateCell = ({value, width}: {width?: number | string; value: string;}) =>
-  <TableCell width={width}>
-    <ListItemText
-      primary={format(new Date(value), 'dd MMM yyyy')}
-      secondary={format(new Date(value), 'p')}
-      primaryTypographyProps={{ typography: 'body2', noWrap: true }}
-      secondaryTypographyProps={{
-        mt: 0.5,
-        component: 'span',
-        typography: 'caption',
-      }}
-    />
-  </TableCell>;
+const DateCell = ({value, width, href, key}: {width?: number | string; value: string; href?: string; key: any;}) => {
+  let output: any = value ? format(new Date(value), 'dd MMM yyyy') : 'N/A';
+  let secondary: any = value ? format(new Date(value), 'p') : '';
+  if (href) {
+    secondary = (
+      <Link
+        noWrap
+        component={RouterLink}
+        color="inherit"
+        variant="subtitle2"
+        to={href}
+        sx={{ cursor: 'pointer' }}
+      >
+        {secondary}
+      </Link>
+    );
+    output = (
+      <Link
+        noWrap
+        component={RouterLink}
+        color="inherit"
+        variant="subtitle2"
+        to={href}
+        sx={{ cursor: 'pointer' }}
+      >
+        {output}
+      </Link>
+    );
+  }
+  return (
+    <TableCell width={width} key={key}>
+      <ListItemText
+        primary={output}
+        secondary={secondary}
+        primaryTypographyProps={{ typography: 'body2', noWrap: true }}
+        secondaryTypographyProps={{
+          mt: 0.5,
+          component: 'span',
+          typography: 'caption',
+        }}
+      />
+    </TableCell>
+  );
+}
 
-const StringCell = ({value, labelColor, href, width} : { width?: number | string; value: string; labelColor?: string, href?: string}) => {
+const StringCell = ({value, labelColor, href, width, key} : { width?: number | string; value: string; labelColor?: string; href?: string; key: any;}) => {
   if (href) {
     return (
-      <TableCell width={width}>
+      <TableCell width={width} key={key}>
         <ListItemText
           disableTypography
           primary={
@@ -72,7 +103,7 @@ const StringCell = ({value, labelColor, href, width} : { width?: number | string
   }
   if (labelColor) {
     return (
-      <TableCell width={width}>
+      <TableCell width={width} key={key}>
         <Label variant="soft" color={labelColor as any}>
           {value}
         </Label>
@@ -80,7 +111,7 @@ const StringCell = ({value, labelColor, href, width} : { width?: number | string
     )
   }
   return (
-    <TableCell width={width}>
+    <TableCell width={width} key={key}>
       <Typography variant="subtitle2" noWrap color="inherit">
         {value}
       </Typography>
@@ -88,8 +119,8 @@ const StringCell = ({value, labelColor, href, width} : { width?: number | string
   );
 };
 
-const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number}) => (
-  <TableCell width={width}>
+const ArrayCell = ({key, value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number; key: any;}) => (
+  <TableCell width={width} key={key}>
     {!value || (value || []).length === 0 ? (
       <Label variant="soft" color="info">
         All
@@ -135,7 +166,7 @@ export default function GQLTableRow({
               case 'boolean':
                 return (<BooleanCell width={column.width} key={column.id} value={value} />);
               case 'date':
-                return (<DateCell width={column.width} key={column.id} value={value} />);
+                return (<DateCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} />);
               case 'string':
                 return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array': 

@@ -3,6 +3,7 @@ import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
+import { isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -46,16 +47,24 @@ export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     variables: {
-      input: {
-        limit: 1000,
-      },
+      input: {},
     },
   });
-  const [removeAssignment] = useMutation(REMOVE_ASSIGNMENT, {
-    refetchQueries: [GET_ALL_EVENTS, GET_EVENT],
+  const [removeAssignment, { loading: removeAssignmentLoading }] = useMutation(REMOVE_ASSIGNMENT, {
+    refetchQueries: [GET_ALL_EVENTS, {
+      query: GET_EVENT,
+      variables: {
+        id: currentEvent?.id,
+      },
+    }],
   });
-  const [upsertEvent] = useMutation(UPSERT_EVENT, {
-    refetchQueries: [GET_ALL_EVENTS, GET_EVENT],
+  const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT, {
+    refetchQueries: [GET_ALL_EVENTS, {
+      query: GET_EVENT,
+      variables: {
+        id: currentEvent?.id,
+      },
+    }],
   });
 
   const venues = useMemo(() => venueRes?.venues?.items || [], [venueRes]);
@@ -112,6 +121,7 @@ export default function EditEvent({ currentEvent }: Props) {
       button: {
         text: 'Add Assignment',
         icon: 'ic:baseline-add',
+        loading: upsertEventLoading,
         disabled: !currentEvent?.id && !isValid,
         onClick: async () => {
           let eventId = currentEvent?.id;
@@ -137,7 +147,29 @@ export default function EditEvent({ currentEvent }: Props) {
       query: GET_ALL_ASSIGNMENT,
       processResult: (data: any) => ({
         total: data.length,
-        items: data,
+        items: data.map((assignment: Assignment) => {
+          const { shifts, ...rest } = assignment;
+          const startTime = (shifts || []).reduce((curr: Date | null, shift) => {
+            const start = new Date(shift!.startTime);
+            if (!curr || isBefore(start, curr)) {
+              return start;
+            }
+            return curr;
+          }, null);
+          const endTime = (shifts || []).reduce((curr: Date | null, shift) => {
+            const end = new Date(shift!.endTime);
+            if (!curr || isAfter(end, curr)) {
+              return end;
+            }
+            return curr;
+          }, null);
+          return {
+            ...rest,
+            startTime,
+            endTime,
+            shifts,
+          };
+        }),
       }),
     },
     rowActions: [
@@ -166,21 +198,21 @@ export default function EditEvent({ currentEvent }: Props) {
         label: 'Name',
         columnType: 'string',
         width: '40%',
+        getHref: (row: Assignment) =>
+          paths.dashboard.admin.overtime.eventAssignmentDetail
+            .replace(':eventId', currentEvent?.id || '')
+            .replace(':assignmentId', row.id),
       },
       {
         id: 'startTime',
         label: 'Start',
-        // TODO: Change to date
-        columnType: 'string',
-        renderValue: (row: Assignment) => 'N/A',
+        columnType: 'date',
         width: '20%',
       },
       {
         id: 'endTime',
         label: 'End',
-        // TODO: Change to date
-        columnType: 'string',
-        renderValue: (row: Assignment) => 'N/A',
+        columnType: 'date',
         width: '20%',
       },
       {
@@ -379,9 +411,9 @@ export default function EditEvent({ currentEvent }: Props) {
           title="Delete"
           content="Are you sure want to delete?"
           action={
-            <Button variant="contained" color="error" onClick={handleRemoveAssignment}>
+            <LoadingButton loading={removeAssignmentLoading} variant="contained" color="error" onClick={handleRemoveAssignment}>
               Delete
-            </Button>
+            </LoadingButton>
           }
         />
       </Grid>

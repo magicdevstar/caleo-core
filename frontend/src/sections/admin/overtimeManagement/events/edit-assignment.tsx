@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
-import { format, isAfter, isBefore } from 'date-fns';
+import { isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -35,7 +35,7 @@ import { GET_RANKS } from 'src/api/rank';
 import { GET_SKILL_SLIM } from 'src/api/skill';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { GET_ALL_SHIFTS, REMOVE_SHIFT, REMOVE_SHIFTS } from 'src/api/shifts';
+import { GET_ALL_SHIFTS, REMOVE_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 
@@ -45,9 +45,6 @@ type Props = {
   eventId: string;
   currentAssignment?: Assignment;
 };
-
-const formatTime = (time: string) =>
-  format(new Date(time), 'MM/dd/yyyy h:mm a');
 
 export default function EditAssignment({
   eventId,
@@ -85,7 +82,6 @@ export default function EditAssignment({
   const { data: rankData } = useQuery(GET_RANKS, {
     variables: {
       input: {
-        limit: 10000,
         active: true,
       }
     },
@@ -93,15 +89,24 @@ export default function EditAssignment({
   const { data: skillData } = useQuery(GET_SKILL_SLIM, {
     variables: {
       input: {
-        limit: 10000,
         active: true,
       }
     },
   });
-  const [removeShifts] = useMutation(REMOVE_SHIFTS, {
-    refetchQueries: [GET_ALL_EVENTS, GET_EVENT, GET_ASSIGNMENT],
+  const [removeShifts, { loading: removeShitLoading }] = useMutation(REMOVE_SHIFTS, {
+    refetchQueries: [GET_ALL_EVENTS, {
+      query: GET_EVENT,
+      variables: {
+        id: eventId,
+      },
+    }, {
+      query: GET_ASSIGNMENT,
+      variables: {
+        id: currentAssignment?.id,
+      },
+    }],
   });
-  const [upsertAssignment] = useMutation(UPSERT_ASSIGNMENT, {
+  const [upsertAssignment, { loading: upsertAssignmentLoading }] = useMutation(UPSERT_ASSIGNMENT, {
     refetchQueries: [GET_EVENT, GET_ASSIGNMENT],
   });
 
@@ -175,6 +180,7 @@ export default function EditAssignment({
       button: {
         text: 'Add Shift',
         icon: 'ic:baseline-add',
+        loading: upsertAssignmentLoading,
         disabled: !currentAssignment?.id && !isValid,
         onClick: async () => {
           let assignmentId = currentAssignment?.id;
@@ -231,12 +237,22 @@ export default function EditAssignment({
         label: 'Start',
         columnType: 'date',
         width: '20%',
+        getHref: (row: Shift) =>
+          paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+            .replace(':eventId', currentAssignment?.eventId || '')
+            .replace(':assignmentId', currentAssignment?.id || '')
+            .replace(':shiftId', row.shiftId || ''),
       },
       {
         id: 'endTime',
         label: 'End',
         columnType: 'date',
         width: '20%',
+        getHref: (row: Shift) =>
+          paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+            .replace(':eventId', currentAssignment?.eventId || '')
+            .replace(':assignmentId', currentAssignment?.id || '')
+            .replace(':shiftId', row.shiftId || ''),
       },
       { id: 'openShifts', width: '50%', label: 'Open Shifts', columnType: 'string' },
       { id: '', width: '10%', columnType: 'action', label: '' },
@@ -427,9 +443,9 @@ export default function EditAssignment({
           title="Delete"
           content="Are you sure want to delete?"
           action={
-            <Button variant="contained" color="error" onClick={handleRemoveShift}>
+            <LoadingButton loading={removeShitLoading} variant="contained" color="error" onClick={handleRemoveShift}>
               Delete
-            </Button>
+            </LoadingButton>
           }
         />
       </Grid>

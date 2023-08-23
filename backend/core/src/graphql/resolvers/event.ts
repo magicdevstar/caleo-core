@@ -1,8 +1,9 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { EventSearchInput, Event, UpsertEvent, EventStatus } from "../../__generated__/resolvers-types";
+import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import logger from "../../utils/logger";
 
 export const event = {
   Query: {
@@ -28,18 +29,32 @@ export const event = {
     ): Promise<string> => {
       adminOnly(user);
       await events.remove(id);
-      const { items: assignmentDocs } = await assignments.search({
+
+      const assignmentRes = await assignments.collection.deleteMany({
+        orgId: user?.member.orgId!,
+        docType: DocType.Assignment,
         eventId: id,
       });
-
-      // Remove all assignments and shifts
-      await Promise.allSettled(assignmentDocs.map(async (assignment) => {
-        const { items: shiftDocs } = await shifts.search({
-          assignmentId: assignment.id,
+      const shiftRes = await shifts.collection.deleteMany({
+        orgId: user?.member.orgId!,
+        docType: DocType.Shift,
+        eventId: id,
+      });
+      
+      if (assignmentRes.deletedCount === 0) {
+        logger.warn('No assignments removed', {
+          orgId: user?.member.orgId!,
+          docType: DocType.Assignment,
+          eventId: id,
         });
-        await Promise.allSettled(shiftDocs.map((shift) => shifts.remove(shift.id)));
-        return assignments.remove(assignment.id);
-      }));
+      }
+      if (shiftRes.deletedCount === 0) {
+        logger.warn('No shifts removed', {
+          orgId: user?.member.orgId!,
+          docType: DocType.Shift,
+          eventId: id,
+        });
+      }
 
       return id;
     },

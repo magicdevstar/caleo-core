@@ -51,7 +51,6 @@ export default function UpsertSkillDialogue({
   const { data } = useQuery(GET_RANKS, {
     variables: {
       input: {
-        limit: 10,
         active: true,
         ...(rankSearchText.trim() ? { query: rankSearchText.trim() } : {}),
       }

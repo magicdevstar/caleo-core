@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -45,11 +44,9 @@ export default function AccountGeneral({
   const { enqueueSnackbar } = useSnackbar();
 
   const [updateUser] = useMutation(UPDATE_USER);
-  const { data, loading } = useQuery(GET_RANKS, {
+  const { data } = useQuery(GET_RANKS, {
     variables: {
-      input: {
-        limit: 1000,
-      },
+      input: {},
     },
   });
   const { ranks: { items: ranks } } = data || { ranks: { items: [] } };

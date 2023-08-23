@@ -15,7 +15,6 @@ import { NavSectionVertical } from 'src/components/nav-section';
 //
 import { NAV } from '../config-layout';
 import { useNavData } from './config-navigation';
-import { NavToggleButton } from '../_common';
 
 // ----------------------------------------------------------------------
 
@@ -72,7 +71,8 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
         width: { lg: NAV.W_VERTICAL },
       }}
     >
-      <NavToggleButton />
+      {/* TODO: Button to collapse nav toggle button */}
+      {/* <NavToggleButton /> */}
 
       {lgUp ? (
         <Stack

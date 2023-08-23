@@ -5,10 +5,10 @@ import { useQuery } from "@apollo/client";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
 import TableBody from "@mui/material/TableBody";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 // Types
 import { TableConfig, resolveFilterValue } from "../table-config";
@@ -41,6 +41,8 @@ export default function GQLTable({
 
   const { data, loading: gqlLoading } = useQuery(config.search.query, {
     skip: !!config.search.data,
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         limit: table.rowsPerPage,
@@ -106,12 +108,13 @@ export default function GQLTable({
         pb: 0,
       }}>
         <Typography variant="h4"> { config.header.title } </Typography>
-        {config.header.button && <Button
+        {config.header.button && <LoadingButton
+          loading={config.header.button.loading}
           variant="contained"
           disabled={config.header.button.disabled}
           startIcon={<Iconify icon={config.header.button.icon}/>}
           onClick={config.header.button.onClick}
-        >{config.header.button.text}</Button>}
+        >{config.header.button.text}</LoadingButton>}
       </Box>
       <TableToolbar
         filters={filters}
@@ -173,14 +176,14 @@ export default function GQLTable({
         </Scrollbar>
       </TableContainer>
 
-      <TablePaginationCustom
+      {!config.search.data && <TablePaginationCustom
         count={total}
         page={table.page}
         rowsPerPage={table.rowsPerPage}
         onPageChange={table.onChangePage}
         onRowsPerPageChange={table.onChangeRowsPerPage}
         dense
-      />
+      />}
     </Card>
   );
 }

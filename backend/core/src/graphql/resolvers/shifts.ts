@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql";
 import uniq from 'lodash.uniq';
 import { Context } from "../..";
-import { DocType, SearchInput, Shift, ShiftStatus, UpsertShift } from "../../__generated__/resolvers-types";
+import { DocType, EventStatus, SearchInput, Shift, ShiftStatus, UpsertShift } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { isAfter, isBefore } from "date-fns";
@@ -20,7 +20,6 @@ export const shift = {
       { shifts, user }: Context,
     ): Promise<Shift[] | null> => {
       const { items } = await shifts.search({
-        limit: 1000,
         shiftId,
         orgId: user?.member.orgId!,
       });
@@ -64,7 +63,6 @@ export const shift = {
       const sameEnd = event?.endTime === shift.endTime;
       if (event && sameStart || sameEnd) {
         const {items: allShifts} = await shifts.search({
-          limit: 1000,
           eventId: event.id,
         });
         // Just incase the delete has not propagated to all read servers 
@@ -86,6 +84,7 @@ export const shift = {
 
         await events.update({
           ...event,
+          status: filteredShifts.length === 0 ? EventStatus.Draft : event.status,
           startTime: startTime ? startTime.getTime() : null,
           endTime: endTime ? endTime.getTime() : null,
         }, {
@@ -131,7 +130,6 @@ export const shift = {
       const event = await events.get(eventId);
       if (event) {
         const {items: filteredShifts} = await shifts.search({
-          limit: 1000,
           eventId: event.id,
           shiftId: { $ne: shiftId },
         });
@@ -154,12 +152,14 @@ export const shift = {
 
         logger.info('Updating event', {
           ...event,
+          status: filteredShifts.length === 0 ? EventStatus.Draft : event.status,
           startTime: startTime ? startTime.getTime() : null,
           endTime: endTime ? endTime.getTime() : null,
         });
 
         await events.update({
           ...event,
+          status: filteredShifts.length === 0 ? EventStatus.Draft : event.status,
           startTime: startTime ? startTime.getTime() : null,
           endTime: endTime ? endTime.getTime() : null,
         }, {
@@ -205,7 +205,7 @@ export const shift = {
 
       const writtenShifts = await shiftsModel.bulkWrite(updatedShifts) as Shift[];
 
-      // Add ids to event
+      // Add ids to assignment
       const ids = writtenShifts.map(({ id }) => id);
       const currentShiftIds = assignment.shiftIds || [];
       const newIds = ids.filter((id) => !currentShiftIds.includes(id));
@@ -245,8 +245,14 @@ export const shift = {
         const endTime = !event.endTime || isAfter(latestEnd, new Date(event.endTime!)) ? latestEnd.getTime() : new Date(event.endTime!).getTime();
         await events.update({
           ...event,
+          status: event.status === EventStatus.Draft ? EventStatus.ReadyForLottery : event.status,
           startTime,
           endTime,
+        });
+      } else if (event.status === EventStatus.Draft) {
+        await events.update({
+          ...event,
+          status: EventStatus.ReadyForLottery,
         });
       }
 

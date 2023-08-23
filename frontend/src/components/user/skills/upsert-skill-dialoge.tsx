@@ -40,7 +40,6 @@ export default function UpsertMemberSkill({
   const { data } = useQuery(GET_BASE_SKILLS, {
     variables: {
       input: {
-        limit: 1000,
         active: true,
         rankOnlyIds: [rankId],
       },

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { v4 as uuid } from 'uuid';
 // @mui
@@ -9,10 +9,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import IconButton from '@mui/material/IconButton';
-import Divider from '@mui/material/Divider';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -21,14 +18,15 @@ import { useRouter } from 'src/routes/hooks';
 // types
 import { Shift } from 'src/__generated__/resolvers-types';
 // components
-import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import { RouterLink } from 'src/routes/components';
-import { GET_EVENT } from 'src/api/event';
+import { GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
-import { GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, UPSERT_SHIFTS } from 'src/api/shifts';
+import { GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import { useBoolean } from 'src/hooks/use-boolean';
 
 // ----------------------------------------------------------------------
 
@@ -46,6 +44,8 @@ export default function EditShift({
   shiftId,
 }: Props) {
   const router = useRouter();
+  const [removeShiftId, setRemoveShiftId] = useState<string | null>();
+  const deleteConfirm = useBoolean();
 
   const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
     refetchQueries: [{
@@ -61,6 +61,25 @@ export default function EditShift({
     }, GET_GROUPED_SHIFTS],
   });
 
+  const [removeShift, { loading: isRemoving }] = useMutation(REMOVE_SHIFT, {
+    refetchQueries: [
+      GET_ALL_EVENTS,
+      {
+        query: GET_EVENT,
+        variables: {
+          id: eventId,
+        },
+      },
+      {
+        query: GET_ASSIGNMENT,
+        variables: {
+          id: assignmentId,
+        },
+      },
+      GET_GROUPED_SHIFTS,
+    ],
+  });
+
   const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : null);
   const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : null);
 
@@ -68,12 +87,28 @@ export default function EditShift({
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const openRemoveShift = useCallback((id: string) => {
+    setRemoveShiftId(id);
+    deleteConfirm.onTrue();
+  }, [deleteConfirm, setRemoveShiftId]);
+
+  const handleRemoveShift = useCallback(async () => {
+    await removeShift({
+      variables: {
+        id: removeShiftId,
+      },
+    });
+    setRemoveShiftId(null);
+    deleteConfirm.onFalse();
+  }, [removeShift, setRemoveShiftId, removeShiftId, deleteConfirm]);
+
   const config: TableConfig<Shift> = {
     header: {
       title: 'Shifts Slots',
       button: {
         text: 'Add Shift Slot',
         icon: 'ic:baseline-add',
+        loading: isSubmitting,
         disabled: !startTime || !endTime,
         onClick: async () => {
           const groupId = shiftId || uuid();
@@ -126,7 +161,7 @@ export default function EditShift({
         getName: () => 'Delete',
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (row: Shift) => {
-          
+          openRemoveShift(row.id);
         },
       }
     ],
@@ -262,6 +297,7 @@ export default function EditShift({
           variant="contained"
           size="large"
           sx={{ ml: 2 }}
+          onClick={() => enqueueSnackbar({ message: 'Shifts saved', variant: 'success' })}
         >
           {!currentShifts ? 'Create Shifts' : 'Save Changes'}
         </LoadingButton>
@@ -276,6 +312,18 @@ export default function EditShift({
       {renderShifts}
 
       {renderActions}
+
+      <ConfirmDialog
+        open={deleteConfirm.value}
+        onClose={deleteConfirm.onFalse}
+        title="Delete"
+        content="Are you sure want to delete?"
+        action={
+          <LoadingButton variant="contained" color="error" onClick={handleRemoveShift} loading={isRemoving}>
+            Delete
+          </LoadingButton>
+        }
+      />
     </Grid>
   );
 }

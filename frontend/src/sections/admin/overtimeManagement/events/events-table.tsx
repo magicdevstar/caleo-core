@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 // @mui
-import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
 import { useMutation } from '@apollo/client';
 // hooks
@@ -19,7 +19,7 @@ import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
 export default function EventsTable() {
   const navigate = useNavigate();
 
-  const [removeEvent] = useMutation(REMOVE_EVENT, {
+  const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
     refetchQueries: [GET_ALL_EVENTS],
   });
 
@@ -71,6 +71,7 @@ export default function EventsTable() {
         columnType: 'string',
         getHref: (row) => `/dashboard/admin/overtime/events/${row.id}`,
       },
+      { id: 'startTime', label: 'Starts At', width: 160, columnType: 'date' },
       { id: 'venue.name', label: 'Venue', width: 210, columnType: 'string' },
       { id: 'createdAt', label: 'Created at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },
@@ -110,9 +111,9 @@ export default function EventsTable() {
         title="Delete"
         content="Are you sure want to delete?"
         action={
-          <Button variant="contained" color="error" onClick={handleDeleteRow}>
+          <LoadingButton loading={removeEventLoading} variant="contained" color="error" onClick={handleDeleteRow}>
             Delete
-          </Button>
+          </LoadingButton>
         }
       />
     </>

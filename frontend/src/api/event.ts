@@ -12,6 +12,7 @@ export const GET_ALL_EVENTS = gql`
       items {
         id
         name
+        startTime
         venue {
           id
           name
@@ -63,6 +64,8 @@ export const GET_EVENT = gql`
           id
           shiftId
           status
+          startTime
+          endTime
           userId
         }
       }

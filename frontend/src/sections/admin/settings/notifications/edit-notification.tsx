@@ -47,9 +47,7 @@ export default function EditNotification({ currentNotification }: Props) {
 
   const { data: rankResponse } = useQuery(GET_RANKS, {
     variables: {
-      input: {
-        limit: 1000,
-      }
+      input: {},
     }
   });
   const { ranks: { items: ranks } } = rankResponse || { ranks: { items: [] } };

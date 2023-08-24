@@ -1,6 +1,7 @@
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Auth } from '@aws-amplify/auth';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -53,12 +54,12 @@ export default function AccountChangePassword() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const user = await Auth.currentAuthenticatedUser();
+      await Auth.changePassword(user, data.oldPassword, data.newPassword);
       reset();
       enqueueSnackbar('Update success!');
-      console.info('DATA', data);
     } catch (error) {
-      console.error(error);
+      enqueueSnackbar('Failed to update password. Please try again.', { variant: 'error' });
     }
   });
 

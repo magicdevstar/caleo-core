@@ -1,10 +1,18 @@
 import { Db } from 'mongodb';
+import { v4 as uuid } from 'uuid';
 import uniq from 'lodash.uniq';
-import { DocType, MemberSkill, MemberStatus, SkillStatus, UpsertMemberSkill, User } from '../__generated__/resolvers-types';
+import {
+  DocType,
+  MemberSkill,
+  MemberSkillAttachmentUpload,
+  SkillStatus,
+  UpsertMemberSkill,
+} from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { UserModel } from './user';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
+import { DocumentModel } from './document';
 
 interface InputDocModel extends UpsertMemberSkill {
   id?: string;
@@ -13,10 +21,12 @@ interface InputDocModel extends UpsertMemberSkill {
 
 export class MemberSkillModel extends BaseModel<MemberSkill> {
   users: UserModel;
-
+  document: DocumentModel;
+  documentBasePath: string = 'memberSkills';
   constructor(db: Db) {
     super(db, DocType.MemberSkill);
     this.users = new UserModel(db);
+    this.document = new DocumentModel();
   }
 
   async upsertDoc(item: InputDocModel): Promise<MemberSkill> {
@@ -69,5 +79,22 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
     });
 
     await super.remove(id);
+  }
+
+  async getUploadUrl({
+    orgId,
+  }: {
+    orgId: string;
+  }): Promise<MemberSkillAttachmentUpload> {
+    const imagePath = `${orgId}/${this.documentBasePath}/${uuid()}`;
+    const uploadUrl = await this.document.getUploadUrl(imagePath);
+    return {
+      imagePath,
+      uploadUrl,
+    };
+  };
+
+  async getDownloadUrl(attachmentPath: string) {
+    return this.document.getDownloadUrl(attachmentPath);
   }
 }

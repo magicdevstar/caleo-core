@@ -8,13 +8,17 @@ import { useMutation, useQuery } from '@apollo/client';
 import LoadingButton from '@mui/lab/LoadingButton';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Skeleton from '@mui/material/Skeleton';
 
 // components
 import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
 import { MemberSkill, Skill, SkillStatus } from 'src/__generated__/resolvers-types';
-import { GET_BASE_SKILLS } from 'src/api/skill';
+import { CREATE_SKILL_UPLOAD_URL, GET_BASE_SKILLS } from 'src/api/skill';
 import { GET_USER, ME, UPSERT_MEMBER_SKILL } from 'src/api/user';
+import { Upload } from 'src/components/upload';
 
 const defaultMemberSkill = {
   id: '',
@@ -47,16 +51,20 @@ export default function UpsertMemberSkill({
   });
   const { skills: { items: possibleSkills } } = data || { skills: { items: [] } };
 
+  const [createUploadLink] = useMutation(CREATE_SKILL_UPLOAD_URL);
   const [userSkillMutation, { loading, error: skillError }] = useMutation(UPSERT_MEMBER_SKILL, {
     refetchQueries: [GET_USER, ME],
   });
   const [skillMod, setSkillMod] = useState(defaultMemberSkill);
   const [error, setError] = useState('');
+  const [loadingImage, setLoadingImage] = useState(!!memberSkill);
+  const [document, setDocument] = useState<any>(null);
   const [inputValue, setInputValue] = useState('');
   const action = useMemo(() => memberSkill ? 'Update' : 'Add', [memberSkill]);
 
   useEffect(() => {
     if (memberSkill) {
+      setLoadingImage(true);
       setSkillMod({
         id: memberSkill.id,
         imagePath: memberSkill.imagePath || '',
@@ -64,8 +72,21 @@ export default function UpsertMemberSkill({
         skillId: memberSkill.skillId,
         skill: memberSkill.skill,
       });
+      if (memberSkill.image) {
+        fetch(memberSkill.image)
+          .then((res) => res.blob())
+          .then((blob) => {
+            const file = new File([blob], memberSkill.image);
+            setDocument(Object.assign(file, {
+              preview: URL.createObjectURL(file),
+            }));
+            setLoadingImage(false);
+          });
+      } else {
+        setLoadingImage(false);
+      }
     }
-  }, [memberSkill]);
+  }, [memberSkill, setDocument, setLoadingImage]);
 
   const onSubmit = async () => {
     try {
@@ -74,71 +95,138 @@ export default function UpsertMemberSkill({
         setError(errorMessage);
         throw new Error(errorMessage);
       }
+
+      let imagePath;
+      let uploadUrl;
+      if (document) {
+        const {
+          data: {
+            userSkillAttachmentUploadUrl: {
+              imagePath: imagePathFromServer,
+              uploadUrl: uploadUrlFromServer,
+            },
+          }
+        } = await createUploadLink();
+        imagePath = imagePathFromServer;
+        uploadUrl = uploadUrlFromServer;
+      }
+
       await userSkillMutation({
         variables: {
           input: {
             id: skillMod.id,
-            imagePath: skillMod.imagePath || '',
+            imagePath,
             status: skillMod.status,
             skillId: skillMod.skill.id,
             userId,
           },
         },
       });
+
+      if (document && uploadUrl) {
+        // Upload file to S3
+        await fetch(uploadUrl, {
+          method: 'PUT',
+          body: document,
+          headers: {
+            'Content-Type': document.type,
+          },
+        });
+      }
+
       onUpsertMemberSkill();
       upsertMemberSkill.onFalse();
       setSkillMod(defaultMemberSkill);
+      setDocument(null);
     } catch(e) {
       console.error(e);
     }
   };
 
+  const handleDrop = useCallback(
+    (files: File[]) => {
+      const file = files[0];
+      const fileObj = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      setDocument(fileObj);
+    },
+    [setDocument]
+  );
+
+  const handleRemoveFile = useCallback(
+    () => {
+      setDocument(null);
+    },
+    [setDocument]
+  );
+
   const handleClose = useCallback(() => {
     setSkillMod(defaultMemberSkill);
+    setDocument(null);
     onUpsertMemberSkill();
     upsertMemberSkill.onFalse();
-  }, [upsertMemberSkill, setSkillMod, onUpsertMemberSkill]);
+  }, [upsertMemberSkill, setSkillMod, onUpsertMemberSkill, setDocument]);
 
   return (
     <ConfirmDialog
       open={upsertMemberSkill.value}
       onClose={handleClose}
+      maxWidth='sm'
       title={`${action} Skill`}
-      content={
-        <Autocomplete
-          fullWidth
-          disabled={!!memberSkill}
-          options={possibleSkills}
-          getOptionLabel={(option) => option.name || ''}
-          value={skillMod?.skill || undefined}
-          inputValue={inputValue}
-          onInputChange={(event, newInputValue) => {
-            setInputValue(newInputValue);
-          }}
-          sx={{ mt: 2 }}
-          onChange={(_, value) => {
-            setSkillMod((c) => ({
-              ...c,
-              skill: value as any,
-              skillId: value?.id as any,
-            }));
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              error={!!error}
-              helperText={error || skillError?.message}
-              label="Choose a skill"
-              placeholder="Choose a skill"
-            />
-          )}
-          renderOption={(props, option) => (
-            <li {...props} key={option.id}>
-              {option.name}
-            </li>
-          )}
-        />
-      }
+      content={(
+        <Stack spacing={2}>
+          <Autocomplete
+            fullWidth
+            disabled={!!memberSkill}
+            options={possibleSkills}
+            getOptionLabel={(option) => option.name || ''}
+            value={skillMod?.skill || undefined}
+            inputValue={inputValue}
+            onInputChange={(event, newInputValue) => {
+              setInputValue(newInputValue);
+            }}
+            sx={{ mt: 2 }}
+            onChange={(_, value) => {
+              setSkillMod((c) => ({
+                ...c,
+                skill: value as any,
+                skillId: value?.id as any,
+              }));
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                error={!!error}
+                helperText={error || skillError?.message}
+                label="Choose a skill"
+                placeholder="Choose a skill"
+              />
+            )}
+            renderOption={(props, option) => (
+              <li {...props} key={option.id}>
+                {option.name}
+              </li>
+            )}
+          />
+          <Stack spacing={1.5}>
+            {loadingImage ? (
+              <Skeleton  sx={{ height: 250, width: '100%' }} />
+            ) : (
+              <Upload
+                accept={{ 'image/*': [] }}
+                file={document}
+                thumbnail
+                maxSize={3145728}
+                onDrop={handleDrop}
+                onRemove={handleRemoveFile}
+                helperText={(<Typography color="grey" variant='caption'>Upload an optional skill image</Typography>)}
+              />
+            )}
+          </Stack>
+        </Stack>
+      )}
       action={
         <LoadingButton onClick={onSubmit} variant="contained" loading={loading}>
           {action} Skill

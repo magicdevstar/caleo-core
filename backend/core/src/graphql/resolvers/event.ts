@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType } from "../../__generated__/resolvers-types";
+import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType, EventAttachmentUpload } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
@@ -22,6 +22,16 @@ export const event = {
     })
   },
   Mutation: {
+    eventAttachmentUploadUrl: async (
+      _parent: unknown,
+      _args: unknown,
+      { events, user }: Context
+    ): Promise<EventAttachmentUpload> => {
+      adminOnly(user);
+      return events.getUploadUrl({
+        orgId: user?.member.orgId!,
+      });
+    },
     removeEvent: async (
       _parent: unknown,
       { id }: { id: string },
@@ -98,6 +108,16 @@ export const event = {
       assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),
       startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
+      attachments: async (item: Event, _arg: unknown, { events }: Context) => {
+        if (!item.attachments) {
+          return [];
+        }
+        const results = await Promise.allSettled((item.attachmentPaths || []).map((path) => {
+          return events.getDownloadUrl(path);
+        }));
+
+        return results.filter((result) => result.status === 'fulfilled').map((result: any) => result.value);
+      }
     },
   },
 };

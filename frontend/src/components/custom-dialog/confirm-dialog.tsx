@@ -15,10 +15,11 @@ export default function ConfirmDialog({
   action,
   open,
   onClose,
+  maxWidth = 'xs',
   ...other
 }: ConfirmDialogProps) {
   return (
-    <Dialog fullWidth maxWidth="xs" open={open} onClose={onClose} {...other}>
+    <Dialog fullWidth maxWidth={maxWidth} open={open} onClose={onClose} {...other}>
       <DialogTitle sx={{ pb: 2 }}>{title}</DialogTitle>
 
       {content && <DialogContent sx={{ typography: 'body2' }}> {content} </DialogContent>}

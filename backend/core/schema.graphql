@@ -185,10 +185,15 @@
     COMPLETE
   }
 
+  type EventAttachmentUpload {
+    attachmentPath: String!
+    uploadUrl: String!
+  }
+
   type Event {
     id: ID!
     name: String!
-    attachment: String
+    attachmentPaths: [String!]
     startTime: String
     endTime: String
     notes: String
@@ -203,6 +208,7 @@
     venue: Venue!
     org: Organization!
     assignments: [Assignment!]
+    attachments: [String!]
   }
 
   type Assignment {
@@ -255,7 +261,7 @@
   input UpsertEvent {
     id: String
     name: String!
-    attachment: String
+    attachmentPaths: String
     notes: String
     venueId: String!
     assignmentIds: [String]!
@@ -362,6 +368,11 @@
     org: Organization!
   }
 
+  type MemberSkillAttachmentUpload {
+    imagePath: String!
+    uploadUrl: String!
+  }
+
   type MemberSkill {
     id: ID!
     userId: String!
@@ -375,6 +386,8 @@
 
     skill: Skill!
     user: User
+    # Download url for the image
+    image: String
   }
 
   input UpsertSkill {
@@ -771,11 +784,13 @@ type Mutation {
   removeSkill(id: String!): ID!
   userSkill(userSkill: UpsertMemberSkill!): MemberSkill
   removeUserSkill(id: String!): ID!
+  userSkillAttachmentUploadUrl: MemberSkillAttachmentUpload
 
   venue(venue: UpsertVenue!): Venue
   removeVenue(id: String!): ID!
 
   event(event: UpsertEvent!): Event
+  eventAttachmentUploadUrl: EventAttachmentUpload
   removeEvent(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment

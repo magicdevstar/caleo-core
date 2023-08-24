@@ -6,6 +6,15 @@ export const REMOVE_EVENT = gql`
   }
 `;
 
+export const EVENT_UPLOAD_URL = gql`
+  mutation EventUploadUrl {
+    eventAttachmentUploadUrl {
+      attachmentPath
+      uploadUrl
+    }
+  }
+`;
+
 export const GET_ALL_EVENTS = gql`
   query GetAllEvents($input: EventSearchInput!) {
     events(input: $input) {
@@ -29,7 +38,7 @@ export const GET_EVENT = gql`
     event(id: $id) {
       id
       name
-      attachment
+      attachments
       status
       venueId
       notes

@@ -62,7 +62,7 @@ export default function GQLTable({
   const isEmpty = total === 0;
 
   useEffect(() => {
-    if (items.length) {
+    if (items.length && apiTotal !== items.length) {
       setTotal(apiTotal);
       setTableData(items);
     }

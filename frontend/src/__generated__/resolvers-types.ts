@@ -104,7 +104,8 @@ export type Event = {
   __typename?: 'Event';
   assignmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   assignments?: Maybe<Array<Assignment>>;
-  attachment?: Maybe<Scalars['String']['output']>;
+  attachmentPaths?: Maybe<Array<Scalars['String']['output']>>;
+  attachments?: Maybe<Array<Scalars['String']['output']>>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
   endTime?: Maybe<Scalars['String']['output']>;
@@ -118,6 +119,12 @@ export type Event = {
   updatedAt: Scalars['String']['output'];
   venue: Venue;
   venueId: Scalars['String']['output'];
+};
+
+export type EventAttachmentUpload = {
+  __typename?: 'EventAttachmentUpload';
+  attachmentPath: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
 };
 
 export type EventSearchInput = {
@@ -215,6 +222,7 @@ export type MemberSkill = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  image: Scalars['String']['output'];
   imagePath: Scalars['String']['output'];
   orgId: Scalars['String']['output'];
   skill: Skill;
@@ -223,6 +231,12 @@ export type MemberSkill = {
   updatedAt: Scalars['String']['output'];
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
+};
+
+export type MemberSkillAttachmentUpload = {
+  __typename?: 'MemberSkillAttachmentUpload';
+  imagePath: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
 };
 
 export enum MemberStatus {
@@ -242,6 +256,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   assignment?: Maybe<Assignment>;
   event?: Maybe<Event>;
+  eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
   organization?: Maybe<Organization>;
@@ -251,6 +266,7 @@ export type Mutation = {
   removeNotification: Scalars['ID']['output'];
   removeRank: Scalars['ID']['output'];
   removeShift: Scalars['ID']['output'];
+  removeShifts: Array<Maybe<Scalars['String']['output']>>;
   removeSkill: Scalars['ID']['output'];
   removeUserSkill: Scalars['ID']['output'];
   removeVenue: Scalars['ID']['output'];
@@ -259,6 +275,7 @@ export type Mutation = {
   skill?: Maybe<Skill>;
   user?: Maybe<User>;
   userSkill?: Maybe<MemberSkill>;
+  userSkillAttachmentUploadUrl?: Maybe<MemberSkillAttachmentUpload>;
   venue?: Maybe<Venue>;
 };
 
@@ -315,6 +332,11 @@ export type MutationRemoveRankArgs = {
 
 export type MutationRemoveShiftArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveShiftsArgs = {
+  shiftId: Scalars['String']['input'];
 };
 
 
@@ -636,7 +658,7 @@ export type Shift = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  locked: Scalars['Boolean']['output'];
+  locked?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   shiftId: Scalars['String']['output'];
@@ -819,6 +841,7 @@ export type UpsertShift = {
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
   locked?: InputMaybe<Scalars['Boolean']['input']>;
+  shiftId: Scalars['String']['input'];
   startTime: Scalars['String']['input'];
   status?: InputMaybe<ShiftStatus>;
   userId?: InputMaybe<Scalars['String']['input']>;
@@ -1056,6 +1079,7 @@ export type ResolversTypes = ResolversObject<{
   DocType: DocType;
   Email: ResolverTypeWrapper<Email>;
   Event: ResolverTypeWrapper<Event>;
+  EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
@@ -1070,6 +1094,7 @@ export type ResolversTypes = ResolversObject<{
   MemberNotification: ResolverTypeWrapper<MemberNotification>;
   MemberRole: MemberRole;
   MemberSkill: ResolverTypeWrapper<MemberSkill>;
+  MemberSkillAttachmentUpload: ResolverTypeWrapper<MemberSkillAttachmentUpload>;
   MemberStatus: MemberStatus;
   MemberTier: MemberTier;
   Mutation: ResolverTypeWrapper<{}>;
@@ -1144,6 +1169,7 @@ export type ResolversParentTypes = ResolversObject<{
   DayAvailability: DayAvailability;
   Email: Email;
   Event: Event;
+  EventAttachmentUpload: EventAttachmentUpload;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   ID: Scalars['ID']['output'];
@@ -1156,6 +1182,7 @@ export type ResolversParentTypes = ResolversObject<{
   Member: Member;
   MemberNotification: MemberNotification;
   MemberSkill: MemberSkill;
+  MemberSkillAttachmentUpload: MemberSkillAttachmentUpload;
   Mutation: {};
   NewContactInfo: NewContactInfo;
   NewEmail: NewEmail;
@@ -1274,7 +1301,8 @@ export type EmailResolvers<ContextType = any, ParentType extends ResolversParent
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
   assignmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
-  attachment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  attachmentPaths?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1288,6 +1316,12 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<ResolversTypes['Venue'], ParentType, ContextType>;
   venueId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventAttachmentUpload'] = ResolversParentTypes['EventAttachmentUpload']> = ResolversObject<{
+  attachmentPath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1345,6 +1379,7 @@ export type MemberSkillResolvers<ContextType = any, ParentType extends Resolvers
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  image?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   skill?: Resolver<ResolversTypes['Skill'], ParentType, ContextType>;
@@ -1356,9 +1391,16 @@ export type MemberSkillResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type MemberSkillAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['MemberSkillAttachmentUpload'] = ResolversParentTypes['MemberSkillAttachmentUpload']> = ResolversObject<{
+  imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
+  eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
@@ -1368,6 +1410,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
   removeShift?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftArgs, 'id'>>;
+  removeShifts?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType, RequireFields<MutationRemoveShiftsArgs, 'shiftId'>>;
   removeSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'id'>>;
   removeUserSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserSkillArgs, 'id'>>;
   removeVenue?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveVenueArgs, 'id'>>;
@@ -1376,6 +1419,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSkillArgs, 'skill'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUserArgs, 'user'>>;
   userSkill?: Resolver<Maybe<ResolversTypes['MemberSkill']>, ParentType, ContextType, RequireFields<MutationUserSkillArgs, 'userSkill'>>;
+  userSkillAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['MemberSkillAttachmentUpload']>, ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<MutationVenueArgs, 'venue'>>;
 }>;
 
@@ -1493,7 +1537,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  locked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  locked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1627,12 +1671,14 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
   Event?: EventResolvers<ContextType>;
+  EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   LotteryDate?: LotteryDateResolvers<ContextType>;
   LotterySettings?: LotterySettingsResolvers<ContextType>;
   Member?: MemberResolvers<ContextType>;
   MemberNotification?: MemberNotificationResolvers<ContextType>;
   MemberSkill?: MemberSkillResolvers<ContextType>;
+  MemberSkillAttachmentUpload?: MemberSkillAttachmentUploadResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   NotificationSearchResult?: NotificationSearchResultResolvers<ContextType>;

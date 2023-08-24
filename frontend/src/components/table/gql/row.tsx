@@ -26,15 +26,15 @@ type Props = {
   config: TableConfig<any>;
 };
 
-const BooleanCell = ({value, width, key}: {width?: number | string; value: boolean; key: any;}) => (
-  <TableCell width={width} key={key}>
+const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}) => (
+  <TableCell width={width}>
     <Label variant="soft" color={(value && 'info') || 'default'}>
       {value ? 'Yes' : 'No'}
     </Label>
   </TableCell>
 );
 
-const DateCell = ({value, width, href, key}: {width?: number | string; value: string; href?: string; key: any;}) => {
+const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
   let output: any = value ? format(new Date(value), 'dd MMM yyyy') : 'N/A';
   let secondary: any = value ? format(new Date(value), 'p') : '';
   if (href) {
@@ -64,7 +64,7 @@ const DateCell = ({value, width, href, key}: {width?: number | string; value: st
     );
   }
   return (
-    <TableCell width={width} key={key}>
+    <TableCell width={width}>
       <ListItemText
         primary={output}
         secondary={secondary}
@@ -79,10 +79,10 @@ const DateCell = ({value, width, href, key}: {width?: number | string; value: st
   );
 }
 
-const StringCell = ({value, labelColor, href, width, key} : { width?: number | string; value: string; labelColor?: string; href?: string; key: any;}) => {
+const StringCell = ({value, labelColor, href, width} : { width?: number | string; value: string; labelColor?: string; href?: string;}) => {
   if (href) {
     return (
-      <TableCell width={width} key={key}>
+      <TableCell width={width}>
         <ListItemText
           disableTypography
           primary={
@@ -103,7 +103,7 @@ const StringCell = ({value, labelColor, href, width, key} : { width?: number | s
   }
   if (labelColor) {
     return (
-      <TableCell width={width} key={key}>
+      <TableCell width={width}>
         <Label variant="soft" color={labelColor as any}>
           {value}
         </Label>
@@ -111,7 +111,7 @@ const StringCell = ({value, labelColor, href, width, key} : { width?: number | s
     )
   }
   return (
-    <TableCell width={width} key={key}>
+    <TableCell width={width}>
       <Typography variant="subtitle2" noWrap color="inherit">
         {value}
       </Typography>
@@ -119,8 +119,8 @@ const StringCell = ({value, labelColor, href, width, key} : { width?: number | s
   );
 };
 
-const ArrayCell = ({key, value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number; key: any;}) => (
-  <TableCell width={width} key={key}>
+const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number;}) => (
+  <TableCell width={width}>
     {!value || (value || []).length === 0 ? (
       <Label variant="soft" color="info">
         All

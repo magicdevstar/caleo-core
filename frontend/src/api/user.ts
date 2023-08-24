@@ -31,6 +31,7 @@ const userDetailProperties = `
       id
       status
       skillId
+      image
       createdAt
       skill {
         id

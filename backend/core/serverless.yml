@@ -6,6 +6,7 @@ params:
     dbName: caleo-dev
     poolId: us-west-2_8023dPQwv
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
+    bucketName: caleo-docs-${sls:stage}
   prod:
     dbName: caleo-prod
     poolId: us-west-2_3enNflKSo
@@ -34,6 +35,13 @@ provider:
     MONGODB_NAME: ${param:dbName}
     MONGODB_COLLECTION: core
     SERVICE_ID: ${param:serviceId}
+    BUCKET_NAME: ${param:bucketName}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: 's3:*'
+          Resource: '*'
 
 plugins:
   - serverless-esbuild
@@ -64,3 +72,19 @@ functions:
       - httpApi:
           path: /
           method: GET
+
+resources: # CloudFormation template syntax
+  Resources:
+    DocumentBucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: ${param:bucketName}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+              AllowedOrigins:
+                - '*'

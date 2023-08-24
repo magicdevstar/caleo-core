@@ -27,6 +27,7 @@ import FormProvider, {
   RHFEditor,
   RHFTextField,
   RHFSelect,
+  RHFUpload,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
@@ -79,7 +80,7 @@ export default function EditEvent({ currentEvent }: Props) {
     name: Yup.string().required('Name is required'),
     status: Yup.string(),
     notes: Yup.string(),
-    attachment: Yup.string(),
+    attachments: Yup.array(),
     venueId: Yup.string().required('Venue is required'),
     assignments: Yup.array(),
   });
@@ -90,7 +91,7 @@ export default function EditEvent({ currentEvent }: Props) {
       name: currentEvent?.name || '',
       status: currentEvent?.status || '',
       notes: currentEvent?.notes || '',
-      attachment: currentEvent?.attachment || '',
+      attachments: currentEvent?.attachments || [],
       venueId: currentEvent?.venueId || '',
       assignments: currentEvent?.assignments || [],
     }),
@@ -106,8 +107,12 @@ export default function EditEvent({ currentEvent }: Props) {
     reset,
     handleSubmit,
     getValues,
+    setValue,
+    watch,
     formState: { isSubmitting, isValid },
   } = methods;
+
+  const values = watch();
 
   useEffect(() => {
     if (currentEvent) {
@@ -115,7 +120,82 @@ export default function EditEvent({ currentEvent }: Props) {
     }
   }, [currentEvent, defaultValues, reset]);
 
-  const config: TableConfig<Assignment> = {
+  const handleDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const files = values.attachments || [];
+
+      const newFiles = acceptedFiles.map((file) =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        })
+      );
+
+      setValue('attachments', [...files, ...newFiles], { shouldValidate: true });
+    },
+    [setValue, values.attachments]
+  );
+
+  const handleRemoveFile = useCallback(
+    (inputFile: File | string) => {
+      const filtered = values.attachments && values.attachments?.filter((file: any) => file !== inputFile);
+      setValue('attachments', filtered);
+    },
+    [setValue, values.attachments]
+  );
+
+  const handleRemoveAllFiles = useCallback(() => {
+    setValue('attachments', []);
+  }, [setValue]);
+
+  const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
+    try {
+      // TODO: Impalement upload for attachments
+      const res = await upsertEvent({
+        variables: {
+          input: {
+            id: formData?.id,
+            name: formData?.name,
+            notes: formData?.notes,
+            attachmentPaths: [],
+            venueId: formData?.venueId,
+            assignmentIds: formData?.assignments?.map(
+              (assignment: any) => assignment.id
+            ),
+          },
+        },
+      });
+      if (shouldReroute) {
+        enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
+        if (!currentEvent) {
+          router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', res.data?.event?.id));
+        }
+      }
+      return res.data?.event.id;
+    } catch (error) {
+      console.error(error);
+      return '';
+    }
+  }, [upsertEvent, enqueueSnackbar, router, currentEvent]);
+
+  const openRemoveAssignment = useCallback((assignmentId: string) => {
+    setRemoveAssignmentId(assignmentId);
+    deleteConfirm.onTrue();
+  }, [deleteConfirm, setRemoveAssignmentId]);
+  const handleRemoveAssignment = useCallback(async () => {
+    await removeAssignment({
+      variables: {
+        id: removeAssignmentId,
+      },
+    });
+    setRemoveAssignmentId(null);
+    deleteConfirm.onFalse();
+  }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
+
+  const onSubmit = handleSubmit(async (formData) => {
+    await formSubmit(formData);
+  });
+
+  const config: TableConfig<Assignment> = useMemo(() => ({
     header: {
       title: 'Assignments',
       button: {
@@ -234,54 +314,17 @@ export default function EditEvent({ currentEvent }: Props) {
       { id: '', width: '10%', columnType: 'action', label: '' },
     ],
     filters: []
-  };
-
-  const formSubmit = async (formData: any, shouldReroute = true) => {
-    try {
-      const res = await upsertEvent({
-        variables: {
-          input: {
-            id: formData?.id,
-            name: formData?.name,
-            notes: formData?.notes,
-            attachment: formData?.attachment,
-            venueId: formData?.venueId,
-            assignmentIds: formData?.assignments?.map(
-              (assignment: any) => assignment.id
-            ),
-          },
-        },
-      });
-      if (shouldReroute) {
-        enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
-        if (!currentEvent) {
-          router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', res.data?.event?.id));
-        }
-      }
-      return res.data?.event.id;
-    } catch (error) {
-      console.error(error);
-      return '';
-    }
-  };
-
-  const openRemoveAssignment = useCallback((assignmentId: string) => {
-    setRemoveAssignmentId(assignmentId);
-    deleteConfirm.onTrue();
-  }, [deleteConfirm, setRemoveAssignmentId]);
-  const handleRemoveAssignment = useCallback(async () => {
-    await removeAssignment({
-      variables: {
-        id: removeAssignmentId,
-      },
-    });
-    setRemoveAssignmentId(null);
-    deleteConfirm.onFalse();
-  }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
-
-  const onSubmit = handleSubmit(async (formData) => {
-    await formSubmit(formData);
-  });
+  }), [
+    formSubmit,
+    getValues,
+    openRemoveAssignment,
+    enqueueSnackbar,
+    currentEvent?.assignments,
+    currentEvent?.id,
+    isValid,
+    router,
+    upsertEventLoading,
+  ]);
 
   const renderDetails = (
     <>
@@ -315,6 +358,20 @@ export default function EditEvent({ currentEvent }: Props) {
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
               <RHFEditor simple name="notes" />
+            </Stack>
+
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle2">Attachments</Typography>
+              <RHFUpload
+                multiple
+                thumbnail
+                name="attachments"
+                maxSize={3145728}
+                onDrop={handleDrop}
+                onRemove={handleRemoveFile}
+                onRemoveAll={handleRemoveAllFiles}
+                onUpload={() => console.info('ON UPLOAD')}
+              />
             </Stack>
 
             <Stack>

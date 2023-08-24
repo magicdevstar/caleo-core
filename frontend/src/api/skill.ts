@@ -6,6 +6,15 @@ export const REMOVE_SKILL = gql`
   }
 `;
 
+export const CREATE_SKILL_UPLOAD_URL = gql`
+  mutation CreateSkillUploadUrl {
+    userSkillAttachmentUploadUrl {
+      imagePath
+      uploadUrl
+    }
+  }
+`;
+
 export const GET_BASE_SKILLS = gql`
   query GetBaseSkills($input: SkillSearchInput!) {
     skills(input: $input) {

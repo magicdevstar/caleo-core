@@ -1,8 +1,17 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import {  MemberSkill, SkillSearchInput, Skill, SkillStatus, UpsertMemberSkill, UpsertSkill } from "../../__generated__/resolvers-types";
+import {
+  MemberSkill,
+  SkillSearchInput,
+  Skill,
+  SkillStatus,
+  UpsertMemberSkill,
+  UpsertSkill,
+  MemberSkillAttachmentUpload,
+} from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import logger from "../../utils/logger";
 
 export const skill = {
   Query: {
@@ -92,6 +101,15 @@ export const skill = {
         orgId: user?.member.orgId!,
       } as any);
     },
+    userSkillAttachmentUploadUrl: async (
+      _parent: unknown,
+      _args: unknown,
+      { memberSkills, user }: Context
+    ): Promise<MemberSkillAttachmentUpload> => {
+      return memberSkills.getUploadUrl({
+        orgId: user?.member.orgId!,
+      });
+    }
   },
   fields: {
     Skill: {
@@ -103,6 +121,7 @@ export const skill = {
       ...commonResolvers,
       skill: (memberSkill: MemberSkill, _, { skills }: Context) => skills.loader.load(memberSkill.skillId),
       user: (memberSkill: MemberSkill, _, { users }: Context) => users.loader.load(memberSkill.userId),
+      image: (memberSkill: MemberSkill, _, { memberSkills }: Context) => memberSkill.imagePath ? memberSkills.getDownloadUrl(memberSkill.imagePath!) : null,
     },
   },
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 // @apollo/client
 import { useQuery } from "@apollo/client";
 // @mui
@@ -35,8 +35,6 @@ export default function GQLTable({
     defaultOrderBy: 'createdAt',
     defaultOrder: 'desc',
   });
-  const [tableData, setTableData] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(config.filters);
 
   const { data, loading: gqlLoading } = useQuery(config.search.query, {
@@ -59,14 +57,9 @@ export default function GQLTable({
 
   const loading = config.search.loading || gqlLoading;
   const { items, total: apiTotal } = config.search.processResult(data || config.search.data);
+  const tableData = useMemo(() => items, [items]);
+  const total = useMemo(() => apiTotal, [apiTotal]);
   const isEmpty = total === 0;
-
-  useEffect(() => {
-    if (items.length && apiTotal !== items.length) {
-      setTotal(apiTotal);
-      setTableData(items);
-    }
-  }, [items, apiTotal]);
 
   const denseHeight = 60;
 

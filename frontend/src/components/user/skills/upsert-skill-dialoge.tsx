@@ -19,6 +19,7 @@ import { MemberSkill, Skill, SkillStatus } from 'src/__generated__/resolvers-typ
 import { CREATE_SKILL_UPLOAD_URL, GET_BASE_SKILLS } from 'src/api/skill';
 import { GET_USER, ME, UPSERT_MEMBER_SKILL } from 'src/api/user';
 import { Upload } from 'src/components/upload';
+import { useBoolean } from 'src/hooks/use-boolean';
 
 const defaultMemberSkill = {
   id: '',
@@ -61,6 +62,8 @@ export default function UpsertMemberSkill({
   const [document, setDocument] = useState<any>(null);
   const [inputValue, setInputValue] = useState('');
   const action = useMemo(() => memberSkill ? 'Update' : 'Add', [memberSkill]);
+
+  const touchedImage = useBoolean();
 
   useEffect(() => {
     if (memberSkill) {
@@ -136,6 +139,7 @@ export default function UpsertMemberSkill({
 
       onUpsertMemberSkill();
       upsertMemberSkill.onFalse();
+      touchedImage.onFalse();
       setSkillMod(defaultMemberSkill);
       setDocument(null);
     } catch(e) {
@@ -145,6 +149,7 @@ export default function UpsertMemberSkill({
 
   const handleDrop = useCallback(
     (files: File[]) => {
+      touchedImage.onTrue();
       const file = files[0];
       const fileObj = Object.assign(file, {
         preview: URL.createObjectURL(file),
@@ -152,7 +157,7 @@ export default function UpsertMemberSkill({
 
       setDocument(fileObj);
     },
-    [setDocument]
+    [setDocument, touchedImage]
   );
 
   const handleRemoveFile = useCallback(
@@ -165,9 +170,10 @@ export default function UpsertMemberSkill({
   const handleClose = useCallback(() => {
     setSkillMod(defaultMemberSkill);
     setDocument(null);
+    touchedImage.onFalse();
     onUpsertMemberSkill();
     upsertMemberSkill.onFalse();
-  }, [upsertMemberSkill, setSkillMod, onUpsertMemberSkill, setDocument]);
+  }, [upsertMemberSkill, setSkillMod, onUpsertMemberSkill, setDocument, touchedImage]);
 
   return (
     <ConfirmDialog
@@ -228,7 +234,7 @@ export default function UpsertMemberSkill({
         </Stack>
       )}
       action={
-        <LoadingButton onClick={onSubmit} variant="contained" loading={loading}>
+        <LoadingButton disabled={(!touchedImage.value && !!memberSkill)} onClick={onSubmit} variant="contained" loading={loading}>
           {action} Skill
         </LoadingButton>
       }

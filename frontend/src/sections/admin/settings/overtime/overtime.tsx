@@ -4,6 +4,7 @@ import { useMutation } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import omitDeep from 'omit-deep';
+import { capitalize } from 'lodash';
 // @mui
 import CardHeader from "@mui/material/CardHeader";
 import Card from "@mui/material/Card";
@@ -21,7 +22,7 @@ import FormProvider, { FormFooter, RHFSelect, RHFSwitch, RHFTextField } from 'sr
 // Components
 import { useResponsive } from 'src/hooks/use-responsive';
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
-import { MemberTier, Organization, OrganizationOvertimeSettings } from 'src/__generated__/resolvers-types';
+import { DayOfWeek, MemberTier, Organization, OrganizationOvertimeSettings } from 'src/__generated__/resolvers-types';
 
 const tierNames = {
   [MemberTier.Tier_1]: 'Tier 1',
@@ -183,32 +184,74 @@ export default function Overtime({
               />
 
               <Stack direction="row" alignItems="center" spacing={2} sx={{ pb: 2 }}>
-                <TimePicker
-                  label="Open"
-                  value={new Date(values.settings.lottery.open.time)}
-                  onChange={(newValue: any) => {
-                    setValue('settings.lottery.open.time', newValue);
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                    },
-                  }}
-                />
-                <TimePicker
-                  label="Close"
-                  value={new Date(values.settings.lottery.close.time)}
-                  onChange={(newValue: any) => {
-                    setValue('settings.lottery.close.time', newValue);
-                  }}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                    },
-                  }}
-                />
+                <Stack sx={{ width: '100%' }} spacing={2}>
+                  <RHFSelect
+                    name="settings.lottery.open.dayOfWeek"
+                    label="Lottery Open"
+                    helperText="The day of the week the lottery opens"
+                  >
+                    {[
+                      DayOfWeek.Sunday,
+                      DayOfWeek.Monday,
+                      DayOfWeek.Tuesday,
+                      DayOfWeek.Wednesday,
+                      DayOfWeek.Thursday,
+                      DayOfWeek.Friday,
+                      DayOfWeek.Saturday,
+                    ].map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {capitalize(option)}
+                      </MenuItem>
+                    ))}
+                  </RHFSelect>
+                  <TimePicker
+                    label="Open"
+                    value={new Date(values.settings.lottery.open.time)}
+                    onChange={(newValue: any) => {
+                      setValue('settings.lottery.open.time', newValue);
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        margin: 'normal',
+                      },
+                    }}
+                  />
+                </Stack>
+                <Stack sx={{ width: '100%' }} spacing={2}>
+                  <RHFSelect
+                    name="settings.lottery.close.dayOfWeek"
+                    label="Lottery Close"
+                    helperText="The day of the week the lottery closes"
+                  >
+                    {[
+                      DayOfWeek.Sunday,
+                      DayOfWeek.Monday,
+                      DayOfWeek.Tuesday,
+                      DayOfWeek.Wednesday,
+                      DayOfWeek.Thursday,
+                      DayOfWeek.Friday,
+                      DayOfWeek.Saturday,
+                    ].map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {capitalize(option)}
+                      </MenuItem>
+                    ))}
+                  </RHFSelect>
+                  <TimePicker
+                    label="Close"
+                    value={new Date(values.settings.lottery.close.time)}
+                    onChange={(newValue: any) => {
+                      setValue('settings.lottery.close.time', newValue);
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        margin: 'normal',
+                      },
+                    }}
+                  />
+                </Stack>
               </Stack>
 
             </Stack>

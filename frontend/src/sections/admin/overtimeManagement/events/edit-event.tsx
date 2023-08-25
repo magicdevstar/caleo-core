@@ -360,6 +360,7 @@ export default function EditEvent({ currentEvent }: Props) {
               <RHFEditor simple name="notes" />
             </Stack>
 
+            {/* TODO: Implement attachments */}
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Attachments</Typography>
               <RHFUpload
@@ -370,7 +371,6 @@ export default function EditEvent({ currentEvent }: Props) {
                 onDrop={handleDrop}
                 onRemove={handleRemoveFile}
                 onRemoveAll={handleRemoveAllFiles}
-                onUpload={() => console.info('ON UPLOAD')}
               />
             </Stack>
 

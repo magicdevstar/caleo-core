@@ -23,6 +23,7 @@ import { MemberNotificationModel } from './models/memberNotification';
 import { EventModel } from './models/event';
 import { AssignmentModel } from './models/assignment';
 import { ShiftModel } from './models/shift';
+import { SchedulerModel } from './models/scheduler';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -36,6 +37,7 @@ export interface Context {
   assignments: AssignmentModel;
   shifts: ShiftModel;
   memberNotifications: MemberNotificationModel;
+  scheduler: SchedulerModel;
   user?: User;
 }
 
@@ -74,6 +76,7 @@ export const handler = startServerAndCreateLambdaHandler(
         shifts: new ShiftModel(db),
         notifications: new NotificationModel(db),
         memberNotifications: new MemberNotificationModel(db),
+        scheduler: new SchedulerModel(),
         user: event.requestContext?.authorizer?.lambda?.user,
         lambdaEvent: event,
         lambdaContext: context,

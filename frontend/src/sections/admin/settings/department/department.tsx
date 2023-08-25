@@ -134,12 +134,22 @@ export default function Department({ organization }: Props) {
                 helperText="The name of your department"
               />
 
-              <RHFTextField
-                type="text"
+              <RHFSelect
                 name="timezone"
                 label="Timezone"
                 helperText="The timezone your department is in"
-              />
+              >
+                {[
+                  'America/New_York',
+                  'America/Chicago',
+                  'America/Denver',
+                  'America/Los_Angeles',
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>  
+               ))}
+              </RHFSelect>
 
               <RHFSelect
                 name="weekBegins"

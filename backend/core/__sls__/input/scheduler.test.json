@@ -1,0 +1,7 @@
+{
+  "event": "lotto_start",
+  "orgId": "test123",
+  "eventTime": "2023-08-25T02:37:12.518Z",
+  "eventTimeZone": "America/Chicago",
+  "eventInput": "{\"message\": \"Hi mom\"}"
+}

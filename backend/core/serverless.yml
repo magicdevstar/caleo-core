@@ -36,11 +36,16 @@ provider:
     MONGODB_COLLECTION: core
     SERVICE_ID: ${param:serviceId}
     BUCKET_NAME: ${param:bucketName}
+    SCHEDULED_LAMBDA_ARN: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-scheduledEvents
+    SCHEDULED_ROLE_ARN: !GetAtt SchedulerRole.Arn
   iam:
     role:
       statements:
         - Effect: Allow
-          Action: 's3:*'
+          Action:
+            - 's3:*'
+            - 'iam:PassRole'
+            - 'scheduler:*'
           Resource: '*'
 
 plugins:
@@ -59,6 +64,7 @@ custom:
 # Create the authorizer
 # Create a hook that will create a user when a new user signs up
 functions:
+  # GQL API
   authorizerFunc:
     handler: src/auth/authorizer.handler
   graphql:
@@ -73,8 +79,30 @@ functions:
           path: /
           method: GET
 
+  # Scheduled Tasks
+  scheduledEvents:  
+    handler: src/scheduled/lotto.handler
+
+  # Test function
+  scheduleTask:
+    handler: src/scheduled/test.handler
+
 resources: # CloudFormation template syntax
   Resources:
+    SchedulerRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - scheduler.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
     DocumentBucket:
       Type: 'AWS::S3::Bucket'
       Properties:

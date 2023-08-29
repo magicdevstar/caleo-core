@@ -180,6 +180,7 @@
 ###### START Events ######
   enum EventStatus {
     DRAFT
+    UPCOMING
     READY_FOR_LOTTERY
     FIRST_COME_FIRST_SERVE
     COMPLETE
@@ -762,9 +763,11 @@ type Query {
   assignment(id: String!): Assignment
   assignments(input: SearchInput): AssignmentSearchResult
 
+  availableShifts(input: SearchInput): ShiftSearchResult
   shift(id: String!): Shift
   groupedShifts(shiftId: String!): [Shift]
   shifts(input: SearchInput): ShiftSearchResult
+  shiftUsers(id: String!, name: String): UserSearchResult
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
@@ -799,6 +802,7 @@ type Mutation {
   shifts(shifts: [UpsertShift]!): [Shift]
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!
+  shiftAssign(id: String!, userId: String): Shift
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

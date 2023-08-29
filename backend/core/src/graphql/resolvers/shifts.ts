@@ -1,14 +1,25 @@
 import { GraphQLError } from "graphql";
 import uniq from 'lodash.uniq';
 import { Context } from "../..";
-import { DocType, EventStatus, SearchInput, Shift, ShiftStatus, UpsertShift } from "../../__generated__/resolvers-types";
-import { adminOnly } from "../../utils/access";
+import { DocType, EventStatus, SearchInput, Shift, ShiftStatus, UpsertShift, UserSearchResult } from "../../__generated__/resolvers-types";
+import { adminOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { isAfter, isBefore } from "date-fns";
 import logger from "../../utils/logger";
 
 export const shift = {
   Query: {
+    availableShifts: async (
+      _parent: unknown,
+      { input: {limit, skip} }: { input: { limit: number; skip: number; } },
+      { users, user }: Context
+    ): Promise<SearchResults<Shift>> =>
+      users.findOpenShifts({
+        user: user!,
+        orgId: user?.member.orgId!,
+        limit,
+        skip,
+      }),
     shift: async (
       _parent: unknown,
       { id }: { id: string },
@@ -33,7 +44,25 @@ export const shift = {
       limit,
       skip,
       orgId: user?.member.orgId!,
-    })
+    }),
+    shiftUsers: async (
+      _parent: unknown,
+      { id, name }: { id: string, name?: string },
+      { users, user }: Context
+    ): Promise<UserSearchResult> => {
+      adminOnly(user);
+
+      const filters: { name?: string } = {};
+      if (name && name.trim() !== '') {
+        filters.name = name;
+      }
+
+      return users.findCompatibleUsersForShift({
+        id,
+        orgId: user?.member.orgId!,
+        filters,
+      });
+    }
   },
   Mutation: {
     removeShift: async (
@@ -258,6 +287,27 @@ export const shift = {
 
       return writtenShifts;
     },
+    shiftAssign: async (
+      _parent: unknown,
+      { id, userId }: { id: string, userId?: string },
+      { shifts, user }: Context
+    ): Promise<Shift> => {
+      adminOnly(user);
+
+      const shift = await shifts.get(id);
+      if (!shift) {
+        throw new GraphQLError("Shift not found");
+      }
+
+      if (shift.userId && !userIsAdmin(user)) {
+        throw new GraphQLError("Shift already assigned");
+      }
+
+      shift.userId = userId ? userId : null;
+      shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
+
+      return shifts.update(shift, { skipMerge: true });
+    }
   },
   fields: {
     Shift: {
@@ -267,6 +317,7 @@ export const shift = {
       assignment: (shift: Shift, _, { assignments }: Context) => assignments.loader.load(shift.assignmentId),
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
+      user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
     },
   },
 };

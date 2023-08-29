@@ -12,6 +12,14 @@ export const REMOVE_SHIFTS = gql`
   }
 `;
 
+export const ASSIGN_SHIFT = gql`
+  mutation AssignShift($id: String!, $userId: String) {
+    shiftAssign(id: $id, userId: $userId) {
+      id
+    }
+  }
+`;
+
 export const GET_ALL_SHIFTS = gql`
   query GetAllShifts($input: SearchInput!) {
     shifts(input: $input) {

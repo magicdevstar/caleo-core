@@ -258,6 +258,14 @@ export class BaseModel<T> {
     };
   }
 
+  async aggregate<K>(pipeline: any[]): Promise<K[]> {
+    const res = await this.collection.aggregate(
+      pipeline,
+      { allowDiskUse: true, maxTimeMS: 60000 }
+    ).toArray();
+    return res as K[];
+  }
+
   async remove(id: string): Promise<void> {
     await this.collection.deleteOne({ _id: new ObjectId(id), docType: this.docType });
   }

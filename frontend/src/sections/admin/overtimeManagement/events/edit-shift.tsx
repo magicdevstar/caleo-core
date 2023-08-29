@@ -22,11 +22,12 @@ import { useSnackbar } from 'src/components/snackbar';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
-import { GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
+import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
+import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
 
@@ -44,8 +45,10 @@ export default function EditShift({
   shiftId,
 }: Props) {
   const router = useRouter();
-  const [removeShiftId, setRemoveShiftId] = useState<string | null>();
+  const [editShiftId, setEditShiftId] = useState<string | null>();
   const deleteConfirm = useBoolean();
+  const unassignConfirm = useBoolean();
+  const assignConfirm = useBoolean();
 
   const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
     refetchQueries: [{
@@ -80,6 +83,25 @@ export default function EditShift({
     ],
   });
 
+  const [assignShift, { loading: isAssigningShift }] = useMutation(ASSIGN_SHIFT, {
+    refetchQueries: [
+      GET_ALL_EVENTS,
+      {
+        query: GET_EVENT,
+        variables: {
+          id: eventId,
+        },
+      },
+      {
+        query: GET_ASSIGNMENT,
+        variables: {
+          id: assignmentId,
+        },
+      },
+      GET_GROUPED_SHIFTS,
+    ],
+  });
+
   const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : null);
   const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : null);
 
@@ -88,19 +110,37 @@ export default function EditShift({
   const { enqueueSnackbar } = useSnackbar();
 
   const openRemoveShift = useCallback((id: string) => {
-    setRemoveShiftId(id);
+    setEditShiftId(id);
     deleteConfirm.onTrue();
-  }, [deleteConfirm, setRemoveShiftId]);
+  }, [deleteConfirm, setEditShiftId]);
 
   const handleRemoveShift = useCallback(async () => {
     await removeShift({
       variables: {
-        id: removeShiftId,
+        id: editShiftId,
       },
     });
-    setRemoveShiftId(null);
+    setEditShiftId(null);
     deleteConfirm.onFalse();
-  }, [removeShift, setRemoveShiftId, removeShiftId, deleteConfirm]);
+  }, [removeShift, setEditShiftId, editShiftId, deleteConfirm]);
+
+  const handleShiftAssignment = useCallback(async (userId?: string) => {
+    console.log({
+      variables: {
+        id: editShiftId,
+        userId,
+      },
+    });
+    await assignShift({
+      variables: {
+        id: editShiftId,
+        userId,
+      },
+    });
+    setEditShiftId(null);
+    unassignConfirm.onFalse();
+    assignConfirm.onFalse();
+  }, [unassignConfirm, assignConfirm, editShiftId, setEditShiftId, assignShift]);
 
   const config: TableConfig<Shift> = {
     header: {
@@ -154,7 +194,12 @@ export default function EditShift({
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold',
         onClick: (row: Shift) => {
-
+          setEditShiftId(row.id);
+          if (row.user) {
+            unassignConfirm.onTrue();
+          } else {
+            assignConfirm.onTrue();
+          }
         },
       },
       {
@@ -323,6 +368,25 @@ export default function EditShift({
             Delete
           </LoadingButton>
         }
+      />
+
+      <ConfirmDialog
+        open={unassignConfirm.value}
+        onClose={unassignConfirm.onFalse}
+        title="Unassign shift slot"
+        content="Are you sure want to unassign this shift slot?"
+        action={
+          <LoadingButton variant="contained" color="error" onClick={() => handleShiftAssignment()} loading={isAssigningShift}>
+            Unassign
+          </LoadingButton>
+        }
+      />
+
+      <AssignShiftModal
+        shiftId={editShiftId}
+        assignConfirm={assignConfirm}
+        assignLoading={isAssigningShift}
+        assignShift={handleShiftAssignment}
       />
     </Grid>
   );

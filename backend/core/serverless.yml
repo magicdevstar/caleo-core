@@ -7,9 +7,11 @@ params:
     poolId: us-west-2_8023dPQwv
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}
+    domainName: dev-api.caleopro.com
   prod:
     dbName: caleo-prod
     poolId: us-west-2_3enNflKSo
+    domainName: api.caleopro.com
 
 provider:
   name: aws
@@ -50,12 +52,21 @@ provider:
 
 plugins:
   - serverless-esbuild
+  - serverless-domain-manager
 
 package:
   patterns:
     - schema.graphql
 
 custom:
+  customDomain:
+    domainName: ${param:domainName}
+    basePath: ${sls:stage}/graphql
+    certificateName: ${param:domainName}
+    createRoute53Record: true
+    autoDomain: true
+    endpointType: regional
+    apiType: http
   esbuild:
     bundle: true
     minify: false

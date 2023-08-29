@@ -103,10 +103,23 @@ export const assignments = {
         throw new GraphQLError("Event not found");
       }
 
-      const updatedAssignment = await assignments.upsert({
-        ...assignment,
-        orgId: user?.member.orgId!,
-      } as any);
+      let updatedAssignment: Assignment;
+      if (assignment.id) {
+        const currentAssignment = await assignments.get(assignment.id);
+        if (!currentAssignment) {
+          throw new GraphQLError("Assignment not found");
+        }
+        updatedAssignment = await assignments.update({
+          ...currentAssignment,
+          ...assignment,
+        } as any, { skipMerge: true });
+      } else {
+        updatedAssignment = await assignments.upsert({
+          ...assignment,
+          orgId: user?.member.orgId!,
+        } as any);
+      }
+
 
       if (!assignment.id) {
         await events.update({

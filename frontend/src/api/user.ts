@@ -130,6 +130,17 @@ export const REMOVE_MEMBER_SKILL = gql`
   }
 `;
 
+export const GET_SHIFT_USERS = gql`
+query GetShiftUsers($id: String!, $name: String) {
+  shiftUsers(id: $id, name: $name) {
+    items {
+      id
+      name
+    }
+  }
+}
+`;
+
 export const GET_USERS = gql`
   query GetUsers($input: UserSearchInput!) {
     users(input: $input) {

@@ -6,4 +6,10 @@ export class ShiftModel extends BaseModel<Shift> {
   constructor(db: Db) {
     super(db, DocType.Shift);
   }
+
+  async getByShiftId(shiftId: string): Promise<Shift | null> {
+    return this.findOne({
+      shiftId,
+    });
+  }
 };

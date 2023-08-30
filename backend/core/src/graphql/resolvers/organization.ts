@@ -60,6 +60,7 @@ export const organization = {
           },
           userRelinquishShift: {
             enabled: true,
+            numberOfHoursBeforeShift: 24,
             afterShiftRemove: {
               tier: MemberTier.Tier_2,
               days: 21,

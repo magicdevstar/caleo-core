@@ -13,15 +13,46 @@ export const REMOVE_SHIFTS = gql`
 `;
 
 export const ASSIGN_SHIFT = gql`
-  mutation AssignShift($id: String!, $userId: String) {
-    shiftAssign(id: $id, userId: $userId) {
+  mutation AssignShift($id: String!, $userId: String, $note: String) {
+    shiftAssign(id: $id, userId: $userId, note: $note) {
       id
     }
   }
 `;
 
+export const GET_AVAILABLE_SHIFTS = gql`
+  query GetAvailableShifts($input: SearchInput!) {
+    availableShifts(input: $input) {
+      items {
+        id
+        shiftId
+        startTime
+        endTime
+        status
+        locked
+        
+        assignment {
+          id
+          name
+        }
+
+        event {
+          id
+          name
+        }
+        
+        user {
+          id
+          name
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const GET_ALL_SHIFTS = gql`
-  query GetAllShifts($input: SearchInput!) {
+  query GetAllShifts($input: ShiftSearchInput!) {
     shifts(input: $input) {
       items {
         id

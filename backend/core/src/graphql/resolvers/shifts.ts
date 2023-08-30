@@ -1,8 +1,8 @@
 import { GraphQLError } from "graphql";
 import uniq from 'lodash.uniq';
 import { Context } from "../..";
-import { DocType, EventStatus, SearchInput, Shift, ShiftStatus, UpsertShift, UserSearchResult } from "../../__generated__/resolvers-types";
-import { adminOnly, userIsAdmin } from "../../utils/access";
+import { DocType, EventStatus, SearchInput, Shift, ShiftSearchInput, ShiftStatus, UpsertShift, UserSearchResult } from "../../__generated__/resolvers-types";
+import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { isAfter, isBefore } from "date-fns";
 import logger from "../../utils/logger";
@@ -38,13 +38,32 @@ export const shift = {
     },
     shifts: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input }: { input: ShiftSearchInput },
       { shifts, user }: Context
-    ): Promise<SearchResults<Shift>> => shifts.search({
-      limit,
-      skip,
-      orgId: user?.member.orgId!,
-    }),
+    ): Promise<SearchResults<Shift>> => {
+      const { startTime, endTime, userId, ...searchInput } = input;
+
+      if (userId !== user?.id && !userIsAdmin(user)) {
+        (searchInput as any).userId = user?.id;
+      } else {
+        (searchInput as any).userId = userId;
+      }
+
+      if (startTime) {
+        (searchInput as any).endTime = {
+          $gte: new Date(startTime).getTime(),
+        };
+      } else if (endTime) {
+        (searchInput as any).endTime = {
+          $lte: new Date(endTime).getTime(),
+        };
+      }
+
+      return shifts.search({
+        orgId: user?.member.orgId!,
+        ...searchInput,
+      });
+    },
     shiftUsers: async (
       _parent: unknown,
       { id, name }: { id: string, name?: string },
@@ -289,21 +308,33 @@ export const shift = {
     },
     shiftAssign: async (
       _parent: unknown,
-      { id, userId }: { id: string, userId?: string },
+      { id, userId, note }: { id: string, userId?: string, note?: string },
       { shifts, user }: Context
     ): Promise<Shift> => {
-      adminOnly(user);
+      if (userId) {
+        adminOrOwnerOnly(userId, user);
+      }
+      if (userId && userId !== user?.id && !userIsAdmin(user)) {
+        throw new GraphQLError("Unauthorized");
+      }
 
       const shift = await shifts.get(id);
       if (!shift) {
         throw new GraphQLError("Shift not found");
       }
 
+      if (!userId && shift.userId) {
+        adminOrOwnerOnly(shift.userId!, user);
+      }
+
       if (shift.userId && !userIsAdmin(user)) {
         throw new GraphQLError("Shift already assigned");
       }
 
+      // TODO: Validate that user can be assigned the shift (Find any shifts that overlap with this one)
+
       shift.userId = userId ? userId : null;
+      shift.relinquishNote = note || shift.relinquishNote;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
 
       return shifts.update(shift, { skipMerge: true });

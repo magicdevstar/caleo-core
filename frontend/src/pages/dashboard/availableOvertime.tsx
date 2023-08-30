@@ -1,18 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 // sections
-import EmptyView from 'src/sections/empty/view';
+import AvailableOvertimeView from 'src/sections/availableOvertime/views/available-overtime-veiw';
 
 // ----------------------------------------------------------------------
 
-const title = "Available Overtime"
 export default function Page() {
   return (
     <>
       <Helmet>
-        <title> Caleo: {title}</title>
+        <title> Caleo: Available Overtime</title>
       </Helmet>
 
-      <EmptyView title={title} />
+      <AvailableOvertimeView />
     </>
   );
 }

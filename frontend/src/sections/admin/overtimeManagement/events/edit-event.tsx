@@ -20,7 +20,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, Event, Shift } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, EventStatus, Shift } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -43,6 +43,11 @@ import GQLTable from 'src/components/table/gql/table';
 type Props = {
   currentEvent?: Event;
 };
+
+const eventStatusNames = {
+  [EventStatus.ReadyForLottery]: 'Lottery',
+  [EventStatus.FirstComeFirstServe]: 'First come first serve',
+}
 
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
@@ -156,6 +161,7 @@ export default function EditEvent({ currentEvent }: Props) {
             id: formData?.id,
             name: formData?.name,
             notes: formData?.notes,
+            status: formData?.status,
             attachmentPaths: [],
             venueId: formData?.venueId,
             assignmentIds: formData?.assignments?.map(
@@ -373,6 +379,26 @@ export default function EditEvent({ currentEvent }: Props) {
                 onRemoveAll={handleRemoveAllFiles}
               />
             </Stack>
+
+            {currentEvent && currentEvent.status !== EventStatus.Draft && (
+              <RHFSelect
+                fullWidth
+                name="status"
+                label="Posting type"
+                disabled={currentEvent?.status === EventStatus.Complete}
+                InputLabelProps={{ shrink: true }}
+                PaperPropsSx={{ textTransform: 'capitalize' }}
+              >
+                {[
+                  EventStatus.ReadyForLottery,
+                  EventStatus.FirstComeFirstServe,
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {(eventStatusNames as any)[option]}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+            )}
 
             <Stack>
               <Stack direction="row" spacing={1.5}>

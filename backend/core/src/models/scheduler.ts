@@ -20,6 +20,7 @@ export enum ScheduleEvent {
   LOTTO_END = 'lotto_end',
   LOTTO_NOTIFY = 'lotto_notify',
   SHIFT_REMINDER = 'shift_reminder',
+  FIRST_COME_FIRST_SERVE_EVENT_STATUS_UPDATE = 'first_come_first_serve_event_status_update',
 }
 
 export enum Timezone {

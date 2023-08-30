@@ -183,6 +183,7 @@
     UPCOMING
     READY_FOR_LOTTERY
     FIRST_COME_FIRST_SERVE
+    FIRST_COME_FIRST_SERVE_SCHEDULED
     COMPLETE
   }
 
@@ -200,6 +201,7 @@
     notes: String
     orgId: String!
     status: EventStatus!
+    scheduledFirstComeFirstServe: String!
     docType: DocType!
     venueId: String!
     assignmentIds: [String]
@@ -247,6 +249,7 @@
     docType: DocType!
     orgId: String!
     locked: Boolean
+    relinquishNote: String
     eventId: String!
     assignmentId: String!
     userId: String
@@ -263,6 +266,8 @@
     id: String
     name: String!
     attachmentPaths: String
+    status: EventStatus
+    scheduledFirstComeFirstServe: String
     notes: String
     venueId: String!
     assignmentIds: [String]!
@@ -467,8 +472,8 @@
 
   type UserRelinquishShift {
     enabled: Boolean!
-    # Number of hours to wait before shift starts to allow users to relinquish
-    # their shift
+    # Number of hours to wait before shift starts to allow users to relinquish their shift
+    numberOfHoursBeforeShift: Int!
     afterShiftRemove: AfterShiftRemove!
     requireNoteWhenRelinquishing: Boolean!
   }
@@ -538,8 +543,8 @@
 
   input UpsertUserRelinquishShift {
     enabled: Boolean!
-    # Number of hours to wait before shift starts to allow users to relinquish
-    # their shift
+    # Number of hours to wait before shift starts to allow users to relinquish their shift
+    numberOfHoursBeforeShift: Int!
     afterShiftRemove: UpsertAfterShiftRemove!
     requireNoteWhenRelinquishing: Boolean!
   }
@@ -634,6 +639,8 @@
     limit: Int
     skip: Int
     query: String
+    orderBy: String
+    order: String
   }
 
   input RankSearchInput {
@@ -697,6 +704,16 @@
   type AssignmentSearchResult {
     items: [Assignment]
     total: Int!
+  }
+
+  input ShiftSearchInput {
+    limit: Int
+    skip: Int
+    userId: String
+    startTime: String
+    endTime: String
+    orderBy: String
+    order: String
   }
 
   type ShiftSearchResult {
@@ -766,7 +783,7 @@ type Query {
   availableShifts(input: SearchInput): ShiftSearchResult
   shift(id: String!): Shift
   groupedShifts(shiftId: String!): [Shift]
-  shifts(input: SearchInput): ShiftSearchResult
+  shifts(input: ShiftSearchInput): ShiftSearchResult
   shiftUsers(id: String!, name: String): UserSearchResult
 
   notification(id: String!): Notification
@@ -802,7 +819,7 @@ type Mutation {
   shifts(shifts: [UpsertShift]!): [Shift]
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!
-  shiftAssign(id: String!, userId: String): Shift
+  shiftAssign(id: String!, userId: String, note: String): Shift
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

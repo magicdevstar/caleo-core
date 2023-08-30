@@ -4,6 +4,7 @@ import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType, EventAttach
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
+import { ScheduleEvent } from "../../models/scheduler";
 
 export const event = {
   Query: {
@@ -18,6 +19,10 @@ export const event = {
       { events, user }: Context
     ): Promise<SearchResults<Event>> => events.search({
       orgId: user?.member.orgId!,
+      // Do not show complete events in the overtime search :)
+      status: {
+        $nin: [EventStatus.Complete],
+      },
       ...input,
     })
   },
@@ -71,7 +76,7 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, shifts, user }: Context
+      { events, shifts, scheduler, user }: Context
     ): Promise<Event> => {
       adminOnly(user);
 
@@ -86,6 +91,7 @@ export const event = {
           const { items: eventShifts } = await shifts.search({
             eventId: event.id
           });
+          // TODO: Set default status based on org settings :)
           if (eventShifts.length > 0) {
             (event as any).status = EventStatus.ReadyForLottery;
           }
@@ -94,10 +100,14 @@ export const event = {
         (event as any).status = EventStatus.Draft;
       }
 
-      return events.upsert({
+      const finalEvent = await events.upsert({
         ...event,
         orgId: user?.member.orgId!,
       } as any);
+
+      // TODO: Schedule or remove schedule for first come first serve event
+
+      return finalEvent;
     },
   },
   fields: {

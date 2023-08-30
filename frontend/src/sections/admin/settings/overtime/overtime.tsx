@@ -67,6 +67,7 @@ export default function Overtime({
       }),
       userRelinquishShift: Yup.object().shape({
         enabled: Yup.boolean().required(),
+        numberOfHoursBeforeShift: Yup.number().required(),
         requireNoteWhenRelinquishing: Yup.boolean().required(),
         afterShiftRemove: Yup.object().shape({
           days: Yup.number().required(),
@@ -302,11 +303,17 @@ export default function Overtime({
           <Card>
             {!mdUp && <CardHeader title="Shift Buffer" />}
             <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFSwitch name="settings.userRelinquishShift.enabled" label="Enable shift buffer" />
+              <RHFSwitch name="settings.userRelinquishShift.enabled" label="Enable user relinquish shifts" />
               <RHFSwitch
                 name="settings.userRelinquishShift.requireNoteWhenRelinquishing"
                 label="Require Note"
                 helperText="Require a note when relinquishing a shift"
+              />
+              <RHFTextField
+                type="number"
+                name="settings.userRelinquishShift.numberOfHoursBeforeShift"
+                label="Hours before shift"
+                helperText="The number of hours before a shift starts that a user can relinquish a shift"
               />
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                 After a user removes a shift

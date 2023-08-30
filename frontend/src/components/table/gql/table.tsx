@@ -32,11 +32,12 @@ export default function GQLTable({
   config: TableConfig<any>;
 }) {
   const table = useTable({
-    defaultOrderBy: 'createdAt',
-    defaultOrder: 'desc',
+    defaultOrderBy: config.search?.defaultTableConfig?.defaultOrderBy || 'createdAt',
+    defaultOrder: config.search?.defaultTableConfig?.defaultOrder || 'desc',
   });
   const [filters, setFilters] = useState(config.filters);
-
+  const uiFilters = useMemo(() =>
+    filters.filter(({ type }) => type !== 'hidden'), [filters]);
   const { data, loading: gqlLoading } = useQuery(config.search.query, {
     skip: !!config.search.data,
     fetchPolicy: 'network-only', // Used for first execution
@@ -110,13 +111,13 @@ export default function GQLTable({
         >{config.header.button.text}</LoadingButton>}
       </Box>
       <TableToolbar
-        filters={filters}
+        filters={uiFilters}
         onFilters={handleFilters}
       />
 
       {canReset && (
         <TableFiltersResult
-          filters={filters}
+          filters={uiFilters}
           onFilters={handleFilters}
           onResetFilters={handleResetFilters}
           //

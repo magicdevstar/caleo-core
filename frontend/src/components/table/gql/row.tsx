@@ -194,6 +194,7 @@ export default function GQLTableRow({
         {config.rowActions.map((action) => (
           <MenuItem
             key={action.getName(row)}
+            disabled={action.getDisabled?.(row) || false}
             onClick={() => {
               action.onClick(row);
               popover.onClose();

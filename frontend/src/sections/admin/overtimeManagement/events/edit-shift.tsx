@@ -257,6 +257,7 @@ export default function EditShift({
                         id: shift.id,
                         shiftId: shift.shiftId,
                         eventId: shift.event.id,
+                        status: shift.status,
                         assignmentId: shift.assignment.id,
                         endTime: shift.endTime,
                         startTime: newValue.toISOString(),
@@ -282,7 +283,12 @@ export default function EditShift({
                   await upsertShifts({
                     variables: {
                       input: currentShifts.map((shift) => ({
-                        ...shift,
+                        id: shift.id,
+                        shiftId: shift.shiftId,
+                        eventId: shift.event.id,
+                        status: shift.status,
+                        assignmentId: shift.assignment.id,
+                        startTime: shift.startTime,
                         endTime: newValue.toISOString(),
                       })),
                     }

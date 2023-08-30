@@ -41,6 +41,7 @@ query ORGANIZATION {
           tier
         }
         enabled
+        numberOfHoursBeforeShift
         requireNoteWhenRelinquishing
       }
       shiftReminder {

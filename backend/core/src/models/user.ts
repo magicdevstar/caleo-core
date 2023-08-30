@@ -141,9 +141,13 @@ export class UserModel extends BaseModel<User> {
       shifts: Shift[];
     }>(pipeline);
 
+    // TODO: Fetch shifts that are assigned to user during the event start and end time
+    //       Filter out any shifts that are overlapping with those shifts
+
     const totalRes = await this.shifts.aggregate<{
       total: number;
     }>([
+      // TODO: Filter out overlapping shifts with ones that have already been assigned
       // Select only shift docs that are attached to open events
       {
         $match: {
@@ -198,7 +202,7 @@ export class UserModel extends BaseModel<User> {
     logger.info('Res', { totalRes, res });
 
     return {
-      total: 0,
+      total: totalRes?.[0]?.total || 0,
       items: firstShifts
     };
   }

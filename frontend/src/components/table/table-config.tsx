@@ -21,12 +21,17 @@ export interface TableConfig<T> {
     data?: T[],
     loading?: boolean;
     query: DocumentNode;
+    defaultTableConfig?: {
+      defaultOrderBy?: string;
+      defaultOrder?: 'asc' | 'desc';
+    }
     processResult: (value: any) => {
       items: T[];
       total: number;
     };
   }
   rowActions: {
+    getDisabled?: (row: T) => boolean;
     getName: (row: T) => any;
     getIcon: (row: T) => any;
     onClick: (row: T) => any;
@@ -42,23 +47,12 @@ export interface TableConfig<T> {
     getLabelColor?: (row: T) => string;
     getHref?: (row: T) => string;
   }[];
-  filters: {
-    id: string;
-    type: 'select' | 'text' | 'boolean';
-    label: string;
-    defaultValue: any;
-    value: any;
-    fetchOptions?: () => {
-      value: any;
-      label: string;
-    }[],
-    resolveAsBoolean?: boolean,
-  }[];
+  filters: Filter[];
 }
 
 export interface Filter {
   id: string;
-  type: 'select' | 'text' | 'boolean';
+  type: 'select' | 'text' | 'boolean' | 'hidden';
   label: string;
   defaultValue: any;
   value: any;
@@ -88,6 +82,7 @@ export const getTierFilter = () => [
 ];
 
 export const resolveFilterValue = (filter: Filter) => {
+  if (filter.type === 'hidden') return filter.defaultValue;
   if (JSON.stringify(filter.value) === JSON.stringify(filter.defaultValue)) {
     return undefined;
   }

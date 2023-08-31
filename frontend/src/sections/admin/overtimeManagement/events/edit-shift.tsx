@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
+import { client } from 'src/utils/apollo';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -125,22 +126,30 @@ export default function EditShift({
   }, [removeShift, setEditShiftId, editShiftId, deleteConfirm]);
 
   const handleShiftAssignment = useCallback(async (userId?: string) => {
-    console.log({
-      variables: {
-        id: editShiftId,
-        userId,
-      },
-    });
-    await assignShift({
-      variables: {
-        id: editShiftId,
-        userId,
-      },
-    });
-    setEditShiftId(null);
-    unassignConfirm.onFalse();
-    assignConfirm.onFalse();
-  }, [unassignConfirm, assignConfirm, editShiftId, setEditShiftId, assignShift]);
+    try {
+      await assignShift({
+        variables: {
+          id: editShiftId,
+          userId,
+        },
+      });
+      setEditShiftId(null);
+      unassignConfirm.onFalse();
+      assignConfirm.onFalse();
+    } catch(error) {
+      if (/This shift if no longer available for this user/.test(error.message)) {
+        enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error' });
+        setEditShiftId(null);
+        unassignConfirm.onFalse();
+        assignConfirm.onFalse();
+        await client.refetchQueries({
+          include: [GET_GROUPED_SHIFTS]
+        });
+      } else {
+        enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
+      }
+    }
+  }, [unassignConfirm, assignConfirm, editShiftId, setEditShiftId, assignShift, enqueueSnackbar]);
 
   const config: TableConfig<Shift> = {
     header: {

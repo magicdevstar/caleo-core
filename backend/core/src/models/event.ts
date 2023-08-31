@@ -4,16 +4,99 @@ import {
   DocType,
   Event,
   EventAttachmentUpload,
+  EventStatus,
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { DocumentModel } from './document';
+import { ShiftModel } from './shift';
+
+export enum EventRemoveEventType {
+  assignment,
+  shift,
+  shifts,
+  shiftUpdate,
+}
 
 export class EventModel extends BaseModel<Event> {
-  document: DocumentModel;
   documentBasePath: string = 'events';
-  constructor(db: Db) {
+  constructor(
+    db: Db,
+    private document: DocumentModel,
+    private shifts: ShiftModel,
+  ) {
     super(db, DocType.Event);
-    this.document = new DocumentModel();
+  }
+
+  async updateEvent({
+    eventId,
+    removeId,
+    removeType,
+    removeStart,
+    removeEnd,
+    orgId,
+  }: {
+    eventId: string;
+    removeId: string;
+    removeType: EventRemoveEventType;
+    orgId: string;
+    removeStart?: number;
+    removeEnd?: number;
+  }) {
+    const event = await this.get(eventId);
+
+    if (event) {
+      if (
+        removeStart &&
+        removeEnd &&
+        (event.startTime as any) !== removeStart &&
+        (event.endTime as any) !== removeEnd
+      ) {
+        return false;
+      }
+
+      const shiftFilter: any = {
+        docType: DocType.Shift,
+        orgId,
+        eventId,
+      };
+  
+      let eventUpdates: any = {};
+      if (removeType === EventRemoveEventType.assignment) {
+        shiftFilter.assignmentId = {$ne: removeId};
+        eventUpdates = {
+          assignmentIds: (event.assignmentIds || []).filter((aid) => aid !== removeId),
+        };
+      } else if (removeType === EventRemoveEventType.shift) {
+        shiftFilter.id = {$ne: removeId};
+      } else if (removeType === EventRemoveEventType.shifts) {
+        shiftFilter.shiftId = {$ne: removeId};
+      }
+  
+      const [earliestShift] = await this.shifts.collection
+        .find(shiftFilter)
+        .sort('startTime', 'asc')
+        .limit(1)
+        .toArray();
+  
+      const [latestShift] = await this.shifts.collection
+        .find(shiftFilter)
+        .sort('endTime', 'desc')
+        .limit(1)
+        .toArray();
+  
+      const startTime = earliestShift ? earliestShift.startTime : null;
+      const endTime = latestShift ? latestShift.endTime : null;
+      const totalShifts = await this.shifts.collection.countDocuments(shiftFilter);
+
+      await this.update({
+        ...event,
+        ...eventUpdates,
+        startTime,
+        endTime,
+        status: totalShifts === 0 ? EventStatus.Draft : event.status,
+      } as any, { skipMerge: true });
+    }
+    return true;
   }
 
   async getUploadUrl({

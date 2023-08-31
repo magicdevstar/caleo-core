@@ -24,6 +24,7 @@ import { EventModel } from './models/event';
 import { AssignmentModel } from './models/assignment';
 import { ShiftModel } from './models/shift';
 import { SchedulerModel } from './models/scheduler';
+import { DocumentModel } from './models/document';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -64,19 +65,33 @@ export const handler = startServerAndCreateLambdaHandler(
         db = await mongodb.db(process.env.MONGODB_NAME!);
       }
 
+      const organizations = new OrganizationModel(db);
+      const document = new DocumentModel();
+      const notifications = new NotificationModel(db);
+      const scheduler = new SchedulerModel();
+      const assignments = new AssignmentModel(db);
+      const venues = new VenueModel(db);
+      const shifts = new ShiftModel(db);
+      const skills = new SkillModel(db);
+      const ranks = new RankModel(db);
+      const events = new EventModel(db, document, shifts);
+      const users = new UserModel(db, assignments, shifts, events);
+      const memberSkills = new MemberSkillModel(db, users, document);
+      const memberNotifications = new MemberNotificationModel(db, notifications);
+
       return {
-        organizations: new OrganizationModel(db),
-        users: new UserModel(db),
-        ranks: new RankModel(db),
-        skills: new SkillModel(db),
-        memberSkills: new MemberSkillModel(db),
-        venues: new VenueModel(db),
-        events: new EventModel(db),
-        assignments: new AssignmentModel(db),
-        shifts: new ShiftModel(db),
-        notifications: new NotificationModel(db),
-        memberNotifications: new MemberNotificationModel(db),
-        scheduler: new SchedulerModel(),
+        organizations,
+        users,
+        ranks,
+        skills,
+        memberSkills,
+        venues,
+        events,
+        assignments,
+        shifts,
+        notifications,
+        memberNotifications,
+        scheduler,
         user: event.requestContext?.authorizer?.lambda?.user,
         lambdaEvent: event,
         lambdaContext: context,

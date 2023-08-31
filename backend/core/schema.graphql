@@ -195,7 +195,7 @@
   type Event {
     id: ID!
     name: String!
-    attachmentPaths: [String!]
+    attachmentPaths: [String]
     startTime: String
     endTime: String
     notes: String
@@ -265,7 +265,7 @@
   input UpsertEvent {
     id: String
     name: String!
-    attachmentPaths: String
+    attachmentPaths: [String]
     status: EventStatus
     scheduledFirstComeFirstServe: String
     notes: String

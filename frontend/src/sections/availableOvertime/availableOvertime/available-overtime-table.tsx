@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
+import { useSnackbar } from 'notistack';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
 import { useMutation } from '@apollo/client';
+import { client } from 'src/utils/apollo';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // components
@@ -20,6 +22,7 @@ import { useAuthContext } from 'src/auth/hooks';
 export default function AvailableOvertimeTable() {
   const { user } = useAuthContext();
   const userId = user?.id;
+  const { enqueueSnackbar } = useSnackbar();
   const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT, {
     refetchQueries: [GET_AVAILABLE_SHIFTS, GET_ALL_SHIFTS],
   });
@@ -106,10 +109,18 @@ export default function AvailableOvertimeTable() {
         });
         closeAssign();
       } catch(error) {
-        console.error(error);
+        if (/This shift if no longer available for this user/.test(error.message)) {
+          enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error' });
+          closeAssign();
+          await client.refetchQueries({
+            include: [GET_AVAILABLE_SHIFTS]
+          });
+        } else {
+          enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
+        }
       }
     },
-    [editShift, userId, assignShift, closeAssign]
+    [editShift, userId, assignShift, closeAssign, enqueueSnackbar]
   );
 
   return (

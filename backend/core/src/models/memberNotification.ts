@@ -6,18 +6,14 @@ import { NotificationModel } from './nontification';
 
 export class MemberNotificationModel extends BaseModel<MemberNotification> {
   public userLoader = new DataLoader(async (keys: readonly string[]) => {
-    const res = await this.search({
+    const { items: res } = await this.search({
       userId: { $in: keys },
     });
     return keys.map((key) => res.find((item: any) => item.id === key));
   });
 
-  notifications: NotificationModel;
-
-  constructor(db: Db) {
+  constructor(db: Db, private notifications: NotificationModel) {
     super(db, DocType.MemberNotification);
-
-    this.notifications = new NotificationModel(db);
   }
 
   async seen({
@@ -37,7 +33,7 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     }, {  $set: { lastSeen: now }});
 
     // Get all notifications
-    const allMemberNotifications = await this.search({
+    const {items: allMemberNotifications} = await this.search({
       notificationId: { $in: notificationIds },
       userId,
     });

@@ -45,31 +45,8 @@ export const event = {
       adminOnly(user);
       await events.remove(id);
 
-      const assignmentRes = await assignments.collection.deleteMany({
-        orgId: user?.member.orgId!,
-        docType: DocType.Assignment,
-        eventId: id,
-      });
-      const shiftRes = await shifts.collection.deleteMany({
-        orgId: user?.member.orgId!,
-        docType: DocType.Shift,
-        eventId: id,
-      });
-      
-      if (assignmentRes.deletedCount === 0) {
-        logger.warn('No assignments removed', {
-          orgId: user?.member.orgId!,
-          docType: DocType.Assignment,
-          eventId: id,
-        });
-      }
-      if (shiftRes.deletedCount === 0) {
-        logger.warn('No shifts removed', {
-          orgId: user?.member.orgId!,
-          docType: DocType.Shift,
-          eventId: id,
-        });
-      }
+      await assignments.removeAllByEventId(user?.member.orgId!, id);
+      await shifts.removeAllByEventId(user?.member.orgId!, id);
 
       return id;
     },
@@ -88,17 +65,22 @@ export const event = {
         if (!event.assignmentIds || event.assignmentIds.length === 0) {
           (event as any).status = EventStatus.Draft;
         } else if (currentEvent?.status === EventStatus.Draft) {
-          const { items: eventShifts } = await shifts.search({
-            eventId: event.id
+          const totalShifts = await shifts.collection.countDocuments({
+            eventId: event.id,
           });
           // TODO: Set default status based on org settings :)
-          if (eventShifts.length > 0) {
+          if (totalShifts > 0) {
             (event as any).status = EventStatus.ReadyForLottery;
           }
         }
       } else {
         (event as any).status = EventStatus.Draft;
       }
+
+      logger.info('Upsert event', { event: {
+        ...event,
+        orgId: user?.member.orgId!,
+      } as any });
 
       const finalEvent = await events.upsert({
         ...event,
@@ -123,7 +105,7 @@ export const event = {
           return [];
         }
         const results = await Promise.allSettled((item.attachmentPaths || []).map((path) => {
-          return events.getDownloadUrl(path);
+          return events.getDownloadUrl(path as string);
         }));
 
         return results.filter((result) => result.status === 'fulfilled').map((result: any) => result.value);

@@ -5,6 +5,7 @@ import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
 import { isAfter, isBefore } from "date-fns";
+import { EventRemoveEventType } from "../../models/event";
 
 export const assignments = {
   Query: {
@@ -39,55 +40,15 @@ export const assignments = {
       await assignments.remove(id);
 
       // Remove all shifts for this assignment
-      const shiftRes = await shifts.collection.deleteMany({
-        orgId: user?.member.orgId!,
-        docType: DocType.Shift,
-        assignmentId: id,
-      });
-      if (shiftRes.deletedCount === 0) {
-        logger.warn('No shifts removed', {
-          orgId: user?.member.orgId!,
-          docType: DocType.Shift,
-          assignmentId: id,
-          eventId: assignment.eventId,
-        });
-      }
+      await shifts.removeAllByAssignmentId(user?.member.orgId!, id);
 
       // Remove assignmentId from event and update status if needed
-      const event = await events.get(assignment.eventId);
-      if (event) {
-        const shiftCount = await shifts.collection.countDocuments({
-          docType: DocType.Shift,
-          orgId: user?.member.orgId!,
-          assignmentId: {$ne: id},
-        });
-        const {items: filteredShifts} = await shifts.search({
-          docType: DocType.Shift,
-          orgId: user?.member.orgId!,
-          assignmentId: {$ne: id},
-        });
-        const startTime = filteredShifts.reduce((curr: Date | null, shift) => {
-          const start = new Date(shift.startTime);
-          if (!curr || isBefore(start, curr)) {
-            return start;
-          }
-          return curr;
-        }, null);
-        const endTime = filteredShifts.reduce((curr: Date | null, shift) => {
-          const end = new Date(shift.endTime);
-          if (!curr || isAfter(end, curr)) {
-            return end;
-          }
-          return curr;
-        }, null);
-        await events.update({
-          ...event,
-          status: shiftCount === 0 ? EventStatus.Draft : event.status,
-          assignmentIds: (event.assignmentIds || []).filter((aid) => aid !== id),
-          startTime: startTime ? startTime.getTime() : null,
-          endTime: endTime ? endTime.getTime() : null,
-        } as any, { skipMerge: true });
-      }
+      await events.updateEvent({
+        eventId: assignment.eventId,
+        removeId: id,
+        removeType: EventRemoveEventType.assignment,
+        orgId: user?.member.orgId!,
+      });
 
       return id;
     },

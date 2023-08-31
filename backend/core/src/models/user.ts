@@ -6,26 +6,27 @@ import { ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
-import { MemberSkillModel } from './memberSkill';
 
 export class UserModel extends BaseModel<User> {
-  assignments: AssignmentModel;
-  shifts: ShiftModel;
-  events: EventModel;
-  constructor(db: Db) {
+  constructor(
+    db: Db,
+    private assignments: AssignmentModel,
+    private shifts: ShiftModel,
+    private events: EventModel
+  ) {
     super(db, DocType.User);
-    this.assignments = new AssignmentModel(db);
-    this.shifts = new ShiftModel(db);
-    this.events = new EventModel(db);
   }
 
   async findOpenShifts({
     user,
+    // Specific shift to filter for
+    shiftId,
     limit,
     skip,
     orgId,
   }: {
     user: User;
+    shiftId?: string;
     limit: number;
     skip: number;
     orgId: string;
@@ -85,16 +86,73 @@ export class UserModel extends BaseModel<User> {
       return hasRequiredSkills;
     }).map(({ id }) => id);
 
+    const minimumStartTime = Date.now();
+    const myShifts = await this.shifts.collection.find({
+      userId: user.id,
+      docType: DocType.Shift,
+      startTime: {
+        $gte: minimumStartTime,
+      }
+    }).toArray();
+    const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
+      startTime,
+      endTime,
+    }));
+    const shiftIds = myShifts.map(({ shiftId }) => shiftId);
+
     logger.info('AssignmentIds', { assignmentIds });
 
+    /**
+     * TODO: Include filter for overtime availability
+     * 
+     * I think I need to save the day of the week times on a shift so that I can filter shifts that do not
+     * overlap the overtime availability set by the user.
+     * 
+     * For example if a shift is on 9/1/23 5:00am - 9/2/23 12:00pm
+     *
+     * Then I would save this object to the shift
+     *
+     * {
+     *  overtime: {
+     *   sunday: null,
+     *   Monday: null,
+     *   Tuesday: null,
+     *   Wednesday: null,
+     *   Thursday: null,
+     *   Friday: {
+     *       startTime: "1969-12-31T05:00:00.000Z”,
+     *       endTime: "1969-12-31T23:59:59.000Z”,
+     *   },
+     *   Saturday: {
+     *       startTime: “1969-12-31T00:00:00.000Z”,
+     *       endTime: “1969-12-31T12:00:00.000Z”,
+     *   },
+     *   Sunday: null,
+     *  }
+     * }
+     * 
+     * Then in the $match here I could just add another $and clause that ensures
+     * that the day of the week is either null or fits within one of the time ranges set by the user.
+     */
     const pipeline = [
-      // Select only shift docs that are attached to compatible open assignments
+      // Select only shift docs that are attached to compatible open assignments and are unassigned
       {
         $match: {
           docType: DocType.Shift,
+          startTime: { $gte: minimumStartTime },
+          ...(shiftId ? { _id: new ObjectId(shiftId) } : {}),
+          shiftId: {
+            $nin: shiftIds,
+          },
           assignmentId: {
             $in: assignmentIds,
           },
+          $and: shiftRanges.map(({ startTime, endTime }) => ({
+            $or: [
+              { startTime: { $gt: endTime } },
+              { endTime: { $lt: startTime } },
+            ],
+          })),
         },
       },
       // Group by shiftId
@@ -102,28 +160,17 @@ export class UserModel extends BaseModel<User> {
         $group: {
           _id: '$shiftId',
           shifts: { $push: '$$ROOT' },
-          userIds: { $push: '$userId' }
         }
       },
-      // Filter out shift groups we have already signed up for
-      {
-        $match: {
-          userIds: {
-            $nin: [user.id]
-          }
-        }
-      },
-      // Unwind so all shift documents are separate documents again
-      { $unwind: { path: '$shifts' } },
-      // Filter for only unassigned shifts
-      { $match: { 'shifts.userId': null } },
-      // Group by shiftId again
-      {
-        $group: {
-          _id: '$_id',
-          shifts: { $push: '$shifts' }
-        }
-      },
+    ];
+
+    logger.info('Pipeline', { pipeline });
+
+    const res = await this.shifts.aggregate<{
+      _id: ObjectId;
+      shifts: Shift[];
+    }>([
+      ...pipeline,
       // Skip results
       {
         $skip: skip,
@@ -132,63 +179,19 @@ export class UserModel extends BaseModel<User> {
       {
         $limit: limit,
       }
-    ];
-
-    logger.info('Pipeline', { pipeline });
-
-    const res = await this.shifts.aggregate<{
-      _id: ObjectId;
-      shifts: Shift[];
-    }>(pipeline);
-
-    // TODO: Fetch shifts that are assigned to user during the event start and end time
-    //       Filter out any shifts that are overlapping with those shifts
+    ]);
 
     const totalRes = await this.shifts.aggregate<{
       total: number;
     }>([
-      // TODO: Filter out overlapping shifts with ones that have already been assigned
-      // Select only shift docs that are attached to open events
-      {
-        $match: {
-          docType: DocType.Shift,
-          eventId: {
-            $in: eventIds,
-          },
-        },
-      },
-      // Group by shiftId
-      {
-        $group: {
-          _id: '$shiftId',
-          shifts: { $push: '$$ROOT' },
-          userIds: { $push: '$userId' }
-        }
-      },
-      // Filter out shift groups we have already signed up for
-      {
-        $match: {
-          userIds: {
-            $nin: [user.id]
-          }
-        }
-      },
-      // Unwind so all shift documents are separate documents again
-      { $unwind: { path: '$shifts' } },
-      // Filter for only unassigned shifts
-      { $match: { 'shifts.userId': null } },
-      // Group by shiftId again
-      {
-        $group: {
-          _id: '$_id',
-          shifts: { $push: '$shifts' }
-        }
-      },
+      ...pipeline,
       // Count results
       {
         $count: 'total',
       },
     ]);
+
+    logger.info('Res', { totalRes, res });
 
     const firstShifts = res.map(({ shifts }) => {
       const {_id, ...shift} = shifts[0] as any;
@@ -198,8 +201,6 @@ export class UserModel extends BaseModel<User> {
         ...shift,
       };
     });
-
-    logger.info('Res', { totalRes, res });
 
     return {
       total: totalRes?.[0]?.total || 0,

@@ -75,7 +75,7 @@ export const handler = startServerAndCreateLambdaHandler(
       const skills = new SkillModel(db);
       const ranks = new RankModel(db);
       const events = new EventModel(db, document, shifts);
-      const users = new UserModel(db, assignments, shifts, events);
+      const users = new UserModel(db, assignments, shifts, events, organizations);
       const memberSkills = new MemberSkillModel(db, users, document);
       const memberNotifications = new MemberNotificationModel(db, notifications);
 

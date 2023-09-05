@@ -12,6 +12,7 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
+import logger from "../../utils/logger";
 
 export const shift = {
   Query: {
@@ -156,10 +157,12 @@ export const shift = {
     shifts: async (
       _parent: unknown,
       { shifts }: { shifts: UpsertShift[] },
-      { assignments, events, shifts: shiftsModel, user }: Context
+      { organizations, assignments, events, shifts: shiftsModel, user }: Context
     ): Promise<Shift[]> => {
       adminOnly(user);
 
+      const organization = await organizations.get(user?.member.orgId!);
+      const availability = shiftsModel.createAvailability(shifts[0] as any, organization?.timezone!);
       const assignmentId = shifts[0].assignmentId;
       const eventId = shifts[0].eventId;
       const assignment = await assignments.get(assignmentId);
@@ -181,6 +184,7 @@ export const shift = {
         return {
           ...rest,
           status,
+          availability,
           orgId: user?.member.orgId!,
           startTime: new Date(startTime).getTime(),
           endTime: new Date(endTime).getTime(),

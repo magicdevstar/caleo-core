@@ -13,7 +13,7 @@ import 'react-quill/dist/quill.snow.css';
 // ----------------------------------------------------------------------
 
 // @mui
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 // routes
@@ -50,7 +50,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         <SettingsProvider
           defaultSettings={{
             themeMode: 'dark', // 'light' | 'dark'

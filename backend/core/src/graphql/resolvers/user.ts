@@ -4,10 +4,11 @@ import {
   NewUser,
   UserSearchInput,
   UpdateUser,
-  User
+  User,
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import { GraphQLError } from "graphql";
 
 export const user = {
   Query: {
@@ -85,11 +86,29 @@ export const user = {
     user: async (
       _parent: unknown,
       { user }: { user: UpdateUser },
-      { users }: Context
-    ): Promise<User> => users.update({
-      ...user,
-      name: `${user.firstName} ${user.lastName}`,
-    } as any),
+      { organizations, users }: Context
+    ): Promise<User> => {
+      const existingUser = await users.get(user.id);
+
+      if (!existingUser) {
+        throw new GraphQLError('User not found');
+      }
+
+      const updateUser = {
+        ...existingUser,
+        ...user,
+        name: `${user.firstName} ${user.lastName}`,
+        member: {
+          ...existingUser.member,
+          ...user.member,
+          contactInfo: user.member?.contactInfo || existingUser.member?.contactInfo,
+          memberSkillIds: user.member?.memberSkillIds || existingUser.member?.memberSkillIds,
+          availability: user.member?.availability || existingUser.member?.availability,
+        }
+      };
+
+      return users.update(updateUser as any, { skipMerge: true });
+    },
   },
   fields: {
     User: {

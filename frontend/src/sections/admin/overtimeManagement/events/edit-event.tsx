@@ -1,5 +1,8 @@
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import * as Yup from 'yup';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -37,6 +40,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -49,8 +53,12 @@ const eventStatusNames = {
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
 }
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
+  const { user } = useAuthContext();
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     variables: {
       input: {},
@@ -404,7 +412,8 @@ export default function EditEvent({ currentEvent }: Props) {
               <Stack direction="row" spacing={1.5}>
                 <DateTimePicker
                   label="Start time"
-                  value={currentEvent?.startTime ? new Date(currentEvent.startTime) : null}
+                  timezone={user.member.org?.timezone}
+                  value={currentEvent?.startTime ? dayjs.utc(new Date(currentEvent.startTime)) : null}
                   disabled
                   slotProps={{
                     textField: {
@@ -415,7 +424,8 @@ export default function EditEvent({ currentEvent }: Props) {
                 />
                 <DateTimePicker
                   label="End time"
-                  value={currentEvent?.endTime ? new Date(currentEvent.endTime) : null}
+                  timezone={user.member.org?.timezone}
+                  value={currentEvent?.endTime ? dayjs.utc(new Date(currentEvent.endTime)) : null}
                   disabled
                   slotProps={{
                     textField: {

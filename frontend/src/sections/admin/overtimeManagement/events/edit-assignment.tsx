@@ -375,7 +375,7 @@ export default function EditAssignment({
               }
             />
 
-            <RHFSwitch name="bwNeeded" label="Car Needed" />
+            <RHFSwitch name="bwNeeded" label="B&W Needed" />
           </Stack>
         </Card>
       </Grid>

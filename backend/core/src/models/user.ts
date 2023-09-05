@@ -1,18 +1,28 @@
 import { Db, ObjectId } from 'mongodb';
-import { DocType, EventStatus, Shift, User } from '../__generated__/resolvers-types';
+import {
+  DayAvailability,
+  DocType,
+  EventStatus,
+  Shift,
+  User
+} from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { AssignmentModel } from './assignment';
 import { ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
+import { OrganizationModel } from './organization';
+import { getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 
 export class UserModel extends BaseModel<User> {
   constructor(
     db: Db,
     private assignments: AssignmentModel,
     private shifts: ShiftModel,
-    private events: EventModel
+    private events: EventModel,
+    private organizations: OrganizationModel,
   ) {
     super(db, DocType.User);
   }
@@ -102,6 +112,49 @@ export class UserModel extends BaseModel<User> {
 
     logger.info('AssignmentIds', { assignmentIds });
 
+    const availability = Object.keys(user.member.availability).reduce((acc, day) => {
+      const { available, times } = user.member.availability[day] as DayAvailability;
+      if (!available) {
+        return {
+          [`availability.${day}.startTime`]: {$exists: false},
+        };
+      }
+
+      const overlap = (times || []).map(({ startTime, endTime }) => {
+        const originalStartTime = new Date(startTime);
+        const originalEndTime = new Date(endTime);
+
+        const start = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalStartTime)), getMinutes(originalStartTime)), 0), 0);
+        const end = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalEndTime)), getMinutes(originalEndTime)), 999), 59);
+
+        return {
+          $and: [
+            {
+              $or: [
+                {[`availability.${day}.startTime`]: {$exists: false}},
+                {[`availability.${day}.startTime`]: {$gte: new Date(startTime)}},
+              ],
+            },
+            {
+              $or: [
+                {[`availability.${day}.endTime`]: {$exists: false}},
+                {[`availability.${day}.endTime`]: {$lte: new Date(end)}},
+              ],
+            },
+          ]
+        };
+      });
+
+      return [
+        ...acc,
+        {
+          $or: overlap
+        },
+      ];
+    }, [] as any);
+
+    logger.info('Availability', { availability });
+
     /**
      * TODO: Include filter for overtime availability
      * 
@@ -134,6 +187,18 @@ export class UserModel extends BaseModel<User> {
      * Then in the $match here I could just add another $and clause that ensures
      * that the day of the week is either null or fits within one of the time ranges set by the user.
      */
+    const $and: any[] = [];
+    if (availability.length > 0) {
+      $and.push(...availability);
+    }
+    if (shiftRanges.length > 0) {
+      $and.push(shiftRanges.map(({ startTime, endTime }) => ({
+        $or: [
+          { startTime: { $gt: endTime } },
+          { endTime: { $lt: startTime } },
+        ],
+      })));
+    }
     const pipeline = [
       // Select only shift docs that are attached to compatible open assignments and are unassigned
       {
@@ -147,12 +212,8 @@ export class UserModel extends BaseModel<User> {
           assignmentId: {
             $in: assignmentIds,
           },
-          $and: shiftRanges.map(({ startTime, endTime }) => ({
-            $or: [
-              { startTime: { $gt: endTime } },
-              { endTime: { $lt: startTime } },
-            ],
-          })),
+          // Handles shift ranges and user availability
+          ...($and.length > 0 ? { $and } : {}),
         },
       },
       // Group by shiftId

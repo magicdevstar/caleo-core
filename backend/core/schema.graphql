@@ -240,6 +240,21 @@
     ASSIGNED
   }
 
+  type ShiftDayTime {
+    startTime: String!
+    endTime: String!
+  }
+
+  type ShiftAvailabilityTime {
+    monday: ShiftDayTime
+    tuesday: ShiftDayTime
+    wednesday: ShiftDayTime
+    thursday: ShiftDayTime
+    friday: ShiftDayTime
+    saturday: ShiftDayTime
+    sunday: ShiftDayTime
+  }
+
   type Shift {
     id: ID!
     shiftId: String!
@@ -255,6 +270,7 @@
     userId: String
     createdAt: String!
     updatedAt: String!
+    availability: ShiftAvailabilityTime
 
     user: User
     event: Event!

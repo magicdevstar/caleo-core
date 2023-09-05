@@ -1,4 +1,7 @@
 import { useCallback, useState } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useMutation } from '@apollo/client';
 import { v4 as uuid } from 'uuid';
 // @mui
@@ -28,6 +31,7 @@ import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
+import { useAuthContext } from 'src/auth/hooks';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -39,6 +43,9 @@ type Props = {
   shiftId?: string;
 };
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export default function EditShift({
   eventId,
   assignmentId,
@@ -46,6 +53,7 @@ export default function EditShift({
   shiftId,
 }: Props) {
   const router = useRouter();
+  const { user } = useAuthContext();
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const deleteConfirm = useBoolean();
   const unassignConfirm = useBoolean();
@@ -254,9 +262,10 @@ export default function EditShift({
 
           <Stack direction="row" spacing={3} sx={{ p: 3 }}>
             <DateTimePicker
+              timezone={user.member.org?.timezone}
               label="Start time"
-              maxDate={endTime}
-              value={startTime}
+              maxDate={dayjs.utc(endTime)}
+              value={dayjs.utc(startTime)}
               onChange={async (newValue: any) => {
                 setStartTime(newValue);
                 if (currentShifts.length > 0) {
@@ -284,8 +293,9 @@ export default function EditShift({
             />
             <DateTimePicker
               label="End time"
-              minDate={startTime}
-              value={endTime}
+              timezone={user.member.org?.timezone}
+              minDate={dayjs.utc(startTime)}
+              value={dayjs.utc(endTime)}
               onChange={async (newValue: any) => {
                 setEndTime(newValue);
                 if (currentShifts.length > 0) {

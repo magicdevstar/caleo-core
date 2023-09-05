@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import * as Yup from 'yup';
+import dayjs from 'dayjs';
 import { useMutation } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -207,7 +208,8 @@ export default function Overtime({
                   </RHFSelect>
                   <TimePicker
                     label="Open"
-                    value={new Date(values.settings.lottery.open.time)}
+                    timezone='UTC'
+                    value={dayjs.utc(values.settings.lottery.open.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.open.time', newValue);
                     }}
@@ -241,7 +243,8 @@ export default function Overtime({
                   </RHFSelect>
                   <TimePicker
                     label="Close"
-                    value={new Date(values.settings.lottery.close.time)}
+                    timezone='UTC'
+                    value={dayjs.utc(values.settings.lottery.close.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.close.time', newValue);
                     }}

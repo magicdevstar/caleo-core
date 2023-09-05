@@ -9,6 +9,10 @@ const userDetailProperties = `
   cognitoId,
   member {
     orgId
+    org {
+      id
+      timezone
+    }
     contactInfo {
       primaryEmail {
         address

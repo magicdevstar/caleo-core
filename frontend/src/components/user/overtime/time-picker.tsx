@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 // @mui
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import Stack from '@mui/material/Stack';
@@ -25,16 +26,17 @@ export default function AccountTimePicker({
   newTime: VoidFunction;
   removeTime: (index: number) => void;
 }) {
-
   return (
     <>
       {
         times.map((time, index) => (
           <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ pb: 2 }}>
             <TimePicker
+              timezone='UTC'
               label="Start"
-              value={new Date(time.startTime)}
+              value={dayjs.utc(time.startTime)}
               onChange={(newValue: any) => {
+                console.log(newValue.format())
                 setTime({
                   key: 'startTime',
                   value: newValue,
@@ -49,8 +51,8 @@ export default function AccountTimePicker({
               }}
             />
             <TimePicker
-              label="End"
-              value={new Date(time.endTime)}
+              timezone='UTC'
+              value={dayjs.utc(time.endTime)}
               onChange={(newValue: any) => {
                 setTime({
                   key: 'endTime',

@@ -1,4 +1,7 @@
 import { useMemo, useEffect } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,6 +15,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -29,10 +33,14 @@ import FormProvider, {
   RHFSwitch,
 } from 'src/components/hook-form';
 import { GET_RANKS } from 'src/api/rank';
-import { GET_ALL_NOTIFICATIONS, UPSERT_NOTIFICATION } from 'src/api/notification';
+import { GET_ACTIVE_NOTIFICATIONS, GET_ALL_NOTIFICATIONS, GET_NOTIFICATION, UPSERT_NOTIFICATION } from 'src/api/notification';
 import { RouterLink } from 'src/routes/components';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 type Props = {
   currentNotification?: Notification ;
@@ -40,9 +48,19 @@ type Props = {
 
 export default function EditNotification({ currentNotification }: Props) {
   const router = useRouter();
+  const { user } = useAuthContext();
 
   const [upsertNotification] = useMutation(UPSERT_NOTIFICATION, {
-    refetchQueries: [GET_ALL_NOTIFICATIONS],
+    refetchQueries: [
+      GET_ALL_NOTIFICATIONS,
+      GET_ACTIVE_NOTIFICATIONS,
+      {
+        query: GET_NOTIFICATION,
+        variables: {
+          id: currentNotification?.id,
+        },
+      },
+    ],
   });
 
   const { data: rankResponse } = useQuery(GET_RANKS, {
@@ -62,6 +80,7 @@ export default function EditNotification({ currentNotification }: Props) {
     body: Yup.string().required('Body is required'),
     active: Yup.boolean().required('Active is required'),
     frequency: Yup.string().required('Frequency is required'),
+    expiration: Yup.string(),
     ranks: Yup.array(),
   });
 
@@ -72,6 +91,7 @@ export default function EditNotification({ currentNotification }: Props) {
       body: currentNotification?.body || '',
       active: currentNotification ? currentNotification.active : true,
       frequency: currentNotification?.frequency || NotificationFrequency.Once,
+      expiration: currentNotification?.expiration || '',
       ranks: currentNotification?.ranks || [],
     }),
     [currentNotification]
@@ -83,6 +103,8 @@ export default function EditNotification({ currentNotification }: Props) {
   });
 
   const {
+    getValues,
+    setValue,
     reset,
     handleSubmit,
     formState: { isSubmitting },
@@ -96,6 +118,12 @@ export default function EditNotification({ currentNotification }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      let expiration;
+      if (data.frequency === NotificationFrequency.UntilExpire && !data.expiration) {
+        expiration = dayjs.utc().add(2, 'days').toISOString();
+      } else if (data.frequency === NotificationFrequency.UntilExpire && data.expiration) {
+        expiration = data.expiration; // eslint-disable-line prefer-destructuring
+      }
       await upsertNotification({
         variables: {
           input: {
@@ -104,17 +132,19 @@ export default function EditNotification({ currentNotification }: Props) {
             body: data.body,
             active: data.active,
             frequency: data.frequency,
+            expiration,
             rankIds: (data.ranks || []).map((rank: Rank) => rank.id),
           },
         },
       });
-      reset();
       enqueueSnackbar(currentNotification ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.admin.settings.notifications);
     } catch (error) {
       console.error(error);
     }
   });
+
+  const currentFormValues = getValues();
 
   const renderDetails = (
     <>
@@ -166,18 +196,6 @@ export default function EditNotification({ currentNotification }: Props) {
           {!mdUp && <CardHeader title="Properties" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFRadioGroup
-              row
-              name="frequency"
-              label="Notification Frequency"
-              spacing={4}
-              options={[
-                { value: NotificationFrequency.Once, label: 'Once' },
-                { value: NotificationFrequency.Always, label: 'Always' },
-                { value: NotificationFrequency.UntilExpire, label: 'Until Expiration' },
-              ]}
-            />
-
             <RHFAutocomplete
               name="ranks"
               label="Ranks"
@@ -203,6 +221,35 @@ export default function EditNotification({ currentNotification }: Props) {
                 ))
               }
             />
+
+            <RHFRadioGroup
+              row
+              name="frequency"
+              label="Notification Frequency"
+              spacing={4}
+              options={[
+                { value: NotificationFrequency.Once, label: 'Once' },
+                { value: NotificationFrequency.Always, label: 'Always' },
+                { value: NotificationFrequency.UntilExpire, label: 'Until Expiration' },
+              ]}
+            />
+
+            {currentFormValues.frequency === NotificationFrequency.UntilExpire && (
+              <DateTimePicker
+                label="Notification Expiration"
+                timezone={user.member.org?.timezone}
+                value={currentFormValues?.expiration ? dayjs.utc(new Date(currentFormValues?.expiration)) : dayjs.utc().add(2, 'days')}
+                onChange={(date) => {
+                  setValue('expiration', date ? dayjs.utc(date).toISOString() : '')
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: 'normal',
+                  },
+                }}
+              />
+            )}
           </Stack>
         </Card>
       </Grid>

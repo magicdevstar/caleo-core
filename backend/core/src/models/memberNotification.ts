@@ -12,6 +12,15 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     return keys.map((key) => res.find((item: any) => item.id === key));
   });
 
+  public seenLoader = new DataLoader(async (keys: readonly {notificationId: string; userId: string}[]) => {
+    const userId = keys?.[0].userId;
+    const { items: res } = await this.search({
+      notificationId: { $in: keys.map(({ notificationId }) => notificationId) },
+      userId,
+    });
+    return keys.map(({ notificationId }) => !!res.find((item: any) => item.notificationId === notificationId));
+  });
+
   constructor(db: Db, private notifications: NotificationModel) {
     super(db, DocType.MemberNotification);
   }
@@ -56,6 +65,8 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
       docType: DocType.MemberNotification,
     }) as Omit<MemberNotification, 'id'>);
 
-    await this.collection.insertMany(newNotifications);
+    if (newNotifications.length > 0) {
+      await this.collection.insertMany(newNotifications);
+    }
   }
 };

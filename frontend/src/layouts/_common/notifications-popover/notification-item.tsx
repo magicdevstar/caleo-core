@@ -15,16 +15,20 @@ import FileThumbnail from 'src/components/file-thumbnail';
 
 // ----------------------------------------------------------------------
 
+export interface NotificationRendered {
+  id: string;
+  title: string;
+  body?: string;
+  category: string;
+  createdAt: Date;
+  isUnRead: boolean;
+  type: string;
+  avatarUrl: string | null;
+  onClick: VoidFunction;
+};
+
 type NotificationItemProps = {
-  notification: {
-    id: string;
-    title: string;
-    category: string;
-    createdAt: Date;
-    isUnRead: boolean;
-    type: string;
-    avatarUrl: string | null;
-  };
+  notification: NotificationRendered;
 };
 
 export default function NotificationItem({ notification }: NotificationItemProps) {
@@ -122,14 +126,8 @@ export default function NotificationItem({ notification }: NotificationItemProps
           bgcolor: 'background.neutral',
         }}
       >
-        {reader(
-          `<p><strong>@Jaydon Frankie</strong> feedback by asking questions or just leave a note of appreciation.</p>`
-        )}
+        {reader(notification.body || '')}
       </Box>
-
-      <Button size="small" variant="contained">
-        Reply
-      </Button>
     </Stack>
   );
 
@@ -213,6 +211,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
 
   return (
     <ListItemButton
+      onClick={notification?.onClick}
       disableRipple
       sx={{
         p: 2.5,
@@ -227,7 +226,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
       <Stack sx={{ flexGrow: 1 }}>
         {renderText}
         {notification.type === 'friend' && friendAction}
-        {notification.type === 'project' && projectAction}
+        {notification.body && notification.body.trim() !== '' && projectAction}
         {notification.type === 'file' && fileAction}
         {notification.type === 'tags' && tagsAction}
         {notification.type === 'payment' && paymentAction}

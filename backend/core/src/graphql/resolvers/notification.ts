@@ -1,5 +1,6 @@
+import { GraphQLError } from "graphql";
 import { Context } from "../..";
-import { Notification, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
+import { Notification, NotificationFrequency, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 
@@ -27,6 +28,34 @@ export const notification = {
       limit,
       skip,
       orgId: user?.member.orgId!,
+      orderBy: 'updatedAt',
+      $and: [
+        {
+          $or: [
+            {
+              expiration: { $exists: false }
+            },
+            {
+              expiration: null,
+            },
+            {
+              $and: [
+                { frequency: NotificationFrequency.UntilExpire },
+                { expiration: { $exists: true } },
+                { expiration: { $gte: Date.now() } }
+              ]
+            }
+          ],
+        },
+        {
+          $or: [
+            {rankIds: { $exists: false }},
+            {rankIds: { $size: 0 }},
+            {rankIds: {$in: [user?.member.rankId]},}
+          ]
+        }
+      ],
+      order: 'desc',
       active: true
     }),
   },
@@ -46,6 +75,13 @@ export const notification = {
       { notifications, user }: Context
     ): Promise<Notification> => {
       adminOnly(user);
+
+      if (notification.frequency === NotificationFrequency.UntilExpire && !notification.expiration) {
+        throw new GraphQLError('Until expire requires an expiration date');
+      }
+
+      notification.expiration = notification.frequency !== NotificationFrequency.UntilExpire ? null : new Date(notification.expiration as any).getTime() as any;
+
       return notifications.upsert({
         ...notification,
         createdById: user?.id!,
@@ -69,10 +105,16 @@ export const notification = {
       ...commonResolvers,
       org: (notification: Notification, _, { organizations }: Context) => organizations.loader.load(notification.orgId),
       createdBy: (notification: Notification, _, { users }: Context) => users.loader.load(notification.createdById),
+      expiration: (notification: Notification) => notification.expiration ? new Date(notification.expiration).toISOString() : null,
       ranks: (notification: Notification, _, { ranks }: Context) =>
         notification.rankIds ?
           ranks.loader.loadMany(notification.rankIds as string[]) :
           [],
+      seen: (notification: Notification, _, { memberNotifications, user }: Context) =>
+        memberNotifications.seenLoader.load({
+          notificationId: notification.id,
+          userId: user?.id!,
+        }),
       memberNotification: (_notification: Notification, _, { memberNotifications, user }: Context) => memberNotifications.userLoader.load(user?.id!),
     },
   },

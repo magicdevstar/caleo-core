@@ -160,9 +160,7 @@ export class UserModel extends BaseModel<User> {
 
       return [
         ...acc,
-        {
-          $or: overlap
-        },
+        ...(overlap.length > 0 ? [{$or: overlap}] : []),
       ];
     }, [] as any);
 
@@ -173,7 +171,7 @@ export class UserModel extends BaseModel<User> {
       $and.push(...availability);
     }
     if (shiftRanges.length > 0) {
-      $and.push(shiftRanges.map(({ startTime, endTime }) => ({
+      $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
         $or: [
           { startTime: { $gt: endTime } },
           { endTime: { $lt: startTime } },

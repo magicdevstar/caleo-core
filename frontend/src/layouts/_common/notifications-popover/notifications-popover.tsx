@@ -1,76 +1,135 @@
 import { m } from 'framer-motion';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useMutation, useQuery } from '@apollo/client';
 // @mui
 import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import List from '@mui/material/List';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Badge from '@mui/material/Badge';
 import Drawer from '@mui/material/Drawer';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useResponsive } from 'src/hooks/use-responsive';
-// _mock
-import { _notifications } from 'src/_mock';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { varHover } from 'src/components/animate';
+import Markdown from 'src/components/markdown';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import NotificationItem, { NotificationRendered } from 'src/layouts/_common/notifications-popover/notification-item';
 //
-import NotificationItem from './notification-item';
+import { GET_ACTIVE_NOTIFICATIONS, MARK_ALL_AS_SEEN } from 'src/api/notification';
+import { Notification, NotificationFrequency } from 'src/__generated__/resolvers-types';
 
 // ----------------------------------------------------------------------
 
-const TABS = [
-  {
-    value: 'all',
-    label: 'All',
-    count: 22,
-  },
-  {
-    value: 'unread',
-    label: 'Unread',
-    count: 12,
-  },
-  {
-    value: 'archived',
-    label: 'Archived',
-    count: 10,
-  },
-];
+const NotificationMap = {
+  [NotificationFrequency.Always]: 'Persistent Notification',
+  [NotificationFrequency.UntilExpire]: 'Temporary Notification',
+  [NotificationFrequency.Once]: 'Notification',
+}
 
 // ----------------------------------------------------------------------
 
 export default function NotificationsPopover() {
   const drawer = useBoolean();
+  const [notificationDetail, setNotificationDetail] = useState<Notification | undefined>();
+  const showDetail = useBoolean();
 
   const smUp = useResponsive('up', 'sm');
-
   const [currentTab, setCurrentTab] = useState('all');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setCurrentTab(newValue);
   }, []);
 
-  const [notifications, setNotifications] = useState(_notifications);
+  const [markAsSeen] = useMutation(MARK_ALL_AS_SEEN, {
+    refetchQueries: [GET_ACTIVE_NOTIFICATIONS],
+  });
+  const { data, loading } = useQuery(GET_ACTIVE_NOTIFICATIONS);
 
-  const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
+  const totalUnRead = loading ? (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />) : data?.activeNotifications?.items?.filter(({ seen, frequency }: Notification) => !seen || frequency === NotificationFrequency.Always)?.length;
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({
-        ...notification,
-        isUnRead: false,
-      }))
-    );
-  };
+  const notificationIds = useMemo(() =>
+    data?.activeNotifications?.items?.map(({ id }: Notification) => id) || [],
+  [data?.activeNotifications]);
+  const tabs = useMemo(() => [
+    {
+      value: 'all',
+      label: 'All',
+      count: data?.activeNotifications?.total || 0,
+    },
+    {
+      value: 'unread',
+      label: 'Unread',
+      count: data?.activeNotifications?.items?.filter(({ seen, frequency }: Notification) => !seen && frequency !== NotificationFrequency.Always).length || 0,
+    },
+    {
+      value: 'always',
+      label: 'Persistent',
+      count: data?.activeNotifications?.items?.filter(({ frequency }: Notification) => frequency === NotificationFrequency.Always).length || 0,
+    },
+  ], [data?.activeNotifications]);
+
+  const notificationList = useMemo(() => {
+    let list = data?.activeNotifications?.items || [];
+    if (currentTab === 'unread') {
+      list = data?.activeNotifications?.items?.filter(({ seen }: Notification) => !seen) || [];
+    } else if (currentTab === 'always') {
+      list = data?.activeNotifications?.items?.filter(({ frequency }: Notification) => frequency === NotificationFrequency.Always) || [];
+    }
+    return list.map((notification: Notification) => ({
+      id: notification.id as any,
+      title: notification.title as any,
+      body: notification.body.length > 250 ? `${notification.body.slice(0, 250)}...` : notification.body as any,
+      category: NotificationMap[notification.frequency],
+      createdAt: notification.updatedAt as any,
+      isUnRead: !notification.seen && notification.frequency !== NotificationFrequency.Always,
+      type: 'mail',
+      avatarUrl: null,
+      onClick: () => {
+        markAsSeen({
+          variables: {
+            ids: [notification.id],
+          },
+        });
+        showDetail.onTrue();
+        setNotificationDetail(notification);
+      }
+    } as NotificationRendered));
+  }, [
+    currentTab,
+    data?.activeNotifications,
+    showDetail,
+    setNotificationDetail,
+    markAsSeen,
+  ]);
+
+  const handleMarkAllAsRead = useCallback(() => {
+    if (notificationIds.length > 0) {
+      markAsSeen({
+        variables: {
+          ids: notificationIds,
+        }
+      });
+    }
+  }, [markAsSeen, notificationIds]);
+
+  const handleCloseDetail = useCallback(() => {
+    showDetail.onFalse();
+    // For animation
+    setTimeout(() => {
+      setNotificationDetail(undefined);
+    }, 200);
+  }, [showDetail, setNotificationDetail]);
 
   const renderHead = (
     <Stack direction="row" alignItems="center" sx={{ py: 2, pl: 2.5, pr: 1, minHeight: 68 }}>
@@ -96,7 +155,7 @@ export default function NotificationsPopover() {
 
   const renderTabs = (
     <Tabs value={currentTab} onChange={handleChangeTab}>
-      {TABS.map((tab) => (
+      {tabs.map((tab) => (
         <Tab
           key={tab.value}
           iconPosition="end"
@@ -127,7 +186,7 @@ export default function NotificationsPopover() {
   const renderList = (
     <Scrollbar>
       <List disablePadding>
-        {notifications.map((notification) => (
+        {notificationList.map((notification: NotificationRendered) => (
           <NotificationItem key={notification.id} notification={notification} />
         ))}
       </List>
@@ -171,21 +230,32 @@ export default function NotificationsPopover() {
           sx={{ pl: 2.5, pr: 1 }}
         >
           {renderTabs}
-          <IconButton onClick={handleMarkAllAsRead}>
+          {/* <IconButton onClick={handleMarkAllAsRead}>
             <Iconify icon="solar:settings-bold-duotone" />
-          </IconButton>
+          </IconButton> */}
         </Stack>
 
         <Divider />
 
-        {renderList}
-
-        <Box sx={{ p: 1 }}>
-          <Button fullWidth size="large">
-            View All
-          </Button>
-        </Box>
+        { notificationList.length === 0 ? (
+          <Stack alignItems="center" justifyContent="center" sx={{ p: 2, mt: 4 }}>
+            <Typography variant='body1'>No notifications</Typography>
+          </Stack>
+        ) : renderList}
       </Drawer>
+      <ConfirmDialog
+        open={showDetail.value}
+        onClose={showDetail.onFalse}
+        hasCancel={false}
+        maxWidth="sm"
+        title={notificationDetail?.title}
+        content={(<Markdown children={notificationDetail?.body || ''} />)}
+        action={
+          <Button variant="contained" color="primary" onClick={handleCloseDetail}>
+            Close
+          </Button>
+        }
+      />
     </>
   );
 }

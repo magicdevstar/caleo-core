@@ -6,6 +6,28 @@ export const REMOVE_NOTIFICATION = gql`
   }
 `;
 
+export const MARK_ALL_AS_SEEN = gql`
+  mutation MarkAsSeen($ids: [String]!) {
+    seenNotifications(notificationIds: $ids)
+  }
+`;
+
+export const GET_ACTIVE_NOTIFICATIONS = gql`
+  query GetActiveNotifications($input: SearchInput) {
+    activeNotifications(input: $input) {
+      items {
+        id
+        title
+        body
+        seen
+        frequency
+        updatedAt
+      }
+      total
+    }
+  }
+`;
+
 export const GET_ALL_NOTIFICATIONS = gql`
   query GetAllNotifications($input: NotificationSearchInput!) {
     notifications(input: $input) {
@@ -33,6 +55,7 @@ export const GET_NOTIFICATION = gql`
       body
       frequency
       rankIds
+      expiration
       ranks {
         id
         name

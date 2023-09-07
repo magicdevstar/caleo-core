@@ -11,7 +11,7 @@ import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
 import { Notification } from 'src/__generated__/resolvers-types';
-import { GET_ALL_NOTIFICATIONS, REMOVE_NOTIFICATION, UPSERT_NOTIFICATION } from 'src/api/notification';
+import { GET_ACTIVE_NOTIFICATIONS, GET_ALL_NOTIFICATIONS, REMOVE_NOTIFICATION, UPSERT_NOTIFICATION } from 'src/api/notification';
 import { getBooleanFilters, TableConfig } from 'src/components/table/table-config';
 
 
@@ -21,11 +21,11 @@ export default function NotificationTable() {
   const navigate = useNavigate();
 
   const [updateNotification] = useMutation(UPSERT_NOTIFICATION, {
-    refetchQueries: [GET_ALL_NOTIFICATIONS],
+    refetchQueries: [GET_ALL_NOTIFICATIONS, GET_ACTIVE_NOTIFICATIONS],
   });
 
   const [removeNotification] = useMutation(REMOVE_NOTIFICATION, {
-    refetchQueries: [GET_ALL_NOTIFICATIONS],
+    refetchQueries: [GET_ALL_NOTIFICATIONS, GET_ACTIVE_NOTIFICATIONS],
   });
 
   const [editNotification, setEditNotification] = useState<Notification | null>(null);

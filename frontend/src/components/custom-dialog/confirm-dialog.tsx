@@ -13,6 +13,7 @@ export default function ConfirmDialog({
   title,
   content,
   action,
+  hasCancel = true,
   open,
   onClose,
   maxWidth = 'xs',
@@ -27,9 +28,9 @@ export default function ConfirmDialog({
       <DialogActions>
         {action}
 
-        <Button variant="outlined" color="inherit" onClick={onClose}>
+        {hasCancel && <Button variant="outlined" color="inherit" onClick={onClose}>
           Cancel
-        </Button>
+        </Button>}
       </DialogActions>
     </Dialog>
   );

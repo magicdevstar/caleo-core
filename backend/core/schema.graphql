@@ -616,6 +616,7 @@
     body: String!
     active: Boolean!
     frequency: NotificationFrequency!
+    expiration: String
     rankIds: [String]
     docType: DocType!
     orgId: String!
@@ -623,6 +624,8 @@
     createdAt: String!
     updatedAt: String!
 
+    # This boolean will determine if the requesting user has seen the notification or not
+    seen: Boolean
     createdBy: User!
     org: Organization!
     ranks: [Rank]!
@@ -646,6 +649,7 @@
     body: String
     active: Boolean
     frequency: NotificationFrequency
+    expiration: String
     rankIds: [String]
   }
 ###### END Notifications ######

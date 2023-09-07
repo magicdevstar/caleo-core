@@ -114,7 +114,7 @@ export type Event = {
   notes?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
-  scheduledFirstComeFirstServe: Scalars['String']['output'];
+  scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
   updatedAt: Scalars['String']['output'];
@@ -441,6 +441,7 @@ export type Notification = {
   createdBy: User;
   createdById: Scalars['String']['output'];
   docType: DocType;
+  expiration?: Maybe<Scalars['String']['output']>;
   frequency: NotificationFrequency;
   id: Scalars['ID']['output'];
   memberNotification?: Maybe<MemberNotification>;
@@ -448,6 +449,7 @@ export type Notification = {
   orgId: Scalars['String']['output'];
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks: Array<Maybe<Rank>>;
+  seen?: Maybe<Scalars['Boolean']['output']>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -854,6 +856,7 @@ export type UpsertMemberSkill = {
 export type UpsertNotification = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   body?: InputMaybe<Scalars['String']['input']>;
+  expiration?: InputMaybe<Scalars['String']['input']>;
   frequency?: InputMaybe<NotificationFrequency>;
   id?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -1376,7 +1379,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  scheduledFirstComeFirstServe?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1497,6 +1500,7 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   createdBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   createdById?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  expiration?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   frequency?: Resolver<ResolversTypes['NotificationFrequency'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   memberNotification?: Resolver<Maybe<ResolversTypes['MemberNotification']>, ParentType, ContextType>;
@@ -1504,6 +1508,7 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Array<Maybe<ResolversTypes['Rank']>>, ParentType, ContextType>;
+  seen?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

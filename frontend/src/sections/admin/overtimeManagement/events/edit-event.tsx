@@ -103,7 +103,7 @@ export default function EditEvent({ currentEvent }: Props) {
     () => ({
       id: currentEvent?.id,
       name: currentEvent?.name || '',
-      status: currentEvent?.status || '',
+      status: currentEvent?.status,
       notes: currentEvent?.notes || '',
       attachments: currentEvent?.attachments || [],
       venueId: currentEvent?.venueId || '',

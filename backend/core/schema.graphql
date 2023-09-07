@@ -97,17 +97,25 @@
     org: Organization
   }
 
+  type ProfilePhotoAttachmentUpload {
+    imagePath: String!
+    uploadUrl: String!
+  }
+
   type User {
     id: ID!
     cognitoId: String!
     firstName: String!
     lastName: String!
     name: String!
+    imagePath: String
     superAdmin: Boolean!
     createdAt: String!
     updatedAt: String!
     docType: DocType!
     member: Member!
+
+    image: String
   }
 
   input InputAvailabilityTime {
@@ -135,6 +143,7 @@
     cognitoId: String!
     firstName: String!
     lastName: String!
+    imagePath: String
     member: NewMember
   }
 
@@ -816,6 +825,7 @@ type Mutation {
 
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User
+  profilePhotoUploadUrl: ProfilePhotoAttachmentUpload
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!

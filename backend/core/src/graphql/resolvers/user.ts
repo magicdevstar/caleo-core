@@ -5,6 +5,7 @@ import {
   UserSearchInput,
   UpdateUser,
   User,
+  ProfilePhotoAttachmentUpload,
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -109,10 +110,20 @@ export const user = {
 
       return users.update(updateUser as any, { skipMerge: true });
     },
+    profilePhotoUploadUrl: async (
+      _parent: unknown,
+      _args: unknown,
+      { users, user }: Context
+    ): Promise<ProfilePhotoAttachmentUpload> => {
+      return users.getUploadUrl({
+        orgId: user?.member.orgId!,
+      });
+    }
   },
   fields: {
     User: {
       ...commonResolvers,
+      image: (user: User, _, { users }: Context) => user.imagePath ? users.getDownloadUrl(user.imagePath!) : null,
     },
     Member: {
       rank: (member: Member, _, { ranks }: Context) =>

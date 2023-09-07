@@ -263,6 +263,7 @@ export type Mutation = {
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
   organization?: Maybe<Organization>;
+  profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
   removeAssignment: Scalars['ID']['output'];
   removeEvent: Scalars['ID']['output'];
@@ -511,6 +512,12 @@ export type Phone = {
   __typename?: 'Phone';
   number: Scalars['String']['output'];
   receiveTexts: Scalars['Boolean']['output'];
+};
+
+export type ProfilePhotoAttachmentUpload = {
+  __typename?: 'ProfilePhotoAttachmentUpload';
+  imagePath: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
 };
 
 export type Query = {
@@ -801,6 +808,7 @@ export type UpdateUser = {
   cognitoId: Scalars['String']['input'];
   firstName: Scalars['String']['input'];
   id: Scalars['ID']['input'];
+  imagePath?: InputMaybe<Scalars['String']['input']>;
   lastName: Scalars['String']['input'];
   member?: InputMaybe<NewMember>;
 };
@@ -962,6 +970,8 @@ export type User = {
   docType: DocType;
   firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  image?: Maybe<Scalars['String']['output']>;
+  imagePath?: Maybe<Scalars['String']['output']>;
   lastName: Scalars['String']['output'];
   member: Member;
   name: Scalars['String']['output'];
@@ -1173,6 +1183,7 @@ export type ResolversTypes = ResolversObject<{
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
   Phone: ResolverTypeWrapper<Phone>;
+  ProfilePhotoAttachmentUpload: ResolverTypeWrapper<ProfilePhotoAttachmentUpload>;
   Query: ResolverTypeWrapper<{}>;
   Rank: ResolverTypeWrapper<Rank>;
   RankSearchInput: RankSearchInput;
@@ -1261,6 +1272,7 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationContact: OrganizationContact;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
   Phone: Phone;
+  ProfilePhotoAttachmentUpload: ProfilePhotoAttachmentUpload;
   Query: {};
   Rank: Rank;
   RankSearchInput: RankSearchInput;
@@ -1473,6 +1485,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
+  profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
   removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
@@ -1555,6 +1568,12 @@ export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType 
 export type PhoneResolvers<ContextType = any, ParentType extends ResolversParentTypes['Phone'] = ResolversParentTypes['Phone']> = ResolversObject<{
   number?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   receiveTexts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ProfilePhotoAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProfilePhotoAttachmentUpload'] = ResolversParentTypes['ProfilePhotoAttachmentUpload']> = ResolversObject<{
+  imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1690,6 +1709,8 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  imagePath?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   member?: Resolver<ResolversTypes['Member'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1780,6 +1801,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
+  ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Rank?: RankResolvers<ContextType>;
   RankSearchResult?: RankSearchResultResolvers<ContextType>;

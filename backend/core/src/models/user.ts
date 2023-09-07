@@ -1,8 +1,10 @@
 import { Db, ObjectId } from 'mongodb';
+import { v4 as uuid } from 'uuid';
 import {
   DayAvailability,
   DocType,
   EventStatus,
+  ProfilePhotoAttachmentUpload,
   Shift,
   User
 } from '../__generated__/resolvers-types';
@@ -14,15 +16,16 @@ import logger from '../utils/logger';
 import { EventModel } from './event';
 import { OrganizationModel } from './organization';
 import { getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { DocumentModel } from './document';
 
 export class UserModel extends BaseModel<User> {
+  documentBasePath: string = 'profilePhotos';
   constructor(
     db: Db,
     private assignments: AssignmentModel,
     private shifts: ShiftModel,
     private events: EventModel,
-    private organizations: OrganizationModel,
+    private document: DocumentModel,
   ) {
     super(db, DocType.User);
   }
@@ -304,5 +307,22 @@ export class UserModel extends BaseModel<User> {
     logger.info('Search input', { searchInput });
 
     return this.search(searchInput);
+  }
+
+  async getUploadUrl({
+    orgId,
+  }: {
+    orgId: string;
+  }): Promise<ProfilePhotoAttachmentUpload> {
+    const imagePath = `${orgId}/${this.documentBasePath}/${uuid()}`;
+    const uploadUrl = await this.document.getUploadUrl(imagePath);
+    return {
+      imagePath,
+      uploadUrl,
+    };
+  };
+
+  async getDownloadUrl(attachmentPath: string) {
+    return this.document.getDownloadUrl(attachmentPath);
   }
 }

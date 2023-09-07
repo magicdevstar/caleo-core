@@ -7,6 +7,7 @@ const userDetailProperties = `
   lastName
   superAdmin
   cognitoId,
+  image
   member {
     orgId
     org {
@@ -108,6 +109,15 @@ export const ME = gql`
   query Me {
     me {
       ${userDetailProperties}
+    }
+  }
+`;
+
+export const CREATE_PROFILE_PHOTO_UPLOAD_URL = gql`
+  mutation CreateProfilePhotoUploadUrl {
+    profilePhotoUploadUrl {
+      imagePath
+      uploadUrl
     }
   }
 `;

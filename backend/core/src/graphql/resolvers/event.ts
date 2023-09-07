@@ -4,7 +4,7 @@ import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType, EventAttach
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
-import { ScheduleEvent } from "../../models/scheduler";
+import { isAfter } from "date-fns";
 
 export const event = {
   Query: {
@@ -77,17 +77,18 @@ export const event = {
         (event as any).status = EventStatus.Draft;
       }
 
-      logger.info('Upsert event', { event: {
+      const inputEvent = {
         ...event,
+        ...(
+          event.scheduledFirstComeFirstServe ? {
+            scheduledFirstComeFirstServe: new Date(event.scheduledFirstComeFirstServe).getTime()
+          } : {}
+        ),
         orgId: user?.member.orgId!,
-      } as any });
+      };
 
-      const finalEvent = await events.upsert({
-        ...event,
-        orgId: user?.member.orgId!,
-      } as any);
-
-      // TODO: Schedule or remove schedule for first come first serve event
+      logger.info('Upsert event', { event: inputEvent });
+      const finalEvent = await events.upsert(inputEvent as any);
 
       return finalEvent;
     },
@@ -100,6 +101,13 @@ export const event = {
       assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),
       startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
+      scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
+      status: (item: Event) => {
+        if (item.endTime && isAfter(new Date(), new Date(item.endTime))) {
+          return EventStatus.Complete;
+        }
+        return item.status;
+      },
       attachments: async (item: Event, _arg: unknown, { events }: Context) => {
         if (!item.attachments) {
           return [];

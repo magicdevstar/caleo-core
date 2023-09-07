@@ -57,7 +57,20 @@ export class UserModel extends BaseModel<User> {
       items: eventList,
     } = await this.events.search({
       orgId,
-      status: EventStatus.FirstComeFirstServe,
+      $or: [
+        {
+          $and: [
+            { status: EventStatus.FirstComeFirstServe },
+            { scheduledFirstComeFirstServe: { $exists: false }},
+          ],
+        },
+        {
+          $and: [
+            { status: EventStatus.FirstComeFirstServe },
+            { scheduledFirstComeFirstServe: { $lte: Date.now() }},
+          ],
+        }
+      ]
     });
     const eventIds = eventList.map(({ id }) => id);
 
@@ -96,12 +109,12 @@ export class UserModel extends BaseModel<User> {
       return hasRequiredSkills;
     }).map(({ id }) => id);
 
-    const minimumStartTime = Date.now();
+    const maxEndTime = Date.now();
     const myShifts = await this.shifts.collection.find({
       userId: user.id,
       docType: DocType.Shift,
-      startTime: {
-        $gte: minimumStartTime,
+      endTime: {
+        $gte: maxEndTime,
       }
     }).toArray();
     const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
@@ -132,7 +145,7 @@ export class UserModel extends BaseModel<User> {
             {
               $or: [
                 {[`availability.${day}.startTime`]: {$exists: false}},
-                {[`availability.${day}.startTime`]: {$gte: new Date(startTime)}},
+                {[`availability.${day}.startTime`]: {$gte: new Date(start)}},
               ],
             },
             {
@@ -155,38 +168,6 @@ export class UserModel extends BaseModel<User> {
 
     logger.info('Availability', { availability });
 
-    /**
-     * TODO: Include filter for overtime availability
-     * 
-     * I think I need to save the day of the week times on a shift so that I can filter shifts that do not
-     * overlap the overtime availability set by the user.
-     * 
-     * For example if a shift is on 9/1/23 5:00am - 9/2/23 12:00pm
-     *
-     * Then I would save this object to the shift
-     *
-     * {
-     *  overtime: {
-     *   sunday: null,
-     *   Monday: null,
-     *   Tuesday: null,
-     *   Wednesday: null,
-     *   Thursday: null,
-     *   Friday: {
-     *       startTime: "1969-12-31T05:00:00.000Z”,
-     *       endTime: "1969-12-31T23:59:59.000Z”,
-     *   },
-     *   Saturday: {
-     *       startTime: “1969-12-31T00:00:00.000Z”,
-     *       endTime: “1969-12-31T12:00:00.000Z”,
-     *   },
-     *   Sunday: null,
-     *  }
-     * }
-     * 
-     * Then in the $match here I could just add another $and clause that ensures
-     * that the day of the week is either null or fits within one of the time ranges set by the user.
-     */
     const $and: any[] = [];
     if (availability.length > 0) {
       $and.push(...availability);
@@ -204,7 +185,7 @@ export class UserModel extends BaseModel<User> {
       {
         $match: {
           docType: DocType.Shift,
-          startTime: { $gte: minimumStartTime },
+          endTime: { $gte: maxEndTime },
           ...(shiftId ? { _id: new ObjectId(shiftId) } : {}),
           shiftId: {
             $nin: shiftIds,

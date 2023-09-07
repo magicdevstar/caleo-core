@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 // @mui
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import Stack from '@mui/material/Stack';
@@ -10,6 +11,8 @@ import Iconify from 'src/components/iconify/iconify';
 import { AvailabilityTime } from "src/__generated__/resolvers-types";
 
 const MAX_TIMES = 3;
+
+dayjs.extend(utc);
 
 export default function AccountTimePicker({
   times,
@@ -36,7 +39,6 @@ export default function AccountTimePicker({
               label="Start"
               value={dayjs.utc(time.startTime)}
               onChange={(newValue: any) => {
-                console.log(newValue.format())
                 setTime({
                   key: 'startTime',
                   value: newValue,

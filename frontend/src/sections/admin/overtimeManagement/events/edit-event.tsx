@@ -95,6 +95,7 @@ export default function EditEvent({ currentEvent }: Props) {
     notes: Yup.string(),
     attachments: Yup.array(),
     venueId: Yup.string().required('Venue is required'),
+    scheduledFirstComeFirstServe: Yup.string(),
     assignments: Yup.array(),
   });
 
@@ -106,6 +107,7 @@ export default function EditEvent({ currentEvent }: Props) {
       notes: currentEvent?.notes || '',
       attachments: currentEvent?.attachments || [],
       venueId: currentEvent?.venueId || '',
+      scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       assignments: currentEvent?.assignments || [],
     }),
     [currentEvent]
@@ -135,15 +137,15 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const handleDrop = useCallback(
     (acceptedFiles: File[]) => {
-      const files = values.attachments || [];
+      const files: any[] = values.attachments || [];
 
-      const newFiles = acceptedFiles.map((file) =>
+      const newFiles: any[] = acceptedFiles.map((file) =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
       );
 
-      setValue('attachments', [...files, ...newFiles], { shouldValidate: true });
+      setValue('attachments', [...files, ...newFiles] as any[], { shouldValidate: true });
     },
     [setValue, values.attachments]
   );
@@ -157,7 +159,7 @@ export default function EditEvent({ currentEvent }: Props) {
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('attachments', []);
+    setValue('attachments', [] as any[]);
   }, [setValue]);
 
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
@@ -170,6 +172,7 @@ export default function EditEvent({ currentEvent }: Props) {
             name: formData?.name,
             notes: formData?.notes,
             status: formData?.status,
+            scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             attachmentPaths: [],
             venueId: formData?.venueId,
             assignmentIds: formData?.assignments?.map(
@@ -340,6 +343,8 @@ export default function EditEvent({ currentEvent }: Props) {
     upsertEventLoading,
   ]);
 
+  const currentFormValues = getValues();
+
   const renderDetails = (
     <>
       {mdUp && (
@@ -406,6 +411,23 @@ export default function EditEvent({ currentEvent }: Props) {
                   </MenuItem>
                 ))}
               </RHFSelect>
+            )}
+
+            {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
+              <DateTimePicker
+                label="First come first serve start time"
+                timezone={user.member.org?.timezone}
+                value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs.utc(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs.utc(new Date())}
+                onChange={(date) => {
+                  setValue('scheduledFirstComeFirstServe', date ? dayjs.utc(date).toISOString() : '')
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: 'normal',
+                  },
+                }}
+              />
             )}
 
             <Stack>

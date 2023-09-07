@@ -9,6 +9,8 @@ import {
 import { BaseModel } from './base';
 import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
+import { ScheduleEvent, SchedulerModel } from './scheduler';
+import { OrganizationModel } from './organization';
 
 export enum EventRemoveEventType {
   assignment,

@@ -79,7 +79,8 @@ export default function UpsertMemberSkill({
         fetch(memberSkill.image)
           .then((res) => res.blob())
           .then((blob) => {
-            const file = new File([blob], memberSkill.image);
+            const fileName = memberSkill.image || 'file';
+            const file = new File([blob], fileName);
             setDocument(Object.assign(file, {
               preview: URL.createObjectURL(file),
             }));

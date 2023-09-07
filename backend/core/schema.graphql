@@ -201,7 +201,7 @@
     notes: String
     orgId: String!
     status: EventStatus!
-    scheduledFirstComeFirstServe: String!
+    scheduledFirstComeFirstServe: String
     docType: DocType!
     venueId: String!
     assignmentIds: [String]

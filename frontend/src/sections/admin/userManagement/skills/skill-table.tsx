@@ -148,7 +148,7 @@ export default function SkillTable() {
             )}
           </>)}
         action={
-          <LoadingButton disabled={editSkill?.status !== SkillStatus.Denied || (editSkill?.status === SkillStatus.Denied && editSkill?.reason?.trim() === '')} loading={updateSkillLoading} variant="contained" color={editSkill?.status === SkillStatus.Approved ? "primary" : "error"} onClick={handleUpsert}>
+          <LoadingButton disabled={(editSkill?.status === SkillStatus.Denied && (editSkill?.reason?.trim() === '' || !editSkill?.reason))} loading={updateSkillLoading} variant="contained" color={editSkill?.status === SkillStatus.Approved ? "primary" : "error"} onClick={handleUpsert}>
             {capitalize(editSkill?.status)}
           </LoadingButton>
         }

@@ -47,7 +47,11 @@ export const paths = {
       users: {
         root: `${ROOTS.DASHBOARD}/admin/users`,
         userDetail: `${ROOTS.DASHBOARD}/admin/users/:id`,
-        requests: `${ROOTS.DASHBOARD}/admin/users/requests`,
+        requests: {
+          account: `${ROOTS.DASHBOARD}/admin/users/request/account`,
+          skills: `${ROOTS.DASHBOARD}/admin/users/request/skills`,
+          buffer: `${ROOTS.DASHBOARD}/admin/users/request/buffer`,
+        },
       },
     }
   },

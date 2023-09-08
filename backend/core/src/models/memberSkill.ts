@@ -13,6 +13,7 @@ import { UserModel } from './user';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { DocumentModel } from './document';
+import { SkillModel } from './skill';
 
 interface InputDocModel extends UpsertMemberSkill {
   id?: string;
@@ -21,7 +22,7 @@ interface InputDocModel extends UpsertMemberSkill {
 
 export class MemberSkillModel extends BaseModel<MemberSkill> {
   documentBasePath: string = 'memberSkills';
-  constructor(db: Db, private users: UserModel, private document: DocumentModel) {
+  constructor(db: Db, private users: UserModel, private document: DocumentModel, private skills: SkillModel) {
     super(db, DocType.MemberSkill);
   }
 
@@ -31,8 +32,15 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
       throw new GraphQLError('User not found');
     }
 
-    if (!item.id) {
+    const skill = await this.skills.get(item.skillId);
+    if (!skill) {
+      throw new GraphQLError('Skill not found');
+    }
+
+    if (!item.id && skill.requiresAdminApproval) {
       item.status = SkillStatus.Pending;
+    } else if (!item.id && !skill.requiresAdminApproval) {
+      item.status = SkillStatus.Approved;
     }
 
     const res = await super.upsert(item) as MemberSkill;

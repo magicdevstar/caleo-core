@@ -57,6 +57,7 @@ export default function UpsertMemberSkill({
     refetchQueries: [GET_USER, ME],
   });
   const [skillMod, setSkillMod] = useState(defaultMemberSkill);
+  const [requiresImage, setRequiresImage] = useState<boolean>(false);
   const [error, setError] = useState('');
   const [loadingImage, setLoadingImage] = useState(!!memberSkill);
   const [document, setDocument] = useState<any>(null);
@@ -68,6 +69,9 @@ export default function UpsertMemberSkill({
   useEffect(() => {
     if (memberSkill) {
       setLoadingImage(true);
+      if (memberSkill.skill.requiresCert) {
+        setRequiresImage(true);
+      }
       setSkillMod({
         id: memberSkill.id,
         imagePath: memberSkill.imagePath || '',
@@ -85,12 +89,21 @@ export default function UpsertMemberSkill({
               preview: URL.createObjectURL(file),
             }));
             setLoadingImage(false);
+          }).catch((downloadError) => {
+            console.error(downloadError);
           });
       } else {
         setLoadingImage(false);
       }
+    } else {
+      setRequiresImage(false);
+      setSkillMod(defaultMemberSkill);
+      setDocument(null);
+      setLoadingImage(false);
     }
-  }, [memberSkill, setDocument, setLoadingImage]);
+  }, [memberSkill, setDocument, setLoadingImage, setRequiresImage]);
+
+  const validSubmit = requiresImage ? !!(requiresImage && document) : true;
 
   const onSubmit = async () => {
     try {
@@ -196,6 +209,9 @@ export default function UpsertMemberSkill({
             }}
             sx={{ mt: 2 }}
             onChange={(_, value) => {
+              if (value?.requiresCert) {
+                setRequiresImage(true)
+              }
               setSkillMod((c) => ({
                 ...c,
                 skill: value as any,
@@ -228,14 +244,14 @@ export default function UpsertMemberSkill({
                 maxSize={3145728}
                 onDrop={handleDrop}
                 onRemove={handleRemoveFile}
-                helperText={(<Typography color="grey" variant='caption'>Upload an optional skill image</Typography>)}
+                helperText={(<Typography color="grey" variant='caption'>Upload {requiresImage ? 'a' : 'an optional'} certification document</Typography>)}
               />
             )}
           </Stack>
         </Stack>
       )}
       action={
-        <LoadingButton disabled={(!touchedImage.value && !!memberSkill)} onClick={onSubmit} variant="contained" loading={loading}>
+        <LoadingButton disabled={(!touchedImage.value && !!memberSkill) || !validSubmit} onClick={onSubmit} variant="contained" loading={loading}>
           {action} Skill
         </LoadingButton>
       }

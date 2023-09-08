@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useMutation } from '@apollo/client';
 // @mui
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // Types
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function AccountSkills({ user }: Props) {
-  const [removeSkill] = useMutation(REMOVE_MEMBER_SKILL, {
+  const [removeSkill, { loading: removeLoading }] = useMutation(REMOVE_MEMBER_SKILL, {
     refetchQueries: [GET_USER],
   })
 
@@ -110,9 +110,9 @@ export default function AccountSkills({ user }: Props) {
         title="Delete"
         content="Are you sure want to delete?"
         action={
-          <Button variant="contained" color="error" onClick={handleDeleteRow}>
+          <LoadingButton loading={removeLoading} variant="contained" color="error" onClick={handleDeleteRow}>
             Delete
-          </Button>
+          </LoadingButton>
         }
       />
     </Box>

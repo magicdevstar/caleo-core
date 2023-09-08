@@ -115,6 +115,8 @@ export default function AccountGeneral({
             existing: true,
           }));
           setLoadingImage(false);
+        }).catch((error) => {
+          console.error(error);
         });
     }
   }, [user.image, setValue, setLoadingImage]);

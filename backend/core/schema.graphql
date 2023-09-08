@@ -411,6 +411,7 @@
     skillId: String!
     orgId: String!
     status: SkillStatus!
+    statusReason: String
     docType: DocType!
     createdAt: String!
     updatedAt: String!
@@ -434,6 +435,7 @@
     id: String
     imagePath: String
     status: SkillStatus
+    statusReason: String
     skillId: String!
     userId: String!
   }
@@ -686,6 +688,19 @@
     total: Int!
   }
 
+  input MemberSkillSearchInput {
+    limit: Int
+    skip: Int
+    status: String
+    orderBy: String
+    order: String
+  }
+
+  type MemberSkillSearchResult {
+    items: [MemberSkill]
+    total: Int!
+  }
+
   input SkillSearchInput {
     limit: Int
     skip: Int
@@ -799,6 +814,7 @@ type Query {
   
   skill(id: String!): Skill
   skills(input: SkillSearchInput): SkillSearchResult
+  memberSkills(input: MemberSkillSearchInput): MemberSkillSearchResult
   
   venue(id: String!): Venue
   venues(input: VenueSearchInput): VenueSearchResult

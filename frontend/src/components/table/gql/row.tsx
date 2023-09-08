@@ -79,7 +79,7 @@ const DateCell = ({value, width, href}: {width?: number | string; value: string;
   );
 }
 
-const StringCell = ({value, labelColor, href, width} : { width?: number | string; value: string; labelColor?: string; href?: string;}) => {
+const StringCell = ({value, labelColor, href, onClick, width, clickable} : { width?: number | string; value: string; labelColor?: string; href?: string; onClick: any; clickable: boolean;}) => {
   if (href) {
     return (
       <TableCell width={width}>
@@ -104,7 +104,7 @@ const StringCell = ({value, labelColor, href, width} : { width?: number | string
   if (labelColor) {
     return (
       <TableCell width={width}>
-        <Label variant="soft" color={labelColor as any}>
+        <Label onClick={onClick} variant="soft" color={labelColor as any} sx={ clickable ? { cursor: 'pointer' } : {}}>
           {value}
         </Label>
       </TableCell>
@@ -168,7 +168,7 @@ export default function GQLTableRow({
               case 'date':
                 return (<DateCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} />);
               case 'string':
-                return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} labelColor={column.getLabelColor?.(row)} />);
+                return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} clickable={!!column?.clickable?.(row)} onClick={() => column.onClick?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array': 
                 return (<ArrayCell width={column.width} key={column.id} value={value} maxRender={column.maxRender || 1} />);
               case 'action': 
@@ -200,7 +200,7 @@ export default function GQLTableRow({
               popover.onClose();
             }}
           >
-            <Iconify icon={action.getIcon(row)} />
+            <Iconify icon={action.getIcon(row)} {...(action.getColor ? { sx: { color: action.getColor(row) } } : {})} />
             {action.getName(row)}
           </MenuItem>
         ))}

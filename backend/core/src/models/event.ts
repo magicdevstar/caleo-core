@@ -90,6 +90,10 @@ export class EventModel extends BaseModel<Event> {
       const endTime = latestShift ? latestShift.endTime : null;
       const totalShifts = await this.shifts.collection.countDocuments(shiftFilter);
 
+      if (event.status === EventStatus.Draft && totalShifts > 0) {
+        event.status = EventStatus.ReadyForLottery;
+      } 
+
       await this.update({
         ...event,
         ...eventUpdates,

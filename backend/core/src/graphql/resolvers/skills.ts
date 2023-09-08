@@ -8,6 +8,7 @@ import {
   UpsertMemberSkill,
   UpsertSkill,
   MemberSkillAttachmentUpload,
+  MemberSkillSearchInput,
 } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
@@ -34,6 +35,14 @@ export const skill = {
           { rankOnlyIds: { $in: rankOnlyIds } },
         ]
       } : {}),
+    }),
+    memberSkills: async (
+      _parent: unknown,
+      { input }: { input: MemberSkillSearchInput },
+      { memberSkills, user }: Context
+    ): Promise<SearchResults<MemberSkill>> => memberSkills.search({
+      orgId: user?.member.orgId!,
+      ...input,
     })
   },
   Mutation: {

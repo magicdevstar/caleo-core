@@ -41,6 +41,7 @@ const userDetailProperties = `
       skill {
         id
         name
+        requiresCert
       }
     }
     availability {

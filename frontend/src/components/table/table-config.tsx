@@ -35,6 +35,7 @@ export interface TableConfig<T> {
     getName: (row: T) => any;
     getIcon: (row: T) => any;
     onClick: (row: T) => any;
+    getColor?: (row: T) => string;
   }[];
   columns: {
     id: string;
@@ -46,6 +47,8 @@ export interface TableConfig<T> {
     renderValue?: (row: any, index: number) => any;
     getLabelColor?: (row: T) => string;
     getHref?: (row: T) => string;
+    onClick?: (row: T) => void;
+    clickable?: (row: T) => boolean;
   }[];
   filters: Filter[];
 }

@@ -21,11 +21,15 @@ import { ActionMapType, AuthStateType } from '../../types';
 enum Types {
   INITIAL = 'INITIAL',
   LOGOUT = 'LOGOUT',
+  UPDATE_PROFILE_PHOTO = 'UPDATE_PROFILE_PHOTO',
 }
 
 type Payload = {
   [Types.INITIAL]: {
     user: FrontendUser | null;
+  }
+  [Types.UPDATE_PROFILE_PHOTO]: {
+    photoURL: string;
   };
   [Types.LOGOUT]: undefined;
 };
@@ -42,6 +46,15 @@ const reducer = (state: AuthStateType, action: Action) => {
     return {
       loading: false,
       user: action.payload.user,
+    };
+  }
+  if (action.type === Types.UPDATE_PROFILE_PHOTO) {
+    return {
+      ...state,
+      user: {
+        ...(state.user || {}),
+        profileURL: action.payload.photoURL,
+      },
     };
   }
   if (action.type === Types.LOGOUT) {
@@ -80,8 +93,8 @@ export function AuthProvider({ children }: Props) {
               id: me.id,
               displayName: `${me.firstName} ${me.lastName}`,
               email: currentUser.attributes.email,
-              photoURL: _mock.image.avatar(24),
-              role: 'admin',
+              photoURL: me.image || _mock.image.avatar(24),
+              role: me.member.role?.toLowerCase(),
             },
           },
         });
@@ -126,8 +139,8 @@ export function AuthProvider({ children }: Props) {
           id: me.id,
           displayName: `${me.firstName} ${me.lastName}`,
           email: currentUser.attributes.email,
-          photoURL: _mock.image.avatar(24),
-          role: 'admin',
+          photoURL: me.image || _mock.image.avatar(24),
+          role: me.member.role?.toLowerCase(),
         },
       },
     });
@@ -178,6 +191,16 @@ export function AuthProvider({ children }: Props) {
     await Auth.forgotPasswordSubmit(email, code, password);
   }, []);
 
+  // Update profile photo
+  const updateProfilePhotoUrl = useCallback((photoURL: string) => {
+    dispatch({
+      type: Types.UPDATE_PROFILE_PHOTO,
+      payload: {
+        photoURL,
+      }
+    });
+  }, []);
+
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
@@ -199,6 +222,7 @@ export function AuthProvider({ children }: Props) {
       forgotPassword,
       confirmRegister,
       resendCodeRegister,
+      updateProfilePhotoUrl,
     }),
     [
       status,
@@ -211,6 +235,7 @@ export function AuthProvider({ children }: Props) {
       forgotPassword,
       confirmRegister,
       resendCodeRegister,
+      updateProfilePhotoUrl,
     ]
   );
 

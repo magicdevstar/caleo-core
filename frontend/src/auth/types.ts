@@ -90,6 +90,7 @@ export type AmplifyContextType = CanRemove & {
   forgotPassword: (email: string) => Promise<void>;
   resendCodeRegister: (email: string) => Promise<void>;
   newPassword: (email: string, code: string, password: string) => Promise<void>;
+  updateProfilePhotoUrl: (photoURL: string) => void;
 };
 
 // ----------------------------------------------------------------------

@@ -21,6 +21,7 @@ export const GET_BASE_SKILLS = gql`
       items {
         id
         name
+        requiresCert
       }
       total
     }
@@ -54,6 +55,29 @@ export const GET_SKILLS = gql`
           name
         }
         createdAt
+      }
+      total
+    }
+  }
+`;
+
+export const GET_MEMBER_SKILLS = gql`
+  query GetMemberSkills($input: MemberSkillSearchInput!) {
+    memberSkills(input: $input) {
+      items {
+        id
+        status
+        image
+        user {
+          id
+          name
+        }
+        skill {
+          id
+          name
+        }
+        createdAt
+        updatedAt
       }
       total
     }

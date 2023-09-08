@@ -17,6 +17,7 @@ const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ran
 const AdminNotifications = lazy(() => import('src/pages/dashboard/admin/settings/notifications'));
 const EditNotification = lazy(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
+const SkillRequests = lazy(() => import('src/pages/dashboard/admin/userManagement/skillRequests'));
 const AdminUserDetails = lazy(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
 const OvertimeSettings = lazy(() => import('src/pages/dashboard/admin/settings/overtime'));
 const DepartmentSettings = lazy(() => import('src/pages/dashboard/admin/settings/department'));
@@ -65,7 +66,14 @@ export const dashboardRoutes = [
             children: [
               { element: <UserSearch />, index: true },
               { path: ':id', element: <AdminUserDetails /> },
-              { path: 'requests', element: <EmptyPage title='Manage Requests' /> },
+              {
+                path: 'request',
+                children: [
+                  { path: 'account', element: <EmptyPage title='Account Requests' /> },
+                  { path: 'skills', element: <SkillRequests /> },
+                  { path: 'buffer', element: <EmptyPage title='Shift Buffer Requests' /> }
+                ]
+              },
             ]
           },
           {

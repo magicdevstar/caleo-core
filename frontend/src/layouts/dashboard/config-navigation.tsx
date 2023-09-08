@@ -84,7 +84,9 @@ export function useNavData() {
               icon: ICONS.user,
               children: [
                 { title: 'Search Users', path: paths.dashboard.admin.users.root },
-                { title: 'Manage Requests', path: paths.dashboard.admin.users.requests },
+                { title: 'Account Requests', path: paths.dashboard.admin.users.requests.account },
+                { title: 'Skill Requests', path: paths.dashboard.admin.users.requests.skills },
+                { title: 'Shift Buffer Requests', path: paths.dashboard.admin.users.requests.buffer },
               ],
             },
             {

@@ -4,8 +4,10 @@ import {
   DayAvailability,
   DocType,
   EventStatus,
+  Organization,
   ProfilePhotoAttachmentUpload,
   Shift,
+  ShiftBufferRequestStatus,
   User
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
@@ -14,9 +16,16 @@ import { ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
-import { OrganizationModel } from './organization';
-import { getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
+import {
+  getHours,
+  getMinutes,
+  setHours,
+  setMilliseconds,
+  setMinutes,
+  setSeconds,
+} from 'date-fns';
 import { DocumentModel } from './document';
+import { ShiftBufferRequestModel } from './shiftBufferRequest';
 
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
@@ -25,6 +34,7 @@ export class UserModel extends BaseModel<User> {
     private assignments: AssignmentModel,
     private shifts: ShiftModel,
     private events: EventModel,
+    private shiftBufferRequests: ShiftBufferRequestModel,
     private document: DocumentModel,
   ) {
     super(db, DocType.User);
@@ -37,8 +47,10 @@ export class UserModel extends BaseModel<User> {
     limit,
     skip,
     orgId,
+    organization,
   }: {
     user: User;
+    organization: Organization;
     shiftId?: string;
     limit: number;
     skip: number;
@@ -112,19 +124,33 @@ export class UserModel extends BaseModel<User> {
       return hasRequiredSkills;
     }).map(({ id }) => id);
 
+    // Filter shifts already assigned to me
     const maxEndTime = Date.now();
-    const myShifts = await this.shifts.collection.find({
+    const myShifts = (await this.shifts.collection.find({
       userId: user.id,
       docType: DocType.Shift,
       endTime: {
         $gte: maxEndTime,
       }
-    }).toArray();
+    }).toArray() as any[]) as Shift[];
     const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
       startTime,
       endTime,
     }));
     const shiftIds = myShifts.map(({ shiftId }) => shiftId);
+
+    logger.info('My Shifts', { myShifts });
+
+    // Filter shifts that I have submitted a request for
+    const myShiftBufferRequests = await this.shiftBufferRequests.collection.find({
+      userId: user.id,
+      docType: DocType.ShiftBufferRequest,
+      status: ShiftBufferRequestStatus.Pending,
+      endTime: {
+        $gte: maxEndTime,
+      }
+    }).toArray();
+    shiftIds.push(...myShiftBufferRequests.map(({ shiftGroupId }) => shiftGroupId));
 
     logger.info('AssignmentIds', { assignmentIds });
 
@@ -191,6 +217,10 @@ export class UserModel extends BaseModel<User> {
           shiftId: {
             $nin: shiftIds,
           },
+          $or: [
+            { userId: { $exists: false } },
+            { userId: null },
+          ],
           assignmentId: {
             $in: assignmentIds,
           },
@@ -236,12 +266,36 @@ export class UserModel extends BaseModel<User> {
 
     logger.info('Res', { totalRes, res });
 
+    const enabledShiftBuffer = organization?.settings?.shiftBuffer?.enabled;
+    const minuteBuffer = organization?.settings?.shiftBuffer?.minuteShiftBuffer;
     const firstShifts = res.map(({ shifts }) => {
       const {_id, ...shift} = shifts[0] as any;
+
+      // Check if the shift should be a shiftBuffer
+      let shiftBufferShift;
+      if (enabledShiftBuffer && typeof minuteBuffer === 'number') {
+        shiftBufferShift = myShifts.find((existingShift: Shift) => {
+          const newStart = (existingShift.startTime as any) - (1000 * 60 * minuteBuffer);
+          const newEnd = (existingShift.endTime as any) + (1000 * 60 * minuteBuffer);
+          if (
+            (shift.endTime >= newStart && shift.startTime <= newStart) ||
+            (shift.endTime >= newEnd && shift.startTime <= newEnd)
+          ) {
+            return existingShift;
+          }
+        });
+        if (shiftBufferShift) {
+          shiftBufferShift.id = shiftBufferShift._id;
+          delete shiftBufferShift._id;
+        }
+      }
+
+      logger.info('shiftBufferShift', { shiftBufferShift });
 
       return {
         id: _id.toString(),
         ...shift,
+        shiftBufferShift,
       };
     });
 

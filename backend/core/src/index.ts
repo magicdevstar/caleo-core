@@ -13,7 +13,7 @@ import mongodb from './utils/mongo';
 import { OrganizationModel } from './models/organization';
 import { UserModel } from './models/user';
 import { Db } from 'mongodb';
-import { User } from './__generated__/resolvers-types';
+import { Organization, User } from './__generated__/resolvers-types';
 import { RankModel } from './models/rank';
 import { SkillModel } from './models/skill';
 import { MemberSkillModel } from './models/memberSkill';
@@ -25,6 +25,7 @@ import { AssignmentModel } from './models/assignment';
 import { ShiftModel } from './models/shift';
 import { SchedulerModel } from './models/scheduler';
 import { DocumentModel } from './models/document';
+import { ShiftBufferRequestModel } from './models/shiftBufferRequest';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -37,9 +38,13 @@ export interface Context {
   events: EventModel;
   assignments: AssignmentModel;
   shifts: ShiftModel;
+  shiftBufferRequests: ShiftBufferRequestModel;
   memberNotifications: MemberNotificationModel;
   scheduler: SchedulerModel;
+  organization?: Organization,
   user?: User;
+  lambdaEvent: any;
+  lambdaContext: any;
 }
 
 const server = new ApolloServer({
@@ -59,7 +64,7 @@ export const handler = startServerAndCreateLambdaHandler(
   >(),
   {
     middleware: [loggerMiddleware],
-    context: async ({ event, context }) => {
+    context: async ({ event, context }): Promise<Context> => {
       logger.addContext(context);
       if (!db) {
         db = await mongodb.db(process.env.MONGODB_NAME!);
@@ -74,10 +79,16 @@ export const handler = startServerAndCreateLambdaHandler(
       const shifts = new ShiftModel(db);
       const skills = new SkillModel(db);
       const ranks = new RankModel(db);
+      const shiftBufferRequests = new ShiftBufferRequestModel(db);
       const events = new EventModel(db, document, shifts);
-      const users = new UserModel(db, assignments, shifts, events, document);
+      const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document);
       const memberSkills = new MemberSkillModel(db, users, document, skills);
       const memberNotifications = new MemberNotificationModel(db, notifications);
+
+      let organization;
+      if (event.requestContext?.authorizer?.lambda?.user) {
+        organization = await organizations.get(event.requestContext?.authorizer?.lambda?.user.member.orgId);
+      }
 
       return {
         organizations,
@@ -92,7 +103,9 @@ export const handler = startServerAndCreateLambdaHandler(
         notifications,
         memberNotifications,
         scheduler,
+        shiftBufferRequests,
         user: event.requestContext?.authorizer?.lambda?.user,
+        organization,
         lambdaEvent: event,
         lambdaContext: context,
       };

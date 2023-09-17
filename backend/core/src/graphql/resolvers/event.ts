@@ -40,13 +40,14 @@ export const event = {
     removeEvent: async (
       _parent: unknown,
       { id }: { id: string },
-      { events, shifts, assignments, user }: Context
+      { events, shifts, assignments, shiftBufferRequests, user }: Context
     ): Promise<string> => {
       adminOnly(user);
       await events.remove(id);
 
       await assignments.removeAllByEventId(user?.member.orgId!, id);
       await shifts.removeAllByEventId(user?.member.orgId!, id);
+      await shiftBufferRequests.removeByEventId(id);
 
       return id;
     },

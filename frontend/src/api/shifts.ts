@@ -20,6 +20,14 @@ export const ASSIGN_SHIFT = gql`
   }
 `;
 
+export const CREATE_SHIFT_BUFFER = gql`
+  mutation CreateShiftBuffer($input: CreateShiftBufferRequest) {
+    shiftBufferRequest(shiftBufferRequest: $input) {
+      id
+    }
+  }
+`;
+
 export const GET_AVAILABLE_SHIFTS = gql`
   query GetAvailableShifts($input: SearchInput!) {
     availableShifts(input: $input) {
@@ -30,6 +38,21 @@ export const GET_AVAILABLE_SHIFTS = gql`
         endTime
         status
         locked
+
+        shiftBufferShift {
+          id
+          shiftId
+          startTime
+          endTime
+          assignment {
+            id
+            name
+          }
+          event {
+            id
+            name
+          }
+        }
         
         assignment {
           id
@@ -114,6 +137,40 @@ export const GET_GROUPED_SHIFTS = gql`
           }
         }
       }
+    }
+  }
+`;
+
+export const GET_SHIFT_BUFFER_REQUESTS = gql`
+  query GetShiftBufferRequests($input: ShiftBufferRequestsSearchInput!) {
+    shiftBufferRequests(input: $input) {
+      items {
+        id
+        status
+        note
+        createdAt
+        assignment {
+          id
+          name
+        }
+        event {
+          id
+          name
+        }
+        user {
+          id
+          name
+        }
+      }
+      total
+    }
+  }
+`;
+
+export const SET_SHIFT_BUFFER_STATUS = gql`
+  mutation SetShiftBufferStatus($id: String!, $status: ShiftBufferRequestStatus!, $reason: String) {
+    setShiftBufferStatus(id: $id, status: $status, reason: $reason) {
+      id
     }
   }
 `;

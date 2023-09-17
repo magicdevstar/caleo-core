@@ -1,5 +1,4 @@
 import { GraphQLError } from "graphql";
-import uniq from 'lodash.uniq';
 import { Context } from "../..";
 import {
   DocType,
@@ -12,17 +11,17 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
-import logger from "../../utils/logger";
 
 export const shift = {
   Query: {
     availableShifts: async (
       _parent: unknown,
       { input: {limit, skip} }: { input: { limit: number; skip: number; } },
-      { users, user }: Context
+      { users, user, organization }: Context
     ): Promise<SearchResults<Shift>> =>
       users.findOpenShifts({
         user: user!,
+        organization: organization!,
         orgId: user?.member.orgId!,
         limit,
         skip,
@@ -94,7 +93,13 @@ export const shift = {
     removeShift: async (
       _parent: unknown,
       { id }: { id: string },
-      { assignments, events, shifts, user }: Context
+      {
+        assignments,
+        events,
+        shifts,
+        shiftBufferRequests,
+        user
+      }: Context
     ): Promise<string> => {
       adminOnly(user);
 
@@ -107,6 +112,9 @@ export const shift = {
       
       // Remove shift from assignment
       await assignments.removeShifts(shift.assignmentId, [id]);
+
+      // Remove any shift buffer requests
+      await shiftBufferRequests.removeByShiftId(id);
 
       // Update event status or update event start/end time if needed
       await events.updateEvent({
@@ -123,7 +131,13 @@ export const shift = {
     removeShifts: async (
       _parent: unknown,
       { shiftId }: { shiftId: string },
-      { assignments, events, shifts, user }: Context
+      {
+        assignments,
+        events,
+        shifts,
+        shiftBufferRequests,
+        user,
+      }: Context
     ): Promise<string[]> => {
       adminOnly(user);
 
@@ -142,6 +156,9 @@ export const shift = {
 
       // Remove from shift
       await assignments.removeShifts(allShifts[0].assignmentId, allShifts.map(({ id }) => id));
+
+      // Remove any shift buffer requests
+      await shiftBufferRequests.removeByShiftGroupId(shiftId);
       
       // Set event start/end date
       const eventId = allShifts[0].eventId;
@@ -157,7 +174,7 @@ export const shift = {
     shifts: async (
       _parent: unknown,
       { shifts }: { shifts: UpsertShift[] },
-      { organizations, assignments, events, shifts: shiftsModel, user }: Context
+      { organizations, assignments, events, shiftBufferRequests, shifts: shiftsModel, user }: Context
     ): Promise<Shift[]> => {
       adminOnly(user);
 
@@ -197,6 +214,12 @@ export const shift = {
       const ids = writtenShifts.map(({ id }) => id);
       await assignments.linkShifts(ids, assignment);
 
+      // Update any shift buffer requests
+      const shiftGroupId = updatedShifts[0].shiftId;
+      const startTime = updatedShifts[0].startTime;
+      const endTime = updatedShifts[0].endTime;
+      await shiftBufferRequests.updateByShiftGroupId(shiftGroupId, startTime, endTime);
+
       // Update event start/end time
       await events.updateEvent({
         eventId,
@@ -210,7 +233,7 @@ export const shift = {
     shiftAssign: async (
       _parent: unknown,
       { id, userId, note }: { id: string, userId?: string, note?: string },
-      { shifts, users, user }: Context
+      { shifts, shiftBufferRequests, users, user, organization }: Context
     ): Promise<Shift> => {
       if (userId) {
         adminOrOwnerOnly(userId, user);
@@ -234,8 +257,9 @@ export const shift = {
 
       if (userId) {
         const user = await users.get(userId!);
-        const { total } = await users.findOpenShifts({
+        const { total, items } = await users.findOpenShifts({
           user: user!,
+          organization: organization!,
           orgId: user?.member.orgId!,
           limit: 1,
           skip: 0,
@@ -244,13 +268,28 @@ export const shift = {
         if (total === 0) {
           throw new GraphQLError("This shift if no longer available for this user");
         }
+        if (
+          !(organization?.settings?.shiftBuffer?.adminOverrideShiftBuffer && userIsAdmin(user!)) &&
+          !!items?.[0]?.shiftBufferShift
+        ) {
+          throw new GraphQLError("This shift requires a shift buffer request");
+        }
       }
 
       shift.userId = userId ? userId : null;
       shift.relinquishNote = note || shift.relinquishNote;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
 
-      return shifts.update(shift, { skipMerge: true });
+      const updatedShift = await shifts.update(shift, { skipMerge: true });
+
+      if (userId) {
+        // Deny all open requests
+        await shiftBufferRequests.denyAllOpenShiftBufferRequests({
+          shiftId: shift.id
+        });
+      }
+
+      return updatedShift;
     }
   },
   fields: {

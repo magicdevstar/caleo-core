@@ -11,6 +11,7 @@
     EVENT
     ASSIGNMENT
     SHIFT
+    SHIFT_BUFFER_REQUEST
   }
   enum DayOfWeek {
     SUNDAY
@@ -249,6 +250,12 @@
     ASSIGNED
   }
 
+  enum ShiftBufferRequestStatus {
+    APPROVED
+    REJECTED
+    PENDING
+  }
+
   type ShiftDayTime {
     startTime: String!
     endTime: String!
@@ -262,6 +269,28 @@
     friday: ShiftDayTime
     saturday: ShiftDayTime
     sunday: ShiftDayTime
+  }
+
+  type ShiftBufferRequest {
+    id: ID!
+    shiftId: String!
+    shiftGroupId: String!
+    eventId: String!
+    assignmentId: String!
+    startTime: String!
+    endTime: String!
+    status: ShiftBufferRequestStatus!
+    orgId: String!
+    userId: String!
+    note: String
+    reason: String
+    createdAt: String!
+    updatedAt: String!
+
+    user: User
+    event: Event!
+    assignment: Assignment!
+    org: Organization!
   }
 
   type Shift {
@@ -281,6 +310,8 @@
     updatedAt: String!
     availability: ShiftAvailabilityTime
 
+    # This will be included when searching for shifts
+    shiftBufferShift: Shift
     user: User
     event: Event!
     assignment: Assignment!
@@ -296,6 +327,12 @@
     notes: String
     venueId: String!
     assignmentIds: [String]!
+  }
+
+  input CreateShiftBufferRequest {
+    shiftId: String!
+    userId: String!
+    note: String
   }
 
   input UpsertAssignment {
@@ -765,6 +802,20 @@
     total: Int!
   }
 
+  input ShiftBufferRequestsSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
+    status: String
+  }
+
+  type ShiftBufferRequestsSearchResult {
+    items: [ShiftBufferRequest]
+    total: Int!
+  }
+
   type NotificationSearchResult {
     items: [Notification]
     total: Int!
@@ -830,6 +881,7 @@ type Query {
   groupedShifts(shiftId: String!): [Shift]
   shifts(input: ShiftSearchInput): ShiftSearchResult
   shiftUsers(id: String!, name: String): UserSearchResult
+  shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
@@ -866,6 +918,8 @@ type Mutation {
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!
   shiftAssign(id: String!, userId: String, note: String): Shift
+  shiftBufferRequest(shiftBufferRequest: CreateShiftBufferRequest): ShiftBufferRequest
+  setShiftBufferStatus(id: String!, status: ShiftBufferRequestStatus!, reason: String): ShiftBufferRequest
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

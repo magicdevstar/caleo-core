@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useMutation } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -29,6 +31,9 @@ const tierNames = {
   [MemberTier.Tier_1]: 'Tier 1',
   [MemberTier.Tier_2]: 'Tier 2',
 };
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function Overtime({
   organization

@@ -56,6 +56,7 @@ export function useNavData() {
         items: [
           { title: 'My overtime', path: paths.dashboard.root, icon: ICONS.job },
           { title: 'Available Overtime', path: paths.dashboard.availableOvertime, icon: ICONS.calendar },
+          { title: 'Rank Overtime', path: paths.dashboard.rankOvertime, icon: ICONS.kanban },
           {
             title: 'My Profile',
             path: paths.dashboard.user.root,

@@ -40,7 +40,7 @@ export const event = {
     removeEvent: async (
       _parent: unknown,
       { id }: { id: string },
-      { events, shifts, assignments, shiftBufferRequests, user }: Context
+      { events, shifts, assignments, shiftBufferRequests, shiftLotteryRequests, user }: Context
     ): Promise<string> => {
       adminOnly(user);
       await events.remove(id);
@@ -48,6 +48,7 @@ export const event = {
       await assignments.removeAllByEventId(user?.member.orgId!, id);
       await shifts.removeAllByEventId(user?.member.orgId!, id);
       await shiftBufferRequests.removeByEventId(id);
+      await shiftLotteryRequests.removeByEventId(id);
 
       return id;
     },

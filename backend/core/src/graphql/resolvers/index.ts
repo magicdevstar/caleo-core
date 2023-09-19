@@ -9,6 +9,7 @@ import { event } from './event';
 import { assignments } from './assignments';
 import { shift } from './shifts';
 import { shiftBufferRequests } from './shiftBufferRequests';
+import { shiftLotteryRequests } from './shiftLotteryRequests';
 
 export default {
   Query: {
@@ -23,6 +24,7 @@ export default {
     ...assignments.Query,
     ...shift.Query,
     ...shiftBufferRequests.Query,
+    ...shiftLotteryRequests.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -36,6 +38,7 @@ export default {
     ...assignments.Mutation,
     ...shift.Mutation,
     ...shiftBufferRequests.Mutation,
+    ...shiftLotteryRequests.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -48,4 +51,5 @@ export default {
   ...assignments.fields,
   ...shift.fields,
   ...shiftBufferRequests.fields,
+  ...shiftLotteryRequests.fields,
 };

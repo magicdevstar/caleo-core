@@ -42,6 +42,13 @@ export const shift = {
       });
       return items;
     },
+    lotteryShifts: async (
+      _parent: unknown,
+      _: unknown,
+      { shifts, user }: Context
+    ): Promise<SearchResults<Shift>> => shifts.findOpenLotteryShifts({
+      orgId: user?.member?.orgId!,
+    }),
     shifts: async (
       _parent: unknown,
       { input }: { input: ShiftSearchInput },
@@ -115,6 +122,7 @@ export const shift = {
 
       // Remove any shift buffer requests
       await shiftBufferRequests.removeByShiftId(id);
+      // TODO: If there are no more shifts then I need to remove all shift lottery requests
 
       // Update event status or update event start/end time if needed
       await events.updateEvent({
@@ -136,6 +144,7 @@ export const shift = {
         events,
         shifts,
         shiftBufferRequests,
+        shiftLotteryRequests,
         user,
       }: Context
     ): Promise<string[]> => {
@@ -159,6 +168,7 @@ export const shift = {
 
       // Remove any shift buffer requests
       await shiftBufferRequests.removeByShiftGroupId(shiftId);
+      await shiftLotteryRequests.removeByShiftGroupId(shiftId);
       
       // Set event start/end date
       const eventId = allShifts[0].eventId;
@@ -284,6 +294,7 @@ export const shift = {
 
       if (userId) {
         // Deny all open requests
+        // TODO: Move shift buffer request to another shift slot if one is available
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
           shiftId: shift.id
         });

@@ -26,6 +26,7 @@ import { ShiftModel } from './models/shift';
 import { SchedulerModel } from './models/scheduler';
 import { DocumentModel } from './models/document';
 import { ShiftBufferRequestModel } from './models/shiftBufferRequest';
+import { ShiftLotteryRequestModel } from './models/shiftLotteryRequest';
 
 export interface Context {
   organizations: OrganizationModel;
@@ -39,6 +40,7 @@ export interface Context {
   assignments: AssignmentModel;
   shifts: ShiftModel;
   shiftBufferRequests: ShiftBufferRequestModel;
+  shiftLotteryRequests: ShiftLotteryRequestModel;
   memberNotifications: MemberNotificationModel;
   scheduler: SchedulerModel;
   organization?: Organization,
@@ -80,6 +82,7 @@ export const handler = startServerAndCreateLambdaHandler(
       const skills = new SkillModel(db);
       const ranks = new RankModel(db);
       const shiftBufferRequests = new ShiftBufferRequestModel(db);
+      const shiftLotteryRequests = new ShiftLotteryRequestModel(db);
       const events = new EventModel(db, document, shifts);
       const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document);
       const memberSkills = new MemberSkillModel(db, users, document, skills);
@@ -104,6 +107,7 @@ export const handler = startServerAndCreateLambdaHandler(
         memberNotifications,
         scheduler,
         shiftBufferRequests,
+        shiftLotteryRequests,
         user: event.requestContext?.authorizer?.lambda?.user,
         organization,
         lambdaEvent: event,

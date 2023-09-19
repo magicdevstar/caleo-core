@@ -12,6 +12,12 @@ export const REMOVE_SHIFTS = gql`
   }
 `;
 
+export const REMOVE_LOTTERY_SHIFT_REQUEST = gql`
+  mutation RemoveLotteryShiftRequest($id: String!) {
+    removeShiftLotteryRequest(id: $id)
+  }
+`;
+
 export const ASSIGN_SHIFT = gql`
   mutation AssignShift($id: String!, $userId: String, $note: String) {
     shiftAssign(id: $id, userId: $userId, note: $note) {
@@ -23,6 +29,14 @@ export const ASSIGN_SHIFT = gql`
 export const CREATE_SHIFT_BUFFER = gql`
   mutation CreateShiftBuffer($input: CreateShiftBufferRequest) {
     shiftBufferRequest(shiftBufferRequest: $input) {
+      id
+    }
+  }
+`;
+
+export const CREATE_SHIFT_LOTTERY_REQUEST = gql`
+  mutation CreateShiftLotteryRequest($input: UpsertShiftLotteryRequest) {
+    shiftLotteryRequest(shiftLotteryRequest: $input) {
       id
     }
   }
@@ -70,6 +84,47 @@ export const GET_AVAILABLE_SHIFTS = gql`
         }
       }
       total
+    }
+  }
+`;
+
+export const GET_LOTTERY_SHIFTS = gql`
+  query GetLotteryShifts {
+    lotteryShifts {
+      items {
+        id
+        shiftId
+        startTime
+        endTime
+        assignment {
+          id
+          name
+        }
+        event {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const GET_LOTTERY_SHIFT_REQUESTS = gql`
+  query GetShiftLotteryRequests {
+    shiftLotteryRequests {
+      items {
+        id
+        shiftGroupId
+        order
+        assignment {
+          id
+          name
+        }
+        event {
+          id
+          name
+        }
+      }
     }
   }
 `;

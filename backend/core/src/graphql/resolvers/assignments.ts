@@ -28,7 +28,7 @@ export const assignments = {
     removeAssignment: async (
       _parent: unknown,
       { id }: { id: string },
-      { assignments, events, shiftBufferRequests, shifts, user }: Context
+      { assignments, events, shiftBufferRequests, shiftLotteryRequests, shifts, user }: Context
     ): Promise<string> => {
       adminOnly(user);
 
@@ -44,6 +44,7 @@ export const assignments = {
 
       // Remove shift buffer requests
       await shiftBufferRequests.removeByAssignmentId(id);
+      await shiftLotteryRequests.removeByAssignmentId(id);
 
       // Remove assignmentId from event and update status if needed
       await events.updateEvent({

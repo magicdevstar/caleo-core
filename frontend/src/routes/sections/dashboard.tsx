@@ -11,6 +11,7 @@ import { LoadingScreen } from 'src/components/loading-screen';
 
 const IndexPage = lazy(() => import('src/pages/dashboard/myOvertime'));
 const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOvertime'));
+const RankOvertime = lazy(() => import('src/pages/dashboard/rankOvertime'));
 const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
 const EmptyPage = lazy(() => import('src/sections/empty/view'));
 const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
@@ -46,6 +47,7 @@ export const dashboardRoutes = [
     children: [
       { element: <IndexPage />, index: true },
       { path: 'available/overtime', element: <AvailableOvertime /> },
+      { path: 'rank/overtime', element: <RankOvertime /> },
       { path: 'user', element: <MyProfile /> },
       {
         path: 'admin',

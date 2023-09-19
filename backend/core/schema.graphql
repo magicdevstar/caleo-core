@@ -12,6 +12,7 @@
     ASSIGNMENT
     SHIFT
     SHIFT_BUFFER_REQUEST
+    SHIFT_LOTTERY_REQUEST
   }
   enum DayOfWeek {
     SUNDAY
@@ -293,6 +294,23 @@
     org: Organization!
   }
 
+  type ShiftLotteryRequest {
+    id: ID!
+    shiftGroupId: String!
+    eventId: String!
+    assignmentId: String!
+    orgId: String!
+    order: Int!
+    userId: String!
+    createdAt: String!
+    updatedAt: String!
+
+    user: User
+    event: Event!
+    assignment: Assignment!
+    org: Organization!
+  }
+
   type Shift {
     id: ID!
     shiftId: String!
@@ -333,6 +351,13 @@
     shiftId: String!
     userId: String!
     note: String
+  }
+
+  input UpsertShiftLotteryRequest {
+    id: String
+    shiftGroupId: String!
+    order: Int!
+    userId: String!
   }
 
   input UpsertAssignment {
@@ -816,6 +841,11 @@
     total: Int!
   }
 
+  type ShiftLotteryRequestsSearchResult {
+    items: [ShiftLotteryRequest]
+    total: Int!
+  }
+
   type NotificationSearchResult {
     items: [Notification]
     total: Int!
@@ -880,8 +910,10 @@ type Query {
   shift(id: String!): Shift
   groupedShifts(shiftId: String!): [Shift]
   shifts(input: ShiftSearchInput): ShiftSearchResult
+  lotteryShifts: ShiftSearchResult
   shiftUsers(id: String!, name: String): UserSearchResult
   shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
+  shiftLotteryRequests: ShiftLotteryRequestsSearchResult
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
@@ -920,6 +952,8 @@ type Mutation {
   shiftAssign(id: String!, userId: String, note: String): Shift
   shiftBufferRequest(shiftBufferRequest: CreateShiftBufferRequest): ShiftBufferRequest
   setShiftBufferStatus(id: String!, status: ShiftBufferRequestStatus!, reason: String): ShiftBufferRequest
+  shiftLotteryRequest(shiftLotteryRequest: UpsertShiftLotteryRequest): ShiftLotteryRequest
+  removeShiftLotteryRequest(id: String): ID!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

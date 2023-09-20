@@ -1,10 +1,8 @@
 import { GraphQLError } from "graphql";
-import { Context } from "../..";
-import { SearchInput, Assignment, UpsertAssignment, DocType, EventStatus } from "../../__generated__/resolvers-types";
+import { Context } from "../../utils/createContext";
+import { SearchInput, Assignment, UpsertAssignment } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import logger from "../../utils/logger";
-import { isAfter, isBefore } from "date-fns";
 import { EventRemoveEventType } from "../../models/event";
 
 export const assignments = {

@@ -1,4 +1,4 @@
-import { Context } from "../..";
+import { Context } from "../../utils/createContext";
 import { CreateShiftBufferRequest, DocType, ShiftBufferRequestsSearchInput, ShiftBufferRequest, ShiftBufferRequestStatus } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";

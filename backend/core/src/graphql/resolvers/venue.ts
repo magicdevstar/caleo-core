@@ -1,4 +1,4 @@
-import { Context } from "../..";
+import { Context } from "../../utils/createContext";
 import { Venue, UpsertVenue, VenueSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";

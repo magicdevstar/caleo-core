@@ -1,4 +1,4 @@
-import { Context } from "../..";
+import { Context } from "../../utils/createContext";
 import {
   ShiftLotteryRequest,
   UpsertShiftLotteryRequest

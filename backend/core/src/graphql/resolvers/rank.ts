@@ -1,5 +1,5 @@
 import { GraphQLError } from "graphql";
-import { Context } from "../..";
+import { Context } from "../../utils/createContext";
 import { Rank, RankSearchInput, UpsertRank } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 

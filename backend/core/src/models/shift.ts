@@ -101,13 +101,14 @@ export class ShiftModel extends BaseModel<Shift> {
   async getByShiftId(shiftId: string): Promise<Shift | null> {
     return this.findOne({
       shiftId,
+      docType: DocType.Shift,
     });
   }
 
   async findOpenLotteryShifts({
     orgId,
   }: {
-    orgId: string
+    orgId: string;
   }) {
     // TODO: Ensure user is qualified for the shift :)
     const pipeline = [
@@ -180,6 +181,77 @@ export class ShiftModel extends BaseModel<Shift> {
     return {
       items: res,
       total: totalRes?.[0]?.total || 0,
+    };
+  }
+
+  async findOpenLotteryShiftsGroupedById({
+    orgId,
+  }: {
+    orgId: string;
+  }) {
+    const pipeline = [
+      // Filter for only open shifts
+      {
+        $match: {
+          docType: 'SHIFT',
+          orgId,
+          $or: [
+            { userId: null },
+            { userId: { $exists: false } },
+          ],
+        },
+      },
+      // Convert eventId to objectId
+      {
+        $addFields: {
+          eventId: { $toObjectId: '$eventId' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'core',
+          localField: 'eventId',
+          foreignField: '_id',
+          as: 'event'
+        }
+      },
+      {
+        $group: {
+          _id: '$eventId',
+          event: {
+            $first: { $arrayElemAt: ['$event', 0] }
+          },
+          shifts: { $push: '$$ROOT' }
+        }
+      },
+      {
+        $match: {
+          'event.status': 'READY_FOR_LOTTERY'
+        }
+      },
+      { $unwind: { path: '$shifts' } },
+      { $replaceRoot: { newRoot: '$shifts' } },
+      {
+        $addFields: {
+          eventId: { $toString: '$eventId' }
+        }
+      },
+      {
+        $group: {
+          _id: '$shiftId',
+          shifts: { $push: '$$ROOT' }
+        }
+      },
+    ];
+    const res = await this.collection.aggregate<{
+      _id: string;
+      shifts: Shift[];
+    }>(pipeline).toArray();
+
+    logger.info('Res', { res });
+
+    return {
+      items: res,
     };
   }
 };

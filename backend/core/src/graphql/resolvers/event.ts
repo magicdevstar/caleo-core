@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
-import { Context } from "../..";
-import { EventSearchInput, Event, UpsertEvent, EventStatus, DocType, EventAttachmentUpload } from "../../__generated__/resolvers-types";
+import { Context } from "../../utils/createContext";
+import { EventSearchInput, Event, UpsertEvent, EventStatus, EventAttachmentUpload } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";

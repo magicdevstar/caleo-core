@@ -5,10 +5,9 @@ import { JwtPayload } from 'jsonwebtoken';
 import { Db } from 'mongodb';
 
 import logger from './../utils/logger';
-import mongodb from './../utils/mongo';
 import { validateToken } from './jwt';
 import { User } from './../__generated__/resolvers-types';
-import { UserModel } from '../models/user';
+import { createContext } from '../utils/createContext';
 
 interface AuthorizerSimpleResponse {
   isAuthorized: boolean;
@@ -33,10 +32,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
       sub = payload.sub;
     }
 
-    if (!db) {
-      db = await mongodb.db(process.env.MONGODB_NAME!);
-    }
-    const users = new UserModel(db);
+    const { users } = await createContext();
     const user = await users.findOne({ cognitoId: sub });
 
     return {

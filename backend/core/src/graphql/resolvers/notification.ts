@@ -1,5 +1,5 @@
 import { GraphQLError } from "graphql";
-import { Context } from "../..";
+import { Context } from "../../utils/createContext";
 import { Notification, NotificationFrequency, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";

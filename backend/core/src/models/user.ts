@@ -44,17 +44,22 @@ export class UserModel extends BaseModel<User> {
     user,
     // Specific shift to filter for
     shiftId,
+    // Specific group to filter for
+    shiftGroupId,
     limit,
     skip,
     orgId,
     organization,
+    defaultEventIds,
   }: {
     user: User;
     organization: Organization;
     shiftId?: string;
+    shiftGroupId?: string;
     limit: number;
     skip: number;
     orgId: string;
+    defaultEventIds?: string[];
   }) {
     let skillIds: string[] = [];
     if ((user.member.memberSkillIds || []).length > 0) {
@@ -87,7 +92,7 @@ export class UserModel extends BaseModel<User> {
         }
       ]
     });
-    const eventIds = eventList.map(({ id }) => id);
+    const eventIds = defaultEventIds || eventList.map(({ id }) => id);
 
     // Find assignments that are attached to those events
     const assignmentSearch = {
@@ -215,6 +220,7 @@ export class UserModel extends BaseModel<User> {
           endTime: { $gte: maxEndTime },
           ...(shiftId ? { _id: new ObjectId(shiftId) } : {}),
           shiftId: {
+            ...(shiftGroupId ? { $in: [shiftGroupId] } : {}),
             $nin: shiftIds,
           },
           $or: [

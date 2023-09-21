@@ -6,6 +6,8 @@ import {
 import { adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
+import { ObjectId } from "mongodb";
+import logger from "../../utils/logger";
 
 export const shiftLotteryRequests = {
   Query: {
@@ -42,9 +44,10 @@ export const shiftLotteryRequests = {
     },
     shiftLotteryRequest: async (
       _parent: unknown,
-      { shiftLotteryRequest }: { shiftLotteryRequest: UpsertShiftLotteryRequest },
+      { shiftLotteryRequest: incomingShiftLotteryRequest }: { shiftLotteryRequest: UpsertShiftLotteryRequest },
       { shiftLotteryRequests, shifts, user }: Context
     ): Promise<ShiftLotteryRequest> => {
+      const { newId, ...shiftLotteryRequest } = incomingShiftLotteryRequest
       adminOrOwnerOnly(shiftLotteryRequest.userId, user);
 
       const shift = await shifts.findOne({
@@ -63,7 +66,17 @@ export const shiftLotteryRequests = {
         userId: user?.id!,
       } as any;
 
-      const res = await shiftLotteryRequests.upsert(upsertObject) as ShiftLotteryRequest;
+      let res: ShiftLotteryRequest;
+      if (newId) {
+        const { id, ...doc } = upsertObject;
+        res = await shiftLotteryRequests.create({
+          ...doc,
+          _id: new ObjectId(id),
+        });
+      } else {
+        res = await shiftLotteryRequests.update(upsertObject, { skipMerge: true }) as ShiftLotteryRequest;
+      }
+      logger.info('Upsert Res', { res });
 
       return res;
     },
@@ -75,6 +88,7 @@ export const shiftLotteryRequests = {
       event: (item: ShiftLotteryRequest, _, { events }: Context) => events.loader.load(item.eventId),
       assignment: (item: ShiftLotteryRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
       user: (item: ShiftLotteryRequest, _, { users }: Context) => users.loader.load(item.userId),
+      shift: (item: ShiftLotteryRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
     },
   },
 };

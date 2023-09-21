@@ -35,7 +35,7 @@ export const CREATE_SHIFT_BUFFER = gql`
 `;
 
 export const CREATE_SHIFT_LOTTERY_REQUEST = gql`
-  mutation CreateShiftLotteryRequest($input: UpsertShiftLotteryRequest) {
+  mutation UpsertShiftLotteryRequest($input: UpsertShiftLotteryRequest) {
     shiftLotteryRequest(shiftLotteryRequest: $input) {
       id
     }
@@ -99,6 +99,15 @@ export const GET_LOTTERY_SHIFTS = gql`
         assignment {
           id
           name
+          bwNeeded
+          ranks {
+            id
+            name
+          }
+          requiredSkills {
+            id
+            name
+          }
         }
         event {
           id
@@ -116,9 +125,23 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
         id
         shiftGroupId
         order
+        shift {
+          id
+          startTime
+          endTime
+        }
         assignment {
           id
           name
+          bwNeeded
+          ranks {
+            id
+            name
+          }
+          requiredSkills {
+            id
+            name
+          }
         }
         event {
           id

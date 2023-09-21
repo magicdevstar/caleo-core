@@ -309,6 +309,7 @@
     event: Event!
     assignment: Assignment!
     org: Organization!
+    shift: Shift
   }
 
   type Shift {
@@ -355,6 +356,7 @@
 
   input UpsertShiftLotteryRequest {
     id: String
+    newId: String
     shiftGroupId: String!
     order: Int!
     userId: String!

@@ -1,26 +1,28 @@
 import { Draggable } from '@hello-pangea/dnd';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 // @mui
 import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import Paper, { PaperProps } from '@mui/material/Paper';
-import AvatarGroup, { avatarGroupClasses } from '@mui/material/AvatarGroup';
 // theme
 import { bgBlur } from 'src/theme/css';
 // types
-import { IKanbanTask } from 'src/types/kanban';
+import { Shift, ShiftLotteryRequest } from 'src/__generated__/resolvers-types';
 // components
-import Iconify from 'src/components/iconify';
-import { Shift } from 'src/__generated__/resolvers-types';
+import Label from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
 type Props = PaperProps & {
   index: number;
-  task: Shift;
+  task: Shift | ShiftLotteryRequest;
 };
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function LotteryTaskItem({
   task,
@@ -31,42 +33,56 @@ export default function LotteryTaskItem({
   const theme = useTheme();
 
   return (
-    <>
-      <Draggable draggableId={task.id} index={index}>
-        {(provided, snapshot) => (
-          <Paper
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            sx={{
-              width: 1,
-              borderRadius: 1.5,
-              overflow: 'hidden',
-              position: 'relative',
-              bgcolor: 'background.default',
-              boxShadow: theme.customShadows.z1,
-              '&:hover': {
-                boxShadow: theme.customShadows.z20,
-              },
-              ...(snapshot.isDragging && {
-                boxShadow: theme.customShadows.z20,
-                ...bgBlur({
-                  opacity: 0.48,
-                  color: theme.palette.background.default,
-                }),
+    <Draggable draggableId={task.id} index={index}>
+      {(provided, snapshot) => (
+        <Paper
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          sx={{
+            width: 1,
+            borderRadius: 1.5,
+            overflow: 'hidden',
+            position: 'relative',
+            bgcolor: 'background.default',
+            boxShadow: theme.customShadows.z1,
+            '&:hover': {
+              boxShadow: theme.customShadows.z20,
+            },
+            ...(snapshot.isDragging && {
+              boxShadow: theme.customShadows.z20,
+              ...bgBlur({
+                opacity: 0.48,
+                color: theme.palette.background.default,
               }),
-              ...sx,
-            }}
-            {...other}
-          >
+            }),
+            ...sx,
+          }}
+          {...other}
+        >
 
-            <Stack spacing={2} sx={{ px: 2, py: 2.5, position: 'relative' }}>
-              <Typography variant="subtitle2">{task.event.name}</Typography>
-              <Typography variant="caption">{task.assignment.name}</Typography>
+          
+          <Stack sx={{ px: 2, py: 2.5, position: 'relative' }}>
+            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+              {task.assignment.name}
+            </Typography>
+            <Typography variant="h5" component="div">
+              {task.event.name}
+            </Typography>
+            <Typography sx={{ mb: 1.5, fontSize: 13 }} color="text.secondary">
+              Start: {dayjs((task as Shift).startTime || (task as ShiftLotteryRequest)?.shift?.startTime).format('MM/DD/YYYY HH:mm')}
+              <br />
+              End: {dayjs((task as Shift).endTime || (task as ShiftLotteryRequest)?.shift?.endTime).format('MM/DD/YYYY HH:mm')}
+            </Typography>
+            <Stack flexWrap='wrap' direction="row" spacing={1}>
+              
+              {task.assignment.bwNeeded && <Label variant="soft" color="info">B&W Needed</Label>}
+              {task.assignment.ranks?.length! > 0 && <Label variant="soft" color="info">{`Open to ${task.assignment.ranks?.length} ranks`}</Label>}
+              {task.assignment.requiredSkills?.length! > 0 && <Label variant="soft" color="info">{`Open to ${task.assignment.requiredSkills?.length} skills`}</Label>}
             </Stack>
-          </Paper>
-        )}
-      </Draggable>
-    </>
+          </Stack>
+        </Paper>
+      )}
+    </Draggable>
   );
 }

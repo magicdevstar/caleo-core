@@ -4,6 +4,7 @@ import { DocType, Shift } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMinutes } from 'date-fns';
+import DataLoader from 'dataloader';
 
 const dayOfWeek = [
   'sunday',
@@ -16,6 +17,31 @@ const dayOfWeek = [
 ];
 
 export class ShiftModel extends BaseModel<Shift> {
+  public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
+    const res = await this.collection.aggregate([
+      {
+        $match: {
+          docType: DocType.Shift,
+          shiftId: { $in: groupKeys },
+        }
+      },
+      {
+        $group: {
+          _id: "$shiftId",
+          shift: {
+            $first: "$$ROOT"
+          }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shift"
+        }
+      }
+    ]).toArray();
+    return groupKeys.map((key) => res.find((item: any) => item.shiftId === key));
+  });
+
   constructor(db: Db) {
     super(db, DocType.Shift);
   }

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
+import ObjectID from 'bson-objectid';
 // @mui
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
@@ -38,49 +39,72 @@ const columns = {
 export default function LotterySelectView() {
   const { user } = useAuthContext();
   const initialLoading = useBoolean(true);
+  
+  const [lottoBoard, setLottoBoard] = useState<{
+    columns: Record<string, {id: string; name: string; taskIds: string[]}>;
+    ordered: string[];
+    tasks: Record<string, Shift | ShiftLotteryRequest>;
+    empty: boolean;
+    initialized: boolean;
+  }>({
+    columns,
+    ordered: Object.keys(columns),
+    tasks: {},
+    empty: true,
+    initialized: false,
+  });
+
   const { data: lotteryShiftData, loading: loadingLotteryShifts } = useQuery(GET_LOTTERY_SHIFTS);
   const { data: lotteryShiftRequestData, loading: loadingLotteryShiftRequests } = useQuery(GET_LOTTERY_SHIFT_REQUESTS);
-  const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST, {
-    refetchQueries: [GET_LOTTERY_SHIFT_REQUESTS, GET_LOTTERY_SHIFTS]
-  });
-  const [upsertRequest] = useMutation(CREATE_SHIFT_LOTTERY_REQUEST, {
-    refetchQueries: [GET_LOTTERY_SHIFT_REQUESTS, GET_LOTTERY_SHIFTS]
-  });
+  const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST);
+  const [upsertRequest] = useMutation(CREATE_SHIFT_LOTTERY_REQUEST);
 
   // Convert to MUI Kanban structure
-  const lottoBoard = useMemo(() => {
-    const ranked = lotteryShiftRequestData?.shiftLotteryRequests?.items || [];
-    const rankedShiftGroupIds = ranked.map(({ shiftGroupId }: ShiftLotteryRequest) => shiftGroupId);
-    const shifts = (lotteryShiftData?.lotteryShifts?.items || []).filter((s: Shift) => !rankedShiftGroupIds.includes(s.shiftId));
-    const shiftIds = shifts.map(({ id }: Shift) => id);
-    const rankedIds = ranked.map(({ id }: ShiftLotteryRequest) => id);
-
-    const lottoColumns = {
-      open: {
-        ...columns.open,
-        taskIds: shiftIds,
-      },
-      selected: {
-        ...columns.selected,
-        taskIds: rankedIds,
-      },
-    } as Record<string, IKanbanColumn>;
-    const ordered = Object.keys(lottoColumns);
-    const tasks = [
-      ...shifts,
-      ...ranked,
-    ].reduce((acc, shift: Shift | ShiftLotteryRequest) => ({
-      ...acc,
-      [shift.id]: shift,
-    }), {} as Record<string, Shift>);
-
-    return {
-      columns: lottoColumns,
-      ordered,
-      tasks,
-      empty: Object.keys(tasks).length === 0,
-    };
-  }, [lotteryShiftData, lotteryShiftRequestData]);
+  useEffect(() => {
+    if (
+      !lottoBoard.initialized &&
+      lotteryShiftRequestData?.shiftLotteryRequests?.items &&
+      lotteryShiftData?.lotteryShifts?.items
+    ) {
+      const ranked = lotteryShiftRequestData?.shiftLotteryRequests?.items || [];
+      const rankedShiftGroupIds = ranked.map(({ shiftGroupId }: ShiftLotteryRequest) => shiftGroupId);
+      const shifts = (lotteryShiftData?.lotteryShifts?.items || []).filter((s: Shift) => !rankedShiftGroupIds.includes(s.shiftId));
+      const shiftIds = shifts.map(({ id }: Shift) => id);
+      const rankedIds = ranked.map(({ id }: ShiftLotteryRequest) => id);
+  
+      const lottoColumns = {
+        open: {
+          ...columns.open,
+          taskIds: shiftIds,
+        },
+        selected: {
+          ...columns.selected,
+          taskIds: rankedIds,
+        },
+      } as Record<string, IKanbanColumn>;
+      const ordered = Object.keys(lottoColumns);
+      const tasks = [
+        ...shifts,
+        ...ranked,
+      ].reduce((acc, shift: Shift | ShiftLotteryRequest) => ({
+        ...acc,
+        [shift.id]: shift,
+      }), {} as Record<string, Shift>);
+  
+      setLottoBoard({
+        columns: lottoColumns as any,
+        ordered,
+        tasks,
+        empty: Object.keys(tasks).length === 0,
+        initialized: true,
+      });
+    }
+  }, [
+    lotteryShiftData,
+    lotteryShiftRequestData,
+    setLottoBoard,
+    lottoBoard.initialized,
+  ]);
 
   useEffect(() => {
     if (!initialLoading.value) return;
@@ -108,25 +132,137 @@ export default function LotterySelectView() {
           sourceColumn.id === destinationColumn.id ||
           destinationColumn.id === 'selected'
         ) {
-          await upsertRequest({
+          const requestId = shiftOrRequest.__typename === 'ShiftLotteryRequest' ? shiftOrRequest.id : ObjectID();
+          upsertRequest({
             variables: {
               input: {
-                id: shiftOrRequest.__typename === 'ShiftLotteryRequest' ? shiftOrRequest.id : undefined,
-                shiftGroupId: shiftOrRequest.__typename === 'ShiftLotteryRequest' ? shiftOrRequest.shiftGroupId : (shiftOrRequest as Shift).shiftId,
+                id: requestId,
+                ...(shiftOrRequest.__typename !== 'ShiftLotteryRequest' && { newId: requestId }),
+                shiftGroupId: (shiftOrRequest as any).shiftGroupId || (shiftOrRequest as any).shiftId,
                 order: destination.index,
                 userId: user?.id,
               },
             },
           });
+          if (shiftOrRequest.__typename === 'ShiftLotteryRequest') {
+            // Update the order
+            setLottoBoard((c) => {
+              const { tasks, columns: col } = c;
+              const { taskIds } = col.selected;
+
+              taskIds.splice(source.index, 1);
+              taskIds.splice(destination.index, 0, draggableId);
+
+              return {
+                ...c,
+                columns: {
+                  ...col,
+                  selected: {
+                    ...col.selected,
+                    taskIds,
+                  },
+                },
+                tasks: {
+                  ...tasks,
+                  [shiftOrRequest.id]: {
+                    ...shiftOrRequest,
+                    shiftId: (shiftOrRequest as any).shiftGroupId || (shiftOrRequest as any).shiftId,
+                    shiftGroupId: (shiftOrRequest as any).shiftGroupId || (shiftOrRequest as any).shiftId,
+                    __typename: 'ShiftLotteryRequest',
+                    order: destination.index,
+                  },
+                },
+              }
+            });
+          } else {
+            // Add to selected
+            setLottoBoard((c) => {
+              const { tasks, columns: col } = c;
+              delete tasks[shiftOrRequest.id];
+              const selectedTaskIds = col.selected.taskIds;
+              const openTaskIds = col.open.taskIds;
+
+              // Remove from source
+              openTaskIds.splice(source.index, 1);
+
+              // Insert into destination
+              selectedTaskIds.splice(destination.index, 0, requestId.toString());
+
+              return {
+                ...c,
+                columns: {
+                  ...col,
+                  selected: {
+                    ...col.selected,
+                    taskIds: selectedTaskIds,
+                  },
+                  open: {
+                    ...col.open,
+                    taskIds: openTaskIds,
+                  },
+                },
+                tasks: {
+                  ...tasks,
+                  [requestId.toString()]: {
+                    ...shiftOrRequest,
+                    id: requestId.toString(),
+                    __typename: 'ShiftLotteryRequest',
+                    shiftId: (shiftOrRequest as any).shiftGroupId || (shiftOrRequest as any).shiftId,
+                    shiftGroupId: (shiftOrRequest as any).shiftGroupId || (shiftOrRequest as any).shiftId,
+                    order: destination.index,
+                  } as any,
+                },
+              }
+            });
+          }
           return;
         }
 
         // TODO: Add or remove lotto selection
         if (destinationColumn.id === 'open' && shiftOrRequest.__typename === 'ShiftLotteryRequest') {
-          await removeRequest({
+          removeRequest({
             variables: {
               id: shiftOrRequest.id,
             },
+          });
+          // Remove from selected and add to shift column
+          setLottoBoard((c) => {
+            const { tasks, columns: col } = c;
+            delete tasks[shiftOrRequest.id];
+            const selectedTaskIds = col.selected.taskIds;
+            const openTaskIds = col.open.taskIds;
+            // delete tasks[shiftOrRequest.id];
+
+            // Remove from source
+            selectedTaskIds.splice(source.index, 1);
+
+            // Insert into destination
+            openTaskIds.splice(destination.index, 0, draggableId);
+
+            return {
+              ...c,
+              columns: {
+                ...col,
+                selected: {
+                  ...col.selected,
+                  taskIds: selectedTaskIds,
+                },
+                open: {
+                  ...col.open,
+                  taskIds: openTaskIds,
+                },
+              },
+              tasks: {
+                ...tasks,
+                [shiftOrRequest.id]: {
+                  ...shiftOrRequest,
+                  shiftId: shiftOrRequest.shiftGroupId || (shiftOrRequest as any).shiftId,
+                  shiftGroupId: shiftOrRequest.shiftGroupId || (shiftOrRequest as any).shiftId,
+                  __typename: 'Shift',
+                  order: destination.index,
+                } as any,
+              },
+            }
           });
         }
       } catch (error) {
@@ -139,6 +275,7 @@ export default function LotterySelectView() {
       user?.id,
       upsertRequest,
       removeRequest,
+      setLottoBoard,
     ]
   );
 
@@ -179,7 +316,7 @@ export default function LotterySelectView() {
         />
       )}
 
-      {!initialLoading.value && !!lottoBoard?.ordered.length && (
+      {!initialLoading.value && !lottoBoard.empty && (
         <DragDropContext onDragEnd={onDragEnd}>
           <Stack
             spacing={3}

@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 // types
 import { IKanbanColumn } from 'src/types/kanban';
-import { Shift } from 'src/__generated__/resolvers-types';
+import { Shift, ShiftLotteryRequest } from 'src/__generated__/resolvers-types';
 //
 import LotteryTaskItem from './lottery-task-item';
 
@@ -13,7 +13,7 @@ import LotteryTaskItem from './lottery-task-item';
 
 type Props = {
   column: IKanbanColumn;
-  tasks: Record<string, Shift>;
+  tasks: Record<string, Shift | ShiftLotteryRequest>;
   index: number;
 };
 

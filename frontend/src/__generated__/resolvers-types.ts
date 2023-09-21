@@ -848,6 +848,7 @@ export type ShiftLotteryRequest = {
   order: Scalars['Int']['output'];
   org: Organization;
   orgId: Scalars['String']['output'];
+  shift?: Maybe<Shift>;
   shiftGroupId: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
   user?: Maybe<User>;
@@ -856,7 +857,7 @@ export type ShiftLotteryRequest = {
 
 export type ShiftLotteryRequestsSearchResult = {
   __typename?: 'ShiftLotteryRequestsSearchResult';
-  items?: Maybe<Array<Maybe<ShiftBufferRequest>>>;
+  items?: Maybe<Array<Maybe<ShiftLotteryRequest>>>;
   total: Scalars['Int']['output'];
 };
 
@@ -1054,6 +1055,7 @@ export type UpsertShiftBuffer = {
 
 export type UpsertShiftLotteryRequest = {
   id?: InputMaybe<Scalars['String']['input']>;
+  newId?: InputMaybe<Scalars['String']['input']>;
   order: Scalars['Int']['input'];
   shiftGroupId: Scalars['String']['input'];
   userId: Scalars['String']['input'];
@@ -1879,6 +1881,7 @@ export type ShiftLotteryRequestResolvers<ContextType = any, ParentType extends R
   order?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -1887,7 +1890,7 @@ export type ShiftLotteryRequestResolvers<ContextType = any, ParentType extends R
 }>;
 
 export type ShiftLotteryRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftLotteryRequestsSearchResult'] = ResolversParentTypes['ShiftLotteryRequestsSearchResult']> = ResolversObject<{
-  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftBufferRequest']>>>, ParentType, ContextType>;
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftLotteryRequest']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

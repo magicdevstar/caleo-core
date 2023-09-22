@@ -88,10 +88,12 @@
     status: MemberStatus
     contactInfo: ContactInfo
     tier: MemberTier
+    tierUntil: String
     rankId: String
     memberSkillIds: [String]
     adminNote: String
     deactivationNote: String
+    maxShifts: Int
 
     availability: UserAvailability!
     rank: Rank
@@ -178,10 +180,12 @@
     pNumber: String!
     role: MemberRole
     tier: MemberTier
+    tierUntil: String
     rankId: String
     memberSkillIds: [String]
     adminNote: String
     status: MemberStatus
+    maxShifts: Int
     deactivationNote: String
     contactInfo: NewContactInfo
     availability: InputUserAvailability

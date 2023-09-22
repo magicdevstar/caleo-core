@@ -111,8 +111,8 @@ export default function EditShift({
     ],
   });
 
-  const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : null);
-  const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : null);
+  const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : new Date());
+  const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : dayjs().add(1, 'hour').toDate());
 
   const mdUp = useResponsive('up', 'md');
 
@@ -243,90 +243,6 @@ export default function EditShift({
     filters: []
   };
 
-  const renderDetails = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Shift time
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Set the start and end time for the shift
-          </Typography>
-        </Grid>
-      )}
-
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title="Details" />}
-
-          <Stack direction="row" spacing={3} sx={{ p: 3 }}>
-            <DateTimePicker
-              timezone={user.member.org?.timezone}
-              label="Start time"
-              maxDate={dayjs.utc(endTime)}
-              value={dayjs.utc(startTime)}
-              onChange={async (newValue: any) => {
-                setStartTime(newValue);
-                if (currentShifts.length > 0) {
-                  await upsertShifts({
-                    variables: {
-                      input: currentShifts.map((shift) => ({
-                        id: shift.id,
-                        shiftId: shift.shiftId,
-                        eventId: shift.event.id,
-                        status: shift.status,
-                        assignmentId: shift.assignment.id,
-                        endTime: shift.endTime,
-                        startTime: newValue.toISOString(),
-                      })),
-                    }
-                  })
-                }
-              }}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  margin: 'normal',
-                },
-              }}
-            />
-            <DateTimePicker
-              label="End time"
-              timezone={user.member.org?.timezone}
-              minDate={dayjs.utc(startTime)}
-              value={dayjs.utc(endTime)}
-              onChange={async (newValue: any) => {
-                setEndTime(newValue);
-                if (currentShifts.length > 0) {
-                  await upsertShifts({
-                    variables: {
-                      input: currentShifts.map((shift) => ({
-                        id: shift.id,
-                        shiftId: shift.shiftId,
-                        eventId: shift.event.id,
-                        status: shift.status,
-                        assignmentId: shift.assignment.id,
-                        startTime: shift.startTime,
-                        endTime: newValue.toISOString(),
-                      })),
-                    }
-                  })
-                }
-              }}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  margin: 'normal',
-                },
-              }}
-            />
-          </Stack>
-        </Card>
-      </Grid>
-    </>
-  );
-
   const renderShifts = (
     <>
       {mdUp && (
@@ -377,7 +293,87 @@ export default function EditShift({
 
   return (
     <Grid container spacing={3}>
-      {renderDetails}
+      {mdUp && (
+        <Grid md={4}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            Shift time
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Set the start and end time for the shift
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid xs={12} md={8}>
+        <Card>
+          {!mdUp && <CardHeader title="Details" />}
+
+          <Stack direction="row" spacing={3} sx={{ p: 3 }}>
+            <DateTimePicker
+              timezone={user.member.org?.timezone}
+              label="Start time"
+              value={dayjs.utc(startTime)}
+              onChange={async (newValue: any) => {
+                setStartTime(newValue);
+                if(dayjs.utc(endTime).isBefore(newValue)) {
+                  setEndTime(newValue);
+                }
+                if (currentShifts.length > 0) {
+                  await upsertShifts({
+                    variables: {
+                      input: currentShifts.map((shift) => ({
+                        id: shift.id,
+                        shiftId: shift.shiftId,
+                        eventId: shift.event.id,
+                        status: shift.status,
+                        assignmentId: shift.assignment.id,
+                        endTime: shift.endTime,
+                        startTime: newValue.toISOString(),
+                      })),
+                    }
+                  })
+                }
+              }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  margin: 'normal',
+                },
+              }}
+            />
+            <DateTimePicker
+              label="End time"
+              timezone={user.member.org?.timezone}
+              value={dayjs.utc(endTime)}
+              minDate={dayjs.utc(startTime)}
+              onChange={async (newValue: any) => {
+                setEndTime(newValue);
+                if (currentShifts.length > 0) {
+                  await upsertShifts({
+                    variables: {
+                      input: currentShifts.map((shift) => ({
+                        id: shift.id,
+                        shiftId: shift.shiftId,
+                        eventId: shift.event.id,
+                        status: shift.status,
+                        assignmentId: shift.assignment.id,
+                        startTime: shift.startTime,
+                        endTime: newValue.toISOString(),
+                      })),
+                    }
+                  })
+                }
+              }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  margin: 'normal',
+                },
+              }}
+            />
+          </Stack>
+        </Card>
+      </Grid>
 
       {renderShifts}
 

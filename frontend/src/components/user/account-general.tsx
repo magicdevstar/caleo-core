@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import * as Yup from 'yup';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMutation, useQuery } from '@apollo/client';
@@ -12,6 +15,8 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
+import { DateTimePicker } from '@mui/x-date-pickers';
+import Divider from '@mui/material/Divider';
 // components
 import { CREATE_PROFILE_PHOTO_UPLOAD_URL, FrontendUser, GET_USER, ME, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
@@ -19,19 +24,29 @@ import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFAutocomplete,
   RHFSelect,
+  RHFSwitch,
   RHFTextField,
   RHFUploadAvatar,
 } from 'src/components/hook-form';
 import Image from 'src/components/image';
 // utils
 import { fData } from 'src/utils/format-number';
-import { MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
+import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
+import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 
 // ----------------------------------------------------------------------
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const tierNames = {
   [MemberTier.Tier_1]: 'Tier 1',
   [MemberTier.Tier_2]: 'Tier 2',
+}
+
+const roleNames = {
+  [MemberRole.Admin]: 'Admin',
+  [MemberRole.Member]: 'Member',
 }
 
 const statusNames = {
@@ -41,10 +56,46 @@ const statusNames = {
   [MemberStatus.Removed]: 'Removed',
 }
 
-export default function AccountGeneral({
-  user
+// eslint-disable-next-line prefer-arrow-callback
+const DatePicker = memo(function PickMeComponent({
+  tz,
+  tierUntil,
+  setTierUntil,
 }: {
-  user: FrontendUser
+  tz: string;
+  tierUntil: Date | null;
+  setTierUntil: any;
+}) {
+  return (
+    <DateTimePicker
+      timezone={tz}
+      label="Tier set until"
+      defaultValue={tierUntil && dayjs.utc(tierUntil)}
+      sx={{
+        margin: 0,
+        '& input': {
+          padding: '17.5px 14px',
+        },
+      }}
+      onChange={async (newValue: any) => {
+        setTierUntil(newValue.toDate());
+      }}
+      slotProps={{
+        textField: {
+          fullWidth: true,
+          margin: 'normal',
+        },
+      }}
+    />
+  )
+})
+
+export default function AccountGeneral({
+  user,
+  adminViewer
+}: {
+  user: FrontendUser;
+  adminViewer: boolean;
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
@@ -75,9 +126,20 @@ export default function AccountGeneral({
     pNumber: Yup.string().required('P# Number is required'),
     status: Yup.string().required('Status is required'),
     tier: Yup.string().required('Tier is required'),
+    tierUntil: Yup.date().nullable(),
+    role: Yup.string().required('Role is required'),
     photoURL: Yup.mixed<any>().nullable(),
     tierExpiration: Yup.number(),
     deactivatedDate: Yup.number(),
+    primaryPhone: Yup.string().required(),
+    primaryPhoneReceive: Yup.boolean().required(),
+    primaryEmail: Yup.string().required(),
+    primaryEmailReceive: Yup.boolean().required(),
+    secondaryPhone: Yup.string(),
+    secondaryPhoneReceive: Yup.boolean(),
+    secondaryEmail: Yup.string(),
+    secondaryEmailReceive: Yup.boolean(),
+    adminNote: Yup.string(),
   });
 
   const defaultValues = {
@@ -87,8 +149,19 @@ export default function AccountGeneral({
     pNumber: (user?.member?.pNumber as string) || '',
     status: (user?.member?.status) || MemberStatus.Active,
     tier: (user?.member?.tier) || MemberTier.Tier_1,
+    tierUntil: user?.member?.tierUntil ? new Date(user?.member?.tierUntil) : null,
+    role: (user?.member?.role) || MemberRole.Member,
     tierExpiration: 0,
     deactivatedDate: 0,
+    primaryPhone: user?.member?.contactInfo?.primaryPhone.number,
+    primaryPhoneReceive: user?.member?.contactInfo?.primaryPhone.receiveTexts,
+    primaryEmail: user?.member?.contactInfo?.primaryEmail.address,
+    primaryEmailReceive: user?.member?.contactInfo?.primaryEmail.receiveEmails,
+    secondaryPhone: user?.member?.contactInfo?.secondaryPhone?.number,
+    secondaryPhoneReceive: user?.member?.contactInfo?.secondaryPhone?.receiveTexts,
+    secondaryEmail: user?.member?.contactInfo?.secondaryEmail?.address,
+    secondaryEmailReceive: user?.member?.contactInfo?.secondaryEmail?.receiveEmails,
+    adminNote: user?.member?.adminNote || '',
   } as any;
 
   const methods = useForm({
@@ -99,8 +172,11 @@ export default function AccountGeneral({
   const {
     setValue,
     handleSubmit,
+    watch,
     formState: { isSubmitting },
   } = methods;
+
+  const tierUntil = watch('tierUntil');
 
   useEffect(() => {
     if (user.image) {
@@ -165,7 +241,32 @@ export default function AccountGeneral({
               orgId: user?.member?.orgId,
               pNumber: d.pNumber,
               rankId: d.rank.id,
+              role: d.role,
               tier: d.tier,
+              tierUntil: d.tierUntil,
+              adminNote: d.adminNote,
+              contactInfo: {
+                primaryEmail: {
+                  address: d.primaryEmail,
+                  receiveEmails: d.primaryEmailReceive,
+                },
+                primaryPhone: {
+                  number: d.primaryPhone,
+                  receiveTexts: d.primaryPhoneReceive,
+                },
+                ...(d.secondaryEmail && {
+                  secondaryEmail: {
+                    address: d.secondaryEmail,
+                    receiveEmails: d.secondaryEmailReceive,
+                  }
+                }),
+                ...(d.secondaryPhone && {
+                  secondaryPhone: {
+                    address: d.secondaryPhone,
+                    receiveEmails: d.secondaryPhoneReceive,
+                  }
+                }),
+              }
             }
           }
         }
@@ -238,6 +339,7 @@ export default function AccountGeneral({
 
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>
+            <Typography sx={{ mb: 2 }} variant='h6'>About</Typography>
             <Box
               rowGap={3}
               columnGap={2}
@@ -255,6 +357,7 @@ export default function AccountGeneral({
                 label="Rank"
                 options={ranks}
                 getOptionLabel={(option: any) => (option as Rank).name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 renderOption={(props, option) => {
                   const rank = ranks.find(
                     (r: Rank) => r.id === option.id,
@@ -275,9 +378,27 @@ export default function AccountGeneral({
 
               <RHFSelect
                 fullWidth
+                name="role"
+                label="Role"
+                disabled={!adminViewer}
+                InputLabelProps={{ shrink: true }}
+                PaperPropsSx={{ textTransform: 'capitalize' }}
+              >
+                {[
+                  MemberRole.Admin,
+                  MemberRole.Member,
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {roleNames[option]}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
+              <RHFSelect
+                fullWidth
                 name="status"
                 label="Status"
-                disabled
+                disabled={!adminViewer}
                 InputLabelProps={{ shrink: true }}
                 PaperPropsSx={{ textTransform: 'capitalize' }}
               >
@@ -296,7 +417,7 @@ export default function AccountGeneral({
                 fullWidth
                 name="tier"
                 label="Tier"
-                disabled
+                disabled={!adminViewer}
                 InputLabelProps={{ shrink: true }}
                 PaperPropsSx={{ textTransform: 'capitalize' }}
               >
@@ -309,7 +430,61 @@ export default function AccountGeneral({
                   </MenuItem>
                 ))}
               </RHFSelect>
+
+              <DatePicker
+                tz={user?.member?.org?.timezone!}
+                tierUntil={tierUntil}
+                setTierUntil={(value: any) => setValue('tierUntil', value)}
+              />
             </Box>
+            <Divider sx={{ mt: 4, mb: 2 }} />
+            <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Contact Info</Typography>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <Box>
+                <RHFPhoneField name="primaryPhone" label="Primary Phone" />
+                <RHFSwitch name="primaryPhoneReceive" label="Receive text messages" />
+              </Box>
+
+              <Box>
+                <RHFTextField name="primaryEmail" label="Primary Email" />
+                <RHFSwitch name="primaryEmailReceive" label="Receive emails" />
+              </Box>
+
+              <Box>
+                <RHFPhoneField name="secondaryPhone" label="Secondary Phone" />
+                <RHFSwitch name="secondaryPhoneReceive" label="Receive text messages" />
+              </Box>
+
+              <Box>
+                <RHFTextField name="secondaryEmail" label="Secondary Email" />
+                <RHFSwitch name="secondaryEmailReceive" label="Receive emails" />
+              </Box>
+              
+            </Box>
+            {
+              adminViewer && (
+                <>
+                  <Divider sx={{ mt: 4, mb: 2 }} />
+                  <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Contact Info</Typography>
+                  <RHFTextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    name="adminNote"
+                    label="Admin Notes"
+                  />
+                </>
+              )
+            }
+            
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>

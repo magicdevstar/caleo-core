@@ -6,6 +6,7 @@ import {
   UpdateUser,
   User,
   ProfilePhotoAttachmentUpload,
+  MemberTier,
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -95,6 +96,15 @@ export const user = {
         throw new GraphQLError('User not found');
       }
 
+      let tierUpdates: any = {};
+      if (user.member?.tier) {
+        if (user.member.tier === MemberTier.Tier_2 && user.member.tierUntil) {
+          tierUpdates = { tierUntil: new Date(user.member.tierUntil).getTime() };
+        } else {
+          tierUpdates = { tierUntil: null };
+        }
+      }
+
       const updateUser = {
         ...existingUser,
         ...user,
@@ -102,6 +112,7 @@ export const user = {
         member: {
           ...existingUser.member,
           ...user.member,
+          ...tierUpdates,
           contactInfo: user.member?.contactInfo || existingUser.member?.contactInfo,
           memberSkillIds: user.member?.memberSkillIds || existingUser.member?.memberSkillIds,
           availability: user.member?.availability || existingUser.member?.availability,
@@ -134,6 +145,7 @@ export const user = {
         }
         return [];
       },
+      tierUntil: (member: Member) => member.tierUntil ? new Date(member.tierUntil).toISOString() : null,
       org: (member: Member, _, { organizations }: Context) => organizations.loader.load(member.orgId),
     },
   },

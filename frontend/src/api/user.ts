@@ -103,6 +103,9 @@ const userDetailProperties = `
     role
     status
     tier
+    tierUntil
+    adminNote
+    maxShifts
   }
 `
 

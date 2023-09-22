@@ -200,6 +200,7 @@ export type Member = {
   availability: UserAvailability;
   contactInfo?: Maybe<ContactInfo>;
   deactivationNote?: Maybe<Scalars['String']['output']>;
+  maxShifts?: Maybe<Scalars['Int']['output']>;
   memberSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   memberSkills?: Maybe<Array<Maybe<MemberSkill>>>;
   org?: Maybe<Organization>;
@@ -210,6 +211,7 @@ export type Member = {
   role?: Maybe<MemberRole>;
   status?: Maybe<MemberStatus>;
   tier?: Maybe<MemberTier>;
+  tierUntil?: Maybe<Scalars['String']['output']>;
 };
 
 export type MemberNotification = {
@@ -462,6 +464,7 @@ export type NewMember = {
   availability?: InputMaybe<InputUserAvailability>;
   contactInfo?: InputMaybe<NewContactInfo>;
   deactivationNote?: InputMaybe<Scalars['String']['input']>;
+  maxShifts?: InputMaybe<Scalars['Int']['input']>;
   memberSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   orgId: Scalars['String']['input'];
   pNumber: Scalars['String']['input'];
@@ -469,6 +472,7 @@ export type NewMember = {
   role?: InputMaybe<MemberRole>;
   status?: InputMaybe<MemberStatus>;
   tier?: InputMaybe<MemberTier>;
+  tierUntil?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type NewPhone = {
@@ -1591,6 +1595,7 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
   contactInfo?: Resolver<Maybe<ResolversTypes['ContactInfo']>, ParentType, ContextType>;
   deactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  maxShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   memberSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['MemberSkill']>>>, ParentType, ContextType>;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
@@ -1601,6 +1606,7 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   role?: Resolver<Maybe<ResolversTypes['MemberRole']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['MemberStatus']>, ParentType, ContextType>;
   tier?: Resolver<Maybe<ResolversTypes['MemberTier']>, ParentType, ContextType>;
+  tierUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

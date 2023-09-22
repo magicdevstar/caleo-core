@@ -49,7 +49,7 @@ export default function UserDetail() {
             }}
           />
         ) : (
-          <MainAccountView excludePassword user={{
+          <MainAccountView excludePassword adminViewer user={{
             ...data?.user,
             displayName: data?.user?.name,
             photoURL: _mock.image.avatar(24),

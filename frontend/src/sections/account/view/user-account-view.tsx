@@ -2,6 +2,7 @@
 import { useQuery } from '@apollo/client';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
+import { MemberRole } from 'src/__generated__/resolvers-types';
 import { _mock } from 'src/_mock';
 import { FrontendUser, GET_USER } from 'src/api/user';
 import { useAuthContext } from 'src/auth/hooks';
@@ -33,11 +34,14 @@ export default function AccountView() {
             }}
           />
         ) : (
-          <MainAccountView user={{
-            ...data?.user,
-            displayName: data?.user?.name,
-            photoURL: _mock.image.avatar(24),
-          } as FrontendUser} />
+          <MainAccountView
+            adminViewer={user?.superAdmin || user?.member?.role === MemberRole.Admin}
+            user={{
+              ...data?.user,
+              displayName: data?.user?.name,
+              photoURL: _mock.image.avatar(24),
+            } as FrontendUser}
+          />
         )
       }
     </Container>

@@ -41,9 +41,11 @@ const TABS = [
 
 export default function MainAccountView({
   excludePassword,
+  adminViewer,
   user,
 } : {
   user: FrontendUser;
+  adminViewer: boolean;
   excludePassword?: boolean;
 }) {
   
@@ -67,7 +69,7 @@ export default function MainAccountView({
         ))}
       </Tabs>
 
-      {currentTab === 'general' && <AccountGeneral user={user} />}
+      {currentTab === 'general' && <AccountGeneral adminViewer={adminViewer} user={user} />}
 
       {currentTab === 'overtime' && <AccountOvertime user={user} />}
 

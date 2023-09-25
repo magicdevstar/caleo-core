@@ -10,7 +10,7 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // Types
-import { GET_SHIFT_USERS, GET_USERS_SLIM } from "src/api/user";
+import { GET_USERS_SLIM } from "src/api/user";
 import { User } from "src/__generated__/resolvers-types";
 
 export const AssignShiftModal = ({

@@ -137,6 +137,7 @@ export default function EditAssignment({
     description: Yup.string(),
     eventId: Yup.string(),
     bwNeeded: Yup.boolean(),
+    notifyWhenFullyStaffed: Yup.boolean(),
     requiredSkills: Yup.array(),
     ranks: Yup.array(),
     shifts: Yup.array(),
@@ -149,6 +150,7 @@ export default function EditAssignment({
       description: currentAssignment?.description || '',
       eventId,
       bwNeeded: currentAssignment?.bwNeeded || false,
+      notifyWhenFullyStaffed: currentAssignment?.notifyWhenFullyStaffed || false,
       requiredSkills: currentAssignment?.requiredSkills || [],
       ranks: currentAssignment?.ranks || [],
       shifts: currentAssignment?.shifts || [],
@@ -270,6 +272,7 @@ export default function EditAssignment({
             description: formData?.description,
             eventId,
             bwNeeded: formData?.bwNeeded,
+            notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             rankIds: formData?.ranks?.map(({ id }: Rank) => id),
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
@@ -375,7 +378,10 @@ export default function EditAssignment({
               }
             />
 
-            <RHFSwitch name="bwNeeded" label="B&W Needed" />
+            <Stack direction="row" spacing={2}>
+              <RHFSwitch name="bwNeeded" label="B&W Needed" />
+              <RHFSwitch name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+            </Stack>
           </Stack>
         </Card>
       </Grid>

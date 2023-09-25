@@ -217,6 +217,7 @@
     orgId: String!
     status: EventStatus!
     scheduledFirstComeFirstServe: String
+    notifyWhenFullyStaffed: Boolean
     docType: DocType!
     venueId: String!
     assignmentIds: [String]
@@ -235,6 +236,7 @@
     description: String
     eventId: String!
     orgId: String!
+    notifyWhenFullyStaffed: Boolean
     docType: DocType!
     requiredSkillIds: [String]
     rankIds: [String]
@@ -349,6 +351,7 @@
     scheduledFirstComeFirstServe: String
     notes: String
     venueId: String!
+    notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
   }
 
@@ -371,6 +374,7 @@
     name: String!
     description: String
     eventId: String!
+    notifyWhenFullyStaffed: Boolean
     requiredSkillIds: [String]
     rankIds: [String]
     bwNeeded: Boolean
@@ -878,6 +882,7 @@
     pNumber: String
     phone: String
     email: String
+    excludeIds: [String]
     rankIds: [String]
     statuses: [MemberStatus]
     skillIds: [String]

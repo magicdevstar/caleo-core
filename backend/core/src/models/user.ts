@@ -212,6 +212,23 @@ export class UserModel extends BaseModel<User> {
         ],
       })));
     }
+
+    // Empty user or unlocked shifts
+    $and.push(
+      {
+        $or: [
+          { userId: null },
+          { userId: { $exists: false } },
+        ],
+      },
+      {
+        $or: [
+          { locked: false },
+          { locked: { $exists: false } },
+        ],
+      }
+    )
+
     const pipeline = [
       // Select only shift docs that are attached to compatible open assignments and are unassigned
       {
@@ -223,10 +240,6 @@ export class UserModel extends BaseModel<User> {
             ...(shiftGroupId ? { $in: [shiftGroupId] } : {}),
             $nin: shiftIds,
           },
-          $or: [
-            { userId: { $exists: false } },
-            { userId: null },
-          ],
           assignmentId: {
             $in: assignmentIds,
           },
@@ -309,6 +322,51 @@ export class UserModel extends BaseModel<User> {
       total: totalRes?.[0]?.total || 0,
       items: firstShifts
     };
+  }
+
+  async canSignUpForShift({
+    user,
+    // Specific shift to filter for
+    shiftId,
+    organization,
+  }: {
+    user: User;
+    organization: Organization;
+    shiftId: string;
+  }) {
+    const maxEndTime = Date.now();
+    const myShifts = (await this.shifts.collection.find({
+      userId: user.id,
+      docType: DocType.Shift,
+      orgId: organization.id,
+      endTime: {
+        $gte: maxEndTime,
+      }
+    }).toArray() as any[]) as Shift[];
+    const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
+      startTime,
+      endTime,
+    }));
+    const $and: any[] = [];
+    if (shiftRanges.length > 0) {
+      $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
+        $or: [
+          { startTime: { $gt: endTime } },
+          { endTime: { $lt: startTime } },
+        ],
+      })));
+    }
+    const res = await this.shifts.collection.find({
+      _id: new ObjectId(shiftId),
+      docType: DocType.Shift,
+      endTime: { $gte: maxEndTime },
+      // Handles shift ranges
+      ...($and.length > 0 ? { $and } : {}),
+    }).toArray();
+    return {
+      total: res.length,
+      items: res,
+    }
   }
 
   async findCompatibleUsersForShift({

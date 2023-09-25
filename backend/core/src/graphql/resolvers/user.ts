@@ -11,6 +11,7 @@ import {
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
+import { ObjectId } from "mongodb";
 
 export const user = {
   Query: {
@@ -36,6 +37,7 @@ export const user = {
       skip: input.skip,
       queryField: 'name',
       query: input.query,
+      ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
       ...(input.pNumber ? {'member.pNumber': input.pNumber} : {}),
       ...(input.phone ? {'member.contactInfo.primaryPhone.number': input.phone} : {}),
       ...(input.email ? {'member.contactInfo.primaryEmail.address': input.email} : {}),

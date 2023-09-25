@@ -10,16 +10,18 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // Types
-import { GET_SHIFT_USERS } from "src/api/user";
+import { GET_SHIFT_USERS, GET_USERS_SLIM } from "src/api/user";
 import { User } from "src/__generated__/resolvers-types";
 
 export const AssignShiftModal = ({
   shiftId,
+  existingUserIds,
   assignConfirm,
   assignLoading,
   assignShift,
 }: {
   shiftId?: string | null;
+  existingUserIds: string[];
   assignConfirm: ReturnType<typeof useBoolean>;
   assignLoading: boolean;
   assignShift: (userId?: string) => Promise<void>;
@@ -32,17 +34,19 @@ export const AssignShiftModal = ({
     setQueryText(userSearch);
   }, 500, [userSearch, setQueryText]);
 
-  const { data } = useQuery(GET_SHIFT_USERS, {
+  const { data } = useQuery(GET_USERS_SLIM, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
-      id: shiftId,
-      name: queryText,
+      input: {
+        excludeIds: existingUserIds,
+        query: queryText,
+      }
     },
     skip: !shiftId || shiftId === '',
   });
   
-  const users = data?.shiftUsers?.items || [];
+  const users = data?.users?.items || [];
 
   return (
     <ConfirmDialog

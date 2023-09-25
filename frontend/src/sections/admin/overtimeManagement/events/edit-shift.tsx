@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -32,6 +32,7 @@ import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
+import Iconify from 'src/components/iconify';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -40,6 +41,7 @@ type Props = {
   eventId: string;
   assignmentId: string;
   currentShifts: Shift[];
+  backLink: string;
   shiftId?: string;
 };
 
@@ -50,6 +52,7 @@ export default function EditShift({
   eventId,
   assignmentId,
   currentShifts,
+  backLink,
   shiftId,
 }: Props) {
   const router = useRouter();
@@ -58,6 +61,8 @@ export default function EditShift({
   const deleteConfirm = useBoolean();
   const unassignConfirm = useBoolean();
   const assignConfirm = useBoolean();
+  const lockConfirm = useBoolean();
+  const [lockShift, setLockShift] = useState<Shift | null>();
 
   const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
     refetchQueries: [{
@@ -115,6 +120,7 @@ export default function EditShift({
   const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : dayjs().add(1, 'hour').toDate());
 
   const mdUp = useResponsive('up', 'md');
+  const existingUserIds: string[] = useMemo(() => currentShifts.map((shift) => shift.user?.id).filter((id) => !!id) || [], [currentShifts]) as any;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -145,7 +151,9 @@ export default function EditShift({
       unassignConfirm.onFalse();
       assignConfirm.onFalse();
     } catch(error) {
-      if (/This shift if no longer available for this user/.test(error.message)) {
+      if (/This shift has an overlapping time/.test(error.message)) {
+        enqueueSnackbar(error.message, { variant: 'error' });
+      } else if (/This shift if no longer available for this user/.test(error.message)) {
         enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error' });
         setEditShiftId(null);
         unassignConfirm.onFalse();
@@ -210,6 +218,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold',
+        getDisabled: (row: Shift) => !!row.locked,
         onClick: (row: Shift) => {
           setEditShiftId(row.id);
           if (row.user) {
@@ -220,7 +229,16 @@ export default function EditShift({
         },
       },
       {
+        getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
+        getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold' : 'solar:lock-keyhole-bold',
+        onClick: (row: Shift) => {
+          setLockShift(row);
+          lockConfirm.onTrue();
+        },
+      },
+      {
         getName: () => 'Delete',
+        getDisabled: (row: Shift) => !!row.locked,
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (row: Shift) => {
           openRemoveShift(row.id);
@@ -229,16 +247,27 @@ export default function EditShift({
     ],
     columns: [
       {
+        id: 'id',
+        label: 'Locked',
+        columnType: 'string',
+        renderValue: (rowKey: string) => {
+          const foundShift = currentShifts.find((shift) => shift.id === rowKey);
+          if (!foundShift) return null;
+          return (<Iconify icon={foundShift.locked ? 'solar:lock-keyhole-bold' : 'solar:lock-keyhole-unlocked-bold'} />);
+        },
+        width: '10%',
+      },
+      {
         id: 'number',
         label: 'Title',
         columnType: 'string',
         renderValue: (row, index) => `# ${index + 1}`,
         width: '10%',
       },
-      { id: 'user.name', width: '30%', label: 'Name', columnType: 'string' },
+      { id: 'user.name', width: '25%', label: 'Name', columnType: 'string' },
       { id: 'user.member.contactInfo.primaryPhone.number', width: '25%', label: 'Phone', columnType: 'string' },
       { id: 'user.member.pNumber', label: 'P #', columnType: 'string', width: '25%' },
-      { id: '', width: '10%', columnType: 'action', label: '' },
+      { id: '', width: '5%', columnType: 'action', label: '' },
     ],
     filters: []
   };
@@ -283,7 +312,10 @@ export default function EditShift({
           variant="contained"
           size="large"
           sx={{ ml: 2 }}
-          onClick={() => enqueueSnackbar({ message: 'Shifts saved', variant: 'success' })}
+          onClick={() => {
+            enqueueSnackbar({ message: 'Shifts saved', variant: 'success' })
+            router.push(backLink);
+          }}
         >
           {!currentShifts ? 'Create Shifts' : 'Save Changes'}
         </LoadingButton>
@@ -311,6 +343,8 @@ export default function EditShift({
           <Stack direction="row" spacing={3} sx={{ p: 3 }}>
             <DateTimePicker
               timezone={user.member.org?.timezone}
+              ampm={false}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               label="Start time"
               value={dayjs.utc(startTime)}
               onChange={async (newValue: any) => {
@@ -344,6 +378,8 @@ export default function EditShift({
             <DateTimePicker
               label="End time"
               timezone={user.member.org?.timezone}
+              ampm={false}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               value={dayjs.utc(endTime)}
               minDate={dayjs.utc(startTime)}
               onChange={async (newValue: any) => {
@@ -403,8 +439,41 @@ export default function EditShift({
         }
       />
 
+      <ConfirmDialog
+        open={lockConfirm.value}
+        onClose={lockConfirm.onFalse}
+        title={lockShift?.locked ? "Unlock shift slot" : "Lock shift slot"}
+        content={lockShift?.locked ? "Are you sure want to unlock this shift slot?" : "Are you sure want to lock this shift slot?"}
+        action={
+          <LoadingButton variant="contained" color="error" onClick={async () => {
+            console.log('Shift: ', !lockShift?.locked);
+            await upsertShifts({
+              variables: {
+                input: [
+                  {
+                    id: lockShift?.id,
+                    startTime: lockShift?.startTime,
+                    endTime: lockShift?.endTime,
+                    assignmentId,
+                    eventId,
+                    status: lockShift?.status,
+                    shiftId: lockShift?.shiftId,
+                    locked: !lockShift?.locked,
+                  },
+                ],
+              }
+            });
+            lockConfirm.onFalse();
+            setLockShift(undefined);
+          }} loading={isSubmitting}>
+            {lockShift?.locked ? 'Unlock' : 'Lock'}
+          </LoadingButton>
+        }
+      />
+
       <AssignShiftModal
         shiftId={editShiftId}
+        existingUserIds={existingUserIds}
         assignConfirm={assignConfirm}
         assignLoading={isAssigningShift}
         assignShift={handleShiftAssignment}

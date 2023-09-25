@@ -33,6 +33,7 @@ export type Assignment = {
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -120,6 +121,7 @@ export type Event = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
+  notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
@@ -959,6 +961,7 @@ export type UpsertAssignment = {
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -970,6 +973,7 @@ export type UpsertEvent = {
   id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
+  notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
   venueId: Scalars['String']['input'];
@@ -1497,6 +1501,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -1552,6 +1557,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

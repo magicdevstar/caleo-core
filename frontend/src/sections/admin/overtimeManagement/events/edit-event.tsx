@@ -17,13 +17,14 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import Box from '@mui/material/Box';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, Event, EventStatus, Shift } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, EventStatus, Shift, Venue } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -31,6 +32,7 @@ import FormProvider, {
   RHFTextField,
   RHFSelect,
   RHFUpload,
+  RHFSwitch,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
@@ -41,6 +43,7 @@ import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { useAuthContext } from 'src/auth/hooks';
+import Markdown from 'src/components/markdown';
 
 // ----------------------------------------------------------------------
 
@@ -94,6 +97,7 @@ export default function EditEvent({ currentEvent }: Props) {
     status: Yup.string(),
     notes: Yup.string(),
     attachments: Yup.array(),
+    notifyWhenFullyStaffed: Yup.boolean(),
     venueId: Yup.string().required('Venue is required'),
     scheduledFirstComeFirstServe: Yup.string(),
     assignments: Yup.array(),
@@ -107,6 +111,7 @@ export default function EditEvent({ currentEvent }: Props) {
       notes: currentEvent?.notes || '',
       attachments: currentEvent?.attachments || [],
       venueId: currentEvent?.venueId || '',
+      notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       assignments: currentEvent?.assignments || [],
     }),
@@ -128,6 +133,8 @@ export default function EditEvent({ currentEvent }: Props) {
   } = methods;
 
   const values = watch();
+
+  const selectedVenue: Venue | undefined = useMemo(() => venues.find(({ id }: Venue) => values?.venueId === id), [venues, values?.venueId]);
 
   useEffect(() => {
     if (currentEvent) {
@@ -172,6 +179,7 @@ export default function EditEvent({ currentEvent }: Props) {
             name: formData?.name,
             notes: formData?.notes,
             status: formData?.status,
+            notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             attachmentPaths: [],
             venueId: formData?.venueId,
@@ -294,27 +302,43 @@ export default function EditEvent({ currentEvent }: Props) {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        width: '40%',
+        width: '30%',
         getHref: (row: Assignment) =>
           paths.dashboard.admin.overtime.eventAssignmentDetail
             .replace(':eventId', currentEvent?.id || '')
             .replace(':assignmentId', row.id),
       },
       {
+        id: 'ranks',
+        label: 'Ranks',
+        width: '15%',
+        noSort: true,
+        columnType: 'array',
+        maxRender: 1
+      },
+      {
+        id: 'requiredSkills',
+        label: 'Skills',
+        width: '15%',
+        noSort: true,
+        columnType: 'array',
+        maxRender: 1
+      },
+      {
         id: 'startTime',
         label: 'Start',
         columnType: 'date',
-        width: '20%',
+        width: '10%',
       },
       {
         id: 'endTime',
         label: 'End',
         columnType: 'date',
-        width: '20%',
+        width: '10%',
       },
       {
         id: 'shifts',
-        width: '10%',
+        width: '15%',
         label: 'Open Shifts',
         // TODO: Add calculation to backend resolvers
         columnType: 'string',
@@ -328,7 +352,7 @@ export default function EditEvent({ currentEvent }: Props) {
           return openShifts;
         },
       },
-      { id: '', width: '10%', columnType: 'action', label: '' },
+      { id: '', width: '5%', columnType: 'action', label: '' },
     ],
     filters: []
   }), [
@@ -348,7 +372,7 @@ export default function EditEvent({ currentEvent }: Props) {
   const renderDetails = (
     <>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Details
           </Typography>
@@ -358,12 +382,16 @@ export default function EditEvent({ currentEvent }: Props) {
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title="Details" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="name" label="Name" />
+            <RHFTextField
+              name="name"
+              label="Name"
+              helperText={`Event id: ${currentEvent?.id}`}
+            />
             <RHFSelect
               name="venueId"
               label="Venue"
@@ -374,6 +402,20 @@ export default function EditEvent({ currentEvent }: Props) {
                 </MenuItem>
               ))}
             </RHFSelect>
+
+            {selectedVenue && (
+              <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
+                <Stack direction="row" spacing={1.5}>
+                  <Typography variant="subtitle2">Address: </Typography>
+                  <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
+                  <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
+                  <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
+                  <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
+                </Stack>
+                <Markdown children={selectedVenue?.notes || ''} />
+              </Box>
+            )}
+
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
               <RHFEditor simple name="notes" />
@@ -459,6 +501,8 @@ export default function EditEvent({ currentEvent }: Props) {
               </Stack>
               <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
             </Stack>
+
+            <RHFSwitch name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
           </Stack>
         </Card>
       </Grid>
@@ -468,7 +512,7 @@ export default function EditEvent({ currentEvent }: Props) {
   const renderAssignments = (
     <>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Assignments
           </Typography>
@@ -478,7 +522,7 @@ export default function EditEvent({ currentEvent }: Props) {
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title="Assignments" />}
 

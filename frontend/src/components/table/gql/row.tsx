@@ -36,7 +36,7 @@ const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}
 
 const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
   let output: any = value ? format(new Date(value), 'EEEEEE dd MMM yyyy') : 'N/A';
-  let secondary: any = value ? format(new Date(value), 'p') : '';
+  let secondary: any = value ? format(new Date(value), 'HH:mm') : '';
   if (href) {
     secondary = (
       <Link

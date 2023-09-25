@@ -159,6 +159,17 @@ query GetShiftUsers($id: String!, $name: String) {
 }
 `;
 
+export const GET_USERS_SLIM = gql`
+query GetUsers($input: UserSearchInput!) {
+    users(input: $input) {
+    items {
+      id
+      name
+    }
+  }
+}
+`;
+
 export const GET_USERS = gql`
   query GetUsers($input: UserSearchInput!) {
     users(input: $input) {

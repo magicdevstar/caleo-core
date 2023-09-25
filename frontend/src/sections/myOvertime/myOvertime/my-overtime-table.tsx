@@ -62,6 +62,7 @@ export default function MyOvertimeTable() {
       {
         getName: () => 'Relinquish',
         getDisabled: (row: Shift) => {
+          if (row.locked) return true;
           if (!organization?.settings?.userRelinquishShift?.enabled) {
             return true;
           }

@@ -265,7 +265,17 @@ export const shift = {
         throw new GraphQLError("Shift already assigned");
       }
 
-      if (userId) {
+      if (userId && userIsAdmin(user)) {
+        const user = await users.get(userId!);
+        const { total } = await users.canSignUpForShift({
+          user: user!,
+          organization: organization!,
+          shiftId: shift.id,
+        });
+        if (total === 0) {
+          throw new GraphQLError("This shift has an overlapping time. Please try another assignment");
+        }
+      } else if (userId) {
         const user = await users.get(userId!);
         const { total, items } = await users.findOpenShifts({
           user: user!,

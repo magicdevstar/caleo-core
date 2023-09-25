@@ -45,6 +45,7 @@ export const GET_ASSIGNMENT = gql`
       id
       name
       description
+      notifyWhenFullyStaffed
       eventId
       bwNeeded
       createdAt

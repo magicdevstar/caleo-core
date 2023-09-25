@@ -143,9 +143,19 @@ export class ShiftModel extends BaseModel<Shift> {
         $match: {
           docType: 'SHIFT',
           orgId,
-          $or: [
-            { userId: null },
-            { userId: { $exists: false } },
+          $and: [
+            {
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+            },
+            {
+              $or: [
+                { locked: false },
+                { locked: { $exists: false } },
+              ],
+            }
           ],
         },
       },
@@ -221,9 +231,19 @@ export class ShiftModel extends BaseModel<Shift> {
         $match: {
           docType: 'SHIFT',
           orgId,
-          $or: [
-            { userId: null },
-            { userId: { $exists: false } },
+          $and: [
+            {
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+            },
+            {
+              $or: [
+                { locked: false },
+                { locked: { $exists: false } },
+              ],
+            }
           ],
         },
       },

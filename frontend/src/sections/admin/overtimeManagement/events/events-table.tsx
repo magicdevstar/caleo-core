@@ -73,7 +73,6 @@ export default function EventsTable() {
       },
       { id: 'startTime', label: 'Starts At', width: 160, columnType: 'date' },
       { id: 'venue.name', label: 'Venue', width: 210, columnType: 'string' },
-      { id: 'createdAt', label: 'Created at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },
     ],
     filters: [

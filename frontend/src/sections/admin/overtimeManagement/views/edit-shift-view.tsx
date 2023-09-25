@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 // @apollo/client
 import { useQuery } from '@apollo/client';
 // @mui
@@ -26,6 +27,10 @@ export default function ShiftDetail() {
     skip: !params.shiftId || params.shiftId === 'new',
   });
 
+  const assignmentLink = useMemo(() =>
+    paths.dashboard.admin.overtime.eventAssignmentDetail.replace(':eventId', params?.eventId || '').replace(':assignmentId', params?.assignmentId || ''),
+  [params]);
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
@@ -38,7 +43,7 @@ export default function ShiftDetail() {
           },
           {
             name: 'Assignment Detail',
-            href: paths.dashboard.admin.overtime.eventAssignmentDetail.replace(':eventId', params?.eventId || '').replace(':assignmentId', params?.assignmentId || ''),
+            href: assignmentLink,
           },
           {
             name: 'Shift Detail',
@@ -60,6 +65,7 @@ export default function ShiftDetail() {
             eventId={params.eventId!}
             assignmentId={params.assignmentId!}
             currentShifts={data?.groupedShifts || []}
+            backLink={assignmentLink}
             shiftId={params.shiftId === 'new' ? undefined : params.shiftId}
           />
         )

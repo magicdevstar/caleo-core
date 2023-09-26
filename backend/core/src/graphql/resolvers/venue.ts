@@ -12,12 +12,13 @@ export const venue = {
     ): Promise<Venue | null> => venues.get(id),
     venues: async (
       _parent: unknown,
-      { input }: { input: VenueSearchInput },
+      { input: { status, ...rest } }: { input: VenueSearchInput },
       { venues, user }: Context
     ): Promise<SearchResults<Venue>> => venues.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
-      ...input,
+      ...(status && { status: { $in: status } }),
+      ...rest,
     })
   },
   Mutation: {

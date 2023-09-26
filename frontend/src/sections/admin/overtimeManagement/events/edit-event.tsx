@@ -24,7 +24,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, Event, EventStatus, Shift, Venue } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, EventStatus, Shift, Venue, VenueStatus } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -64,7 +64,9 @@ export default function EditEvent({ currentEvent }: Props) {
   const { user } = useAuthContext();
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     variables: {
-      input: {},
+      input: {
+        status: VenueStatus.Active,
+      },
     },
   });
   const [removeAssignment, { loading: removeAssignmentLoading }] = useMutation(REMOVE_ASSIGNMENT, {
@@ -109,7 +111,7 @@ export default function EditEvent({ currentEvent }: Props) {
       name: currentEvent?.name || '',
       status: currentEvent?.status,
       notes: currentEvent?.notes || '',
-      attachments: currentEvent?.attachments || [],
+      attachments: [],
       venueId: currentEvent?.venueId || '',
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
@@ -133,6 +135,28 @@ export default function EditEvent({ currentEvent }: Props) {
   } = methods;
 
   const values = watch();
+
+  useEffect(() => {
+    const loadImage = async (url: string) => {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const fileName = url || 'file';
+      const file = new File([blob], fileName);
+      return Object.assign(file, {
+        preview: URL.createObjectURL(file),
+        existing: true,
+      });
+    };
+
+    const loadAll = async () => {
+      if (currentEvent && currentEvent.attachments) {
+        const allImages = await Promise.all(currentEvent.attachments.map(loadImage));
+        console.log(allImages);
+        setValue('attachments', allImages);
+      }
+    }
+    loadAll();
+  }, [currentEvent, setValue]);
 
   const selectedVenue: Venue | undefined = useMemo(() => venues.find(({ id }: Venue) => values?.venueId === id), [venues, values?.venueId]);
 
@@ -254,14 +278,14 @@ export default function EditEvent({ currentEvent }: Props) {
         total: data.length,
         items: data.map((assignment: Assignment) => {
           const { shifts, ...rest } = assignment;
-          const startTime = (shifts || []).reduce((curr: Date | null, shift) => {
+          const startTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
             const start = new Date(shift!.startTime);
             if (!curr || isBefore(start, curr)) {
               return start;
             }
             return curr;
           }, null);
-          const endTime = (shifts || []).reduce((curr: Date | null, shift) => {
+          const endTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
             const end = new Date(shift!.endTime);
             if (!curr || isAfter(end, curr)) {
               return end;
@@ -343,7 +367,7 @@ export default function EditEvent({ currentEvent }: Props) {
         // TODO: Add calculation to backend resolvers
         columnType: 'string',
         renderValue: (shifts: Shift[]) => {
-          const openShifts = (shifts || []).reduce((sum, shift) => {
+          const openShifts = (shifts || []).filter(Boolean).reduce((sum, shift) => {
             if (!shift!.userId) {
               sum += 1;
             }

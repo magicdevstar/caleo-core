@@ -5,7 +5,7 @@ import { BaseModel } from './base';
 
 export class OrganizationModel extends BaseModel<Organization> {
   constructor(db: Db) {
-    super(db, DocType.Organization);
+    super(db, DocType.Organization, 'organizations');
   }
 
   public async create(org: any): Promise<any> {

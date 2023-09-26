@@ -4,7 +4,7 @@ import { BaseModel } from './base';
 
 export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
   constructor(db: Db) {
-    super(db, DocType.ShiftLotteryRequest);
+    super(db, DocType.ShiftLotteryRequest, 'shiftLotteryRequests');
   }
 
   async removeByShiftGroupId(shiftGroupId: string) {

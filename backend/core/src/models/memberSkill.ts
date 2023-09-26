@@ -23,7 +23,7 @@ interface InputDocModel extends UpsertMemberSkill {
 export class MemberSkillModel extends BaseModel<MemberSkill> {
   documentBasePath: string = 'memberSkills';
   constructor(db: Db, private users: UserModel, private document: DocumentModel, private skills: SkillModel) {
-    super(db, DocType.MemberSkill);
+    super(db, DocType.MemberSkill, 'memberSkills');
   }
 
   async upsertDoc(item: InputDocModel): Promise<MemberSkill> {

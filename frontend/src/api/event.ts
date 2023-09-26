@@ -43,6 +43,7 @@ export const GET_EVENT = gql`
       venueId
       notes
       assignmentIds
+      attachmentPaths
       notifyWhenFullyStaffed
       scheduledFirstComeFirstServe
       startTime

@@ -4,6 +4,7 @@ import {
   DayAvailability,
   DocType,
   EventStatus,
+  MemberTier,
   Organization,
   ProfilePhotoAttachmentUpload,
   Shift,
@@ -37,7 +38,7 @@ export class UserModel extends BaseModel<User> {
     private shiftBufferRequests: ShiftBufferRequestModel,
     private document: DocumentModel,
   ) {
-    super(db, DocType.User);
+    super(db, DocType.User, 'users');
   }
 
   async findOpenShifts({
@@ -439,6 +440,27 @@ export class UserModel extends BaseModel<User> {
       uploadUrl,
     };
   };
+
+  async resetUserTier({
+    userId,
+    tier,
+  }: {
+    userId: string;
+    tier: MemberTier;
+  }) {
+    try {
+      await this.collection.updateOne({
+        _id: new ObjectId(userId),
+      }, {
+        $set: {
+          'member.tier': tier,
+          'member.tierUntil': null,
+        },
+      });
+    } catch(error) {
+      logger.error('Failed to reset user tier', { error });
+    }
+  }
 
   async getDownloadUrl(attachmentPath: string) {
     return this.document.getDownloadUrl(attachmentPath);

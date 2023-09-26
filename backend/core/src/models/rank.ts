@@ -6,7 +6,7 @@ import { rankErrors } from '../utils/errors';
 
 export class RankModel extends BaseModel<Rank> {
   constructor(db: Db) {
-    super(db, DocType.Rank);
+    super(db, DocType.Rank, 'ranks');
     this.validator = {
       create: async (doc) => {
         const found = await this.findOne({ name: doc.name });

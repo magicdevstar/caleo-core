@@ -98,8 +98,8 @@ export default function VenuesTable() {
         label: 'Status',
         width: 110,
         columnType: 'string',
-        renderValue: (row) => {
-          switch (row.status) {
+        renderValue: (status) => {
+          switch (status) {
             case VenueStatus.Active:
               return 'Active';
             case VenueStatus.Inactive:
@@ -113,7 +113,7 @@ export default function VenuesTable() {
     ],
     filters: [
       {
-        id: 'active',
+        id: 'status',
         type: 'select',
         label: 'Active',
         defaultValue: [],

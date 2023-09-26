@@ -22,7 +22,7 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
   });
 
   constructor(db: Db, private notifications: NotificationModel) {
-    super(db, DocType.MemberNotification);
+    super(db, DocType.MemberNotification, 'memberNotifications');
   }
 
   async seen({

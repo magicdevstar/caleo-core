@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 
 export class AssignmentModel extends BaseModel<Assignment> {
   constructor(db: Db) {
-    super(db, DocType.Assignment);
+    super(db, DocType.Assignment, 'assignments');
   }
 
   async linkShifts(shiftIds: string[], assignment: Assignment) {

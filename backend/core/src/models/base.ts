@@ -23,7 +23,6 @@ export interface Validations<T> {
 }
 
 export class BaseModel<T> {
-  collectionName: string = process.env.MONGODB_COLLECTION!;
   collection: Collection;
   typeName: string = '';
 
@@ -36,8 +35,10 @@ export class BaseModel<T> {
   constructor(
     protected db: Db,
     private docType: DocType,
+    private collectionName: string = process.env.MONGODB_COLLECTION!,
     protected validator: Validations<T> = {},
   ) {
+    logger.info('Collection name', { collectionName, col: this.collectionName });
     this.collection = this.db.collection(this.collectionName);
     this.typeName = docType.charAt(0).toUpperCase() + this.docType.slice(1).toLowerCase();
   }

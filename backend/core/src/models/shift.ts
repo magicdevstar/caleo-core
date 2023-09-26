@@ -43,7 +43,7 @@ export class ShiftModel extends BaseModel<Shift> {
   });
 
   constructor(db: Db) {
-    super(db, DocType.Shift);
+    super(db, DocType.Shift, 'shifts');
   }
 
   createAvailability(shift: Shift, timezone: string) {
@@ -167,7 +167,7 @@ export class ShiftModel extends BaseModel<Shift> {
       },
       {
         $lookup: {
-          from: 'core',
+          from: 'events',
           localField: 'eventId',
           foreignField: '_id',
           as: 'event'
@@ -255,7 +255,7 @@ export class ShiftModel extends BaseModel<Shift> {
       },
       {
         $lookup: {
-          from: 'core',
+          from: 'events',
           localField: 'eventId',
           foreignField: '_id',
           as: 'event'

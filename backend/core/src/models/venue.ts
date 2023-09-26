@@ -6,7 +6,7 @@ import { venueErrors } from '../utils/errors';
 
 export class VenueModel extends BaseModel<Venue> {
   constructor(db: Db) {
-    super(db, DocType.Venue);
+    super(db, DocType.Venue, 'venues');
     this.validator = {
       create: async (doc) => {
         const found = await this.findOne({ name: doc.name });

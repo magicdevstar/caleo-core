@@ -95,7 +95,7 @@ functions:
 
   # Scheduled Tasks
   scheduledEvents:  
-    handler: src/scheduled/lotto.handler
+    handler: src/scheduled/scheduledEvents.handler
 
   # Lotto Step Function
   fetchShifts:

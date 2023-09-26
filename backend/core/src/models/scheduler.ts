@@ -21,6 +21,7 @@ export enum ScheduleEvent {
   LOTTO_NOTIFY = 'lotto_notify',
   SHIFT_REMINDER = 'shift_reminder',
   EVENT_COMPLETE = 'event_complete',
+  USER_TIER_RETURN = 'user_tier_return',
 }
 
 export enum Timezone {
@@ -36,12 +37,14 @@ export class SchedulerModel {
   async getSchedule({
     orgId,
     event,
+    customEventName,
   }: {
     orgId: string;
     event: ScheduleEvent;
+    customEventName?: string;
   }) {
     const command = new GetScheduleCommand({
-      Name: `${orgId}-${event}`,
+      Name: customEventName || `${orgId}-${event}`,
     });
 
     try {
@@ -56,12 +59,14 @@ export class SchedulerModel {
   async removeSchedule({
     event,
     orgId,
+    customEventName,
   }: {
     event: ScheduleEvent;
     orgId: string;
+    customEventName?: string;
   }) {
     const command = new DeleteScheduleCommand({
-      Name: `${orgId}-${event}`,
+      Name: customEventName || `${orgId}-${event}`,
     });
 
     await scheduler.send(command);
@@ -73,10 +78,12 @@ export class SchedulerModel {
     eventTime,
     eventTimeZone,
     eventInput,
+    customEventName,
     enabled = ScheduleState.ENABLED,
   } : {
     event: ScheduleEvent;
     orgId: string;
+    customEventName?: string;
     eventTime: string;
     eventTimeZone: Timezone;
     eventInput: any;
@@ -85,9 +92,10 @@ export class SchedulerModel {
     const foundSchedule = await this.getSchedule({
       orgId,
       event,
+      customEventName,
     });
     const input: CreateScheduleCommandInput | UpdateScheduleCommandInput = {
-      Name: `${orgId}-${event}`,
+      Name: customEventName || `${orgId}-${event}`,
       ScheduleExpression: eventTime,
       FlexibleTimeWindow: {
         Mode: FlexibleTimeWindowMode.FLEXIBLE,

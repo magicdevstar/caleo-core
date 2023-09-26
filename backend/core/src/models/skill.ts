@@ -6,7 +6,7 @@ import { skillErrors } from '../utils/errors';
 
 export class SkillModel extends BaseModel<Skill> {
   constructor(db: Db) {
-    super(db, DocType.Skill);
+    super(db, DocType.Skill, 'skills');
     this.validator = {
       create: async (doc) => {
         const found = await this.findOne({ name: doc.name });

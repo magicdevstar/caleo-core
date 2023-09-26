@@ -794,7 +794,7 @@
     limit: Int
     skip: Int
     query: String
-    active: Boolean
+    status: [String]
     orderBy: String
     order: String
   }

@@ -4,7 +4,7 @@ import { BaseModel } from './base';
 
 export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
   constructor(db: Db) {
-    super(db, DocType.ShiftBufferRequest);
+    super(db, DocType.ShiftBufferRequest, 'shiftBufferRequests');
   }
 
   async removeByShiftId(shiftId: string) {

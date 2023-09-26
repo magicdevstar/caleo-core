@@ -26,7 +26,7 @@ export class EventModel extends BaseModel<Event> {
     private document: DocumentModel,
     private shifts: ShiftModel,
   ) {
-    super(db, DocType.Event);
+    super(db, DocType.Event, 'events');
   }
 
   async updateEvent({

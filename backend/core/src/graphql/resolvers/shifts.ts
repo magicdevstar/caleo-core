@@ -2,6 +2,7 @@ import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import {
   DocType,
+  MemberTier,
   Shift,
   ShiftSearchInput,
   ShiftStatus,
@@ -11,6 +12,11 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
+import { ObjectId } from "mongodb";
+import { addDays, format } from "date-fns";
+import { ScheduleEvent } from "../../models/scheduler";
+import { utcToZonedTime } from "date-fns-tz";
+import logger from "../../utils/logger";
 
 export const shift = {
   Query: {
@@ -243,7 +249,14 @@ export const shift = {
     shiftAssign: async (
       _parent: unknown,
       { id, userId, note }: { id: string, userId?: string, note?: string },
-      { shifts, shiftBufferRequests, users, user, organization }: Context
+      {
+        shifts,
+        shiftBufferRequests,
+        users,
+        user,
+        organization,
+        scheduler,
+      }: Context
     ): Promise<Shift> => {
       if (userId) {
         adminOrOwnerOnly(userId, user);
@@ -253,6 +266,7 @@ export const shift = {
       }
 
       const shift = await shifts.get(id);
+      const existingUserId = shift?.userId ? `${shift?.userId}` : null;
       if (!shift) {
         throw new GraphQLError("Shift not found");
       }
@@ -307,6 +321,34 @@ export const shift = {
         // TODO: Move shift buffer request to another shift slot if one is available
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
           shiftId: shift.id
+        });
+      }
+      if (!userId && existingUserId && organization?.settings?.userRelinquishShift.enabled && !userIsAdmin(user)) {
+        const tier = organization?.settings?.userRelinquishShift?.afterShiftRemove?.tier;
+        const days = organization?.settings?.userRelinquishShift?.afterShiftRemove?.days;
+        const zonedDate = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
+        const tierUntil =  addDays(zonedDate, days);
+        const updateRes = await users.collection.updateOne({
+          _id: new ObjectId(existingUserId),
+        }, {
+          $set: {
+            'member.tier': tier,
+            'member.tierUntil': tierUntil.getTime(),
+          },
+        });
+        
+        await scheduler.updateScheduledEvent({
+          event: ScheduleEvent.USER_TIER_RETURN,
+          orgId: user?.member.orgId!,
+          eventTime: `at(${format(tierUntil, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
+          eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+          customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${existingUserId}`,
+          eventInput: JSON.stringify({
+            action: ScheduleEvent.USER_TIER_RETURN,
+            orgId: user?.member.orgId!,
+            userId: existingUserId,
+            tier: MemberTier.Tier_1,
+          }),
         });
       }
 

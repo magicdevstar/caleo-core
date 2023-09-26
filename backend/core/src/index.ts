@@ -33,7 +33,6 @@ export const handler = startServerAndCreateLambdaHandler(
       classContext.user = event.requestContext?.authorizer?.lambda?.user;
       classContext.lambdaEvent = event;
       classContext.lambdaContext = context;
-      let organization;
       if (event.requestContext?.authorizer?.lambda?.user) {
         classContext.organization = await classContext.organizations.get(event.requestContext?.authorizer?.lambda?.user.member.orgId) as any;
       }

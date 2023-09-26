@@ -4,6 +4,6 @@ import { BaseModel } from './base';
 
 export class NotificationModel extends BaseModel<Notification> {
   constructor(db: Db) {
-    super(db, DocType.Notification);
+    super(db, DocType.Notification, 'notifications');
   }
 };

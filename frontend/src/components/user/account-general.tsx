@@ -69,6 +69,8 @@ const DatePicker = memo(function PickMeComponent({
   return (
     <DateTimePicker
       timezone={tz}
+      ampm={false}
+      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
       label="Tier set until"
       defaultValue={tierUntil && dayjs.utc(tierUntil)}
       sx={{

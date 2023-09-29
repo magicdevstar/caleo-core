@@ -482,6 +482,8 @@ export default function EditEvent({ currentEvent }: Props) {
             {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
               <DateTimePicker
                 label="First come first serve start time"
+                ampm={false}
+                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 timezone={user.member.org?.timezone}
                 value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs.utc(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs.utc(new Date())}
                 onChange={(date) => {
@@ -501,6 +503,8 @@ export default function EditEvent({ currentEvent }: Props) {
                 <DateTimePicker
                   label="Start time"
                   timezone={user.member.org?.timezone}
+                  ampm={false}
+                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                   value={currentEvent?.startTime ? dayjs.utc(new Date(currentEvent.startTime)) : null}
                   disabled
                   slotProps={{
@@ -512,6 +516,8 @@ export default function EditEvent({ currentEvent }: Props) {
                 />
                 <DateTimePicker
                   label="End time"
+                  ampm={false}
+                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                   timezone={user.member.org?.timezone}
                   value={currentEvent?.endTime ? dayjs.utc(new Date(currentEvent.endTime)) : null}
                   disabled

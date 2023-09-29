@@ -237,6 +237,8 @@ export default function EditNotification({ currentNotification }: Props) {
             {currentFormValues.frequency === NotificationFrequency.UntilExpire && (
               <DateTimePicker
                 label="Notification Expiration"
+                ampm={false}
+                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 timezone={user.member.org?.timezone}
                 value={currentFormValues?.expiration ? dayjs.utc(new Date(currentFormValues?.expiration)) : dayjs.utc().add(2, 'days')}
                 onChange={(date) => {

@@ -37,6 +37,8 @@ export default function AccountTimePicker({
             <TimePicker
               timezone='UTC'
               label="Start"
+              ampm={false}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               value={dayjs.utc(time.startTime)}
               onChange={(newValue: any) => {
                 setTime({
@@ -54,6 +56,8 @@ export default function AccountTimePicker({
             />
             <TimePicker
               timezone='UTC'
+              ampm={false}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               value={dayjs.utc(time.endTime)}
               onChange={(newValue: any) => {
                 setTime({

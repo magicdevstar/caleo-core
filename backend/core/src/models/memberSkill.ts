@@ -1,10 +1,12 @@
 import { Db } from 'mongodb';
 import { v4 as uuid } from 'uuid';
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import uniq from 'lodash.uniq';
 import {
   DocType,
   MemberSkill,
   MemberSkillAttachmentUpload,
+  Organization,
   SkillStatus,
   UpsertMemberSkill,
 } from '../__generated__/resolvers-types';
@@ -14,6 +16,9 @@ import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { DocumentModel } from './document';
 import { SkillModel } from './skill';
+import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+
+const lambda = new LambdaClient({});
 
 interface InputDocModel extends UpsertMemberSkill {
   id?: string;
@@ -26,7 +31,7 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
     super(db, DocType.MemberSkill, 'memberSkills');
   }
 
-  async upsertDoc(item: InputDocModel): Promise<MemberSkill> {
+  async upsertDoc(item: InputDocModel, organization: Organization): Promise<MemberSkill> {
     const user = await this.users.get(item.userId);
     if (!user) {
       throw new GraphQLError('User not found');
@@ -55,6 +60,28 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
         ]),
       },
     } as any);
+
+    if (
+      item.status === SkillStatus.Approved ||
+      item.status === SkillStatus.Denied
+    ) {
+      const template = item.status === SkillStatus.Approved ?
+        MailerEvents.OfficerAdminApprovedSkill :
+        MailerEvents.OfficerAdminDeniedSkill;
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template,
+          data: {
+            user,
+            skill,
+            organization,
+          }
+        } as MailerEvent),
+      }));
+    }
 
     return res;
   }

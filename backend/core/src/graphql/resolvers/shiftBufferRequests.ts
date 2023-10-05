@@ -23,7 +23,7 @@ export const shiftBufferRequests = {
     setShiftBufferStatus: async (
       _parent: unknown,
       { id, status, reason }: { id: string, status: ShiftBufferRequestStatus, reason: string },
-      { shiftBufferRequests, shifts, user }: Context
+      { shiftBufferRequests, shifts, user, organization }: Context
     ): Promise<ShiftBufferRequest> => {
       adminOnly(user);
 
@@ -49,7 +49,12 @@ export const shiftBufferRequests = {
         status,
         reason,
       };
-      await shiftBufferRequests.update(updatedShiftBuffer, { skipMerge: true });
+      await shiftBufferRequests.updateWithNotification({
+        request: updatedShiftBuffer,
+        shift,
+        user: user!,
+        organization: organization!,
+      });
 
       // Reject all remaining requests
       await shiftBufferRequests.denyAllOpenShiftBufferRequests({
@@ -70,7 +75,7 @@ export const shiftBufferRequests = {
     shiftBufferRequest: async (
       _parent: unknown,
       { shiftBufferRequest }: { shiftBufferRequest: CreateShiftBufferRequest },
-      { shiftBufferRequests, shifts, user }: Context
+      { shiftBufferRequests, shifts, user, organization }: Context
     ): Promise<ShiftBufferRequest> => {
       adminOrOwnerOnly(shiftBufferRequest.userId, user);
 
@@ -78,7 +83,6 @@ export const shiftBufferRequests = {
         shiftId: shiftBufferRequest.shiftId,
         userId: user?.id,
         status: ShiftBufferRequestStatus.Pending,
-        docType: DocType.ShiftBufferRequest,
       });
 
       if (foundShiftBuffer) {
@@ -90,18 +94,12 @@ export const shiftBufferRequests = {
         throw new GraphQLError('Shift not found');
       }
 
-      return shiftBufferRequests.create<ShiftBufferRequest>({
-        shiftId: shift.id,
-        shiftGroupId: shift.shiftId,
-        eventId: shift.eventId,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        status: ShiftBufferRequestStatus.Pending,
-        assignmentId: shift.assignmentId,
-        note: shiftBufferRequest.note,
-        orgId: shift.orgId,
-        userId: user?.id!,
-      } as any);
+      return shiftBufferRequests.createWithNotification({
+        shift,
+        organization: organization!,
+        user: user!,
+        shiftBufferRequest,
+      });
     },
   },
   fields: {

@@ -1,7 +1,11 @@
 import { GraphQLError } from "graphql";
+import { ObjectId } from "mongodb";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { addDays, format } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
-  DocType,
+  MemberRole,
   MemberTier,
   Shift,
   ShiftSearchInput,
@@ -12,11 +16,16 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
-import { ObjectId } from "mongodb";
-import { addDays, format } from "date-fns";
 import { ScheduleEvent } from "../../models/scheduler";
-import { utcToZonedTime } from "date-fns-tz";
-import logger from "../../utils/logger";
+import {
+  NotificationType,
+  ShiftNotificationAction,
+  ShiftRemoveNotification,
+  ShiftUpsertNotification
+} from "../../types/notifications";
+import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+
+const lambda = new LambdaClient();
 
 export const shift = {
   Query: {
@@ -103,6 +112,19 @@ export const shift = {
     }
   },
   Mutation: {
+    notifyUsersOfShift: async (
+      _parent: unknown,
+      { shiftId }: { shiftId: string },
+      {
+        shifts,
+        user,
+        organization,
+      }: Context
+    ): Promise<boolean> => {
+      adminOnly(user);
+      await shifts.notifyUsersOfShiftAvailability(shiftId, organization!);
+      return true;
+    },
     removeShift: async (
       _parent: unknown,
       { id }: { id: string },
@@ -140,6 +162,8 @@ export const shift = {
         removeEnd: shift.endTime as any,
       });
 
+      // TODO: Remove shift notifications
+
       return id;
     },
     removeShifts: async (
@@ -165,7 +189,6 @@ export const shift = {
 
       await shifts.collection.deleteMany({
         shiftId,
-        docType: DocType.Shift,
         orgId: user?.member.orgId!,
       });
 
@@ -184,6 +207,8 @@ export const shift = {
         removeType: EventRemoveEventType.shifts,
         orgId: user?.member.orgId!,
       });
+
+      // TODO: Bulk remove shift notifications
 
       return allShifts.map(({ id }) => id);
     },
@@ -244,6 +269,8 @@ export const shift = {
         orgId: user?.member.orgId!,
       });
 
+      // TODO: Bulk update shift notifications
+
       return writtenShifts;
     },
     shiftAssign: async (
@@ -280,9 +307,12 @@ export const shift = {
       }
 
       if (userId && userIsAdmin(user)) {
-        const user = await users.get(userId!);
+        const assignUser = await users.get(userId!);
+        if (!assignUser) {
+          throw new GraphQLError("User not found");
+        }
         const { total } = await users.canSignUpForShift({
-          user: user!,
+          user: assignUser,
           organization: organization!,
           shiftId: shift.id,
         });
@@ -290,9 +320,12 @@ export const shift = {
           throw new GraphQLError("This shift has an overlapping time. Please try another assignment");
         }
       } else if (userId) {
-        const user = await users.get(userId!);
+        const assignUser = await users.get(userId!);
+        if (!assignUser) {
+          throw new GraphQLError("User not found");
+        }
         const { total, items } = await users.findOpenShifts({
-          user: user!,
+          user: assignUser,
           organization: organization!,
           orgId: user?.member.orgId!,
           limit: 1,
@@ -322,13 +355,68 @@ export const shift = {
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
           shiftId: shift.id
         });
+        // Scheduler reminder notification
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.SHIFT_NOTIFICATION_SCHEDULER,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            type: NotificationType.Shift,
+            action: ShiftNotificationAction.UpsertNotification,
+            id: shift.id,
+          } as ShiftUpsertNotification),
+        }));
+        // Send assignment notification
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.MAILER_LAMBDA!,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            action: Action.Email,
+            template: MailerEvents.OfficerAdminAssignedShift,
+            data: {
+              adminAssignedShift: user?.member.role === MemberRole.Admin,
+              shift: updatedShift,
+              organization,
+            }
+          } as MailerEvent),
+        }));
+      }
+      if (!userId && existingUserId) {
+        // Remove scheduled event
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.SHIFT_NOTIFICATION_SCHEDULER,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            type: NotificationType.Shift,
+            action: ShiftNotificationAction.RemoveNotification,
+            id: shift.id,
+          } as ShiftRemoveNotification),
+        }));
+
+        const template = user!.id !== existingUserId && userIsAdmin(user) ?
+          MailerEvents.OfficerRemovedFromShift :
+          MailerEvents.AdminShiftRelinquished;
+
+        // Send unassignment notification
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.MAILER_LAMBDA!,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            action: Action.Email,
+            template,
+            data: {
+              shift: updatedShift,
+              existingUserId,
+              organization,
+            }
+          } as MailerEvent),
+        }));
       }
       if (!userId && existingUserId && organization?.settings?.userRelinquishShift.enabled && !userIsAdmin(user)) {
         const tier = organization?.settings?.userRelinquishShift?.afterShiftRemove?.tier;
         const days = organization?.settings?.userRelinquishShift?.afterShiftRemove?.days;
         const zonedDate = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
         const tierUntil =  addDays(zonedDate, days);
-        const updateRes = await users.collection.updateOne({
+        await users.collection.updateOne({
           _id: new ObjectId(existingUserId),
         }, {
           $set: {

@@ -8,10 +8,17 @@ params:
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}
     domainName: dev-api.caleopro.com
+    pinpointId: d169e35fcb7d4f06b26da89e5650905a
+    fromEmail: support@dev.caleopro.com
+    loginUrl: https://dev.caleopro.com/login
   prod:
     dbName: caleo-prod
     poolId: us-west-2_3enNflKSo
     domainName: api.caleopro.com
+    # TODO: Change me :)
+    pinpointId: d169e35fcb7d4f06b26da89e5650905a
+    fromEmail: support@caleopro.com
+    loginUrl: https://caleopro.com/login
 
 provider:
   name: aws
@@ -40,16 +47,23 @@ provider:
     BUCKET_NAME: ${param:bucketName}
     SCHEDULED_LAMBDA_ARN: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-scheduledEvents
     LOTTO_STEP_FUNCTION_ARN: arn:aws:states:${aws:region}:${aws:accountId}:stateMachine:lotto-steps-${sls:stage}
+    SHIFT_NOTIFICATION_SCHEDULER: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-shiftNotificationScheduler
+    MAILER_LAMBDA: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-mailer
     SCHEDULED_ROLE_ARN: !GetAtt SchedulerRole.Arn
+    PINPOINT_ID: ${param:pinpointId}
+    FROM_EMAIL: ${param:fromEmail}
+    LOGIN_URL: ${param:loginUrl}
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
             - 's3:*'
+            - 'lambda:*'
             - 'iam:PassRole'
             - 'scheduler:*'
             - 'states:*'
+            - 'mobiletargeting:*'
           Resource: '*'
 
 plugins:
@@ -104,8 +118,15 @@ functions:
   assignShift:
     handler: src/steps/assignShift.handler
     timeout: 300
-  updateAllEvents:
-    handler: src/steps/updateAllEvents.handler
+  finalizeLottery:
+    handler: src/steps/finalizeLottery.handler
+    timeout: 300
+  
+  shiftNotificationScheduler:
+    handler: src/workers/shiftNotificationScheduler.handler
+    timeout: 300
+  mailer:
+    handler: src/workers/mailer.handler
     timeout: 300
 
   # Test function
@@ -172,6 +193,6 @@ stepFunctions:
           FinalizeLottery:
             Type: Task
             Resource:
-              Fn::GetAtt: [updateAllEvents, Arn]
+              Fn::GetAtt: [finalizeLottery, Arn]
             End: true
   validate: true

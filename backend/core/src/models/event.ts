@@ -1,16 +1,19 @@
 import { Db } from 'mongodb';
 import { v4 as uuid } from 'uuid';
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   DocType,
   Event,
   EventAttachmentUpload,
   EventStatus,
+  Organization,
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
-import { ScheduleEvent, SchedulerModel } from './scheduler';
-import { OrganizationModel } from './organization';
+import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+
+const lambda = new LambdaClient({});
 
 export enum EventRemoveEventType {
   assignment,
@@ -27,6 +30,28 @@ export class EventModel extends BaseModel<Event> {
     private shifts: ShiftModel,
   ) {
     super(db, DocType.Event, 'events');
+  }
+
+  async removeEvent({
+    event,
+    organization
+  } : {
+    event: Event;
+    organization: Organization;
+  }) {
+    await this.remove(event.id);
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerEventRemoved,
+        data: {
+          event,
+          organization,
+        }
+      } as MailerEvent),
+    }));
   }
 
   async updateEvent({
@@ -57,7 +82,6 @@ export class EventModel extends BaseModel<Event> {
       }
 
       const shiftFilter: any = {
-        docType: DocType.Shift,
         orgId,
         eventId,
       };
@@ -120,5 +144,5 @@ export class EventModel extends BaseModel<Event> {
 
   async getDownloadUrl(attachmentPath: string) {
     return this.document.getDownloadUrl(attachmentPath);
-  }
+  };
 };

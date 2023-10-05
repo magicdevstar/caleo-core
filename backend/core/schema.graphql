@@ -224,7 +224,7 @@
     createdAt: String!
     updatedAt: String!
 
-    venue: Venue!
+    venue: Venue
     org: Organization!
     assignments: [Assignment!]
     attachments: [String!]
@@ -334,6 +334,7 @@
     createdAt: String!
     updatedAt: String!
     availability: ShiftAvailabilityTime
+    notificationId: String
 
     # This will be included when searching for shifts
     shiftBufferShift: Shift
@@ -965,6 +966,7 @@ type Mutation {
   setShiftBufferStatus(id: String!, status: ShiftBufferRequestStatus!, reason: String): ShiftBufferRequest
   shiftLotteryRequest(shiftLotteryRequest: UpsertShiftLotteryRequest): ShiftLotteryRequest
   removeShiftLotteryRequest(id: String): ID!
+  notifyUsersOfShift(shiftId: String!): Boolean
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

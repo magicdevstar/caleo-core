@@ -9,21 +9,18 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
 
   async removeByShiftGroupId(shiftGroupId: string) {
     await this.collection.deleteOne({
-      docType: DocType.ShiftLotteryRequest,
       shiftGroupId,
     });
   }
 
   async removeByAssignmentId(assignmentId: string) {
     await this.collection.deleteOne({
-      docType: DocType.ShiftLotteryRequest,
       assignmentId,
     });
   }
 
   async removeByEventId(eventId: string) {
     await this.collection.deleteOne({
-      docType: DocType.ShiftLotteryRequest,
       eventId,
     });
   }
@@ -44,7 +41,6 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       {
         $match:
           {
-            docType: "SHIFT_LOTTERY_REQUEST",
             shiftGroupId,
           },
       },
@@ -59,7 +55,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       {
         $lookup:
           {
-            from: "core",
+            from: "users",
             localField: "userId",
             foreignField: "_id",
             as: "user",

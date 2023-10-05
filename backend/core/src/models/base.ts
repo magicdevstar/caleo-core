@@ -38,7 +38,6 @@ export class BaseModel<T> {
     private collectionName: string = process.env.MONGODB_COLLECTION!,
     protected validator: Validations<T> = {},
   ) {
-    logger.info('Collection name', { collectionName, col: this.collectionName });
     this.collection = this.db.collection(this.collectionName);
     this.typeName = docType.charAt(0).toUpperCase() + this.docType.slice(1).toLowerCase();
   }
@@ -71,7 +70,6 @@ export class BaseModel<T> {
   async findAll(ids: ObjectId[]): Promise<T[]> {
     const res = await this.collection.find({
       _id: { $in: ids },
-      docType: this.docType,
     }).toArray();
     return res.map(({_id, ...item}) => ({
       ...item,
@@ -82,7 +80,6 @@ export class BaseModel<T> {
   async findOne(query: any): Promise<T | null> {
     const res = await this.collection.findOne({
       ...query,
-      docType: this.docType,
     });
     if (!res) {
       return null;
@@ -97,7 +94,6 @@ export class BaseModel<T> {
   async get(id: string): Promise<T | null> {
     const res = await this.collection.findOne({
       _id: new ObjectId(id),
-      docType: this.docType,
     });
     if (!res) {
       return null;
@@ -207,12 +203,11 @@ export class BaseModel<T> {
     const transaction = this.collection.find({
       ...rest,
       ...(query ? {
-        $text: {
-          $search: query,
-          $caseSensitive: false,
+        [queryField || 'name']: {
+          $regex: query,
+          $options: 'i',
         }
       } : {}),
-      docType: this.docType,
     });
 
     logger.info('Search', {
@@ -224,7 +219,6 @@ export class BaseModel<T> {
             $caseSensitive: false,
           }
         } : {}),
-        docType: this.docType,
       }
     });
 
@@ -248,10 +242,7 @@ export class BaseModel<T> {
       id: _id.toString(),
     } as T));
 
-    const total = await this.collection.countDocuments({
-      ...rest,
-      docType: this.docType,
-    });
+    const total = await this.collection.countDocuments(rest);
 
     return {
       items,
@@ -268,6 +259,6 @@ export class BaseModel<T> {
   }
 
   async remove(id: string): Promise<void> {
-    await this.collection.deleteOne({ _id: new ObjectId(id), docType: this.docType });
+    await this.collection.deleteOne({ _id: new ObjectId(id) });
   }
 }

@@ -52,7 +52,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
         logger.info('Pending shift', { pendingShift });
         shiftAssignments.push({
           updateOne: {
-            filter: { _id: new ObjectId(pendingShift._id), docType: DocType.Shift },
+            filter: { _id: new ObjectId(pendingShift._id) },
             update: { $set: { userId: request.userId.toString(), status: ShiftStatus.Assigned } },
           },
         });
@@ -76,7 +76,6 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
 
   // Remove all open requests for this shift group
   await lottery.collection.deleteMany({
-    docType: DocType.ShiftLotteryRequest,
     shiftGroupId: shiftGroupId,
   });
 

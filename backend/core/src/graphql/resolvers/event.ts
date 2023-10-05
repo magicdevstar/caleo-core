@@ -40,16 +40,17 @@ export const event = {
     removeEvent: async (
       _parent: unknown,
       { id }: { id: string },
-      { events, shifts, assignments, shiftBufferRequests, shiftLotteryRequests, user }: Context
+      { events, user, organization }: Context
     ): Promise<string> => {
       adminOnly(user);
-      await events.remove(id);
-
-      await assignments.removeAllByEventId(user?.member.orgId!, id);
-      await shifts.removeAllByEventId(user?.member.orgId!, id);
-      await shiftBufferRequests.removeByEventId(id);
-      await shiftLotteryRequests.removeByEventId(id);
-
+      const event = await events.get(id);
+      if (!event) {
+        throw new GraphQLError('Could not find event');
+      }
+      await events.removeEvent({
+        event,
+        organization: organization!,
+      });
       return id;
     },
     event: async (

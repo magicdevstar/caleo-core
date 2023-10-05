@@ -1,9 +1,10 @@
-import { Db, ObjectId } from 'mongodb';
+import { Collection, Db, ObjectId } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import {
   DayAvailability,
   DocType,
   EventStatus,
+  MemberRole,
   MemberTier,
   Organization,
   ProfilePhotoAttachmentUpload,
@@ -30,6 +31,7 @@ import { ShiftBufferRequestModel } from './shiftBufferRequest';
 
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
+  memberSkillsCollection: Collection;
   constructor(
     db: Db,
     private assignments: AssignmentModel,
@@ -39,6 +41,16 @@ export class UserModel extends BaseModel<User> {
     private document: DocumentModel,
   ) {
     super(db, DocType.User, 'users');
+    this.memberSkillsCollection = this.db.collection('memberSkills');
+  }
+
+  async getAllAdmins({
+    orgId,
+  }) {
+    return this.collection.find({
+      'member.orgId': orgId,
+      'member.role': MemberRole.Admin,
+    }).toArray();
   }
 
   async findOpenShifts({
@@ -64,12 +76,11 @@ export class UserModel extends BaseModel<User> {
   }) {
     let skillIds: string[] = [];
     if ((user.member.memberSkillIds || []).length > 0) {
-      const skillList = await this.collection.find({
+      const skillList = await this.memberSkillsCollection.find({
         orgId,
         _id: {
           $in: (user.member.memberSkillIds || []).map((id) => new ObjectId(id as string)),
         },
-        docType: DocType.MemberSkill,
       }).toArray();
       skillIds = skillList.map(({ skillId }) => skillId);
     }
@@ -113,7 +124,6 @@ export class UserModel extends BaseModel<User> {
         },
       ],
     };
-    logger.info('Assignment search', { assignmentSearch });
     const {items: assignmentList} = await this.assignments.search(assignmentSearch);
 
     // Filter assignments that are not compatible with the user
@@ -133,8 +143,8 @@ export class UserModel extends BaseModel<User> {
     // Filter shifts already assigned to me
     const maxEndTime = Date.now();
     const myShifts = (await this.shifts.collection.find({
+      orgId: organization.id,
       userId: user.id,
-      docType: DocType.Shift,
       endTime: {
         $gte: maxEndTime,
       }
@@ -144,13 +154,9 @@ export class UserModel extends BaseModel<User> {
       endTime,
     }));
     const shiftIds = myShifts.map(({ shiftId }) => shiftId);
-
-    logger.info('My Shifts', { myShifts });
-
     // Filter shifts that I have submitted a request for
     const myShiftBufferRequests = await this.shiftBufferRequests.collection.find({
       userId: user.id,
-      docType: DocType.ShiftBufferRequest,
       status: ShiftBufferRequestStatus.Pending,
       endTime: {
         $gte: maxEndTime,
@@ -158,14 +164,13 @@ export class UserModel extends BaseModel<User> {
     }).toArray();
     shiftIds.push(...myShiftBufferRequests.map(({ shiftGroupId }) => shiftGroupId));
 
-    logger.info('AssignmentIds', { assignmentIds });
-
     const availability = Object.keys(user.member.availability).reduce((acc, day) => {
       const { available, times } = user.member.availability[day] as DayAvailability;
       if (!available) {
-        return {
-          [`availability.${day}.startTime`]: {$exists: false},
-        };
+        return [
+          ...acc,
+          {[`availability.${day}.startTime`]: {$exists: false}},
+        ];
       }
 
       const overlap = (times || []).map(({ startTime, endTime }) => {
@@ -180,13 +185,13 @@ export class UserModel extends BaseModel<User> {
             {
               $or: [
                 {[`availability.${day}.startTime`]: {$exists: false}},
-                {[`availability.${day}.startTime`]: {$gte: new Date(start)}},
+                {[`availability.${day}.startTime`]: {$gte: start}},
               ],
             },
             {
               $or: [
                 {[`availability.${day}.endTime`]: {$exists: false}},
-                {[`availability.${day}.endTime`]: {$lte: new Date(end)}},
+                {[`availability.${day}.endTime`]: {$lte: end}},
               ],
             },
           ]
@@ -198,8 +203,6 @@ export class UserModel extends BaseModel<User> {
         ...(overlap.length > 0 ? [{$or: overlap}] : []),
       ];
     }, [] as any);
-
-    logger.info('Availability', { availability });
 
     const $and: any[] = [];
     if (availability.length > 0) {
@@ -234,7 +237,6 @@ export class UserModel extends BaseModel<User> {
       // Select only shift docs that are attached to compatible open assignments and are unassigned
       {
         $match: {
-          docType: DocType.Shift,
           endTime: { $gte: maxEndTime },
           ...(shiftId ? { _id: new ObjectId(shiftId) } : {}),
           shiftId: {
@@ -338,7 +340,6 @@ export class UserModel extends BaseModel<User> {
     const maxEndTime = Date.now();
     const myShifts = (await this.shifts.collection.find({
       userId: user.id,
-      docType: DocType.Shift,
       orgId: organization.id,
       endTime: {
         $gte: maxEndTime,
@@ -359,7 +360,6 @@ export class UserModel extends BaseModel<User> {
     }
     const res = await this.shifts.collection.find({
       _id: new ObjectId(shiftId),
-      docType: DocType.Shift,
       endTime: { $gte: maxEndTime },
       // Handles shift ranges
       ...($and.length > 0 ? { $and } : {}),

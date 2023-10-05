@@ -95,7 +95,7 @@ export const skill = {
     userSkill: async (
       _parent: unknown,
       { userSkill }: { userSkill: UpsertMemberSkill },
-      { memberSkills, user }: Context
+      { memberSkills, user, organization }: Context
     ): Promise<MemberSkill> => {
       adminOrOwnerOnly(userSkill.userId, user);
 
@@ -108,7 +108,7 @@ export const skill = {
       return memberSkills.upsertDoc({
         ...userSkill,
         orgId: user?.member.orgId!,
-      } as any);
+      } as any, organization!);
     },
     userSkillAttachmentUploadUrl: async (
       _parent: unknown,

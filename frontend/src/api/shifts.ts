@@ -201,6 +201,7 @@ export const GET_GROUPED_SHIFTS = gql`
       event {
         id
         name
+        status
       }
       
       user {
@@ -216,6 +217,12 @@ export const GET_GROUPED_SHIFTS = gql`
         }
       }
     }
+  }
+`;
+
+export const NOTIFY_OF_SHIFT = gql`
+  mutation NotifyOfShift($shiftId: String!) {
+    notifyUsersOfShift(shiftId: $shiftId)
   }
 `;
 

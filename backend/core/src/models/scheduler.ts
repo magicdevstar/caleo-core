@@ -11,9 +11,11 @@ import {
   DeleteScheduleCommand,
   ActionAfterCompletion
 } from "@aws-sdk/client-scheduler";
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import logger from "../utils/logger";
 
 const scheduler = new SchedulerClient({});
+const sfn = new SFNClient({});
 
 export enum ScheduleEvent {
   LOTTO_START = 'lotto_start',
@@ -33,6 +35,14 @@ export enum Timezone {
 
 export class SchedulerModel {
   constructor() {}
+
+  async asyncSchedule(input: any) {
+    const command = new StartExecutionCommand({
+      stateMachineArn: process.env.SCHEDULER_FUNCTION_ARN,
+      input,
+    });
+    await sfn.send(command);
+  }
 
   async getSchedule({
     orgId,
@@ -61,8 +71,8 @@ export class SchedulerModel {
     orgId,
     customEventName,
   }: {
-    event: ScheduleEvent;
-    orgId: string;
+    event?: ScheduleEvent;
+    orgId?: string;
     customEventName?: string;
   }) {
     const command = new DeleteScheduleCommand({

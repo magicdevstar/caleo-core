@@ -1,10 +1,12 @@
 import { Db } from 'mongodb';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DocType, Shift } from '../__generated__/resolvers-types';
+import { DocType, Organization, Shift } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMinutes } from 'date-fns';
 import DataLoader from 'dataloader';
+import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 
 const dayOfWeek = [
   'sunday',
@@ -16,12 +18,13 @@ const dayOfWeek = [
   'saturday', // [6]
 ];
 
+const lambda = new LambdaClient({});
+
 export class ShiftModel extends BaseModel<Shift> {
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.aggregate([
       {
         $match: {
-          docType: DocType.Shift,
           shiftId: { $in: groupKeys },
         }
       },
@@ -44,6 +47,31 @@ export class ShiftModel extends BaseModel<Shift> {
 
   constructor(db: Db) {
     super(db, DocType.Shift, 'shifts');
+  }
+
+  async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
+    const emptyShifts = await this.collection.find({
+      shiftId,
+      $or: [
+        { userId: null },
+        { userId: { $exists: false } },
+      ],
+    }).toArray();
+    
+    if (emptyShifts.length > 0) {
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerFcfsShiftAvailable,
+          data: {
+            shiftId,
+            organization,
+          },
+        } as MailerEvent),
+      }));
+    }
   }
 
   createAvailability(shift: Shift, timezone: string) {
@@ -97,14 +125,12 @@ export class ShiftModel extends BaseModel<Shift> {
     const shiftRes = await this.collection.deleteMany({
       orgId,
       eventId,
-      docType: DocType.Shift,
     });
 
     if (shiftRes.deletedCount === 0) {
       logger.warn('No shifts removed', {
         orgId,
         eventId,
-        docType: DocType.Shift,
       });
     }
   }
@@ -112,22 +138,29 @@ export class ShiftModel extends BaseModel<Shift> {
   async removeAllByAssignmentId(orgId: string, assignmentId: string): Promise<void> {
     const shiftRes = await this.collection.deleteMany({
       orgId,
-      docType: DocType.Shift,
       assignmentId,
     });
     if (shiftRes.deletedCount === 0) {
       logger.warn('No shifts removed', {
         orgId,
-        docType: DocType.Shift,
         assignmentId,
       });
     }
   }
 
+  async getAllShiftsById(shiftId: string): Promise<Shift[]> {
+    const shifts = await this.collection.find({
+      shiftId,
+    }).toArray();
+    return shifts.map((shift) => ({
+      ...shift,
+      id: shift._id.toString(),
+    } as any)) as Shift[];
+  }
+
   async getByShiftId(shiftId: string): Promise<Shift | null> {
     return this.findOne({
       shiftId,
-      docType: DocType.Shift,
     });
   }
 
@@ -141,7 +174,6 @@ export class ShiftModel extends BaseModel<Shift> {
       // Filter for only open shifts
       {
         $match: {
-          docType: 'SHIFT',
           orgId,
           $and: [
             {
@@ -229,7 +261,6 @@ export class ShiftModel extends BaseModel<Shift> {
       // Filter for only open shifts
       {
         $match: {
-          docType: 'SHIFT',
           orgId,
           $and: [
             {

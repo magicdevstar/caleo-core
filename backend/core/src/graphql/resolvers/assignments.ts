@@ -26,7 +26,14 @@ export const assignments = {
     removeAssignment: async (
       _parent: unknown,
       { id }: { id: string },
-      { assignments, events, shiftBufferRequests, shiftLotteryRequests, shifts, user }: Context
+      {
+        assignments,
+        events,
+        shiftBufferRequests,
+        shiftLotteryRequests,
+        organization,
+        user,
+      }: Context
     ): Promise<string> => {
       adminOnly(user);
 
@@ -35,10 +42,14 @@ export const assignments = {
         throw new GraphQLError("Assignment not found");
       }
 
-      await assignments.remove(id);
+      await assignments.removeAssignment({
+        assignment,
+        organization: organization!,
+      });
 
       // Remove all shifts for this assignment
-      await shifts.removeAllByAssignmentId(user?.member.orgId!, id);
+      // (This will happen after we send the notification event)
+      // await shifts.removeAllByAssignmentId(user?.member.orgId!, id);
 
       // Remove shift buffer requests
       await shiftBufferRequests.removeByAssignmentId(id);

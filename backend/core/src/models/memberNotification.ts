@@ -38,7 +38,6 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     await this.collection.updateMany({
       notificationId: { $in: notificationIds },
       userId,
-      docType: DocType.MemberNotification,
     }, {  $set: { lastSeen: now }});
 
     // Get all notifications
@@ -62,7 +61,6 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
       notificationId,
       userId,
       lastSeen: now as any,
-      docType: DocType.MemberNotification,
     }) as Omit<MemberNotification, 'id'>);
 
     if (newNotifications.length > 0) {

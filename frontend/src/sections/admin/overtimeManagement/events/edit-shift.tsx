@@ -12,6 +12,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
@@ -20,13 +21,13 @@ import { client } from 'src/utils/apollo';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Shift } from 'src/__generated__/resolvers-types';
+import { EventStatus, Shift } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
-import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
+import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, NOTIFY_OF_SHIFT, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -63,6 +64,19 @@ export default function EditShift({
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
   const [lockShift, setLockShift] = useState<Shift | null>();
+  const canNotify = useMemo(() =>
+    currentShifts?.[0]?.event?.status === EventStatus.FirstComeFirstServe &&
+    currentShifts.some((shift) => shift.userId === null || !('userId' in shift)),
+  [currentShifts]);
+
+  const [notify] = useMutation(NOTIFY_OF_SHIFT, {
+    variables: {
+      shiftId: currentShifts?.[0]?.shiftId,
+    },
+    onCompleted() {
+      enqueueSnackbar('All available officers will be notified shortly!', { variant: 'success' });
+    },
+  });
 
   const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
     refetchQueries: [{
@@ -299,10 +313,21 @@ export default function EditShift({
     <>
       {mdUp && <Grid md={4} />}
       <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <Tooltip title={!canNotify ? 'Event must be first come first serve and there must be available shifts' : ''}>
+          <span>
+            <Button
+              disabled={!canNotify}
+              variant='outlined'
+              size="large"
+              onClick={notify as any}
+            >Notify Users of Available Shifts</Button>
+          </span>
+        </Tooltip>
         <Button
           component={RouterLink}
           variant='outlined'
           size="large"
+          sx={{ ml: 2 }}
           href={paths.dashboard.admin.overtime.eventAssignmentDetail
             .replace(':eventId', eventId!)
             .replace(':assignmentId', assignmentId!)}

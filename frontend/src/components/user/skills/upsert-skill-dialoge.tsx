@@ -34,15 +34,19 @@ export default function UpsertMemberSkill({
   rankId,
   memberSkill,
   upsertMemberSkill,
+  existingSkills,
   onUpsertMemberSkill,
 }: {
   userId: string;
   rankId: string;
   memberSkill: MemberSkill | null;
+  existingSkills: MemberSkill[];
   upsertMemberSkill: ReturnType<any>;
   onUpsertMemberSkill: () => void;
 }) {
   const { data } = useQuery(GET_BASE_SKILLS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         active: true,
@@ -50,7 +54,12 @@ export default function UpsertMemberSkill({
       },
     }
   });
-  const { skills: { items: possibleSkills } } = data || { skills: { items: [] } };
+
+  const possibleSkills = useMemo(() => {
+    const { skills: { items } } = data || { skills: { items: [] } };
+    const existingSkillIds = existingSkills.map((s) => s.skill.id);
+    return items.filter((skill: Skill) => !existingSkillIds.includes(skill.id));
+  }, [data, existingSkills]);
 
   const [createUploadLink] = useMutation(CREATE_SKILL_UPLOAD_URL);
   const [userSkillMutation, { loading, error: skillError }] = useMutation(UPSERT_MEMBER_SKILL, {
@@ -69,9 +78,7 @@ export default function UpsertMemberSkill({
   useEffect(() => {
     if (memberSkill) {
       setLoadingImage(true);
-      if (memberSkill.skill.requiresCert) {
-        setRequiresImage(true);
-      }
+      setRequiresImage(memberSkill.skill.requiresCert);
       setSkillMod({
         id: memberSkill.id,
         imagePath: memberSkill.imagePath || '',
@@ -209,9 +216,7 @@ export default function UpsertMemberSkill({
             }}
             sx={{ mt: 2 }}
             onChange={(_, value) => {
-              if (value?.requiresCert) {
-                setRequiresImage(true)
-              }
+              setRequiresImage(!!value?.requiresCert);
               setSkillMod((c) => ({
                 ...c,
                 skill: value as any,

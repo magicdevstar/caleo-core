@@ -65,17 +65,6 @@ export const event = {
         if (!currentEvent) {
           throw new GraphQLError('Could not find event');
         }
-        if (!event.assignmentIds || event.assignmentIds.length === 0) {
-          (event as any).status = EventStatus.Draft;
-        } else if (currentEvent?.status === EventStatus.Draft) {
-          const totalShifts = await shifts.collection.countDocuments({
-            eventId: event.id,
-          });
-          // TODO: Set default status based on org settings :)
-          if (totalShifts > 0) {
-            (event as any).status = EventStatus.ReadyForLottery;
-          }
-        }
       } else {
         (event as any).status = EventStatus.Draft;
       }

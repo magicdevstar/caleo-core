@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useSnackbar } from 'notistack';
 // @mui
 import Button from '@mui/material/Button';
 // @apollo/client
@@ -15,16 +16,19 @@ import { getBooleanFilters, TableConfig } from 'src/components/table/table-confi
 //
 import UpsertRankDialogue from './upsert-rank-dialogue';
 
-
 // ----------------------------------------------------------------------
 
 export default function RankTable() {
+  const { enqueueSnackbar } = useSnackbar();
   const [updateRank] = useMutation(UPSERT_RANK, {
     refetchQueries: [GET_RANKS],
   });
 
   const [removeRank] = useMutation(REMOVE_RANK, {
     refetchQueries: [GET_RANKS],
+    onError: (error) => {
+      enqueueSnackbar(error.message, { variant: 'error', autoHideDuration: 4000 });
+    }
   });
 
   const [editRank, setEditRank] = useState<Rank | null>(null);

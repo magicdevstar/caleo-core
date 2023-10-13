@@ -2,6 +2,7 @@ import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import { Rank, RankSearchInput, UpsertRank } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import logger from "../../utils/logger";
 
 export const rank = {
   Query: {
@@ -24,9 +25,31 @@ export const rank = {
     removeRank: async (
       _parent: unknown,
       { id }: { id: string },
-      { ranks }: Context
+      {
+        ranks,
+        skills,
+        users,
+      }: Context
     ): Promise<string> => {
-      await ranks.remove(id)
+      const countUsersWithRole = await users.collection.countDocuments({
+        'member.rankId': id,
+      });
+
+      if (countUsersWithRole > 0) {
+        throw new GraphQLError("Cannot remove a rank that is assigned to users");
+      }
+
+      await ranks.remove(id);
+
+      // Remove all references to the rank from any shifts
+      const res = await skills.collection.updateMany({
+        rankOnlyIds: id
+      }, {
+        $pull: {
+          rankOnlyIds: id
+        } as any,
+      });
+
       return id;
     },
     rank: async (

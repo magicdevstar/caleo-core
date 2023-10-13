@@ -80,6 +80,8 @@ export default function EditAssignment({
   [currentAssignment?.shifts]);
 
   const { data: rankData } = useQuery(GET_RANKS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         active: true,
@@ -87,6 +89,8 @@ export default function EditAssignment({
     },
   });
   const { data: skillData } = useQuery(GET_SKILL_SLIM, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         active: true,

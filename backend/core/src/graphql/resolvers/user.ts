@@ -35,12 +35,21 @@ export const user = {
     ): Promise<SearchResults<User>> => users.search({
       limit: input.limit,
       skip: input.skip,
-      queryField: 'name',
+      queryField: input.queryField || 'name',
       query: input.query,
       ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
-      ...(input.pNumber ? {'member.pNumber': input.pNumber} : {}),
-      ...(input.phone ? {'member.contactInfo.primaryPhone.number': input.phone} : {}),
-      ...(input.email ? {'member.contactInfo.primaryEmail.address': input.email} : {}),
+      ...(input.pNumber ? {'member.pNumber': {
+        $regex: input.pNumber,
+        $options: 'i',
+      }} : {}),
+      ...(input.phone ? {'member.contactInfo.primaryPhone.number': {
+        $regex: input.phone,
+        $options: 'i',
+      }} : {}),
+      ...(input.email ? {'member.contactInfo.primaryEmail.address': {
+        $regex: input.email,
+        $options: 'i',
+      }} : {}),
       ...(input.rankIds ? {'member.rankId': { $in: input.rankIds }} : {}),
       ...(input.statuses ? {'member.status': { $in: input.statuses }} : {}),
       ...(input.tiers ? {'member.tier': { $in: input.tiers }} : {}),

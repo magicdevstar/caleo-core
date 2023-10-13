@@ -13,6 +13,9 @@ const userDetailProperties = `
     org {
       id
       timezone
+      settings {
+        shiftsPerWeek
+      }
     }
     contactInfo {
       primaryEmail {

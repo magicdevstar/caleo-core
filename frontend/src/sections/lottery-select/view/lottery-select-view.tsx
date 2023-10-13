@@ -54,8 +54,14 @@ export default function LotterySelectView() {
     initialized: false,
   });
 
-  const { data: lotteryShiftData, loading: loadingLotteryShifts } = useQuery(GET_LOTTERY_SHIFTS);
-  const { data: lotteryShiftRequestData, loading: loadingLotteryShiftRequests } = useQuery(GET_LOTTERY_SHIFT_REQUESTS);
+  const { data: lotteryShiftData, loading: loadingLotteryShifts } = useQuery(GET_LOTTERY_SHIFTS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
+  const { data: lotteryShiftRequestData, loading: loadingLotteryShiftRequests } = useQuery(GET_LOTTERY_SHIFT_REQUESTS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
   const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST);
   const [upsertRequest] = useMutation(CREATE_SHIFT_LOTTERY_REQUEST);
 

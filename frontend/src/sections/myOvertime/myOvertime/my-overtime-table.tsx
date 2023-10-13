@@ -24,7 +24,10 @@ import { ORGANIZATION } from 'src/api/organization';
 export default function MyOvertimeTable() {
   const { user } = useAuthContext();
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
-  const { data: organizationData } = useQuery(ORGANIZATION);
+  const { data: organizationData } = useQuery(ORGANIZATION, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
   const organization = organizationData?.organization;
   const [assignShift, { loading: relinquishLoading }] = useMutation(ASSIGN_SHIFT, {
     refetchQueries: [GET_ALL_SHIFTS],

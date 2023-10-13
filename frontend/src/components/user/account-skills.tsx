@@ -102,6 +102,7 @@ export default function AccountSkills({ user }: Props) {
         rankId={user.member.rank!.id}
         upsertMemberSkill={upsertMemberSkill}
         onUpsertMemberSkill={handleUpsert}
+        existingSkills={(user.member.memberSkills || []) as MemberSkill[]}
       />
 
       <ConfirmDialog

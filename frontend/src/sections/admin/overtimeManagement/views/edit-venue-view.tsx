@@ -20,6 +20,8 @@ export default function VenueDetail() {
   const params = useParams();
 
   const { data, loading } = useQuery(GET_VENUE, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       id: params.id,
     }, 

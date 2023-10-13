@@ -52,6 +52,7 @@ type Props = {
 };
 
 const eventStatusNames = {
+  [EventStatus.Draft]: 'Draft',
   [EventStatus.ReadyForLottery]: 'Lottery',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
 }
@@ -63,6 +64,8 @@ export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         status: VenueStatus.Active,
@@ -109,7 +112,7 @@ export default function EditEvent({ currentEvent }: Props) {
     () => ({
       id: currentEvent?.id,
       name: currentEvent?.name || '',
-      status: currentEvent?.status,
+      status: currentEvent?.status || EventStatus.Draft,
       notes: currentEvent?.notes || '',
       attachments: [],
       venueId: currentEvent?.venueId || '',
@@ -459,25 +462,24 @@ export default function EditEvent({ currentEvent }: Props) {
               />
             </Stack>
 
-            {currentEvent && currentEvent.status !== EventStatus.Draft && (
-              <RHFSelect
-                fullWidth
-                name="status"
-                label="Posting type"
-                disabled={currentEvent?.status === EventStatus.Complete}
-                InputLabelProps={{ shrink: true }}
-                PaperPropsSx={{ textTransform: 'capitalize' }}
-              >
-                {[
-                  EventStatus.ReadyForLottery,
-                  EventStatus.FirstComeFirstServe,
-                ].map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {(eventStatusNames as any)[option]}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
-            )}
+            <RHFSelect
+              fullWidth
+              name="status"
+              label="Posting type"
+              disabled={currentEvent?.status === EventStatus.Complete}
+              InputLabelProps={{ shrink: true }}
+              PaperPropsSx={{ textTransform: 'capitalize' }}
+            >
+              {[
+                EventStatus.Draft,
+                EventStatus.ReadyForLottery,
+                EventStatus.FirstComeFirstServe,
+              ].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {(eventStatusNames as any)[option]}
+                </MenuItem>
+              ))}
+            </RHFSelect>
 
             {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
               <DateTimePicker

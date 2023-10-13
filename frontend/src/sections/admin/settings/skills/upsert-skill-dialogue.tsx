@@ -49,6 +49,8 @@ export default function UpsertSkillDialogue({
     refetchQueries: [GET_SKILLS],
   });
   const { data } = useQuery(GET_RANKS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         active: true,

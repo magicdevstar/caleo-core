@@ -14,7 +14,10 @@ import Overtime from '../overtime/overtime';
 // ----------------------------------------------------------------------
 
 export default function OvertimeView() {
-  const { data, loading } = useQuery(ORGANIZATION);
+  const { data, loading } = useQuery(ORGANIZATION, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
   const settings = useSettingsContext();
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>

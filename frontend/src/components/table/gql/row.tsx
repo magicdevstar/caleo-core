@@ -119,34 +119,37 @@ const StringCell = ({value, labelColor, href, onClick, width, clickable} : { wid
   );
 };
 
-const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number;}) => (
-  <TableCell width={width}>
-    {!value || (value || []).length === 0 ? (
-      <Label variant="soft" color="info">
-        All
-      </Label>
-    ) :
-      (
-        <>
-          {
-            (value || []).slice(0, maxRender).map((rank: any) => (
-              <Label key={rank.id} sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
-                {rank.name}
-              </Label>
-            ))
-          }
-          {
-            (value || []).length > maxRender && (
-              <Label sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
-                + {((value || []).length - maxRender)}
-              </Label>
-            )
-          }
-        </>
-      )
-    }
-  </TableCell>
-);
+const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number;}) => {
+  const arr = !value ? [] : (value || []).filter(Boolean);
+  return (
+    <TableCell width={width}>
+      {arr.length === 0 ? (
+        <Label variant="soft" color="info">
+          All
+        </Label>
+      ) :
+        (
+          <>
+            {
+              arr.slice(0, maxRender).map((rank: any) => (
+                <Label key={rank.id} sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
+                  {rank.name}
+                </Label>
+              ))
+            }
+            {
+              arr.length > maxRender && (
+                <Label sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
+                  + {(arr.length - maxRender)}
+                </Label>
+              )
+            }
+          </>
+        )
+      }
+    </TableCell>
+  )
+};
 
 export default function GQLTableRow({
   row,

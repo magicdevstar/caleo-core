@@ -21,6 +21,8 @@ export default function UserDetail() {
   const params = useParams();
 
   const { data, loading } = useQuery(GET_USER, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       id: params.id,
     }, 

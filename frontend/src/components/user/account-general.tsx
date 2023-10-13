@@ -115,6 +115,8 @@ export default function AccountGeneral({
     ]
   });
   const { data } = useQuery(GET_RANKS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {},
     },

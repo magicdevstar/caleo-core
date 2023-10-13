@@ -20,6 +20,8 @@ export default function NotificationView() {
   const params = useParams();
   
   const { data, loading } = useQuery(GET_NOTIFICATION, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     skip: params.id === 'new',
     variables: {
       id: params.id,

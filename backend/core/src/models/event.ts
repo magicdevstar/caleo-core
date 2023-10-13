@@ -112,18 +112,12 @@ export class EventModel extends BaseModel<Event> {
   
       const startTime = earliestShift ? earliestShift.startTime : null;
       const endTime = latestShift ? latestShift.endTime : null;
-      const totalShifts = await this.shifts.collection.countDocuments(shiftFilter);
-
-      if (event.status === EventStatus.Draft && totalShifts > 0) {
-        event.status = EventStatus.ReadyForLottery;
-      } 
 
       await this.update({
         ...event,
         ...eventUpdates,
         startTime,
         endTime,
-        status: totalShifts === 0 ? EventStatus.Draft : event.status,
       } as any, { skipMerge: true });
     }
     return true;

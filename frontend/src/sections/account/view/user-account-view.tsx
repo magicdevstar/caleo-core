@@ -16,6 +16,8 @@ import MainAccountView from 'src/components/user/account-view';
 export default function AccountView() {
   const { user } = useAuthContext();
   const { data, loading } = useQuery(GET_USER, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       id: user.id,
     }, 

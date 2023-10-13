@@ -99,7 +99,18 @@ export default function AccountOvertime({
         </Grid>
         <Grid xs={12} md={8}>
           <Stack spacing={1} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.neutral' }}>
-            <TextField fullWidth type="number" value={maxShifts} onChange={(event) => setMaxShifts(parseInt(event.target.value, 10))} />
+            <TextField
+              fullWidth
+              type="number"
+              value={maxShifts}
+              InputProps={{ inputProps: { min: "0", max: "10", step: "1" } }}
+              onChange={(event) => {
+                const value = parseInt(event.target.value || '0', 10);
+                if (value <= user.member.org?.settings?.shiftsPerWeek!) {
+                  setMaxShifts(parseInt(event.target.value, 10));
+                }
+              }}
+            />
           </Stack>
         </Grid>
       </Grid>

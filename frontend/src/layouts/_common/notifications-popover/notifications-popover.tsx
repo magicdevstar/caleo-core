@@ -54,7 +54,10 @@ export default function NotificationsPopover() {
   const [markAsSeen] = useMutation(MARK_ALL_AS_SEEN, {
     refetchQueries: [GET_ACTIVE_NOTIFICATIONS],
   });
-  const { data, loading } = useQuery(GET_ACTIVE_NOTIFICATIONS);
+  const { data, loading } = useQuery(GET_ACTIVE_NOTIFICATIONS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
 
   const totalUnRead = loading ? (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />) : data?.activeNotifications?.items?.filter(({ seen, frequency }: Notification) => !seen || frequency === NotificationFrequency.Always)?.length;
 

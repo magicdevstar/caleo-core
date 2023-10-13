@@ -21,6 +21,8 @@ export default function ShiftDetail() {
   const params = useParams();
 
   const { data, loading } = useQuery(GET_GROUPED_SHIFTS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       shiftId: params.shiftId,
     },

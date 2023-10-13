@@ -485,9 +485,9 @@ export default function EditEvent({ currentEvent }: Props) {
                 ampm={false}
                 timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 timezone={user.member.org?.timezone}
-                value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs.utc(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs.utc(new Date())}
+                value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
                 onChange={(date) => {
-                  setValue('scheduledFirstComeFirstServe', date ? dayjs.utc(date).toISOString() : '')
+                  setValue('scheduledFirstComeFirstServe', date ? dayjs(date).toISOString() : '')
                 }}
                 slotProps={{
                   textField: {
@@ -505,7 +505,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   timezone={user.member.org?.timezone}
                   ampm={false}
                   timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                  value={currentEvent?.startTime ? dayjs.utc(new Date(currentEvent.startTime)) : null}
+                  value={currentEvent?.startTime ? dayjs(new Date(currentEvent.startTime)) : null}
                   disabled
                   slotProps={{
                     textField: {
@@ -519,7 +519,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   ampm={false}
                   timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                   timezone={user.member.org?.timezone}
-                  value={currentEvent?.endTime ? dayjs.utc(new Date(currentEvent.endTime)) : null}
+                  value={currentEvent?.endTime ? dayjs(new Date(currentEvent.endTime)) : null}
                   disabled
                   slotProps={{
                     textField: {

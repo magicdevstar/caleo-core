@@ -371,10 +371,10 @@ export default function EditShift({
               ampm={false}
               timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               label="Start time"
-              value={dayjs.utc(startTime)}
+              value={dayjs(startTime)}
               onChange={async (newValue: any) => {
                 setStartTime(newValue);
-                if(dayjs.utc(endTime).isBefore(newValue)) {
+                if(dayjs(endTime).isBefore(newValue)) {
                   setEndTime(newValue);
                 }
                 if (currentShifts.length > 0) {
@@ -405,8 +405,8 @@ export default function EditShift({
               timezone={user.member.org?.timezone}
               ampm={false}
               timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-              value={dayjs.utc(endTime)}
-              minDate={dayjs.utc(startTime)}
+              value={dayjs(endTime)}
+              minDate={dayjs(startTime)}
               onChange={async (newValue: any) => {
                 setEndTime(newValue);
                 if (currentShifts.length > 0) {

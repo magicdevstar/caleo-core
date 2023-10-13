@@ -120,7 +120,7 @@ export default function EditNotification({ currentNotification }: Props) {
     try {
       let expiration;
       if (data.frequency === NotificationFrequency.UntilExpire && !data.expiration) {
-        expiration = dayjs.utc().add(2, 'days').toISOString();
+        expiration = dayjs().add(2, 'days').toISOString();
       } else if (data.frequency === NotificationFrequency.UntilExpire && data.expiration) {
         expiration = data.expiration; // eslint-disable-line prefer-destructuring
       }
@@ -240,9 +240,9 @@ export default function EditNotification({ currentNotification }: Props) {
                 ampm={false}
                 timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 timezone={user.member.org?.timezone}
-                value={currentFormValues?.expiration ? dayjs.utc(new Date(currentFormValues?.expiration)) : dayjs.utc().add(2, 'days')}
+                value={currentFormValues?.expiration ? dayjs(new Date(currentFormValues?.expiration)) : dayjs().add(2, 'days')}
                 onChange={(date) => {
-                  setValue('expiration', date ? dayjs.utc(date).toISOString() : '')
+                  setValue('expiration', date ? dayjs(date).toISOString() : '')
                 }}
                 slotProps={{
                   textField: {

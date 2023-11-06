@@ -338,6 +338,7 @@
 
     # This will be included when searching for shifts
     shiftBufferShift: Shift
+    otherShiftSlots: [Shift]
     user: User
     event: Event!
     assignment: Assignment!

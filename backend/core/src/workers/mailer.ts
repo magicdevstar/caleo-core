@@ -108,7 +108,7 @@ const sendEmail = async (input: MailerEvent) => {
             'system.metro_name': [organization.name],
           },
         },
-      };    
+      };
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
       const { shift, user, organization } = input.data;
       

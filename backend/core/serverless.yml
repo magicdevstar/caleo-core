@@ -15,8 +15,7 @@ params:
     dbName: caleo-prod
     poolId: us-west-2_3enNflKSo
     domainName: api.caleopro.com
-    # TODO: Change me :)
-    pinpointId: d169e35fcb7d4f06b26da89e5650905a
+    pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: support@caleopro.com
     loginUrl: https://caleopro.com/login
 

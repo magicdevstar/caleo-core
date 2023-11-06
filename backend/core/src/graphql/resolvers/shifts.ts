@@ -82,7 +82,7 @@ export const shift = {
           $gte: new Date(startTime).getTime(),
         };
       } else if (endTime) {
-        (searchInput as any).endTime = {
+        (searchInput as any).startTime = {
           $lte: new Date(endTime).getTime(),
         };
       }
@@ -452,6 +452,14 @@ export const shift = {
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
       user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
+      otherShiftSlots: (
+        shift: Shift,
+        _,
+        { shifts }: Context
+      ) => shifts.loadOtherShiftSlots.load({
+        excludeId: shift.id,
+        shiftId: shift.shiftId,
+      }),
     },
   },
 };

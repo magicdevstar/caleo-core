@@ -45,6 +45,31 @@ export class ShiftModel extends BaseModel<Shift> {
     return groupKeys.map((key) => res.find((item: any) => item.shiftId === key));
   });
 
+  public loadOtherShiftSlots = new DataLoader(async (groupKeys: readonly {shiftId: string; excludeId: string}[]) => {
+    const shiftIds = groupKeys.map((key) => key.shiftId);
+    const res = await this.collection.find({
+      shiftId: { $in: shiftIds },
+    }).toArray();
+
+    const groupedByShiftId = res.reduce((acc, shift) => {
+      if ((acc[shift.shiftId] || []).some((item) => item._id === shift._id)) {
+        return acc;
+      }
+      acc[shift.shiftId] = acc[shift.shiftId] || [];
+      logger.info('Shift', { shift });
+      shift.id = shift._id.toString();
+      delete (shift as any)._id;
+      acc[shift.shiftId].push(shift);
+      return acc;
+    }, {} as any);
+
+    return groupKeys
+      .map((key) =>
+        groupedByShiftId[key.shiftId]
+          .filter((item) => item.id !== key.excludeId)
+      );
+  });
+
   constructor(db: Db) {
     super(db, DocType.Shift, 'shifts');
   }

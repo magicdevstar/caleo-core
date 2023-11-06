@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import get from 'lodash/get';
 import { Link as RouterLink } from "react-router-dom";
 // @mui
@@ -9,6 +8,8 @@ import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+// hooks
+import { useDateJS } from 'src/hooks/use-datejs';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -35,8 +36,11 @@ const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}
 );
 
 const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
-  let output: any = value ? format(new Date(value), 'EEEEEE dd MMM yyyy') : 'N/A';
-  let secondary: any = value ? format(new Date(value), 'HH:mm') : '';
+  const { date } = useDateJS({
+    date: value
+  });
+  let output: any = value ? date.format('ddd DD MMM YYYY') : 'N/A';
+  let secondary: any = value ? date.format('HH:mm') : '';
   if (href) {
     secondary = (
       <Link

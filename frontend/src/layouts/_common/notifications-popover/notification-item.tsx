@@ -237,7 +237,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
 
 // ----------------------------------------------------------------------
 
-function reader(data: string) {
+export function reader(data: string) {
   return (
     <Box
       dangerouslySetInnerHTML={{ __html: data }}

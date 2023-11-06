@@ -47,11 +47,53 @@ export const GET_AVAILABLE_SHIFTS = gql`
     availableShifts(input: $input) {
       items {
         id
-        shiftId
         startTime
         endTime
-        status
-        locked
+        event {
+          id
+          name
+          attachments
+          notes
+          venue {
+            id
+            name
+            address
+            city
+            state
+            zip
+            phone
+            contact {
+              firstName
+              lastName
+              email
+              phone
+            }
+          }
+        }
+        assignment {
+          id
+          name
+          bwNeeded
+          requiredSkills {
+            id
+            name
+          }
+          ranks {
+            id
+            name
+          }
+        }
+        otherShiftSlots {
+          id
+          user {
+            id
+            firstName
+            lastName
+            member {
+              pNumber
+            }
+          }
+        }
 
         shiftBufferShift {
           id
@@ -67,17 +109,6 @@ export const GET_AVAILABLE_SHIFTS = gql`
             name
           }
         }
-        
-        assignment {
-          id
-          name
-        }
-
-        event {
-          id
-          name
-        }
-        
         user {
           id
           name
@@ -157,25 +188,52 @@ export const GET_ALL_SHIFTS = gql`
     shifts(input: $input) {
       items {
         id
-        shiftId
         startTime
         endTime
-        status
-        locked
-        
-        assignment {
-          id
-          name
-        }
-
         event {
           id
           name
+          attachments
+          notes
+          venue {
+            id
+            name
+            address
+            city
+            state
+            zip
+            phone
+            contact {
+              firstName
+              lastName
+              email
+              phone
+            }
+          }
         }
-        
-        user {
+        assignment {
           id
           name
+          bwNeeded
+          requiredSkills {
+            id
+            name
+          }
+          ranks {
+            id
+            name
+          }
+        }
+        otherShiftSlots {
+          id
+          user {
+            id
+            firstName
+            lastName
+            member {
+              pNumber
+            }
+          }
         }
       }
       total
@@ -218,6 +276,61 @@ export const GET_GROUPED_SHIFTS = gql`
       }
     }
   }
+`;
+
+export const GET_SHIFT_DETAILS = gql`
+query GetShiftDetails($id: String!) {
+  shift(id: $id) {
+    id
+    startTime
+    endTime
+    event {
+      id
+      name
+      attachments
+      notes
+      venue {
+        id
+        name
+        address
+        city
+        state
+        zip
+        phone
+        contact {
+          firstName
+          lastName
+          email
+          phone
+        }
+      }
+    }
+    assignment {
+      id
+      name
+      bwNeeded
+      requiredSkills {
+        id
+        name
+      }
+      ranks {
+        id
+        name
+      }
+    }
+    otherShiftSlots {
+      id
+      user {
+        id
+        firstName
+        lastName
+        member {
+          pNumber
+        }
+      }
+    }
+  }
+}
 `;
 
 export const NOTIFY_OF_SHIFT = gql`

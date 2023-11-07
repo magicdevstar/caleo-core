@@ -148,7 +148,7 @@ export function AuthProvider({ children }: Props) {
 
   // REGISTER
   const register = useCallback(
-    async (email: string, password: string, firstName: string, lastName: string) => {
+    async (email: string, password: string, firstName: string, lastName: string, phoneNumber: string, pNumber: string, orgId: string) => {
       await Auth.signUp({
         username: email,
         password,
@@ -156,6 +156,9 @@ export function AuthProvider({ children }: Props) {
           email,
           given_name: firstName,
           family_name: lastName,
+          'custom:org_id': orgId,
+          phone_number: `+${phoneNumber}`,
+          'custom:p_number': pNumber,
         },
       });
       // TODO: Fetch user from our backend

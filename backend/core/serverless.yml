@@ -4,6 +4,7 @@ frameworkVersion: '3'
 params:
   default:
     dbName: caleo-dev
+    poolName: lvmpd-oms-uat
     poolId: us-west-2_8023dPQwv
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}
@@ -13,6 +14,7 @@ params:
     loginUrl: https://dev.caleopro.com/login
   prod:
     dbName: caleo-prod
+    poolName: lvmpd-oms-prod
     poolId: us-west-2_3enNflKSo
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
@@ -105,6 +107,16 @@ functions:
       - httpApi:
           path: /
           method: GET
+
+  # Register Cognito User Hook
+  registerUser:
+    handler: src/workers/register.handler
+    events:
+      - cognitoUserPool:
+          pool: ${param:poolName}
+          trigger: PreSignUp
+          existing: true
+          forceDeploy: true
 
   # Scheduled Tasks
   scheduledEvents:  

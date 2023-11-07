@@ -3,6 +3,7 @@ import { useEffect, useCallback, useState } from 'react';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 //
+import { MemberStatus } from 'src/__generated__/resolvers-types';
 import { useAuthContext } from '../hooks';
 
 // ----------------------------------------------------------------------
@@ -20,7 +21,7 @@ type Props = {
 export default function AuthGuard({ children }: Props) {
   const router = useRouter();
 
-  const { authenticated, method } = useAuthContext();
+  const { user, authenticated, method } = useAuthContext();
 
   const [checked, setChecked] = useState(false);
 
@@ -35,10 +36,12 @@ export default function AuthGuard({ children }: Props) {
       const href = `${loginPath}?${searchParams}`;
 
       router.replace(href);
+    } else if ([MemberStatus.Pending, MemberStatus.Deleted, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
+      router.replace(paths.notApproved);
     } else {
       setChecked(true);
     }
-  }, [authenticated, method, router]);
+  }, [authenticated, method, router, user]);
 
   useEffect(() => {
     check();

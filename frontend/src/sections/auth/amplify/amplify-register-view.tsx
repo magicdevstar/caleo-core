@@ -21,8 +21,11 @@ import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 
 // ----------------------------------------------------------------------
+
+const incomingSearchParams = new URLSearchParams(window.location.search)
 
 export default function AmplifyRegisterView() {
   const { register } = useAuthContext();
@@ -36,15 +39,21 @@ export default function AmplifyRegisterView() {
   const RegisterSchema = Yup.object().shape({
     firstName: Yup.string().required('First name required'),
     lastName: Yup.string().required('Last name required'),
+    pNumber: Yup.string().required('P# required'),
+    phoneNumber: Yup.string().required('Phone number required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
     password: Yup.string().required('Password is required'),
+    orgId: Yup.string(),
   });
 
   const defaultValues = {
     firstName: '',
     lastName: '',
+    pNumber: '',
+    phoneNumber: '',
     email: '',
     password: '',
+    orgId: incomingSearchParams.get('orgId') || '',
   };
 
   const methods = useForm({
@@ -53,14 +62,18 @@ export default function AmplifyRegisterView() {
   });
 
   const {
-    reset,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await register?.(data.email, data.password, data.firstName, data.lastName);
+      const orgId = incomingSearchParams.get('orgId');
+      if (!orgId) {
+        console.log('No orgId found in incoming search params');
+        return;
+      }
+      await register?.(data.email, data.password, data.firstName, data.lastName, data.phoneNumber, data.pNumber, orgId);
 
       const searchParams = new URLSearchParams({
         email: data.email,
@@ -71,14 +84,14 @@ export default function AmplifyRegisterView() {
       router.push(href);
     } catch (error) {
       console.error(error);
-      reset();
+      // reset();
       setErrorMsg(typeof error === 'string' ? error : error.message);
     }
   });
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5, position: 'relative' }}>
-      <Typography variant="h4">Get started absolutely free</Typography>
+      <Typography variant="h4">Create your account</Typography>
 
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2"> Already have an account? </Typography>
@@ -121,7 +134,18 @@ export default function AmplifyRegisterView() {
         <RHFTextField name="lastName" label="Last name" />
       </Stack>
 
-      <RHFTextField name="email" label="Email address" />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <RHFTextField name="pNumber" label="P#" />
+        <RHFTextField name="email" label="Email address" />
+      </Stack>
+
+      <RHFPhoneField
+        name="phoneNumber"
+        label="Primary Phone"
+        country="us"
+        onlyCountries={['us']}
+        countryCodeEditable={false}
+      />
 
       <RHFTextField
         name="password"

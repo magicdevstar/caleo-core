@@ -30,7 +30,10 @@ type CanRemove = {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    phoneNumber: string,
+    pNumber: string,
+    orgId: string,
   ) => Promise<void>;
   //
   loginWithGoogle?: () => Promise<void>;

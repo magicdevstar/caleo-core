@@ -7,6 +7,9 @@ import TextField, { TextFieldProps } from '@mui/material/TextField';
 
 type Props = TextFieldProps & {
   name: string;
+  country?: string;
+  onlyCountries?: string[];
+  countryCodeEditable?: boolean;
 };
 
 const PhoneInput = ReactPhoneInput as any;

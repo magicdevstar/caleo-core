@@ -8,7 +8,7 @@ import {
   ProfilePhotoAttachmentUpload,
   MemberTier,
 } from "../../__generated__/resolvers-types";
-import { adminOnly } from "../../utils/access";
+import { adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
@@ -25,7 +25,7 @@ export const user = {
       { id }: { id: string },
       { users, user }: Context
     ): Promise<User | null> => {
-      adminOnly(user);
+      adminOrOwnerOnly(id, user);
       return users.get(id);
     },
     users: async (

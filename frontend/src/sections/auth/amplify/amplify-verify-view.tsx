@@ -81,6 +81,7 @@ export default function AmplifyVerifyView() {
       <RHFTextField
         name="email"
         label="Email"
+        disabled
         placeholder="example@gmail.com"
         InputLabelProps={{ shrink: true }}
       />

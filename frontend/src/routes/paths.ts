@@ -9,6 +9,7 @@ const ROOTS = {
 
 export const paths = {
   minimalUI: 'https://mui.com/store/items/minimal-dashboard/',
+  notApproved: `/not-approved`,
   // AUTH
   auth: {
     amplify: {

@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { GuestGuard } from 'src/auth/guard';
 // layouts
 import CompactLayout from 'src/layouts/compact';
-import AuthClassicLayout from 'src/layouts/auth/classic';
+import AuthModernLayout from 'src/layouts/auth/modern';
 // components
 import { SplashScreen } from 'src/components/loading-screen';
 
@@ -32,17 +32,17 @@ const authAmplify = {
     {
       path: 'login',
       element: (
-        <AuthClassicLayout>
+        <AuthModernLayout>
           <AmplifyLoginPage />
-        </AuthClassicLayout>
+        </AuthModernLayout>
       ),
     },
     {
       path: 'register',
       element: (
-        <AuthClassicLayout title="Manage the job more effectively with Minimal">
+        <AuthModernLayout>
           <AmplifyRegisterPage />
-        </AuthClassicLayout>
+        </AuthModernLayout>
       ),
     },
     {

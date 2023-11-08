@@ -56,7 +56,7 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, shifts, scheduler, user }: Context
+      { events, eventReferenceNumber, user }: Context
     ): Promise<Event> => {
       adminOnly(user);
 
@@ -67,6 +67,7 @@ export const event = {
         }
       } else {
         (event as any).status = EventStatus.Draft;
+        (event as any).referenceId = await eventReferenceNumber.get();
       }
 
       const inputEvent = {

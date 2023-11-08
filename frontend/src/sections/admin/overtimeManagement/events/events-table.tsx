@@ -66,6 +66,13 @@ export default function EventsTable() {
     ],
     columns: [
       {
+        id: 'referenceId',
+        label: 'Ref #',
+        columnType: 'string',
+        width: 100,
+        getHref: (row) => `/dashboard/admin/overtime/events/${row.id}`,
+      },
+      {
         id: 'name',
         label: 'Name',
         columnType: 'string',

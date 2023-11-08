@@ -17,10 +17,12 @@ import { SkillModel } from "../models/skill";
 import { UserModel } from "../models/user";
 import { VenueModel } from "../models/venue";
 import { DocumentModel } from "../models/document";
+import { EventReferenceNumber } from "../models/eventReferenceNumber";
 
 let db: Db;
 
 export interface Context {
+  eventReferenceNumber: EventReferenceNumber;
   organizations: OrganizationModel;
   users: UserModel;
   ranks: RankModel;
@@ -46,6 +48,7 @@ export const createContext = async (): Promise<Context> => {
     db = await mongodb.db(process.env.MONGODB_NAME!);
   }
 
+  const eventReferenceNumber = new EventReferenceNumber(db);
   const organizations = new OrganizationModel(db);
   const document = new DocumentModel();
   const notifications = new NotificationModel(db);
@@ -64,6 +67,7 @@ export const createContext = async (): Promise<Context> => {
 
   return {
     organizations,
+    eventReferenceNumber,
     users,
     ranks,
     skills,

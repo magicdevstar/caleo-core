@@ -249,6 +249,7 @@ export default function AccountGeneral({
               tier: d.tier,
               tierUntil: d.tierUntil,
               adminNote: d.adminNote,
+              status: d.status,
               contactInfo: {
                 primaryEmail: {
                   address: d.primaryEmail,

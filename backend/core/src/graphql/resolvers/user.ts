@@ -8,7 +8,7 @@ import {
   ProfilePhotoAttachmentUpload,
   MemberTier,
 } from "../../__generated__/resolvers-types";
-import { adminOrOwnerOnly } from "../../utils/access";
+import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
@@ -140,6 +140,15 @@ export const user = {
       return users.getUploadUrl({
         orgId: user?.member.orgId!,
       });
+    },
+    removeUser: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { users, user }: Context
+    ): Promise<string> => {
+      adminOnly(user);
+      await users.remove(id);
+      return id;
     }
   },
   fields: {

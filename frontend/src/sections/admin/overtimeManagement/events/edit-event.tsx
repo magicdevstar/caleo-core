@@ -417,7 +417,7 @@ export default function EditEvent({ currentEvent }: Props) {
             <RHFTextField
               name="name"
               label="Name"
-              helperText={`Event id: ${currentEvent?.id}`}
+              helperText={`Ref #: ${currentEvent?.referenceId}`}
             />
             <RHFSelect
               name="venueId"

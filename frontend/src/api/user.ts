@@ -120,6 +120,12 @@ export const ME = gql`
   }
 `;
 
+export const REMOVE_USER = gql`
+mutation REMOVE_USER ($id: String!) {
+  removeUser(id: $id)
+}
+`;
+
 export const CREATE_PROFILE_PHOTO_UPLOAD_URL = gql`
   mutation CreateProfilePhotoUploadUrl {
     profilePhotoUploadUrl {

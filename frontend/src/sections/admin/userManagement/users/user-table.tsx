@@ -1,13 +1,26 @@
+import { useCallback, useState } from "react";
+import { useMutation } from "@apollo/client";
+import { useSnackbar } from "notistack";
 import { useNavigate } from "react-router";
+// @mui
+import LoadingButton from "@mui/lab/LoadingButton";
 // Types
 import { MemberStatus, MemberTier, User } from "src/__generated__/resolvers-types";
 import GQLTable from "src/components/table/gql/table"
 // Components
 import { TableConfig, getBooleanFilters, getStatusFilter, getTierFilter } from "src/components/table/table-config"
-import { GET_USERS } from "src/api/user";
+import { GET_USERS, REMOVE_USER } from "src/api/user";
+import { ConfirmDialog } from "src/components/custom-dialog";
+import { useBoolean } from "src/hooks/use-boolean";
 
 export default function UserTable() {
+  const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const [removeUser, setRemoveUser] = useState<User | null>(null);
+  const deleteConfirm = useBoolean();
+  const [removeUserMutation, { loading }] = useMutation(REMOVE_USER, {
+    refetchQueries: [GET_USERS],
+  });
   const config: TableConfig<User> = {
     header: {
       title: 'Users',
@@ -33,7 +46,10 @@ export default function UserTable() {
       {
         getName: () => 'Delete',
         getIcon: () => 'solar:trash-bin-trash-bold',
-        onClick: (user: User) => {},
+        onClick: (user: User) => {
+          setRemoveUser(user);
+          deleteConfirm.onTrue();
+        },
       }
     ],
     columns: [
@@ -129,7 +145,49 @@ export default function UserTable() {
     ]
   };
 
+  const handleDeleteRow = useCallback(async () => {
+    try {
+      await removeUserMutation({
+        variables: {
+          id: removeUser!.id,
+        },
+      });
+
+      setRemoveUser(null);
+      deleteConfirm.onFalse();
+      enqueueSnackbar('Successfully remove user!', {
+        variant: 'success',
+        autoHideDuration: 4000,
+      });
+    } catch(error) {
+      enqueueSnackbar('Failed to remove user. Please try again later.', {
+        variant: 'error',
+        autoHideDuration: 4000,
+      });
+    }
+  }, [
+    removeUserMutation,
+    setRemoveUser,
+    enqueueSnackbar,
+    removeUser,
+    deleteConfirm,
+  ]);
+
   return (
-    <GQLTable config={config} />
+    <>
+      <GQLTable config={config} />
+
+      <ConfirmDialog
+          open={deleteConfirm.value}
+          onClose={deleteConfirm.onFalse}
+          title="Delete"
+          content="Are you sure want to delete?"
+          action={
+            <LoadingButton loading={loading} variant="contained" color="error" onClick={handleDeleteRow}>
+              Delete
+            </LoadingButton>
+          }
+      />
+    </>
   )
 };

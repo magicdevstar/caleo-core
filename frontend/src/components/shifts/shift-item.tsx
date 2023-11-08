@@ -169,7 +169,7 @@ export default function ShiftItem({
             </Typography>
 
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {shift.event.venue.name || 'N/A'}
+              {shift?.event?.venue?.name || 'N/A'}
             </Typography>
 
             {/* Above the fold grid content */}

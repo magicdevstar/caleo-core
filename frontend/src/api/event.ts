@@ -20,6 +20,7 @@ export const GET_ALL_EVENTS = gql`
     events(input: $input) {
       items {
         id
+        referenceId
         name
         startTime
         venue {
@@ -37,6 +38,7 @@ export const GET_EVENT = gql`
   query GetEvent($id: String!) {
     event(id: $id) {
       id
+      referenceId
       name
       attachments
       status

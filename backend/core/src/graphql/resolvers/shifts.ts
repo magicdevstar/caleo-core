@@ -302,7 +302,7 @@ export const shift = {
         adminOrOwnerOnly(shift.userId!, user);
       }
 
-      if (shift.userId && !userIsAdmin(user)) {
+      if (userId && shift.userId && !userIsAdmin(user)) {
         throw new GraphQLError("Shift already assigned");
       }
 

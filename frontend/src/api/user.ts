@@ -187,6 +187,11 @@ export const GET_USERS = gql`
         name
         member {
           pNumber
+          contactInfo {
+            primaryEmail {
+              address
+            }
+          }
           rank {
             id
             name

@@ -335,18 +335,18 @@ export default function EditAssignment({
               disableCloseOnSelect
               helperText="Leave empty to not require any shifts"
               options={(skills || [])}
-              getOptionLabel={(skill: any) => skill.name}
+              getOptionLabel={(skill: any) => skill?.name}
               renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  {option.name}
+                <li {...props} key={option?.id}>
+                  {option?.name}
                 </li>
               )}
               renderTags={(selected, getTagProps) =>
                 selected.map((option, index) => (
                   <Chip
                     {...getTagProps({ index })}
-                    key={option.id}
-                    label={option.name}
+                    key={option?.id}
+                    label={option?.name}
                     size="small"
                     color="info"
                     variant="soft"
@@ -362,18 +362,18 @@ export default function EditAssignment({
               disableCloseOnSelect
               helperText="Enter the ranks that are allowed to work this assignment"
               options={(ranks || [])}
-              getOptionLabel={(rank: any) => rank.name}
+              getOptionLabel={(rank: any) => rank?.name}
               renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  {option.name}
+                <li {...props} key={option?.id}>
+                  {option?.name}
                 </li>
               )}
               renderTags={(selected, getTagProps) =>
                 selected.map((option, index) => (
                   <Chip
                     {...getTagProps({ index })}
-                    key={option.id}
-                    label={option.name}
+                    key={option?.id}
+                    label={option?.name}
                     size="small"
                     color="info"
                     variant="soft"

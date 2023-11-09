@@ -161,7 +161,7 @@ export default function AvailableOvertimeView() {
         title="Sign Up for Overtime"
         content={
           editShift?.shiftBufferShift ? (<>
-            <Typography variant='body1'>This shift overlaps with<br/><br/>Event: {editShift.shiftBufferShift.event.name}<br/>Assignment: {editShift.shiftBufferShift.assignment.name}<br/>Start Time: {dayjs(editShift.shiftBufferShift.startTime).format('MM/DD/YYYY hh:mm a')}<br/>End Time: {dayjs(editShift.shiftBufferShift.endTime).format('MM/DD/YYYY hh:mm a')}<br/><br/>You must submit a reason you are able to work this shift.</Typography>
+            <Typography variant='body1'>This shift overlaps with<br/><br/>Event: {editShift?.shiftBufferShift?.event?.name}<br/>Assignment: {editShift?.shiftBufferShift?.assignment?.name}<br/>Start Time: {editShift?.shiftBufferShift?.startTime ? dayjs(editShift?.shiftBufferShift?.startTime).format('MM/DD/YYYY hh:mm a') : 'N/A'}<br/>End Time: {editShift?.shiftBufferShift?.endTime ? dayjs(editShift?.shiftBufferShift?.endTime).format('MM/DD/YYYY hh:mm a') : 'N/A'}<br/><br/>You must submit a reason you are able to work this shift.</Typography>
             <TextField
               fullWidth
               multiline
@@ -177,7 +177,7 @@ export default function AvailableOvertimeView() {
             />
           </>) : (
             <Typography variant='body1'>
-              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{convertDate({ date: editShift?.startTime || '', user }).format('ddd DD MMM YYYY HH:mm')}?</strong>
+              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{editShift?.startTime ? convertDate({ date: editShift?.startTime || 0, user }).format('ddd DD MMM YYYY HH:mm') : 'N/A'}?</strong>
             </Typography>
           )
         }

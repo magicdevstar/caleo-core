@@ -177,7 +177,7 @@ export default function AvailableOvertimeView() {
             />
           </>) : (
             <Typography variant='body1'>
-              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{editShift?.startTime ? convertDate({ date: editShift?.startTime || 0, user }).format('ddd DD MMM YYYY HH:mm') : 'N/A'}?</strong>
+              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{editShift?.startTime ? convertDate({ date: editShift?.startTime || new Date().toISOString(), user }).format('ddd DD MMM YYYY HH:mm') : 'N/A'}?</strong>
             </Typography>
           )
         }

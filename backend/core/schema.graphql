@@ -222,6 +222,7 @@
     docType: DocType!
     venueId: String!
     assignmentIds: [String]
+    createdById: String!
     createdAt: String!
     updatedAt: String!
 
@@ -229,6 +230,7 @@
     org: Organization!
     assignments: [Assignment!]
     attachments: [String!]
+    createdBy: User!
   }
 
   type Assignment {
@@ -356,6 +358,7 @@
     venueId: String!
     notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
+    createdById: String
   }
 
   input CreateShiftBufferRequest {
@@ -706,13 +709,13 @@
     rankIds: [String]
     docType: DocType!
     orgId: String!
-    createdById: String!
+    createdById: String
     createdAt: String!
     updatedAt: String!
 
     # This boolean will determine if the requesting user has seen the notification or not
     seen: Boolean
-    createdBy: User!
+    createdBy: User
     org: Organization!
     ranks: [Rank]!
     memberNotification: MemberNotification
@@ -812,10 +815,17 @@
     total: Int!
   }
 
+  enum EventStartTimeFilter {
+    gte
+    lte
+  }
+
   input EventSearchInput {
     limit: Int
     skip: Int
     query: String
+    startTime: String
+    startTimeFilter: EventStartTimeFilter
     orderBy: String
     order: String
   }

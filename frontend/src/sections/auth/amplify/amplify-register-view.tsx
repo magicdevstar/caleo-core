@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -45,6 +45,12 @@ export default function AmplifyRegisterView() {
     password: Yup.string().required('Password is required'),
     orgId: Yup.string(),
   });
+
+  useEffect(() => {
+    if (!incomingSearchParams.get('orgId')) {
+      router.replace('/auth/login');
+    }
+  }, [router]);
 
   const defaultValues = {
     firstName: '',

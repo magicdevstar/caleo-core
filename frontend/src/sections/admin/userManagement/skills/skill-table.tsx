@@ -33,6 +33,9 @@ export default function SkillTable() {
       title: 'Skill Requests',
     },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_MEMBER_SKILLS,
       processResult: (data) => {
         const { memberSkills: { items, total } } = data || { memberSkills: { items: [], total: 0 } };

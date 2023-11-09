@@ -35,6 +35,9 @@ export default function ShiftBufferRequestsTable() {
       title: 'Shift Buffer Requests',
     },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_SHIFT_BUFFER_REQUESTS,
       processResult: (data) => {
         const { shiftBufferRequests: { items, total } } = data || { shiftBufferRequests: { items: [], total: 0 } };

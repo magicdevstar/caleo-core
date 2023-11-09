@@ -12,6 +12,13 @@ export interface TableConfig<T> {
       onClick: () => void;
     },
   },
+  tabs?: {
+    default: string;
+    items: {
+      value: string;
+      onClick: (setAllFilters: (values: {id: string, value: any}[]) => void) => void;
+    }[]
+  },
   table?: {
     sx?: {
       minWidth?: number | string;
@@ -22,6 +29,7 @@ export interface TableConfig<T> {
     loading?: boolean;
     query: DocumentNode;
     defaultTableConfig?: {
+      defaultRowsPerPage?: number;
       defaultOrderBy?: string;
       defaultOrder?: 'asc' | 'desc';
     }
@@ -55,7 +63,7 @@ export interface TableConfig<T> {
 
 export interface Filter {
   id: string;
-  type: 'select' | 'text' | 'boolean' | 'hidden';
+  type: 'select' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
   label: string;
   defaultValue: any;
   value: any;
@@ -86,6 +94,7 @@ export const getTierFilter = () => [
 
 export const resolveFilterValue = (filter: Filter) => {
   if (filter.type === 'hidden') return filter.defaultValue;
+  if (filter.type === 'hiddenValue') return filter.value;
   if (JSON.stringify(filter.value) === JSON.stringify(filter.defaultValue)) {
     return undefined;
   }

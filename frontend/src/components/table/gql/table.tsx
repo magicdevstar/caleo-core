@@ -9,7 +9,9 @@ import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
 import TableBody from "@mui/material/TableBody";
 import LoadingButton from "@mui/lab/LoadingButton";
-
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import { alpha } from "@mui/material/styles";
 // Types
 import { TableConfig, resolveFilterValue } from "../table-config";
 // Hooks
@@ -31,13 +33,15 @@ export default function GQLTable({
 } : {
   config: TableConfig<any>;
 }) {
+  const [currentTab, setCurrentTab] = useState(config?.tabs?.default || 'all');
   const table = useTable({
+    defaultRowsPerPage: config.search?.defaultTableConfig?.defaultRowsPerPage,
     defaultOrderBy: config.search?.defaultTableConfig?.defaultOrderBy || 'createdAt',
     defaultOrder: config.search?.defaultTableConfig?.defaultOrder || 'desc',
   });
   const [filters, setFilters] = useState(config.filters);
   const uiFilters = useMemo(() =>
-    filters.filter(({ type }) => type !== 'hidden'), [filters]);
+    filters.filter(({ type }) => type !== 'hidden' && type !== 'hiddenValue'), [filters]);
   const { data, loading: gqlLoading } = useQuery(config.search.query, {
     skip: !!config.search.data,
     fetchPolicy: 'network-only', // Used for first execution
@@ -64,7 +68,9 @@ export default function GQLTable({
 
   const denseHeight = 60;
 
-  const canReset = filters.some((filter) => JSON.stringify(filter.value) !== JSON.stringify(filter.defaultValue));
+  const canReset = filters
+    .filter(({ type }) => type !== 'hidden' && type !== 'hiddenValue')
+    .some((filter) => JSON.stringify(filter.value) !== JSON.stringify(filter.defaultValue));
 
   const notFound = (!items.length && canReset) || (isEmpty && !loading);
 
@@ -84,12 +90,49 @@ export default function GQLTable({
     [table]
   );
 
+  const setAllFilters = useCallback(
+    (values: {id: string, value: any}[]) => {
+      table.onResetPage();
+      setFilters((prevState) => {
+        const valueToAdd = values.filter((v) => !prevState.find((f) => f.id === v.id));
+        const res = [
+          ...valueToAdd.map((v) => ({
+            id: v.id,
+            type: 'hiddenValue',
+            label: v.id,
+            defaultValue: v.value,
+            value: v.value,
+          })),
+          ...prevState.map((filter) => {
+            const foundValue = values.find((v) => v.id === filter.id);
+            if (filter.id === foundValue?.id) {
+              return {
+                ...filter,
+                value: foundValue?.value,
+              };
+            }
+            return filter;
+          }),
+        ] as any;
+        return res;
+      });
+    },
+    [table]
+  );
+
   const handleResetFilters = useCallback(() => {
     setFilters((c) => c.map((f) => ({
       ...f,
       value: f.defaultValue,
     })));
   }, [setFilters]);
+
+  const handleTabChange = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      setCurrentTab(newValue);
+    },
+    [setCurrentTab]
+  );
 
   return (
     <Card>
@@ -110,6 +153,25 @@ export default function GQLTable({
           onClick={config.header.button.onClick}
         >{config.header.button.text}</LoadingButton>}
       </Box>
+
+      {config?.tabs && <Tabs
+        value={currentTab}
+        onChange={handleTabChange}
+        sx={{
+          px: 2.5,
+          boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+        }}
+      >
+        {config?.tabs?.items.map((tab) => (
+          <Tab
+            key={tab.value}
+            value={tab.value}
+            label={tab.value}
+            onClick={() => tab.onClick(setAllFilters)}
+          />
+        ))}
+      </Tabs>}
+
       <TableToolbar
         filters={uiFilters}
         onFilters={handleFilters}

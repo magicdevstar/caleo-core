@@ -43,6 +43,9 @@ export default function VenuesTable() {
       }
     },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_ALL_VENUES,
       processResult: (data: any) => {
         const { venues: { items, total } } = data || { venues: { items: [], total: 0 } };

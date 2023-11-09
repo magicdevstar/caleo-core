@@ -43,6 +43,9 @@ export default function NotificationTable() {
       }
     },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_ALL_NOTIFICATIONS,
       processResult: (data: any) => {
         const { notifications: { items, total } } = data || { notifications: { items: [], total: 0 } };

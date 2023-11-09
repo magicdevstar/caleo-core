@@ -48,6 +48,7 @@
     "autosuggest-highlight": "^3.3.4",
     "axios": "^1.4.0",
     "bson-objectid": "^2.0.4",
+    "copy-to-clipboard": "^3.3.3",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "dayjs": "^1.11.9",

@@ -26,6 +26,9 @@ export default function UserTable() {
       title: 'Users',
     },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_USERS,
       processResult: (data) => {
         const { users: { items, total } } = data || { users: { items: [], total: 0 } };

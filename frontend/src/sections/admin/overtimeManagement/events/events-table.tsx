@@ -37,7 +37,42 @@ export default function EventsTable() {
         },
       }
     },
+    tabs: {
+      default: 'All',
+      items: [
+        {
+          value: 'All',
+          onClick: (setAllFilters) => {
+            setAllFilters([
+              { id: 'startTime', value: null },
+              { id: 'startTimeFilter', value: null },
+            ]);
+          }
+        },
+        {
+          value: 'Upcoming',
+          onClick: (setAllFilters) => {
+            setAllFilters([
+              { id: 'startTime', value: new Date().toISOString() },
+              { id: 'startTimeFilter', value: 'gte' },
+            ]);
+          }
+        },
+        {
+          value: 'Past',
+          onClick: (setAllFilters) => {
+            setAllFilters([
+              { id: 'startTime', value: new Date().toISOString() },
+              { id: 'startTimeFilter', value: 'lte' },
+            ]);
+          }
+        }
+      ]
+    },
     search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 10,
+      },
       query: GET_ALL_EVENTS,
       processResult: (data: any) => {
         const { events: { items, total } } = data || { events: { items: [], total: 0 } };

@@ -15,11 +15,12 @@ export const event = {
     ): Promise<Event | null> => events.get(id),
     events: async (
       _parent: unknown,
-      { input }: { input: EventSearchInput },
+      { input: { startTime, startTimeFilter, ...input } }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => events.search({
       orgId: user?.member.orgId!,
       // Do not show complete events in the overtime search :)
+      ...(startTime && startTimeFilter ? { startTime: { [`$${startTimeFilter}`]: new Date(startTime).getTime() } } : {}),
       status: {
         $nin: [EventStatus.Complete],
       },

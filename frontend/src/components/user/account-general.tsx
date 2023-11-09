@@ -59,10 +59,12 @@ const statusNames = {
 // eslint-disable-next-line prefer-arrow-callback
 const DatePicker = memo(function PickMeComponent({
   tz,
+  disabled,
   tierUntil,
   setTierUntil,
 }: {
   tz: string;
+  disabled?: boolean;
   tierUntil: Date | null;
   setTierUntil: any;
 }) {
@@ -70,6 +72,7 @@ const DatePicker = memo(function PickMeComponent({
     <DateTimePicker
       timezone={tz}
       ampm={false}
+      disabled={disabled}
       timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
       label="Tier set until"
       defaultValue={tierUntil && dayjs.utc(tierUntil)}
@@ -354,12 +357,13 @@ export default function AccountGeneral({
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="firstName" label="First Name" />
-              <RHFTextField name="lastName" label="Last Name" />
+              <RHFTextField disabled={!adminViewer} name="firstName" label="First Name" />
+              <RHFTextField disabled={!adminViewer} name="lastName" label="Last Name" />
 
               <RHFAutocomplete
                 name="rank"
                 label="Rank"
+                disabled={!adminViewer}
                 options={ranks}
                 getOptionLabel={(option: any) => (option as Rank).name}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -379,7 +383,7 @@ export default function AccountGeneral({
                   );
                 }}
               />
-              <RHFTextField name="pNumber" label="PNumber" />
+              <RHFTextField disabled={!adminViewer} name="pNumber" label="PNumber" />
 
               <RHFSelect
                 fullWidth
@@ -437,6 +441,7 @@ export default function AccountGeneral({
               </RHFSelect>
 
               <DatePicker
+                disabled={!adminViewer}
                 tz={user?.member?.org?.timezone!}
                 tierUntil={tierUntil}
                 setTierUntil={(value: any) => setValue('tierUntil', value)}
@@ -454,12 +459,12 @@ export default function AccountGeneral({
               }}
             >
               <Box>
-                <RHFPhoneField name="primaryPhone" label="Primary Phone" />
+                <RHFPhoneField disabled={!adminViewer} name="primaryPhone" label="Primary Phone" />
                 <RHFSwitch name="primaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>
-                <RHFTextField name="primaryEmail" label="Primary Email" />
+                <RHFTextField disabled={!adminViewer} name="primaryEmail" label="Primary Email" />
                 <RHFSwitch name="primaryEmailReceive" label="Receive emails" />
               </Box>
 

@@ -51,6 +51,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         endTime
         event {
           id
+          referenceId
           name
           attachments
           notes
@@ -74,6 +75,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           id
           name
           bwNeeded
+          description
           requiredSkills {
             id
             name
@@ -192,6 +194,7 @@ export const GET_ALL_SHIFTS = gql`
         endTime
         event {
           id
+          referenceId
           name
           attachments
           notes
@@ -215,6 +218,7 @@ export const GET_ALL_SHIFTS = gql`
           id
           name
           bwNeeded
+          description
           requiredSkills {
             id
             name
@@ -286,6 +290,7 @@ query GetShiftDetails($id: String!) {
     endTime
     event {
       id
+      referenceId
       name
       attachments
       notes

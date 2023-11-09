@@ -104,6 +104,7 @@ export default function AccountOvertime({
               type="number"
               value={maxShifts}
               InputProps={{ inputProps: { min: "0", max: "10", step: "1" } }}
+              helperText={`The maximum number of overtime shifts you are willing to work per week, cannot exceed ${user.member.org?.settings?.shiftsPerWeek} shifts per administrative settings.`}
               onChange={(event) => {
                 const value = parseInt(event.target.value || '0', 10);
                 if (value <= user.member.org?.settings?.shiftsPerWeek!) {

@@ -462,77 +462,82 @@ export default function EditEvent({ currentEvent }: Props) {
               />
             </Stack>
 
-            <RHFSelect
-              fullWidth
-              name="status"
-              label="Posting type"
-              disabled={currentEvent?.status === EventStatus.Complete}
-              InputLabelProps={{ shrink: true }}
-              PaperPropsSx={{ textTransform: 'capitalize' }}
-            >
-              {[
-                EventStatus.Draft,
-                EventStatus.ReadyForLottery,
-                EventStatus.FirstComeFirstServe,
-              ].map((option) => (
-                <MenuItem key={option} value={option}>
-                  {(eventStatusNames as any)[option]}
-                </MenuItem>
-              ))}
-            </RHFSelect>
+            {
+              currentEvent &&
+              <>
+                <RHFSelect
+                  fullWidth
+                  name="status"
+                  label="Posting type"
+                  disabled={currentEvent?.status === EventStatus.Complete}
+                  InputLabelProps={{ shrink: true }}
+                  PaperPropsSx={{ textTransform: 'capitalize' }}
+                >
+                  {[
+                    EventStatus.Draft,
+                    EventStatus.ReadyForLottery,
+                    EventStatus.FirstComeFirstServe,
+                  ].map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {(eventStatusNames as any)[option]}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
 
-            {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
-              <DateTimePicker
-                label="First come first serve start time"
-                ampm={false}
-                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                timezone={user.member.org?.timezone}
-                value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
-                onChange={(date) => {
-                  setValue('scheduledFirstComeFirstServe', date ? dayjs(date).toISOString() : '')
-                }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    margin: 'normal',
-                  },
-                }}
-              />
-            )}
+                {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
+                  <DateTimePicker
+                    label="First come first serve start time"
+                    ampm={false}
+                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                    timezone={user.member.org?.timezone}
+                    value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
+                    onChange={(date) => {
+                      setValue('scheduledFirstComeFirstServe', date ? dayjs(date).toISOString() : '')
+                    }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        margin: 'normal',
+                      },
+                    }}
+                  />
+                )}
 
-            <Stack>
-              <Stack direction="row" spacing={1.5}>
-                <DateTimePicker
-                  label="Start time"
-                  timezone={user.member.org?.timezone}
-                  ampm={false}
-                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                  value={currentEvent?.startTime ? dayjs(new Date(currentEvent.startTime)) : null}
-                  disabled
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                    },
-                  }}
-                />
-                <DateTimePicker
-                  label="End time"
-                  ampm={false}
-                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                  timezone={user.member.org?.timezone}
-                  value={currentEvent?.endTime ? dayjs(new Date(currentEvent.endTime)) : null}
-                  disabled
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                    },
-                  }}
-                />
-              </Stack>
-              <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
-            </Stack>
+                <Stack>
+                  <Stack direction="row" spacing={1.5}>
+                    <DateTimePicker
+                      label="Start time"
+                      timezone={user.member.org?.timezone}
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      value={currentEvent?.startTime ? dayjs(new Date(currentEvent.startTime)) : null}
+                      disabled
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          margin: 'normal',
+                        },
+                      }}
+                    />
+                    <DateTimePicker
+                      label="End time"
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      timezone={user.member.org?.timezone}
+                      value={currentEvent?.endTime ? dayjs(new Date(currentEvent.endTime)) : null}
+                      disabled
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          margin: 'normal',
+                        },
+                      }}
+                    />
+                  </Stack>
+                  <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
+                </Stack>
+              </>
+            }
 
             <RHFSwitch name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
           </Stack>

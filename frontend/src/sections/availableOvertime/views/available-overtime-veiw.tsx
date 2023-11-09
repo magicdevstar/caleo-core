@@ -19,6 +19,7 @@ import { Shift } from 'src/__generated__/resolvers-types';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftItems from 'src/components/shifts/shift-items';
+import { convertDate } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -52,6 +53,8 @@ export default function AvailableOvertimeView() {
   const settings = useSettingsContext();
 
   const { data, loading } = useQuery(GET_AVAILABLE_SHIFTS, {
+    fetchPolicy: 'no-cache', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         ...filters
@@ -136,6 +139,7 @@ export default function AvailableOvertimeView() {
       </Box>
 
       <ShiftItems
+        emptyMessage='No Available Overtime'
         pageSize={table.rowsPerPage}
         total={total}
         setPage={(page: number) => {
@@ -171,7 +175,11 @@ export default function AvailableOvertimeView() {
                 setNote(event.target.value);
               }}
             />
-          </>) : ("Are you sure you want to sign up for this overtime?")
+          </>) : (
+            <Typography variant='body1'>
+              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{convertDate({ date: editShift?.startTime || '', user }).format('ddd DD MMM YYYY HH:mm')}?</strong>
+            </Typography>
+          )
         }
         action={
           <LoadingButton

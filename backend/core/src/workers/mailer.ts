@@ -451,7 +451,7 @@ const sendEmail = async (input: MailerEvent) => {
           "shift.start_time": [shiftStart.time],
           "shift.end_date": [shiftEnd.date],
           "shift.end_time": [shiftEnd.time],
-          "relinquish_reason": [shift.relinquishReason || ''],
+          "relinquish_reason": [shift.relinquishNote || ''],
           "system.metro_name": [organization.name],
           "shift.reference_number": [assignment.id],
         };

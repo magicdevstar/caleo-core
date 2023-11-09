@@ -360,7 +360,7 @@ export default function EditAssignment({
               placeholder="Open to Ranks"
               multiple
               disableCloseOnSelect
-              helperText="Leave empty to make shifts open to all ranks"
+              helperText="Enter the ranks that are allowed to work this assignment"
               options={(ranks || [])}
               getOptionLabel={(rank: any) => rank.name}
               renderOption={(props, option) => (

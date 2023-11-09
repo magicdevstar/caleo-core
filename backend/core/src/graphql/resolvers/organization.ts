@@ -18,7 +18,7 @@ export const organization = {
     organization: async (
       _parent: unknown,
       { organization: org }: { organization: UpsertOrganization },
-      { organizations, scheduler, user }: Context
+      { organizations, scheduler, users, user }: Context
     ): Promise<Organization> => {
       adminOnly(user);
 
@@ -76,6 +76,15 @@ export const organization = {
       };
 
       const res = await organizations.upsert(mergedOrg as any);
+
+      await users.collection.updateMany({
+        'member.orgId': mergedOrg.id,
+        'member.maxShifts': { $gt: mergedOrg.settings.shiftsPerWeek },
+      }, {
+        $set: {
+          'member.maxShifts': mergedOrg.settings.shiftsPerWeek,
+        },
+      });
 
       const startTime = new Date(mergedOrg.settings?.lottery?.open?.time || 0);
       const startDay = mergedOrg.settings?.lottery?.open?.dayOfWeek || DayOfWeek.Friday;

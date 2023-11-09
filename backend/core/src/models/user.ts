@@ -111,18 +111,9 @@ export class UserModel extends BaseModel<User> {
       eventId: {
         $in: eventIds,
       },
-      $or: [
-        {
-          rankIds: {
-            $size: 0,
-          }
-        },
-        {
-          rankIds: {
-            $in: [user.member.rankId],
-          },
-        },
-      ],
+      rankIds: {
+        $in: [user.member.rankId],
+      },
     };
     const {items: assignmentList} = await this.assignments.search(assignmentSearch);
 
@@ -411,10 +402,8 @@ export class UserModel extends BaseModel<User> {
         $all: assignment.requiredSkillIds,
       };
     }
-    if (assignment.rankIds && Array.isArray(assignment.rankIds) && assignment.rankIds.length > 0) {
-      searchInput['member.rankId'] = {
-        $in: assignment.rankIds,
-      }
+    searchInput['member.rankId'] = {
+      $in: assignment.rankIds,
     }
 
     if (userIds.length > 0) {

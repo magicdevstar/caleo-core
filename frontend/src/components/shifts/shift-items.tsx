@@ -5,6 +5,7 @@ import { Shift } from "src/__generated__/resolvers-types";
 // components
 import ShiftItem from "./shift-item";
 import ShiftItemSkeleton from "./shift-item-skeleton";
+import EmptyContent from "../empty-content";
 
 // TODO: Test pagination :)
 export default function ShiftItems({
@@ -14,6 +15,7 @@ export default function ShiftItems({
   pageSize,
   total,
   currentPage,
+  emptyMessage = 'No Data',
   setPage,
 }: {
   shifts: Shift[];
@@ -21,6 +23,7 @@ export default function ShiftItems({
   total: number;
   pageSize: number;
   currentPage: number;
+  emptyMessage?: string;
   setPage: (page: any) => void;
   shiftActions: {
     key: string;
@@ -37,13 +40,20 @@ export default function ShiftItems({
     </>
   );
 
-  const renderList = (
-    <>
-      {shifts.map((shift) => (
-        <ShiftItem key={shift.id} shiftActions={shiftActions} shift={shift} />
-      ))}
-    </>
-  );
+  let renderList = (
+    <EmptyContent filled title="No Data" sx={{ py: 10 }} />
+  )
+
+  if (shifts.length > 0) {
+    renderList = (
+      <>
+        {shifts.map((shift) => (
+          <ShiftItem key={shift.id} shiftActions={shiftActions} shift={shift} />
+        ))}
+      </>
+    );
+  }
+
 
   return (
     <>

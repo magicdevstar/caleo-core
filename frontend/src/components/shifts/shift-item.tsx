@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
+import PhoneNumberFormatter from 'phone-number-formats';
 // mui
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -8,6 +9,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 // types
 import { Rank, Shift, Skill } from "src/__generated__/resolvers-types";
 // components
@@ -15,10 +17,6 @@ import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
 import Label from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
-
-const ShortId = require('id-shorter');
-
-const shortId = ShortId();
 
 export default function ShiftItem({
   shift,
@@ -68,23 +66,13 @@ export default function ShiftItem({
     return value;
   }, [shift]);
 
-  const assignedToShift = useMemo(() => {
-    let value: any = (
-      <Label variant="soft" color='info'>
-        N/A
+  const assignedToShift = useMemo(() =>
+    (shift as any)?.otherShiftSlots?.map((slot: Shift, index: number) => (
+      <Label key={slot.id} variant="soft" color='info'>
+        Shift # {index + 1} { slot.user ? `${slot.user?.firstName} ${slot.user?.lastName} (${slot.user?.member?.pNumber})` : ('N/A') }
       </Label>
-    );
-    const assigned = (shift as any)?.otherShiftSlots?.filter((slot: Shift) => slot?.user);
-    if (assigned?.length > 0) {
-      value = assigned?.map((slot: Shift) => (
-        <Label key={slot.id} variant="soft" color='info'>
-          {slot.user?.firstName} {slot.user?.lastName} ({slot.user?.member?.pNumber})
-        </Label>
-      ));
-    }
-
-    return value;
-  }, [shift]);
+    )),
+  [shift]);
 
   const contactInfo = useMemo(() => {
     let value: any = (
@@ -102,7 +90,8 @@ export default function ShiftItem({
         details.push(`Email: ${contact.email}`);
       }
       if (contact.phone) {
-        details.push(`Phone: ${contact.phone}`);
+        const phoneThing = new PhoneNumberFormatter(contact.phone).format({type: 'domestic'}).string;
+        details.push(`Phone: ${phoneThing}`);
       }
       value = (
         <Label
@@ -125,6 +114,34 @@ export default function ShiftItem({
     return value;
   }, [shift]);
 
+  const totalHours = useMemo(() => {
+    const start = new Date(shift.startTime);
+    const end = new Date(shift.endTime);
+    const diff = Math.abs(end.getTime() - start.getTime());
+    const hours = Math.ceil(diff / (1000 * 60 * 60));
+    return hours;
+  }, [shift.startTime, shift.endTime]);
+
+  const venueInfo = useMemo(() => {
+    const venue = shift?.event?.venue;
+    if (!venue) {
+      return {
+        name: 'N/A',
+      };
+    }
+    const details: any = {
+      name: venue.name,
+    };
+    if (venue.address) {
+      details.address = `${venue.address} ${venue.city}, ${venue.state} ${venue.zip}`;
+    }
+    if (venue.phone) {
+      const phoneThing = new PhoneNumberFormatter(venue.phone).format({type: 'domestic'}).string;
+      details.phone = phoneThing;
+    }
+    return details;
+  }, [shift?.event?.venue]);
+
   const dates = {
     startTime: format(new Date(shift.startTime), 'EEEEEE dd MMM yyyy HH:mm'),
     endTime: format(new Date(shift.endTime), 'EEEEEE dd MMM yyyy HH:mm'),
@@ -146,21 +163,8 @@ export default function ShiftItem({
             p: (theme) => theme.spacing(3, 3, 2, 3),
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box component="span" sx={{ typography: 'caption', color: 'text.disabled' }}>
-              {dates.startTime} - {dates.endTime}
-            </Box>
-
-            <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
-              e.stopPropagation();
-              popover.onOpen(e);
-            }}>
-              <Iconify icon="eva:more-horizontal-fill" />
-            </IconButton>
-          </Stack>
-
-          <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{
+          <Stack sx={{ mb: 1 }} direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h5" sx={{
               '&:hover': {
                 textDecoration: 'underline',
               }
@@ -168,8 +172,37 @@ export default function ShiftItem({
               {shift.event.name} - {shift.assignment.name}
             </Typography>
 
+            {
+              shiftActions.length === 1 ? (
+                <Button
+                  size="small"
+                  startIcon={<Iconify icon={shiftActions[0].getIcon(shift)} />}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    shiftActions[0].onClick(shift)
+                  }}
+                  variant="outlined"
+                >{shiftActions[0].getName(shift)}</Button>
+              ) : (
+                <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
+                  e.stopPropagation();
+                  popover.onOpen(e);
+                }}>
+                  <Iconify icon="eva:more-horizontal-fill" />
+                </IconButton>
+              )
+            }
+          </Stack>
+
+          <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>
+            <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
+              {totalHours} hours | {dates.startTime} - {dates.endTime}
+            </Box>
+
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {shift?.event?.venue?.name || 'N/A'}
+              {venueInfo.name}
+              {venueInfo.address && (<><br/>{venueInfo.address}</>)}
+              {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
             </Typography>
 
             {/* Above the fold grid content */}
@@ -192,7 +225,7 @@ export default function ShiftItem({
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <Label variant="soft" color='default'>
-                      {shortId.encode(shift.event.id)}
+                      {shift.event.referenceId}
                     </Label>
                   </Box>
                 </Stack>
@@ -243,22 +276,19 @@ export default function ShiftItem({
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              {/* Include attachments */}
-            </Grid>
-
-            <Grid item xs={12}>
-              <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+              <Stack direction="column" spacing={1} sx={{ mt: 2, mr: 1, height: 'calc(100% - 16px)' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event notes</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px', height: '100%' }}>
                   <Label
                     sx={{
                       padding: '10px !important',
                       whiteSpace: 'pre-line',
-                      height: 'fit-content',
+                      height: '100%',
                       lineHeight: '1.5rem',
                       fontSize: '14px',
                       justifyContent: 'flex-start',
                       width: '100%',
+                      alignItems: 'flex-start',
                     }}
                     variant="soft"
                     color='default'
@@ -267,6 +297,33 @@ export default function ShiftItem({
                   </Label>
                 </Box>
               </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack direction="column" spacing={1} sx={{ mt: 2, height: 'calc(100% - 16px)' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assignment Notes</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px', height: '100%' }}>
+                  <Label
+                    sx={{
+                      padding: '10px !important',
+                      whiteSpace: 'pre-line',
+                      height: '100%',
+                      lineHeight: '1.5rem',
+                      fontSize: '14px',
+                      justifyContent: 'flex-start',
+                      width: '100%',
+                      alignItems: 'flex-start',
+                    }}
+                    variant="soft"
+                    color='default'
+                  >
+                    { shift.assignment?.description && shift.assignment?.description?.trim() !== '' ? reader(shift.assignment?.description || '') : 'N/A'}
+                  </Label>
+                </Box>
+              </Stack>
+            </Grid>
+
+            <Grid item xs={12}>
+              {/* Include attachments */}
             </Grid>
           </Grid>
         </Stack>

@@ -7,6 +7,13 @@ import { useAuthContext } from 'src/auth/hooks';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+export const convertDate = ({
+  date,
+  user,
+}: {
+  date: Date | string;
+  user: any;
+}) => dayjs(date).tz(user?.member?.org?.timezone);
 
 export const useDateJS = ({
   date
@@ -16,10 +23,10 @@ export const useDateJS = ({
   const { user } = useAuthContext();
 
   const finalDate = useMemo(() =>
-    dayjs(date).tz(user?.member?.org?.timezone),
+    convertDate({ date, user }),
   [
     date,
-    user?.member?.org?.timezone
+    user
   ]);
 
   return {

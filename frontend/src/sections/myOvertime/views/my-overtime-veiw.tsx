@@ -43,7 +43,7 @@ export default function MyOvertimeView() {
 
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
   const { data: organizationData } = useQuery(ORGANIZATION, {
-    fetchPolicy: 'network-only', // Used for first execution
+    fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
   });
   const organization = organizationData?.organization;
@@ -62,6 +62,8 @@ export default function MyOvertimeView() {
   const relinquishConfirm = useBoolean();
 
   const { data, loading } = useQuery(GET_ALL_SHIFTS, {
+    fetchPolicy: 'no-cache', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         ...filters
@@ -162,6 +164,7 @@ export default function MyOvertimeView() {
       </Tabs>
 
       <ShiftItems
+        emptyMessage='No Overtime'
         total={total}
         pageSize={table.rowsPerPage}
         setPage={(page: number) => {

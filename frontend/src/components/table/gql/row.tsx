@@ -123,13 +123,13 @@ const StringCell = ({value, labelColor, href, onClick, width, clickable} : { wid
   );
 };
 
-const ArrayCell = ({value, width, maxRender} : {width?: number | string; value: string[]; maxRender: number;}) => {
+const ArrayCell = ({value, emptyArrayLabel, width, maxRender} : {width?: number | string; emptyArrayLabel?: string; value: string[]; maxRender: number;}) => {
   const arr = !value ? [] : (value || []).filter(Boolean);
   return (
     <TableCell width={width}>
       {arr.length === 0 ? (
         <Label variant="soft" color="info">
-          All
+          {emptyArrayLabel || 'All'}
         </Label>
       ) :
         (
@@ -177,7 +177,7 @@ export default function GQLTableRow({
               case 'string':
                 return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} clickable={!!column?.clickable?.(row)} onClick={() => column.onClick?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array': 
-                return (<ArrayCell width={column.width} key={column.id} value={value} maxRender={column.maxRender || 1} />);
+                return (<ArrayCell width={column.width} emptyArrayLabel={column.emptyArrayLabel} key={column.id} value={value} maxRender={column.maxRender || 1} />);
               case 'action': 
               default:
                 return (

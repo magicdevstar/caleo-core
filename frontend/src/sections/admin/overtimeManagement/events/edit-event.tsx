@@ -338,6 +338,7 @@ export default function EditEvent({ currentEvent }: Props) {
       {
         id: 'ranks',
         label: 'Ranks',
+        emptyArrayLabel: 'None',
         width: '15%',
         noSort: true,
         columnType: 'array',

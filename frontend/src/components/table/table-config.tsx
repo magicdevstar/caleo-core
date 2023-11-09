@@ -52,6 +52,7 @@ export interface TableConfig<T> {
     noSort?: boolean;
     columnType: 'string' | 'date' | 'boolean' | 'array' | 'action';
     maxRender?: number;
+    emptyArrayLabel?: string;
     renderValue?: (row: any, index: number) => any;
     getLabelColor?: (row: T) => string;
     getHref?: (row: T) => string;

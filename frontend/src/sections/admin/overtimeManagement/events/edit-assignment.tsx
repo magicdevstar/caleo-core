@@ -143,7 +143,7 @@ export default function EditAssignment({
     bwNeeded: Yup.boolean(),
     notifyWhenFullyStaffed: Yup.boolean(),
     requiredSkills: Yup.array(),
-    ranks: Yup.array(),
+    ranks: Yup.array().min(1).required('At least one rank is required'),
     shifts: Yup.array(),
   });
 

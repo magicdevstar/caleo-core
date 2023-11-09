@@ -90,7 +90,12 @@ export default function ShiftItem({
         details.push(`Email: ${contact.email}`);
       }
       if (contact.phone) {
-        const phoneThing = new PhoneNumberFormatter(contact.phone).format({type: 'domestic'}).string;
+        let phoneThing = contact.phone;
+        try {
+          phoneThing = new PhoneNumberFormatter(contact.phone).format({type: 'domestic'}).string;
+        } catch(error) {
+          console.error(error);
+        }
         details.push(`Phone: ${phoneThing}`);
       }
       value = (
@@ -136,7 +141,12 @@ export default function ShiftItem({
       details.address = `${venue.address} ${venue.city}, ${venue.state} ${venue.zip}`;
     }
     if (venue.phone) {
-      const phoneThing = new PhoneNumberFormatter(venue.phone).format({type: 'domestic'}).string;
+      let phoneThing = venue.phone;
+      try {
+        phoneThing = new PhoneNumberFormatter(venue.phone).format({type: 'domestic'}).string;
+      } catch(error) {
+        console.error(error);
+      }
       details.phone = phoneThing;
     }
     return details;

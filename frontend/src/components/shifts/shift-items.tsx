@@ -27,6 +27,8 @@ export default function ShiftItems({
   setPage: (page: any) => void;
   shiftActions: {
     key: string;
+    color?: string;
+    disabled: (shift: Shift) => boolean;
     onClick: (shift: Shift) => void;
     getIcon: (shift: Shift) => string;
     getName: (shift: Shift) => string;
@@ -41,7 +43,7 @@ export default function ShiftItems({
   );
 
   let renderList = (
-    <EmptyContent filled title="No Data" sx={{ py: 10 }} />
+    <EmptyContent filled title={emptyMessage} sx={{ py: 10 }} />
   )
 
   if (shifts.length > 0) {

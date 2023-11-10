@@ -18,6 +18,13 @@ import Iconify from "src/components/iconify";
 import Label from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
 
+const labelSx = {
+  whiteSpace: 'break-spaces',
+  lineHeight: '1rem',
+  height: 'auto',
+  padding: '5px',
+};
+
 export default function ShiftItem({
   shift,
   shiftActions,
@@ -25,6 +32,8 @@ export default function ShiftItem({
   shift: Shift;
   shiftActions: {
     key: string;
+    color?: string;
+    disabled: (shift: Shift) => boolean;
     onClick: (shift: Shift) => void;
     getIcon: (shift: Shift) => string;
     getName: (shift: Shift) => string;
@@ -41,7 +50,7 @@ export default function ShiftItem({
     );
     if (shift?.assignment?.requiredSkills && shift?.assignment?.requiredSkills?.length > 0) {
       value = (shift?.assignment?.requiredSkills as any[])?.map((skill: Skill) => (
-        <Label key={skill.id} variant="soft" color='info'>
+        <Label key={skill.id} variant="soft" color='info' sx={labelSx}>
           {skill.name}
         </Label>
       ));
@@ -57,7 +66,7 @@ export default function ShiftItem({
     );
     if (shift?.assignment?.ranks && shift?.assignment?.ranks?.length > 0) {
       value = (shift?.assignment?.ranks as any)?.map((rank: Rank) => (
-        <Label key={rank.id} variant="soft" color='info'>
+        <Label key={rank.id} variant="soft" color='info' sx={labelSx}>
           {rank.name}
         </Label>
       ));
@@ -68,7 +77,7 @@ export default function ShiftItem({
 
   const assignedToShift = useMemo(() =>
     (shift as any)?.otherShiftSlots?.map((slot: Shift, index: number) => (
-      <Label key={slot.id} variant="soft" color='info'>
+      <Label key={slot.id} variant="soft" color='info' sx={labelSx}>
         Shift # {index + 1} { slot.user ? `${slot.user?.firstName} ${slot.user?.lastName} (${slot.user?.member?.pNumber})` : ('N/A') }
       </Label>
     )),
@@ -158,7 +167,7 @@ export default function ShiftItem({
   };
 
   return (
-    <Grid sm={12} md={6} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
+    <Grid sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
       <Stack
         onClick={() => {
           setDetailHeight((c) => c === '0px' ? '100%' : '0px');
@@ -173,7 +182,7 @@ export default function ShiftItem({
             p: (theme) => theme.spacing(3, 3, 2, 3),
           }}
         >
-          <Stack sx={{ mb: 1 }} direction="row" alignItems="center" justifyContent="space-between">
+          <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h5" sx={{
               '&:hover': {
                 textDecoration: 'underline',
@@ -186,11 +195,14 @@ export default function ShiftItem({
               shiftActions.length === 1 ? (
                 <Button
                   size="small"
+                  disabled={shiftActions[0].disabled(shift)}
                   startIcon={<Iconify icon={shiftActions[0].getIcon(shift)} />}
                   onClick={(event) => {
                     event.stopPropagation();
                     shiftActions[0].onClick(shift)
                   }}
+                  sx={{ flex: '0 0 auto' }}
+                  color={shiftActions[0].color as any}
                   variant="outlined"
                 >{shiftActions[0].getName(shift)}</Button>
               ) : (
@@ -216,27 +228,37 @@ export default function ShiftItem({
             </Typography>
 
             {/* Above the fold grid content */}
-            <Grid container>
-              <Grid item xs={12} sm={6}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
                 {/* BW Needed */}
                 <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>BW Needed</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <Label variant="soft" color={(shift.assignment.bwNeeded && 'info') || 'default'}>
+                    <Label variant="soft" color={(shift.assignment.bwNeeded && 'info') || 'default'} sx={labelSx}>
                       {shift.assignment.bwNeeded ? 'Yes' : 'No'}
                     </Label>
                   </Box>
                 </Stack>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 {/* Event Ref */}
                 <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <Label variant="soft" color='default'>
+                    <Label variant="soft" color='default' sx={labelSx}>
                       {shift.event.referenceId}
                     </Label>
+                  </Box>
+                </Stack>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                {/* Include required skills */}
+                <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Required Skills</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                    {requiredSkillRender}
                   </Box>
                 </Stack>
               </Grid>
@@ -244,18 +266,8 @@ export default function ShiftItem({
           </Stack>
 
 
-          <Grid container sx={{ height: detailHeight, transition: 'all .15s ease-in-out' }}>
-            <Grid item xs={12} sm={6}>
-              {/* Include required skills */}
-              <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Required Skills</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                  {requiredSkillRender}
-                </Box>
-              </Stack>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
+          <Grid container spacing={2} sx={{ height: detailHeight, transition: 'all .15s ease-in-out' }}>
+            <Grid item xs={12} sm={4}>
               {/* Include open to roles */}
               <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Open to roles</Typography>
@@ -265,7 +277,7 @@ export default function ShiftItem({
               </Stack>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               {/* Include other people assigned */}
               <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
@@ -275,7 +287,7 @@ export default function ShiftItem({
               </Stack>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               {/* Include contact info */}
               <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Contact Info</Typography>
@@ -286,7 +298,7 @@ export default function ShiftItem({
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Stack direction="column" spacing={1} sx={{ mt: 2, mr: 1, height: 'calc(100% - 16px)' }}>
+              <Stack direction="column" spacing={1} sx={{ height: '100%' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event notes</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px', height: '100%' }}>
                   <Label
@@ -309,7 +321,7 @@ export default function ShiftItem({
               </Stack>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Stack direction="column" spacing={1} sx={{ mt: 2, height: 'calc(100% - 16px)' }}>
+              <Stack direction="column" spacing={1} sx={{ height: '100%' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assignment Notes</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px', height: '100%' }}>
                   <Label

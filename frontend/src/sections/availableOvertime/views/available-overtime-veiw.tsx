@@ -67,6 +67,8 @@ export default function AvailableOvertimeView() {
   const shiftActions = [
     {
       key: 'signUp',
+      disabled: (shift: Shift) => false,
+      color: 'info',
       onClick: (shift: Shift) => {
         setEditShift(shift);
         assignConfirm.onTrue();
@@ -106,6 +108,7 @@ export default function AvailableOvertimeView() {
             }
           });
         }
+        enqueueSnackbar(`You successfully signed up for ${editShift?.event?.name} - ${editShift?.assignment?.name}.`, { variant: 'success' });
         closeAssign();
       } catch(error) {
         if (/This shift if no longer available for this user/.test(error.message)) {
@@ -139,7 +142,7 @@ export default function AvailableOvertimeView() {
       </Box>
 
       <ShiftItems
-        emptyMessage='No Available Overtime'
+        emptyMessage='No Overtime Shifts Available - Check Back Later'
         pageSize={table.rowsPerPage}
         total={total}
         setPage={(page: number) => {

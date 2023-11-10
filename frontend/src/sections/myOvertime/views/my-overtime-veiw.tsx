@@ -128,6 +128,17 @@ export default function MyOvertimeView() {
   const shiftActions = [
     {
       key: 'relinquish',
+      color: 'error',
+      disabled: (shift: Shift) => {
+        if (!organization?.settings?.userRelinquishShift?.enabled) {
+          return true;
+        }
+        const startDate = new Date(shift.startTime);
+        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
+        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
+        const now = new Date();
+        return isAfter(now, disableDate);
+      },
       onClick: (shift: Shift) => {
         setEditShift(shift);
         relinquishConfirm.onTrue();

@@ -157,14 +157,18 @@ export default function AccountOvertime({
                     const dayOfWeekValue = {
                       ...current[overtime.dayOfWeek as keyof UserAvailability] as DayAvailability
                     };
-                    dayOfWeekValue.times![index] = {
-                      ...dayOfWeekValue.times![index],
-                      [key]: value?.toISOString(),
-                    };
-                    return {
-                      ...current,
-                      [overtime.dayOfWeek]: dayOfWeekValue,
-                    };
+                    try {
+                      dayOfWeekValue.times![index] = {
+                        ...dayOfWeekValue.times![index],
+                        [key]: value?.toISOString(),
+                      };
+                      return {
+                        ...current,
+                        [overtime.dayOfWeek]: dayOfWeekValue,
+                      };
+                    } catch(error) {
+                      return current;
+                    }
                   })
                 }}
                 removeTime={(index: number) => {

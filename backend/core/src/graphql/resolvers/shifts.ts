@@ -54,6 +54,8 @@ export const shift = {
       const { items } = await shifts.search({
         shiftId,
         orgId: user?.member.orgId!,
+        order: 'desc',
+        orderBy: '_id',
       });
       return items;
     },

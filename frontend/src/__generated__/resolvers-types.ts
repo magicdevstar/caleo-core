@@ -116,6 +116,8 @@ export type Event = {
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   attachments?: Maybe<Array<Scalars['String']['output']>>;
   createdAt: Scalars['String']['output'];
+  createdBy: User;
+  createdById: Scalars['String']['output'];
   docType: DocType;
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -145,6 +147,8 @@ export type EventSearchInput = {
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
+  startTime?: InputMaybe<Scalars['String']['input']>;
+  startTimeFilter?: InputMaybe<EventStartTimeFilter>;
 };
 
 export type EventSearchResult = {
@@ -152,6 +156,11 @@ export type EventSearchResult = {
   items?: Maybe<Array<Maybe<Event>>>;
   total: Scalars['Int']['output'];
 };
+
+export enum EventStartTimeFilter {
+  Gte = 'gte',
+  Lte = 'lte'
+}
 
 export enum EventStatus {
   Complete = 'COMPLETE',
@@ -507,8 +516,8 @@ export type Notification = {
   active: Scalars['Boolean']['output'];
   body: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
-  createdBy: User;
-  createdById: Scalars['String']['output'];
+  createdBy?: Maybe<User>;
+  createdById?: Maybe<Scalars['String']['output']>;
   docType: DocType;
   expiration?: Maybe<Scalars['String']['output']>;
   frequency: NotificationFrequency;
@@ -778,6 +787,7 @@ export type Shift = {
   id: Scalars['ID']['output'];
   locked?: Maybe<Scalars['Boolean']['output']>;
   notificationId?: Maybe<Scalars['String']['output']>;
+  order?: Maybe<Scalars['Int']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   otherShiftSlots?: Maybe<Array<Maybe<Shift>>>;
@@ -985,6 +995,7 @@ export type UpsertAssignment = {
 export type UpsertEvent = {
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
@@ -1320,6 +1331,7 @@ export type ResolversTypes = ResolversObject<{
   EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
+  EventStartTimeFilter: EventStartTimeFilter;
   EventStatus: EventStatus;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1569,6 +1581,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  createdById?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1712,8 +1726,8 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  createdBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  createdById?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   expiration?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   frequency?: Resolver<ResolversTypes['NotificationFrequency'], ParentType, ContextType>;
@@ -1839,6 +1853,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   locked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   notificationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  order?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   otherShiftSlots?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;

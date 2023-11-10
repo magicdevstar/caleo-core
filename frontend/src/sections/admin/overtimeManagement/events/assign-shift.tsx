@@ -11,7 +11,7 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 import { useBoolean } from 'src/hooks/use-boolean';
 // Types
 import { GET_USERS_SLIM } from "src/api/user";
-import { User } from "src/__generated__/resolvers-types";
+import { MemberStatus, User } from "src/__generated__/resolvers-types";
 
 export const AssignShiftModal = ({
   shiftId,
@@ -41,6 +41,7 @@ export const AssignShiftModal = ({
       input: {
         excludeIds: existingUserIds,
         query: queryText,
+        statuses: [MemberStatus.Active],
       }
     },
     skip: !shiftId || shiftId === '',

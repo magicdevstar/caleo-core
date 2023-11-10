@@ -49,7 +49,7 @@ export class ShiftModel extends BaseModel<Shift> {
     const shiftIds = groupKeys.map((key) => key.shiftId);
     const res = await this.collection.find({
       shiftId: { $in: shiftIds },
-    }).toArray();
+    }).sort({ _id: -1 }).toArray();
 
     const groupedByShiftId = res.reduce((acc, shift) => {
       if ((acc[shift.shiftId] || []).some((item) => item._id === shift._id)) {
@@ -66,6 +66,10 @@ export class ShiftModel extends BaseModel<Shift> {
     return groupKeys
       .map((key) =>
         groupedByShiftId[key.shiftId]
+          .map((item, index) => ({
+            ...item,
+            order: index + 1,
+          }))
           .filter((item) => item.id !== key.excludeId)
       );
   });

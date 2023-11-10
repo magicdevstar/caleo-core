@@ -78,9 +78,9 @@ export default function ShiftItem({
   }, [shift]);
 
   const assignedToShift = useMemo(() =>
-    (shift as any)?.otherShiftSlots?.map((slot: Shift, index: number) => (
+    (shift as any)?.otherShiftSlots?.map((slot: Shift) => (
       <Label key={slot.id} variant="soft" color='info' sx={labelSx}>
-        Shift # {index + 1} { slot.user ? `${slot.user?.firstName} ${slot.user?.lastName} (${slot.user?.member?.pNumber})` : ('N/A') }
+        Shift # {slot.order} { slot.user ? `${slot.user?.firstName} ${slot.user?.lastName} (${slot.user?.member?.pNumber})` : ('N/A') }
       </Label>
     )),
   [shift]);

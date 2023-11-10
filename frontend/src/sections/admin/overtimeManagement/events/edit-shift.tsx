@@ -471,7 +471,6 @@ export default function EditShift({
         content={lockShift?.locked ? "Are you sure want to unlock this shift slot?" : "Are you sure want to lock this shift slot?"}
         action={
           <LoadingButton variant="contained" color="error" onClick={async () => {
-            console.log('Shift: ', !lockShift?.locked);
             await upsertShifts({
               variables: {
                 input: [

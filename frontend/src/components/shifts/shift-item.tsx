@@ -85,6 +85,27 @@ export default function ShiftItem({
     )),
   [shift]);
 
+  const attachmentLabels = useMemo(() => {
+    const attachmentCount = (shift as Shift).event.attachments?.length || 0;
+    if (attachmentCount <= 0) {
+      return (
+        <Label variant="soft" color='info' sx={{...labelSx, width: 'fit-content'}}>
+          N/A
+        </Label>
+      );
+    }
+
+    return (shift as Shift)?.event?.attachments?.map((url: string, index: number) => (
+      <Label key={url} variant="soft" color='info' sx={{...labelSx, width: 'fit-content', cursor: 'pointer'}} onClick={(e) => {
+        e.stopPropagation();
+        window.open(url, '_blank');
+      }}>
+        Attachment # {index + 1}
+      </Label>
+    ));
+  },
+  [shift]);
+
   const contactInfo = useMemo(() => {
     let value: any = (
       <Label variant="soft" color='info'>
@@ -353,7 +374,13 @@ export default function ShiftItem({
             </Grid>
 
             <Grid item xs={12}>
-              {/* Include attachments */}
+              {/* Include contact info */}
+              <Stack spacing={1} sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Attachments</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
+                  {attachmentLabels}
+                </Box>
+              </Stack>
             </Grid>
           </Grid>
         </Stack>

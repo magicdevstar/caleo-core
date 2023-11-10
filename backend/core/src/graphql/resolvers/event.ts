@@ -61,8 +61,9 @@ export const event = {
     ): Promise<Event> => {
       adminOnly(user);
 
+      let currentEvent: any = {};
       if (event.id) {
-        const currentEvent = await events.get(event.id);
+        currentEvent = await events.get(event.id);
         if (!currentEvent) {
           throw new GraphQLError('Could not find event');
         }
@@ -72,17 +73,24 @@ export const event = {
       }
 
       const inputEvent = {
+        ...currentEvent,
         ...event,
         ...(
           event.scheduledFirstComeFirstServe ? {
             scheduledFirstComeFirstServe: new Date(event.scheduledFirstComeFirstServe).getTime()
           } : {}
         ),
+        attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
         orgId: user?.member.orgId!,
       };
 
       logger.info('Upsert event', { event: inputEvent });
-      const finalEvent = await events.upsert(inputEvent as any);
+      let finalEvent: any;
+      if (!inputEvent.id) {
+        finalEvent = await events.create(inputEvent);
+      } else {
+        finalEvent = await events.update(inputEvent as any, { skipMerge: true });
+      }
 
       return finalEvent;
     },
@@ -103,7 +111,7 @@ export const event = {
         return item.status;
       },
       attachments: async (item: Event, _arg: unknown, { events }: Context) => {
-        if (!item.attachments) {
+        if (!item.attachmentPaths) {
           return [];
         }
         const results = await Promise.allSettled((item.attachmentPaths || []).map((path) => {

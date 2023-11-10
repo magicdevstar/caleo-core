@@ -15,6 +15,7 @@ const FORMAT_POWERPOINT = ['ppt', 'pptx'];
 const FORMAT_AUDIO = ['wav', 'aif', 'mp3', 'aac'];
 const FORMAT_IMG = ['jpg', 'jpeg', 'gif', 'bmp', 'png', 'svg'];
 const FORMAT_VIDEO = ['m4v', 'avi', 'mpg', 'mp4', 'webm'];
+const FORMAT_BLOB = ['blob:'];
 
 const iconUrl = (icon: string) => `/assets/icons/files/${icon}.svg`;
 
@@ -22,7 +23,6 @@ const iconUrl = (icon: string) => `/assets/icons/files/${icon}.svg`;
 
 export function fileFormat(fileUrl: string | undefined) {
   let format;
-
   switch (fileUrl?.includes(fileTypeByUrl(fileUrl))) {
     case FORMAT_TEXT.includes(fileTypeByUrl(fileUrl)):
       format = 'txt';
@@ -33,6 +33,7 @@ export function fileFormat(fileUrl: string | undefined) {
     case FORMAT_AUDIO.includes(fileTypeByUrl(fileUrl)):
       format = 'audio';
       break;
+    case fileUrl?.split('.')?.length === 1:
     case FORMAT_IMG.includes(fileTypeByUrl(fileUrl)):
       format = 'image';
       break;

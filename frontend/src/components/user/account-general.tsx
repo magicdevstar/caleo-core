@@ -33,6 +33,7 @@ import Image from 'src/components/image';
 import { fData } from 'src/utils/format-number';
 import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
+import { client } from 'src/utils/apollo';
 
 // ----------------------------------------------------------------------
 
@@ -106,17 +107,7 @@ export default function AccountGeneral({
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
 
   const [createUploadLink] = useMutation(CREATE_PROFILE_PHOTO_UPLOAD_URL);
-  const [updateUser] = useMutation(UPDATE_USER, {
-    refetchQueries: [
-      {
-        query: GET_USER,
-        variables: {
-          id: user.id,
-        },
-      },
-      ME,
-    ]
-  });
+  const [updateUser] = useMutation(UPDATE_USER);
   const { data } = useQuery(GET_RANKS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -193,10 +184,11 @@ export default function AccountGeneral({
         .then((blob) => {
           const fileName = user.image || 'file';
           const file = new File([blob], fileName);
-          setValue('photoURL', Object.assign(file, {
+          const fileBlob = Object.assign(file, {
             preview: URL.createObjectURL(file),
             existing: true,
-          }));
+          });
+          setValue('photoURL', fileBlob);
           setLoadingImage(false);
         }).catch((error) => {
           console.error(error);
@@ -277,7 +269,7 @@ export default function AccountGeneral({
               }
             }
           }
-        }
+        },
       });
 
       if (document && uploadUrl) {
@@ -290,6 +282,13 @@ export default function AccountGeneral({
           },
         });
       }
+
+      await client.refetchQueries({
+        include: [
+          GET_USER,
+          ME,
+        ]
+      });
 
       // Reset photo url
       setValue('photoURL', undefined);

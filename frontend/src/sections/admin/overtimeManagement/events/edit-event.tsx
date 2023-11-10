@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { useMutation, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { isAfter, isBefore } from 'date-fns';
@@ -44,6 +44,7 @@ import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { useAuthContext } from 'src/auth/hooks';
 import Markdown from 'src/components/markdown';
+import { client } from 'src/utils/apollo';
 
 // ----------------------------------------------------------------------
 
@@ -80,14 +81,7 @@ export default function EditEvent({ currentEvent }: Props) {
       },
     }],
   });
-  const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT, {
-    refetchQueries: [GET_ALL_EVENTS, {
-      query: GET_EVENT,
-      variables: {
-        id: currentEvent?.id,
-      },
-    }],
-  });
+  const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT);
 
   const venues = useMemo(() => venueRes?.venues?.items || [], [venueRes]);
   const mdUp = useResponsive('up', 'md');
@@ -105,6 +99,7 @@ export default function EditEvent({ currentEvent }: Props) {
     notifyWhenFullyStaffed: Yup.boolean(),
     venueId: Yup.string().required('Venue is required'),
     scheduledFirstComeFirstServe: Yup.string(),
+    createdById: Yup.string(),
     assignments: Yup.array(),
   });
 
@@ -119,8 +114,9 @@ export default function EditEvent({ currentEvent }: Props) {
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       assignments: currentEvent?.assignments || [],
+      createdById: currentEvent?.createdById || user?.id,
     }),
-    [currentEvent]
+    [currentEvent, user]
   );
 
   const methods = useForm({
@@ -140,7 +136,7 @@ export default function EditEvent({ currentEvent }: Props) {
   const values = watch();
 
   useEffect(() => {
-    const loadImage = async (url: string) => {
+    const loadImage = async (url: string, index: number) => {
       const res = await fetch(url);
       const blob = await res.blob();
       const fileName = url || 'file';
@@ -148,13 +144,13 @@ export default function EditEvent({ currentEvent }: Props) {
       return Object.assign(file, {
         preview: URL.createObjectURL(file),
         existing: true,
+        attachmentPath: currentEvent?.attachmentPaths?.[index],
       });
     };
 
     const loadAll = async () => {
       if (currentEvent && currentEvent.attachments) {
         const allImages = await Promise.all(currentEvent.attachments.map(loadImage));
-        console.log(allImages);
         setValue('attachments', allImages);
       }
     }
@@ -199,6 +195,32 @@ export default function EditEvent({ currentEvent }: Props) {
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
     try {
       // TODO: Impalement upload for attachments
+
+      let imageUploadUrls = [];
+      const existingAttachments = formData.attachments
+        .filter(({ existing, attachmentPath }: any) => existing && attachmentPath);
+      const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
+      if (getUploadUrls.length > 0) {
+        let mutation: any = 'mutation {';
+        getUploadUrls.forEach((file: any, index: number) => {
+          mutation += `
+            attachments${index}: eventAttachmentUploadUrl {
+              attachmentPath
+              uploadUrl
+            }
+          `;
+        });
+        mutation += '}';
+        mutation = gql(mutation);
+        const { data } = await client.mutate({
+          mutation,
+        });
+        imageUploadUrls = Object.keys(data).map((key, index) => ({
+          ...data[key],
+          attachmentData: getUploadUrls[index],
+        }));
+      }
+
       const res = await upsertEvent({
         variables: {
           input: {
@@ -208,14 +230,38 @@ export default function EditEvent({ currentEvent }: Props) {
             status: formData?.status,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
-            attachmentPaths: [],
+            attachmentPaths: [
+              ...existingAttachments,
+              ...imageUploadUrls,
+            ].map(({ attachmentPath }) => attachmentPath),
             venueId: formData?.venueId,
+            createdById: formData?.createdById,
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
             ),
           },
         },
       });
+
+      if (imageUploadUrls.length > 0) {
+        await Promise.allSettled(
+          imageUploadUrls.map(({
+            uploadUrl,
+            attachmentData,
+          }: any) => fetch(uploadUrl, {
+            method: 'PUT',
+            body: attachmentData,
+            headers: {
+              'Content-Type': attachmentData.type,
+            },
+          }))
+        );
+      }
+
+      await client.refetchQueries({
+        include: [GET_ALL_EVENTS, GET_EVENT]
+      });
+
       if (shouldReroute) {
         enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
         if (!currentEvent) {

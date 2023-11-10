@@ -76,7 +76,6 @@ export default function AmplifyRegisterView() {
     try {
       const orgId = incomingSearchParams.get('orgId');
       if (!orgId) {
-        console.log('No orgId found in incoming search params');
         return;
       }
       await register?.(data.email, data.password, data.firstName, data.lastName, data.phoneNumber, data.pNumber, orgId);

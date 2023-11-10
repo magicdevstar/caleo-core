@@ -50,6 +50,7 @@ export const GET_EVENT = gql`
       scheduledFirstComeFirstServe
       startTime
       endTime
+      createdById
 
       venue {
         id

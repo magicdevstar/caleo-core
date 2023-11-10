@@ -217,7 +217,14 @@ export const shift = {
     shifts: async (
       _parent: unknown,
       { shifts }: { shifts: UpsertShift[] },
-      { organizations, assignments, events, shiftBufferRequests, shifts: shiftsModel, user }: Context
+      {
+        organizations,
+        assignments,
+        events,
+        shiftBufferRequests,
+        shifts: shiftsModel,
+        user,
+      }: Context
     ): Promise<Shift[]> => {
       adminOnly(user);
 
@@ -239,7 +246,7 @@ export const shift = {
         const { startTime, endTime, ...rest } = shift;
         let status = rest.status;
         if (!shift.id) {
-          status = ShiftStatus.Available;  
+          status = ShiftStatus.Available;
         }
         return {
           ...rest,

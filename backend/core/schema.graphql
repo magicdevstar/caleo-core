@@ -222,7 +222,7 @@
     docType: DocType!
     venueId: String!
     assignmentIds: [String]
-    createdById: String!
+    createdById: String
     createdAt: String!
     updatedAt: String!
 
@@ -230,7 +230,7 @@
     org: Organization!
     assignments: [Assignment!]
     attachments: [String!]
-    createdBy: User!
+    createdBy: User
   }
 
   type Assignment {
@@ -334,6 +334,7 @@
     eventId: String!
     assignmentId: String!
     userId: String
+    createdById: String
     createdAt: String!
     updatedAt: String!
     availability: ShiftAvailabilityTime
@@ -348,6 +349,7 @@
     event: Event!
     assignment: Assignment!
     org: Organization!
+    createdBy: User
   }
 
   input UpsertEvent {
@@ -399,6 +401,7 @@
     eventId: String!
     assignmentId: String!
     userId: String
+    createdById: String
   }
 ###### END Events ######
 

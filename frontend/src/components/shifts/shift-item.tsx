@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
 import PhoneNumberFormatter from 'phone-number-formats';
 // mui
 import Box from "@mui/material/Box";
@@ -17,6 +16,8 @@ import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
 import Label from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
+import { convertDate } from "src/hooks/use-datejs";
+import { useAuthContext } from "src/auth/hooks";
 
 const labelSx = {
   whiteSpace: 'break-spaces',
@@ -39,6 +40,7 @@ export default function ShiftItem({
     getName: (shift: Shift) => string;
   }[];
 }) {
+  const { user } = useAuthContext();
   const [detailHeight, setDetailHeight] = useState<string>('0px');
   const popover = usePopover();
 
@@ -162,8 +164,14 @@ export default function ShiftItem({
   }, [shift?.event?.venue]);
 
   const dates = {
-    startTime: format(new Date(shift.startTime), 'EEEEEE dd MMM yyyy HH:mm'),
-    endTime: format(new Date(shift.endTime), 'EEEEEE dd MMM yyyy HH:mm'),
+    startTime: convertDate({
+      date: shift.startTime,
+      user,
+    }).format('ddd DD MMM YYYY HH:mm'),
+    endTime: convertDate({
+      date: shift.endTime,
+      user,
+    }).format('ddd DD MMM YYYY HH:mm'),
   };
 
   return (

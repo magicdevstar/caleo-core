@@ -14,7 +14,7 @@ type Props = TextFieldProps & {
 
 const PhoneInput = ReactPhoneInput as any;
 
-export default function RHFPhoneField({ name, helperText, type, ...other }: Props) {
+export default function RHFPhoneField({ name, helperText, type, country, onlyCountries, countryCodeEditable = false, ...other }: Props) {
   const { control } = useFormContext();
 
   return (
@@ -36,6 +36,9 @@ export default function RHFPhoneField({ name, helperText, type, ...other }: Prop
             }
           }}
           error={!!error}
+          country={country || "us"}
+          onlyCountries={onlyCountries || ['us']}
+          countryCodeEditable={countryCodeEditable}
           helperText={error ? error?.message : helperText}
           component={TextField as any}
           {...other}

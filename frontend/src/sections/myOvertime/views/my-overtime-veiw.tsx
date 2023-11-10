@@ -143,8 +143,28 @@ export default function MyOvertimeView() {
         setEditShift(shift);
         relinquishConfirm.onTrue();
       },
-      getIcon: () => 'mdi:close-thick',
-      getName: () => 'Relinquish',
+      getIcon: (shift: Shift) => {
+        if (!organization?.settings?.userRelinquishShift?.enabled) {
+          return 'mdi:check';
+        }
+        const startDate = new Date(shift.startTime);
+        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
+        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
+        const now = new Date();
+        const iconString: string = isAfter(now, disableDate) ? 'mdi:check' : 'mdi:close-thick';
+        return iconString;
+      },
+      getName: (shift: Shift) => {
+        if (!organization?.settings?.userRelinquishShift?.enabled) {
+          return 'Secured';
+        }
+        const startDate = new Date(shift.startTime);
+        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
+        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
+        const now = new Date();
+        const str = isAfter(now, disableDate) ? 'Secured' : 'Relinquish';
+        return str;
+      },
     }
   ]
 
@@ -163,7 +183,7 @@ export default function MyOvertimeView() {
         onChange={handleTabChange}
         sx={{mb: { xs: 3, md: 5 }}}
       >
-        {['upcoming', 'past', 'all'].map((tab) => (
+        {['upcoming', 'past'].map((tab) => (
           <Tab
             key={tab}
             iconPosition="end"

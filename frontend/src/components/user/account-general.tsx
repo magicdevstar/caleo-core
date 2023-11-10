@@ -460,12 +460,12 @@ export default function AccountGeneral({
             >
               <Box>
                 <RHFPhoneField disabled={!adminViewer} name="primaryPhone" label="Primary Phone" />
-                <RHFSwitch name="primaryPhoneReceive" label="Receive text messages" />
+                <RHFSwitch disabled={!adminViewer} name="primaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>
                 <RHFTextField disabled={!adminViewer} name="primaryEmail" label="Primary Email" />
-                <RHFSwitch name="primaryEmailReceive" label="Receive emails" />
+                <RHFSwitch disabled={!adminViewer} name="primaryEmailReceive" label="Receive emails" />
               </Box>
 
               <Box>

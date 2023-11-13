@@ -1,17 +1,25 @@
+import { useState } from "react";
 import copy from 'copy-to-clipboard';
 import { useSnackbar } from 'notistack';
+
 // @mui
 import red from "@mui/material/colors/red";
 // Types
 import { MemberStatus, User } from "src/__generated__/resolvers-types";
-import GQLTable from "src/components/table/gql/table"
+import { GET_ACCOUNT_REQUEST_USERS } from "src/api/user";
+
 // Hooks
+import { useBoolean } from "src/hooks/use-boolean";
 import { useAuthContext } from 'src/auth/hooks';
+
 // Components
 import { TableConfig } from "src/components/table/table-config"
-import { GET_USERS } from "src/api/user";
+import GQLTable from "src/components/table/gql/table"
+import AccountRequestsDialog from "./account-requests-dialog";
 
 export default function AccountRequestsTable() {
+  const [userRequest, setUserRequest] = useState<{ user: User, approve: boolean } | null>(null);
+  const reviewUser = useBoolean();
   const { enqueueSnackbar } = useSnackbar();
   const { user: loggedInUser } = useAuthContext();
   const config: TableConfig<User> = {
@@ -30,7 +38,7 @@ export default function AccountRequestsTable() {
       defaultTableConfig: {
         defaultRowsPerPage: 10,
       },
-      query: GET_USERS,
+      query: GET_ACCOUNT_REQUEST_USERS,
       processResult: (data) => {
         const { users: { items, total } } = data || { users: { items: [], total: 0 } };
         return {
@@ -43,13 +51,25 @@ export default function AccountRequestsTable() {
       {
         getName: () => 'Approve',
         getIcon: () => 'solar:check-circle-bold',
-        onClick: (row: User) => {},
+        onClick: (row: User) => {
+          setUserRequest({
+            user: row,
+            approve: true
+          });
+          reviewUser.onTrue();
+        },
       },
       {
         getName: () => 'Deny',
         getIcon: () => 'solar:close-circle-bold',
         getColor: (row: User) => red[500],
-        onClick: (user: User) => {},
+        onClick: (row: User) => {
+          setUserRequest({
+            user: row,
+            approve: false,
+          });
+          reviewUser.onTrue();
+        },
       }
     ],
     columns: [
@@ -59,7 +79,7 @@ export default function AccountRequestsTable() {
         columnType: 'string',
         getHref: (row) => `/dashboard/admin/users/${row.id}`
       },
-      { id: 'member.contactInfo.primaryEmail.address', label: 'Email', width: 200, columnType: 'string' },
+      { id: 'member.contactInfo.primaryEmail.address', label: 'Email', columnType: 'string' },
       { id: 'member.status', label: 'Status', width: 110, columnType: 'string', getLabelColor: (row) => {
         switch(row.member.status) {
           case MemberStatus.Inactive:
@@ -78,12 +98,15 @@ export default function AccountRequestsTable() {
         label: 'Status',
         defaultValue: [MemberStatus.Pending],
         value: [MemberStatus.Pending],
-        // fetchOptions: getStatusFilter,
       }
     ]
   };
 
   return (
-    <GQLTable config={config} />
+    <>
+      <GQLTable config={config} />
+
+      <AccountRequestsDialog userRequest={userRequest} open={reviewUser.value} onClose={reviewUser.onFalse} />
+    </>
   )
 };

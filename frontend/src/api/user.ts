@@ -187,9 +187,41 @@ export const GET_USERS = gql`
         name
         member {
           pNumber
+          rank {
+            id
+            name
+          }
+          tier
+          status
+        }
+        createdAt
+      }
+      total
+    }
+  }
+`;
+
+export const GET_ACCOUNT_REQUEST_USERS = gql`
+  query GetUsers($input: UserSearchInput!) {
+    users(input: $input) {
+      items {
+        id
+        cognitoId
+        name
+        firstName
+        lastName
+        member {
+          orgId
+          pNumber
+          role
+          adminNote
+          rankId
           contactInfo {
             primaryEmail {
               address
+            }
+            primaryPhone {
+              number
             }
           }
           rank {
@@ -199,7 +231,6 @@ export const GET_USERS = gql`
           tier
           status
         }
-        createdAt
       }
       total
     }

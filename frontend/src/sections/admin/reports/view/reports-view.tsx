@@ -1,0 +1,77 @@
+import { ChangeEvent, useState } from 'react';
+// @mui
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+// components
+import { useSettingsContext } from 'src/components/settings';
+
+enum ReportType {
+  EVENTS_BY_DATE = 'EVENTS_BY_DATE',
+  EVENTS_BY_VENUE = 'EVENTS_BY_VENUE',
+  SHIFTS_BY_EVENT = 'SHIFTS_BY_EVENT',
+  SHIFTS_BY_OFFICER = 'SHIFTS_BY_OFFICER',
+  SHIFTS_BY_DATE = 'SHIFTS_BY_DATE',
+  RANKED_SHIFTS_BY_OFFICER = 'RANKED_SHIFTS_BY_OFFICER',
+  RELINQUISHED_SHIFTS_BY_OFFICER = 'RELINQUISHED_SHIFTS_BY_OFFICER',
+}
+
+const ReportTypeNames = {
+  [ReportType.EVENTS_BY_DATE]: 'Events by Date',
+  [ReportType.EVENTS_BY_VENUE]: 'Events by Venue',
+  [ReportType.SHIFTS_BY_EVENT]: 'Shifts by Event',
+  [ReportType.SHIFTS_BY_OFFICER]: 'Shifts by Officer',
+  [ReportType.SHIFTS_BY_DATE]: 'Shifts by Date',
+  [ReportType.RANKED_SHIFTS_BY_OFFICER]: 'Ranked Shifts by Officer',
+  [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Relinquished Shifts by Officer',
+};
+
+function ReportTypeSwitch({ reportType }: { reportType: ReportType }) {
+  // TODO: create and add each component for creating reports
+  switch (reportType) {
+    case ReportType.EVENTS_BY_DATE:
+    case ReportType.EVENTS_BY_VENUE:
+    case ReportType.SHIFTS_BY_EVENT:
+    case ReportType.SHIFTS_BY_OFFICER:
+    case ReportType.SHIFTS_BY_DATE:
+    case ReportType.RANKED_SHIFTS_BY_OFFICER:
+    case ReportType.RELINQUISHED_SHIFTS_BY_OFFICER:
+    default:
+      return null;
+  }
+}
+
+export default function ReportsView() {
+  const settings = useSettingsContext();
+  const [reportType, setReportType] = useState(ReportType.EVENTS_BY_DATE);
+
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setReportType(event?.target?.value as ReportType);
+  };
+
+  return (
+    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
+        Reports
+      </Typography>
+      <TextField
+        select
+        fullWidth
+        sx={{
+          maxWidth: 250,
+        }}
+        label="Report Type"
+        value={reportType}
+        onChange={onChange}
+      >
+        {[...Object.values(ReportType)].map((option) => (
+          <MenuItem key={option} value={option}>
+            {ReportTypeNames[option]}
+          </MenuItem>
+        ))}
+      </TextField>
+      <ReportTypeSwitch reportType={reportType} />
+    </Container>
+  );
+}

@@ -303,8 +303,6 @@ export class UserModel extends BaseModel<User> {
         }
       }
 
-      logger.info('shiftBufferShift', { shiftBufferShift });
-
       return {
         id: _id.toString(),
         ...shift,
@@ -314,7 +312,7 @@ export class UserModel extends BaseModel<User> {
 
     return {
       total: totalRes?.[0]?.total || 0,
-      items: firstShifts
+      items: firstShifts.sort((a, b) => a.startTime - b.startTime)
     };
   }
 

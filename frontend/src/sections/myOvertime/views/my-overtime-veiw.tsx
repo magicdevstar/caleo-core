@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { isAfter, subHours } from 'date-fns';
+import { isAfter, isBefore, subHours } from 'date-fns';
 // @mui
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -17,12 +17,48 @@ import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
 // local imports
 import ShiftItems from 'src/components/shifts/shift-items';
-import { Shift } from 'src/__generated__/resolvers-types';
+import { Organization, Shift } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
 // ----------------------------------------------------------------------
+
+const getButtonInfo = (organization: Organization, shift: Shift) => {
+  if (!organization?.settings?.userRelinquishShift?.enabled) {
+    return {
+      icon: 'mdi:check',
+      title: 'Secured',
+      disabled: true,
+    };
+  }
+  const startDate = new Date(shift.startTime);
+  const endDate = new Date(shift.endTime);
+  const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
+  const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
+  const now = new Date();
+  const disabled = isAfter(now, disableDate);
+
+  if (isAfter(now, startDate) && isBefore(now, endDate)) {
+    return {
+      icon: 'mdi:clock-alert',
+      title: 'In Progress',
+      disabled,
+    }
+  }
+  if (isAfter(now, endDate)) {
+    return {
+      icon: 'mdi:check',
+      title: 'Secured',
+      disabled,
+    }
+  }
+  return {
+    icon: 'mdi:close-thick',
+    title: 'Relinquish',
+    disabled,
+  };
+};
 
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
@@ -30,6 +66,7 @@ export default function MyOvertimeView() {
   const table = useTable({
     defaultOrderBy: 'startTime',
     defaultOrder: 'asc',
+    defaultRowsPerPage: 10000,
   });
   const [filters, setFilters] = useState<any>({
     limit: table.rowsPerPage,
@@ -129,42 +166,13 @@ export default function MyOvertimeView() {
     {
       key: 'relinquish',
       color: 'error',
-      disabled: (shift: Shift) => {
-        if (!organization?.settings?.userRelinquishShift?.enabled) {
-          return true;
-        }
-        const startDate = new Date(shift.startTime);
-        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-        const now = new Date();
-        return isAfter(now, disableDate);
-      },
+      disabled: (shift: Shift) => getButtonInfo(organization, shift).disabled,
       onClick: (shift: Shift) => {
         setEditShift(shift);
         relinquishConfirm.onTrue();
       },
-      getIcon: (shift: Shift) => {
-        if (!organization?.settings?.userRelinquishShift?.enabled) {
-          return 'mdi:check';
-        }
-        const startDate = new Date(shift.startTime);
-        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-        const now = new Date();
-        const iconString: string = isAfter(now, disableDate) ? 'mdi:check' : 'mdi:close-thick';
-        return iconString;
-      },
-      getName: (shift: Shift) => {
-        if (!organization?.settings?.userRelinquishShift?.enabled) {
-          return 'Secured';
-        }
-        const startDate = new Date(shift.startTime);
-        const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-        const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-        const now = new Date();
-        const str = isAfter(now, disableDate) ? 'Secured' : 'Relinquish';
-        return str;
-      },
+      getIcon: (shift: Shift) => getButtonInfo(organization, shift).icon,
+      getName: (shift: Shift) => getButtonInfo(organization, shift).title,
     }
   ]
 

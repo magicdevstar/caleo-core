@@ -56,16 +56,15 @@ export default function ShiftItems({
     );
   }
 
-
   return (
     <>
       <Grid container spacing={2} sx={{ padding: '9px' }}>
         {loading ? renderSkeleton : renderList}
       </Grid>
 
-      {shifts.length > pageSize && (
+      {total > pageSize && (
         <Pagination
-          count={total}
+          count={Math.ceil(total / pageSize)}
           page={currentPage}
           onChange={(_event, page) => setPage(page)}
           sx={{

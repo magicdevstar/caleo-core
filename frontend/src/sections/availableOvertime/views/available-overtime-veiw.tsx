@@ -42,6 +42,7 @@ export default function AvailableOvertimeView() {
   const canConfirm = useMemo(() => !editShift?.shiftBufferShift || (editShift?.shiftBufferShift && note.trim() !== ''), [editShift, note]);
   const table = useTable({
     defaultOrderBy: 'startTime',
+    defaultRowsPerPage: 10000,
     defaultOrder: 'asc',
   });
   const [filters, setFilters] = useState<any>({

@@ -202,8 +202,8 @@ export class UserModel extends BaseModel<User> {
     if (shiftRanges.length > 0) {
       $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
         $or: [
-          { startTime: { $gt: endTime } },
-          { endTime: { $lt: startTime } },
+          { startTime: { $gte: endTime } },
+          { endTime: { $lte: startTime } },
         ],
       })));
     }
@@ -344,8 +344,8 @@ export class UserModel extends BaseModel<User> {
     if (shiftRanges.length > 0) {
       $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
         $or: [
-          { startTime: { $gt: endTime } },
-          { endTime: { $lt: startTime } },
+          { startTime: { $gte: endTime } },
+          { endTime: { $lte: startTime } },
         ],
       })));
     }

@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { addDays, format } from "date-fns";
+import { addDays, format, setMilliseconds } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
@@ -24,6 +24,7 @@ import {
   ShiftUpsertNotification
 } from "../../types/notifications";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+import logger from "../../utils/logger";
 
 const lambda = new LambdaClient();
 
@@ -253,10 +254,12 @@ export const shift = {
           status,
           availability,
           orgId: user?.member.orgId!,
-          startTime: new Date(startTime).getTime(),
-          endTime: new Date(endTime).getTime(),
+          startTime: setMilliseconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
+          endTime: setMilliseconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
         };
       }) as any;
+
+      logger.info('shifts', { updatedShifts });
 
       const writtenShifts = await shiftsModel.bulkWrite(updatedShifts) as Shift[];
 

@@ -15,6 +15,18 @@ const userDetailProperties = `
       timezone
       settings {
         shiftsPerWeek
+        lottery {
+          enabled
+          fcfsShiftsDelay
+          open {
+            dayOfWeek
+            time
+          }
+          close {
+            dayOfWeek
+            time
+          }
+        }
       }
     }
     contactInfo {

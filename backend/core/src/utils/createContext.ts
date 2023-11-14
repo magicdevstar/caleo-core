@@ -18,12 +18,14 @@ import { UserModel } from "../models/user";
 import { VenueModel } from "../models/venue";
 import { DocumentModel } from "../models/document";
 import { EventReferenceNumber } from "../models/eventReferenceNumber";
+import { LotteryCounterModel } from "../models/lotteryCounter";
 
 let db: Db;
 
 export interface Context {
   eventReferenceNumber: EventReferenceNumber;
   organizations: OrganizationModel;
+  lotteryCounter: LotteryCounterModel;
   users: UserModel;
   ranks: RankModel;
   skills: SkillModel;
@@ -50,6 +52,7 @@ export const createContext = async (): Promise<Context> => {
 
   const eventReferenceNumber = new EventReferenceNumber(db);
   const organizations = new OrganizationModel(db);
+  const lotteryCounter = new LotteryCounterModel(db);
   const document = new DocumentModel();
   const notifications = new NotificationModel(db);
   const scheduler = new SchedulerModel();
@@ -81,5 +84,6 @@ export const createContext = async (): Promise<Context> => {
     scheduler,
     shiftBufferRequests,
     shiftLotteryRequests,
+    lotteryCounter,
   };
 };

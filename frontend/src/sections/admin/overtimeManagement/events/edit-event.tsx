@@ -24,7 +24,14 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, Event, EventStatus, Shift, Venue, VenueStatus } from 'src/__generated__/resolvers-types';
+import {
+  Assignment,
+  Event,
+  EventStatus,
+  Shift,
+  Venue,
+  VenueStatus,
+} from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -45,6 +52,7 @@ import GQLTable from 'src/components/table/gql/table';
 import { useAuthContext } from 'src/auth/hooks';
 import Markdown from 'src/components/markdown';
 import { client } from 'src/utils/apollo';
+import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
 
 // ----------------------------------------------------------------------
 
@@ -53,6 +61,7 @@ type Props = {
 };
 
 const eventStatusNames = {
+  [EventStatus.Complete]: 'Complete',
   [EventStatus.Draft]: 'Draft',
   [EventStatus.ReadyForLottery]: 'Lottery',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
@@ -64,6 +73,10 @@ dayjs.extend(timezone);
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
+  const { options: lotteryCounterOptions } = useLotteryCounterOptions({
+    org: user.member.org!,
+    dateLimit: currentEvent?.endTime || undefined,
+  });
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -97,6 +110,7 @@ export default function EditEvent({ currentEvent }: Props) {
     notes: Yup.string(),
     attachments: Yup.array(),
     notifyWhenFullyStaffed: Yup.boolean(),
+    lotteryNumber: Yup.number().nullable(),
     venueId: Yup.string().required('Venue is required'),
     scheduledFirstComeFirstServe: Yup.string(),
     createdById: Yup.string(),
@@ -111,6 +125,7 @@ export default function EditEvent({ currentEvent }: Props) {
       notes: currentEvent?.notes || '',
       attachments: [],
       venueId: currentEvent?.venueId || '',
+      lotteryNumber: currentEvent?.lotteryNumber,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       assignments: currentEvent?.assignments || [],
@@ -134,6 +149,12 @@ export default function EditEvent({ currentEvent }: Props) {
   } = methods;
 
   const values = watch();
+
+  useEffect(() => {
+    if(!values.lotteryNumber) {
+      setValue('lotteryNumber', lotteryCounterOptions[0]?.counter);
+    }
+  }, [lotteryCounterOptions, values.status, values.lotteryNumber, setValue]);
 
   useEffect(() => {
     const loadImage = async (url: string, index: number) => {
@@ -230,6 +251,7 @@ export default function EditEvent({ currentEvent }: Props) {
             status: formData?.status,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
+            lotteryNumber: formData?.lotteryNumber,
             attachmentPaths: [
               ...existingAttachments,
               ...imageUploadUrls,
@@ -292,6 +314,8 @@ export default function EditEvent({ currentEvent }: Props) {
   const onSubmit = handleSubmit(async (formData) => {
     await formSubmit(formData);
   });
+
+  console.log(currentEvent?.id, isValid, !currentEvent?.id && !isValid);
 
   const config: TableConfig<Assignment> = useMemo(() => ({
     header: {
@@ -464,7 +488,7 @@ export default function EditEvent({ currentEvent }: Props) {
             <RHFTextField
               name="name"
               label="Name"
-              helperText={`Ref #: ${currentEvent?.referenceId}`}
+              helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
             />
             <RHFSelect
               name="venueId"
@@ -548,6 +572,26 @@ export default function EditEvent({ currentEvent }: Props) {
                       },
                     }}
                   />
+                )}
+
+                {currentFormValues && currentFormValues.status === EventStatus.ReadyForLottery && (
+                  <RHFSelect
+                    fullWidth
+                    name="lotteryNumber"
+                    label="Lottery Date"
+                    InputLabelProps={{ shrink: true }}
+                    PaperPropsSx={{ textTransform: 'capitalize' }}
+                    helperText={`FCFS: ${lotteryCounterOptions
+                      .find(({ counter }) => counter === values?.lotteryNumber)
+                      ?.date.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format('ddd DD MMM YYYY HH:mm')
+                    }`}
+                  >
+                    {lotteryCounterOptions.map((option) => (
+                      <MenuItem key={option.counter} value={option.counter}>
+                        {option.time}
+                      </MenuItem>
+                    ))}
+                  </RHFSelect>
                 )}
 
                 <Stack>

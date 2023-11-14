@@ -19,7 +19,9 @@ const finalizeLottery = async (input: InputEvent[]) => {
   if (!orgId) {
     return;
   }
-  const { events } = await createContext();
+  const { events, lotteryCounter } = await createContext();
+
+  await lotteryCounter.increment(orgId);
 
   await events.collection.updateMany({
     orgId,

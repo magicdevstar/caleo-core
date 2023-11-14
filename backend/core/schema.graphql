@@ -11,6 +11,7 @@
     EVENT
     ASSIGNMENT
     SHIFT
+    LOTTERY_COUNTER
     SHIFT_BUFFER_REQUEST
     SHIFT_LOTTERY_REQUEST
   }
@@ -217,6 +218,7 @@
     notes: String
     orgId: String!
     status: EventStatus!
+    lotteryNumber: Int
     scheduledFirstComeFirstServe: String
     notifyWhenFullyStaffed: Boolean
     docType: DocType!
@@ -357,6 +359,7 @@
     name: String!
     attachmentPaths: [String]
     status: EventStatus
+    lotteryNumber: Int
     scheduledFirstComeFirstServe: String
     notes: String
     venueId: String!
@@ -404,6 +407,20 @@
     createdById: String
   }
 ###### END Events ######
+
+###### START LotteryCounter ######
+  type LotteryCounter {
+    id: ID!
+    counter: Int!
+    orgId: String!
+    docType: DocType!
+    createdAt: String!
+    updatedAt: String!
+
+    org: Organization!
+    
+  }
+###### END LotteryCounter ######
 
 ###### START Venues ######
   type VenueContact {
@@ -944,6 +961,8 @@ type Query {
   shiftUsers(id: String!, name: String): UserSearchResult
   shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
   shiftLotteryRequests: ShiftLotteryRequestsSearchResult
+
+  lotteryCounter: LotteryCounter
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult

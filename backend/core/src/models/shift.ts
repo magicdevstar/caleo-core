@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Collection, Db } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
 import { DocType, Organization, Shift } from '../__generated__/resolvers-types';
@@ -21,6 +21,8 @@ const dayOfWeek = [
 const lambda = new LambdaClient({});
 
 export class ShiftModel extends BaseModel<Shift> {
+  lotteryCounterCollection: Collection;
+
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.aggregate([
       {
@@ -76,6 +78,7 @@ export class ShiftModel extends BaseModel<Shift> {
 
   constructor(db: Db) {
     super(db, DocType.Shift, 'shifts');
+    this.lotteryCounterCollection = db.collection('lotteryCounter');
   }
 
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
@@ -286,6 +289,15 @@ export class ShiftModel extends BaseModel<Shift> {
   }: {
     orgId: string;
   }) {
+    let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
+      orgId,
+    });
+    if (!lotteryCounterDoc) {
+      lotteryCounterDoc = {
+        counter: 0,
+      };
+    }
+
     const pipeline = [
       // Filter for only open shifts
       {
@@ -332,7 +344,8 @@ export class ShiftModel extends BaseModel<Shift> {
       },
       {
         $match: {
-          'event.status': 'READY_FOR_LOTTERY'
+          'event.status': 'READY_FOR_LOTTERY',
+          'event.lotteryNumber': lotteryCounterDoc.counter,
         }
       },
       { $unwind: { path: '$shifts' } },

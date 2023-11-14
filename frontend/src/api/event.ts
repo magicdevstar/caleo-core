@@ -34,6 +34,15 @@ export const GET_ALL_EVENTS = gql`
   }
 `;
 
+export const GET_LOTTERY_COUNTER = gql`
+  query GetLotteryCounter {
+    lotteryCounter {
+      id
+      counter
+    }
+  }
+`;
+
 export const GET_EVENT = gql`
   query GetEvent($id: String!) {
     event(id: $id) {
@@ -46,6 +55,7 @@ export const GET_EVENT = gql`
       notes
       assignmentIds
       attachmentPaths
+      lotteryNumber
       notifyWhenFullyStaffed
       scheduledFirstComeFirstServe
       startTime

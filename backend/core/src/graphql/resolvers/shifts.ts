@@ -1,7 +1,12 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { addDays, format, setMilliseconds } from "date-fns";
+import {
+  addDays,
+  format,
+  setMilliseconds,
+  setSeconds,
+} from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
@@ -254,8 +259,8 @@ export const shift = {
           status,
           availability,
           orgId: user?.member.orgId!,
-          startTime: setMilliseconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
-          endTime: setMilliseconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
+          startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
+          endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
         };
       }) as any;
 

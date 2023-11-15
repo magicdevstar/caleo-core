@@ -114,7 +114,7 @@ functions:
     events:
       - cognitoUserPool:
           pool: ${param:poolName}
-          trigger: PreSignUp
+          trigger: PostConfirmation
           existing: true
           forceDeploy: true
 

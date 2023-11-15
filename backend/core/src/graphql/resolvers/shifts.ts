@@ -468,10 +468,7 @@ export const shift = {
         shift: Shift,
         _,
         { shifts }: Context
-      ) => shifts.loadOtherShiftSlots.load({
-        excludeId: shift.id,
-        shiftId: shift.shiftId,
-      }),
+      ) => shifts.loadOtherShiftSlots.load(shift.shiftId),
     },
   },
 };

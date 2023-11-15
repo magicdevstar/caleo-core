@@ -123,6 +123,11 @@
     image: String
   }
 
+  input InputAdminResetPassword {
+    userId: String!
+    password: String!
+  }
+
   input InputAvailabilityTime {
     startTime: String!
     endTime: String!
@@ -976,6 +981,7 @@ type Mutation {
   user(user: UpdateUser!): User
   removeUser(id: String!): ID!
   profilePhotoUploadUrl: ProfilePhotoAttachmentUpload
+  adminEditPassword(input: InputAdminResetPassword!): Boolean
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!

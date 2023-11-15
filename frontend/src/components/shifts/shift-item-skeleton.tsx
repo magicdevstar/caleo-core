@@ -10,7 +10,7 @@ import Label from "src/components/label";
 
 export default function ShiftItemSkeleton() {
   return (
-    <Grid xs={12} md={6} sx={{ padding: 1 }}>
+    <Grid xs={12} md={12} sx={{ padding: 1 }}>
       <Stack component={Card} direction="row" sx={{ width: '100%', height: '100%' }}>
         <Stack
           sx={{
@@ -41,27 +41,30 @@ export default function ShiftItemSkeleton() {
           </Stack>
 
           <Stack direction="row" alignItems="center">
-            <Box />
             <Stack
               spacing={1.5}
               flexGrow={1}
               direction="row"
-              justifyContent="flex-end"
+              justifyContent="space-between"
               sx={{
                 typography: 'caption',
                 color: 'text.disabled',
               }}
             >
               <Label variant="soft" color="default">
-                <Skeleton variant="text" sx={{ minWidth: '50px', fontSize: '1rem' }} />
+                <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
               </Label>
               
               <Label variant="soft" color='default'>
-                <Skeleton variant="text" sx={{ minWidth: '50px', fontSize: '1rem' }} />
+              <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
               </Label>
 
               <Label variant="soft" color='default'>
-                <Skeleton variant="text" sx={{ minWidth: '50px', fontSize: '1rem' }} />
+              <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
+              </Label>
+
+              <Label variant="soft" color='default'>
+              <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
               </Label>
             </Stack>
           </Stack>

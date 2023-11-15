@@ -7,6 +7,7 @@ import {
   User,
   ProfilePhotoAttachmentUpload,
   MemberTier,
+  InputAdminResetPassword,
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -149,7 +150,15 @@ export const user = {
       adminOnly(user);
       await users.remove(id);
       return id;
-    }
+    },
+    adminEditPassword: async (
+      _parent: unknown,
+      { input }: { input: InputAdminResetPassword },
+      { users, user }: Context
+    ): Promise<boolean> => {
+      adminOnly(user);
+      return users.resetPassword(input);
+    },
   },
   fields: {
     User: {

@@ -1,9 +1,14 @@
 import { Collection, Db, ObjectId } from 'mongodb';
+import {
+  CognitoIdentityProviderClient,
+  AdminSetUserPasswordCommand
+} from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuid } from 'uuid';
 import {
   DayAvailability,
   DocType,
   EventStatus,
+  InputAdminResetPassword,
   MemberRole,
   MemberTier,
   Organization,
@@ -29,6 +34,8 @@ import {
 import { DocumentModel } from './document';
 import { ShiftBufferRequestModel } from './shiftBufferRequest';
 
+const cognito = new CognitoIdentityProviderClient({});
+
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
@@ -51,6 +58,31 @@ export class UserModel extends BaseModel<User> {
       'member.orgId': orgId,
       'member.role': MemberRole.Admin,
     }).toArray();
+  }
+
+  async resetPassword({
+    userId,
+    password,
+  }: InputAdminResetPassword) {
+    try {
+      const user = await this.get(userId);
+      if (!user) {
+        throw new GraphQLError('User not found');
+      }
+      const { cognitoId } = user;
+
+      const command = new AdminSetUserPasswordCommand({
+        Username: cognitoId,
+        UserPoolId: process.env.COGNITO_POOL_ID,
+        Password: password,
+        Permanent: false
+      });
+      await cognito.send(command);
+      return true;
+    } catch(error) {
+      logger.error('Failed to reset password', { error });
+      throw new GraphQLError('Failed to reset password');
+    }
   }
 
   async findOpenShifts({

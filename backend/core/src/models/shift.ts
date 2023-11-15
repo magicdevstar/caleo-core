@@ -47,10 +47,9 @@ export class ShiftModel extends BaseModel<Shift> {
     return groupKeys.map((key) => res.find((item: any) => item.shiftId === key));
   });
 
-  public loadOtherShiftSlots = new DataLoader(async (groupKeys: readonly {shiftId: string; excludeId: string}[]) => {
-    const shiftIds = groupKeys.map((key) => key.shiftId);
+  public loadOtherShiftSlots = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.find({
-      shiftId: { $in: shiftIds },
+      shiftId: { $in: groupKeys },
     }).sort({ _id: -1 }).toArray();
 
     const groupedByShiftId = res.reduce((acc, shift) => {
@@ -58,7 +57,6 @@ export class ShiftModel extends BaseModel<Shift> {
         return acc;
       }
       acc[shift.shiftId] = acc[shift.shiftId] || [];
-      logger.info('Shift', { shift });
       shift.id = shift._id.toString();
       delete (shift as any)._id;
       acc[shift.shiftId].push(shift);
@@ -67,12 +65,11 @@ export class ShiftModel extends BaseModel<Shift> {
 
     return groupKeys
       .map((key) =>
-        groupedByShiftId[key.shiftId]
+        groupedByShiftId[key]
           .map((item, index) => ({
             ...item,
             order: index + 1,
           }))
-          .filter((item) => item.id !== key.excludeId)
       );
   });
 

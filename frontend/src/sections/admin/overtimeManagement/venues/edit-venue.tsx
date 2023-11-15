@@ -210,7 +210,7 @@ export default function EditVenue({ currentVenue }: Props) {
             </Stack>
             <Stack direction="row" spacing={2}>
               <RHFTextField name="contact.email" label="Email" />
-              <RHFTextField name="contact.phone" label="Phone" />
+              <RHFPhoneField name="contact.phone" label="Phone" />
             </Stack>
           </Stack>
         </Card>

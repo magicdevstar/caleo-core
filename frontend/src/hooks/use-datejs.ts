@@ -3,15 +3,16 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useAuthContext } from 'src/auth/hooks';
+import { Organization } from 'src/__generated__/resolvers-types';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const getNow = ({
-  user,
+  organization,
 }: {
-  user: any;
-}) => dayjs().tz(user?.member?.org?.timezone);
+  organization: Organization;
+}) => dayjs().tz(organization.timezone);
 
 export const convertDate = ({
   date,

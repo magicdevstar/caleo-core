@@ -168,7 +168,7 @@ export default function GQLTableRow({
       <TableRow hover selected={selected}>
         {
           config.columns.map((column) => {
-            const value = column.renderValue ? column.renderValue(get(row, column.id), index) : get(row, column.id);
+            const value = column.renderValue ? column.renderValue(get(row, column.id), index, row) : get(row, column.id);
             switch(column.columnType) {
               case 'boolean':
                 return (<BooleanCell width={column.width} key={column.id} value={value} />);

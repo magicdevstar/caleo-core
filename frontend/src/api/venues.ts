@@ -15,12 +15,37 @@ export const GET_ALL_VENUES = gql`
         address
         contact {
           firstName
+          lastName
         }
         status
         createdAt
         updatedAt
       }
       total
+    }
+  }
+`;
+
+export const GET_VENUES_FOR_CSV = gql`
+  query GetVenuesForCSV($input: VenueSearchInput!) {
+    venues(input: $input) {
+      items {
+        id
+        name
+        address
+        city
+        state
+        zip
+        phone
+        notes
+        contact {
+          firstName
+          lastName
+          email
+          phone
+        }
+        status
+      }
     }
   }
 `;

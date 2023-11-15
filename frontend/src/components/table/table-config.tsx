@@ -4,6 +4,15 @@ import { MemberStatus, MemberTier } from "src/__generated__/resolvers-types";
 export interface TableConfig<T> {
   header: {
     title: string;
+    buttons?: {
+      key: string;
+      text: string;
+      icon: string;
+      variant?: string;
+      loading?: boolean;
+      disabled?: boolean;
+      onClick: () => void;
+    }[],
     button?: {
       text: string;
       icon: string;
@@ -53,7 +62,7 @@ export interface TableConfig<T> {
     columnType: 'string' | 'date' | 'boolean' | 'array' | 'action';
     maxRender?: number;
     emptyArrayLabel?: string;
-    renderValue?: (row: any, index: number) => any;
+    renderValue?: (value: any, index: number, row: T) => any;
     getLabelColor?: (row: T) => string;
     getHref?: (row: T) => string;
     onClick?: (row: T) => void;

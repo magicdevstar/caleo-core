@@ -25,6 +25,7 @@ import FormProvider, {
 } from 'src/components/hook-form';
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
 import { states } from 'src/utils/states';
+import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 
 // ----------------------------------------------------------------------
 
@@ -238,7 +239,7 @@ export default function Department({ organization }: Props) {
           <Card>
             {!mdUp && <CardHeader title="Info" />}
             <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFTextField
+              <RHFPhoneField
                 type="text"
                 name="contact.phone"
                 label="Phone"

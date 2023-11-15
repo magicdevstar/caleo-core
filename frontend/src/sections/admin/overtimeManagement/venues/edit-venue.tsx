@@ -30,6 +30,7 @@ import FormProvider, {
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_VENUES, GET_VENUE, UPSERT_VENUE } from 'src/api/venues';
 import { states } from 'src/utils/states';
+import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 
 // ----------------------------------------------------------------------
 
@@ -170,7 +171,7 @@ export default function EditVenue({ currentVenue }: Props) {
             </Stack>
             <Stack direction="row" spacing={2}>
               <RHFTextField name="zip" label="Zip Code" />
-              <RHFTextField name="phone" label="Phone" />
+              <RHFPhoneField name="phone" label="Phone" />
             </Stack>
 
             <Stack spacing={1.5}>

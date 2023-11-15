@@ -416,6 +416,13 @@ const sendEmail = async (input: MailerEvent) => {
     } else if (input.template === MailerEvents.AdminShiftRelinquished) {
       const { existingUserId, shift, organization } = input.data;
 
+      const { items: allShifts } = await context.shifts.search({
+        shiftId: shift.shiftId,
+        orgId: organization.id,
+        order: 'desc',
+        orderBy: '_id',
+      });
+      const shiftReferenceNumber = allShifts.findIndex((s) => s.id === shift.id) + 1;
       const event = await context.events.get(shift.eventId);
       if (!event) {
         logger.error('Event not found', { input, event });
@@ -453,7 +460,7 @@ const sendEmail = async (input: MailerEvent) => {
           "shift.end_time": [shiftEnd.time],
           "relinquish_reason": [shift.relinquishNote || ''],
           "system.metro_name": [organization.name],
-          "shift.reference_number": [assignment.id],
+          "shift.reference_number": [`${shiftReferenceNumber || shift.id}`],
         };
         const email = admin.member.contactInfo!.primaryEmail.address || '';
 

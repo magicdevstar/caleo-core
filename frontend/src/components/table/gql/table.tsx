@@ -11,6 +11,7 @@ import TableBody from "@mui/material/TableBody";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Stack from "@mui/material/Stack";
 import { alpha } from "@mui/material/styles";
 // Types
 import { TableConfig, resolveFilterValue } from "../table-config";
@@ -145,13 +146,27 @@ export default function GQLTable({
         pb: 0,
       }}>
         <Typography variant="h4"> { config.header.title } </Typography>
-        {config.header.button && <LoadingButton
-          loading={config.header.button.loading}
-          variant="contained"
-          disabled={config.header.button.disabled}
-          startIcon={<Iconify icon={config.header.button.icon}/>}
-          onClick={config.header.button.onClick}
-        >{config.header.button.text}</LoadingButton>}
+        <Stack direction="row" spacing={2}>
+          {config.header.button && <LoadingButton
+            loading={config.header.button.loading}
+            variant="contained"
+            disabled={config.header.button.disabled}
+            startIcon={<Iconify icon={config.header.button.icon}/>}
+            onClick={config.header.button.onClick}
+          >{config.header.button.text}</LoadingButton>}
+          {config.header.buttons && 
+            config.header.buttons.map((buttonConfig) => (
+              <LoadingButton
+                key={buttonConfig.key}
+                loading={buttonConfig.loading}
+                variant={(buttonConfig.variant || 'contained' as any)}
+                disabled={buttonConfig.disabled}
+                startIcon={<Iconify icon={buttonConfig.icon}/>}
+                onClick={buttonConfig.onClick}
+              >{buttonConfig.text}</LoadingButton>
+            ))
+          }
+        </Stack>
       </Box>
 
       {config?.tabs && <Tabs

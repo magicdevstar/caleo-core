@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 // @apollo/client
 import { useMutation } from '@apollo/client';
 // hooks
+import { enqueueSnackbar } from 'notistack';
 import { useBoolean } from 'src/hooks/use-boolean';
 // components
 import GQLTable from 'src/components/table/gql/table';
@@ -12,13 +13,18 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
 import { Venue, VenueStatus } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
-import { GET_ALL_VENUES, REMOVE_VENUE, UPSERT_VENUE } from 'src/api/venues';
+import { GET_ALL_VENUES, GET_VENUES_FOR_CSV, REMOVE_VENUE, UPSERT_VENUE } from 'src/api/venues';
+import { client } from 'src/utils/apollo';
+import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 
 // ----------------------------------------------------------------------
 
 export default function VenuesTable() {
   const navigate = useNavigate();
+
+  const { download } = useDownloadCsv({ fileName: 'venues', ext: 'csv' });
+  const [loadingCSV, setLoadingCSV] = useState(false);
 
   const [updateVenue] = useMutation(UPSERT_VENUE, {
     refetchQueries: [GET_ALL_VENUES],
@@ -34,13 +40,51 @@ export default function VenuesTable() {
   const config: TableConfig<Venue> = {
     header: {
       title: 'Venues',
-      button: {
-        text: 'Add Venue',
-        icon: 'ic:baseline-add',
-        onClick: () => {
-          navigate('/dashboard/admin/overtime/venues/new');
+      buttons: [
+        {
+          key: 'download',
+          text: 'Export CSV',
+          variant: 'outlined',
+          icon: 'mdi:file-download',
+          loading: loadingCSV,
+          onClick: async () => {
+            setLoadingCSV(true);
+            try {
+              const res = await client.query({
+                query: GET_VENUES_FOR_CSV,
+                variables: {
+                  input: {
+                    limit: 10000,
+                    skip: 0,
+                    orderBy: "createdAt",
+                    order: "desc",
+                  },
+                }
+              });
+              const { venues: { items } } = res.data;
+              download(items.map(({__typename, contact, ...item}: Venue) => ({
+                ...item,
+                contactFirstName: contact?.firstName,
+                contactLastName: contact?.lastName,
+                contactPhone: contact?.phone,
+                contactEmail: contact?.email,
+              })));
+            } catch(error) {
+              enqueueSnackbar('Could not download CSV. Try again later', { variant: 'error', autoHideDuration: 3000 });
+            } finally {
+              setLoadingCSV(false);
+            }
+          },
         },
-      }
+        {
+          key: 'venue',
+          text: 'Add Venue',
+          icon: 'ic:baseline-add',
+          onClick: () => {
+            navigate('/dashboard/admin/overtime/venues/new');
+          },
+        },
+      ]
     },
     search: {
       defaultTableConfig: {
@@ -95,7 +139,14 @@ export default function VenuesTable() {
         getHref: (row) => `/dashboard/admin/overtime/venues/${row.id}`,
       },
       { id: 'address', label: 'Address', width: 210, columnType: 'string' },
-      { id: 'contact.firstName', label: 'Contact Name', width: 150, columnType: 'string' },
+      {
+        id: 'contact.firstName',
+        label: 'Contact Name',
+        width: 150,
+        columnType: 'string',
+        renderValue: (_value, _index, row: Venue) =>
+          `${row.contact?.firstName} ${row.contact?.lastName}`
+      },
       {
         id: 'status',
         label: 'Status',

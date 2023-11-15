@@ -27,13 +27,8 @@ export default function AvailableOvertimeView() {
   const { user } = useAuthContext();
   const userId = user?.id;
   const { enqueueSnackbar } = useSnackbar();
-  const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT, {
-    refetchQueries: [GET_AVAILABLE_SHIFTS, GET_ALL_SHIFTS],
-  });
-
-  const [createShiftBuffer, { loading: createShiftBufferLoading }] = useMutation(CREATE_SHIFT_BUFFER, {
-    refetchQueries: [GET_AVAILABLE_SHIFTS, GET_ALL_SHIFTS],
-  });
+  const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT);
+  const [createShiftBuffer, { loading: createShiftBufferLoading }] = useMutation(CREATE_SHIFT_BUFFER);
   
   const [note, setNote] = useState<string>('');
   const [editShift, setEditShift] = useState<Shift | null>(null);
@@ -109,6 +104,11 @@ export default function AvailableOvertimeView() {
             }
           });
         }
+
+        client.refetchQueries({
+          include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS]
+        });
+
         enqueueSnackbar(`You successfully signed up for ${editShift?.event?.name} - ${editShift?.assignment?.name}.`, { variant: 'success' });
         closeAssign();
       } catch(error) {

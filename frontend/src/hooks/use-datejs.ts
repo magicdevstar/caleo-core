@@ -7,6 +7,12 @@ import { useAuthContext } from 'src/auth/hooks';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+export const getNow = ({
+  user,
+}: {
+  user: any;
+}) => dayjs().tz(user?.member?.org?.timezone);
+
 export const convertDate = ({
   date,
   user,

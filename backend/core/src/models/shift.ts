@@ -198,6 +198,14 @@ export class ShiftModel extends BaseModel<Shift> {
   }: {
     orgId: string;
   }) {
+    let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
+      orgId,
+    });
+    if (!lotteryCounterDoc) {
+      lotteryCounterDoc = {
+        counter: 0,
+      };
+    }
     // TODO: Ensure user is qualified for the shift :)
     const pipeline = [
       // Filter for only open shifts
@@ -245,7 +253,8 @@ export class ShiftModel extends BaseModel<Shift> {
       },
       {
         $match: {
-          'event.status': 'READY_FOR_LOTTERY'
+          'event.status': 'READY_FOR_LOTTERY',
+          'event.lotteryNumber': lotteryCounterDoc.counter,
         }
       },
       { $unwind: { path: '$shifts' } },

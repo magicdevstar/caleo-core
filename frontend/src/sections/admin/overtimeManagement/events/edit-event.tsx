@@ -315,8 +315,6 @@ export default function EditEvent({ currentEvent }: Props) {
     await formSubmit(formData);
   });
 
-  console.log(currentEvent?.id, isValid, !currentEvent?.id && !isValid);
-
   const config: TableConfig<Assignment> = useMemo(() => ({
     header: {
       title: 'Assignments',
@@ -583,7 +581,7 @@ export default function EditEvent({ currentEvent }: Props) {
                     PaperPropsSx={{ textTransform: 'capitalize' }}
                     helperText={`FCFS: ${lotteryCounterOptions
                       .find(({ counter }) => counter === values?.lotteryNumber)
-                      ?.date.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format('ddd DD MMM YYYY HH:mm')
+                      ?.endDate.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format('ddd DD MMM YYYY HH:mm')
                     }`}
                   >
                     {lotteryCounterOptions.map((option) => (

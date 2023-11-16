@@ -36,16 +36,32 @@ export const useLotteryCounterOptions = ({
     const openDay = org!.settings!.lottery.open.dayOfWeek.toLowerCase();
     const openTime = dayjs.utc(org!.settings!.lottery.open.time);
 
+    const closeDay = org!.settings!.lottery.close.dayOfWeek.toLowerCase();
+    const closeTime = dayjs.utc(org!.settings!.lottery.close.time);
+
     let startOfLottery = dayjs.utc()
       .day(dayMap[openDay])
       .hour(openTime.hour())
       .minute(openTime.minute())
       .second(0)
       .millisecond(0);
+
+    let closeOfLottery = dayjs.utc()
+      .day(dayMap[closeDay])
+      .hour(closeTime.hour())
+      .minute(closeTime.minute())
+      .second(0)
+      .millisecond(0);
+
     let startNumber = data?.lotteryCounter.counter;
     if (dayjs.utc().isAfter(startOfLottery)) {
       startNumber += 1;
       startOfLottery = startOfLottery.add(1, 'week');
+      closeOfLottery = closeOfLottery.add(1, 'week');
+    }
+
+    if (dayjs.utc().isAfter(closeOfLottery)) {
+      closeOfLottery = closeOfLottery.add(1, 'week');
     }
 
     const limit = dateLimit && dayjs.utc(dateLimit);
@@ -56,6 +72,8 @@ export const useLotteryCounterOptions = ({
         counter: startNumber + i,
         date: startOfLottery.add(i, 'week'),
         time: startOfLottery.add(i, 'week').format('ddd DD MMM YYYY HH:mm'),
+        endDate: closeOfLottery.add(i, 'week'),
+        endTime: closeOfLottery.add(i, 'week').format('ddd DD MMM YYYY HH:mm'),
       }))
       .filter(({ date }) => !limit || limit.isAfter(date));
   }, [data, org, dateLimit]);

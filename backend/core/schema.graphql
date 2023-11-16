@@ -292,6 +292,7 @@
     id: ID!
     shiftId: String!
     shiftGroupId: String!
+    shiftBufferShiftId: String!
     eventId: String!
     assignmentId: String!
     startTime: String!
@@ -305,6 +306,7 @@
     updatedAt: String!
 
     user: User
+    shiftBufferShift: Shift!
     event: Event!
     assignment: Assignment!
     org: Organization!
@@ -375,6 +377,7 @@
 
   input CreateShiftBufferRequest {
     shiftId: String!
+    shiftBufferShiftId: String!
     userId: String!
     note: String
   }

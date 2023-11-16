@@ -110,16 +110,33 @@ const sendEmail = async (input: MailerEvent) => {
         },
       };
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
-      const { shift, user, organization } = input.data;
+      const { shift, createdShiftBuffer, shiftBufferShift, user, organization } = input.data;
       
       const event = await context.events.get(shift.eventId);
       if (!event) {
         logger.error('Event not found', { input, event });
         return;
       }
+      const bufferEvent = await context.events.get(shiftBufferShift.eventId);
+      if (!bufferEvent) {
+        logger.error('Buffer event not found', { input, bufferEvent });
+        return;
+      }
+
+      const bufferVenue = await context.venues.get(bufferEvent.venueId);
+      if (!bufferVenue) {
+        logger.error('Buffer Venue not found', { input, bufferVenue });
+        return;
+      }
       const venue = await context.venues.get(event.venueId);
       if (!venue) {
         logger.error('Venue not found', { input, venue });
+        return;
+      }
+
+      const bufferAssignment = await context.assignments.get(shiftBufferShift.assignmentId);
+      if (!bufferAssignment) {
+        logger.error('Buffer assignment not found', { input, bufferAssignment });
         return;
       }
       const assignment = await context.assignments.get(shift.assignmentId);
@@ -132,8 +149,10 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: event.orgId,
       }) as any[];
 
-      const eventStart = convertDate(event.startTime as any, organization);
-      const eventEnd = convertDate(event.endTime as any, organization);
+      const shiftStart = convertDate(shift.startTime as any, organization);
+      const shiftEnd = convertDate(shift.endTime as any, organization);
+      const bufferShiftStart = convertDate(shift.startTime as any, organization);
+      const bufferShiftEnd = convertDate(shift.endTime as any, organization);
 
       // TODO: Look up conflicting shift
       Addresses = (allAdmins || []).reduce((obj, admin) => {
@@ -145,21 +164,21 @@ const sendEmail = async (input: MailerEvent) => {
           "event.name_request": [event.name],
           "shift.name_request": [assignment.name],
           "venue.name_request": [venue.name],
-          "event.start_date_request": [eventStart.date],
-          "event.start_time_request": [eventStart.time],
-          "event.end_date_request": [eventEnd.date],
-          "event.end_time_request": [eventEnd.time],
-          "shift.name_conflict": [''],
-          "venue.name_conflict": [''],
-          "event.start_date_conflict": [''],
-          "event.start_time_conflict": [''],
-          "event.end_date_conflict": [''],
-          "event.end_time_conflict": [''],
-          "shift.buffer_override_reason": [''],
+          "event.start_date_request": [shiftStart.date],
+          "event.start_time_request": [shiftStart.time],
+          "event.end_date_request": [shiftEnd.date],
+          "event.end_time_request": [shiftEnd.time],
+          "event.reference_number_conflict": [bufferEvent.referenceId],
+          "event.name_conflict": [bufferEvent.name],
+          "shift.name_conflict": [bufferAssignment.name],
+          "venue.name_conflict": [bufferVenue.name],
+          "event.start_date_conflict": [bufferShiftStart.date],
+          "event.start_time_conflict": [bufferShiftStart.time],
+          "event.end_date_conflict": [bufferShiftEnd.date],
+          "event.end_time_conflict": [bufferShiftEnd.time],
+          "shift.buffer_override_reason": [createdShiftBuffer.note || ''],
           "system.login_url": [process.env.LOGIN_URL || ''],
           "system.metro_name": [organization.name],
-          "event.reference_number_conflict": [''],
-          "event.name_conflict": [''],
         };
         const email = admin.member.contactInfo!.primaryEmail.address || '';
 

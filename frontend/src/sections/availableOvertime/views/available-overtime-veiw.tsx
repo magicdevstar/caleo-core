@@ -91,6 +91,7 @@ export default function AvailableOvertimeView() {
             variables: {
               input: {
                 shiftId: editShift.id,
+                shiftBufferShiftId: editShift.shiftBufferShift.id,
                 userId,
                 note,
               },

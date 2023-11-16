@@ -59,11 +59,13 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
 
   async createWithNotification({
     shiftBufferRequest,
+    shiftBufferShift,
     shift,
     user,
     organization
   } : {
     shiftBufferRequest: CreateShiftBufferRequest;
+    shiftBufferShift: Shift;
     shift: Shift;
     user: User;
     organization: Organization;
@@ -74,6 +76,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       eventId: shift.eventId,
       startTime: shift.startTime,
       endTime: shift.endTime,
+      shiftBufferId: shiftBufferRequest.shiftBufferShiftId,
       status: ShiftBufferRequestStatus.Pending,
       assignmentId: shift.assignmentId,
       note: shiftBufferRequest.note,
@@ -89,6 +92,8 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
         template: MailerEvents.AdminPendingShiftRequested,
         data: {
           shift,
+          shiftBufferShift,
+          createdShiftBuffer,
           user,
           organization,
         },

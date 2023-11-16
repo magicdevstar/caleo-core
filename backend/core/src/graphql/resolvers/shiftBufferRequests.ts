@@ -94,10 +94,16 @@ export const shiftBufferRequests = {
         throw new GraphQLError('Shift not found');
       }
 
+      const shiftBufferShift = await shifts.get(shiftBufferRequest.shiftBufferShiftId);
+      if (!shiftBufferShift) {
+        throw new GraphQLError('Shift buffer shift not found');
+      }
+
       return shiftBufferRequests.createWithNotification({
         shift,
         organization: organization!,
         user: user!,
+        shiftBufferShift,
         shiftBufferRequest,
       });
     },
@@ -109,6 +115,7 @@ export const shiftBufferRequests = {
       event: (item: ShiftBufferRequest, _, { events }: Context) => events.loader.load(item.eventId),
       assignment: (item: ShiftBufferRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
       user: (item: ShiftBufferRequest, _, { users }: Context) => users.loader.load(item.userId),
+      shiftBufferShift: (item: ShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftBufferShiftId),
     },
   },
 };

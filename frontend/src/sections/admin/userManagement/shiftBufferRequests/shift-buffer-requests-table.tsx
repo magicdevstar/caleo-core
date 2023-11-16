@@ -18,6 +18,7 @@ import { useBoolean } from "src/hooks/use-boolean";
 // Components
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { TableConfig } from "src/components/table/table-config"
+import { ShiftBufferRequestConfirm } from "./shift-buffer-request-confirm";
 
 export default function ShiftBufferRequestsTable() {
   const [updateRequest, { loading: updateRequestLoading }] = useMutation(SET_SHIFT_BUFFER_STATUS, {
@@ -114,40 +115,12 @@ export default function ShiftBufferRequestsTable() {
     <>
       <GQLTable config={config} />
 
-      <ConfirmDialog
-        open={editRequestModal.value}
-        onClose={editRequestModal.onFalse}
-        title={editRequest?.status === ShiftBufferRequestStatus.Approved ? 'Approve Shift Buffer' : 'Deny Shift Buffer'}
-        content={(
-          <>
-            <Typography variant="body1">{`Are you sure want to ${editRequest?.status?.toLowerCase()} this Shift Buffer Request?`}</Typography>
-            {editRequest?.status === ShiftBufferRequestStatus.Rejected && (
-              <TextField
-                label="Denied Reason"
-                multiline
-                fullWidth
-                sx={{ mt: 1 }}
-                rows={4}
-                onChange={(event) => {
-                  setEditRequest((c) => ({
-                    ...c,
-                    reason: event.target.value,
-                  } as any));
-                }}
-              />
-            )}
-          </>)}
-        action={
-          <LoadingButton
-            disabled={editRequest?.status === ShiftBufferRequestStatus.Rejected && editRequest?.reason?.trim() === ''}
-            loading={updateRequestLoading}
-            variant="contained"
-            color={editRequest?.status === ShiftBufferRequestStatus.Approved ? "primary" : "error"}
-            onClick={handleUpsert}
-          >
-            {capitalize(editRequest?.status)}
-          </LoadingButton>
-        }
+      <ShiftBufferRequestConfirm
+        editRequest={editRequest}
+        editRequestModal={editRequestModal}
+        setEditRequest={setEditRequest}
+        updateRequestLoading={updateRequestLoading}
+        handleUpsert={handleUpsert}
       />
     </>
   )

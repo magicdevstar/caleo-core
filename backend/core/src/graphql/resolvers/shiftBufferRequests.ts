@@ -115,6 +115,7 @@ export const shiftBufferRequests = {
       event: (item: ShiftBufferRequest, _, { events }: Context) => events.loader.load(item.eventId),
       assignment: (item: ShiftBufferRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
       user: (item: ShiftBufferRequest, _, { users }: Context) => users.loader.load(item.userId),
+      shift: (item: ShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftId),
       shiftBufferShift: (item: ShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftBufferShiftId),
     },
   },

@@ -355,6 +355,25 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         status
         note
         createdAt
+        shift {
+          id
+          startTime
+          endTime
+        }
+        shiftBufferShift {
+          id
+          startTime
+          endTime
+          assignment {
+            id
+            name
+          }
+          event {
+            id
+            name
+            referenceId
+          }
+        }
         assignment {
           id
           name
@@ -362,10 +381,14 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         event {
           id
           name
+          referenceId
         }
         user {
           id
           name
+          member {
+            pNumber
+          }
         }
       }
       total

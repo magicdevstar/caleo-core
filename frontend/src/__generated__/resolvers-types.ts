@@ -67,6 +67,7 @@ export type ContactInfo = {
 
 export type CreateShiftBufferRequest = {
   note?: InputMaybe<Scalars['String']['input']>;
+  shiftBufferShiftId: Scalars['String']['input'];
   shiftId: Scalars['String']['input'];
   userId: Scalars['String']['input'];
 };
@@ -172,6 +173,11 @@ export enum EventStatus {
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Upcoming = 'UPCOMING'
 }
+
+export type InputAdminResetPassword = {
+  password: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
+};
 
 export type InputAvailabilityTime = {
   endTime: Scalars['String']['input'];
@@ -307,6 +313,7 @@ export enum MemberTier {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  adminEditPassword?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
@@ -338,6 +345,11 @@ export type Mutation = {
   userSkill?: Maybe<MemberSkill>;
   userSkillAttachmentUploadUrl?: Maybe<MemberSkillAttachmentUpload>;
   venue?: Maybe<Venue>;
+};
+
+
+export type MutationAdminEditPasswordArgs = {
+  input: InputAdminResetPassword;
 };
 
 
@@ -848,6 +860,9 @@ export type ShiftBufferRequest = {
   org: Organization;
   orgId: Scalars['String']['output'];
   reason?: Maybe<Scalars['String']['output']>;
+  shift: Shift;
+  shiftBufferShift: Shift;
+  shiftBufferShiftId: Scalars['String']['output'];
   shiftGroupId: Scalars['String']['output'];
   shiftId: Scalars['String']['output'];
   startTime: Scalars['String']['output'];
@@ -1352,6 +1367,7 @@ export type ResolversTypes = ResolversObject<{
   EventStartTimeFilter: EventStartTimeFilter;
   EventStatus: EventStatus;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
@@ -1456,6 +1472,7 @@ export type ResolversParentTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   ID: Scalars['ID']['output'];
+  InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
@@ -1721,6 +1738,7 @@ export type MemberSkillSearchResultResolvers<ContextType = any, ParentType exten
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
@@ -1933,6 +1951,9 @@ export type ShiftBufferRequestResolvers<ContextType = any, ParentType extends Re
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
+  shiftBufferShift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
+  shiftBufferShiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

@@ -76,7 +76,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       eventId: shift.eventId,
       startTime: shift.startTime,
       endTime: shift.endTime,
-      shiftBufferId: shiftBufferRequest.shiftBufferShiftId,
+      shiftBufferShiftId: shiftBufferRequest.shiftBufferShiftId,
       status: ShiftBufferRequestStatus.Pending,
       assignmentId: shift.assignmentId,
       note: shiftBufferRequest.note,

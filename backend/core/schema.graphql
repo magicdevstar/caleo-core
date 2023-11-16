@@ -306,6 +306,7 @@
     updatedAt: String!
 
     user: User
+    shift: Shift!
     shiftBufferShift: Shift!
     event: Event!
     assignment: Assignment!

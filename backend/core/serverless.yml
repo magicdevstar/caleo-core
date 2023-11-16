@@ -11,7 +11,7 @@ params:
     domainName: dev-api.caleopro.com
     pinpointId: d169e35fcb7d4f06b26da89e5650905a
     fromEmail: support@dev.caleopro.com
-    loginUrl: https://dev.caleopro.com/login
+    loginUrl: https://dev.caleopro.com/auth/login
   prod:
     dbName: caleo-prod
     poolName: lvmpd-oms-prod
@@ -19,7 +19,7 @@ params:
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: support@caleopro.com
-    loginUrl: https://caleopro.com/login
+    loginUrl: https://caleopro.com/auth/login
 
 provider:
   name: aws

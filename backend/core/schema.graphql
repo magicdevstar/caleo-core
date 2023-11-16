@@ -888,6 +888,9 @@
     orderBy: String
     order: String
     status: String
+    userId: String
+    startTime: String
+    endTime: String
   }
 
   type ShiftBufferRequestsSearchResult {
@@ -1015,6 +1018,7 @@ type Mutation {
   shiftLotteryRequest(shiftLotteryRequest: UpsertShiftLotteryRequest): ShiftLotteryRequest
   removeShiftLotteryRequest(id: String): ID!
   notifyUsersOfShift(shiftId: String!): Boolean
+  removeShiftBufferRequest(id: String!): ID!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

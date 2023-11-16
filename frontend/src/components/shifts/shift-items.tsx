@@ -1,7 +1,7 @@
 // @mui
 import Grid from "@mui/material/Grid";
 import Pagination, { paginationClasses } from "@mui/material/Pagination";
-import { Shift } from "src/__generated__/resolvers-types";
+import { Shift, ShiftBufferRequest } from "src/__generated__/resolvers-types";
 // components
 import ShiftItem from "./shift-item";
 import ShiftItemSkeleton from "./shift-item-skeleton";
@@ -18,7 +18,7 @@ export default function ShiftItems({
   emptyMessage = 'No Data',
   setPage,
 }: {
-  shifts: Shift[];
+  shifts: Shift[] | ShiftBufferRequest[];
   loading: boolean;
   total: number;
   pageSize: number;
@@ -28,10 +28,10 @@ export default function ShiftItems({
   shiftActions: {
     key: string;
     color?: string;
-    disabled: (shift: Shift) => boolean;
-    onClick: (shift: Shift) => void;
-    getIcon: (shift: Shift) => string;
-    getName: (shift: Shift) => string;
+    disabled: (shift: any) => boolean;
+    onClick: (shift: any) => void;
+    getIcon: (shift: any) => string;
+    getName: (shift: any) => string;
   }[]
 }) {
   const renderSkeleton = (

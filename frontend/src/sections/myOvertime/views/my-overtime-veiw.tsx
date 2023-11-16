@@ -12,19 +12,27 @@ import TextField from '@mui/material/TextField';
 // components
 import { useSettingsContext } from 'src/components/settings';
 // types
-import { ASSIGN_SHIFT, GET_ALL_SHIFTS } from 'src/api/shifts';
+import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_SHIFT_BUFFER_REQUESTS, REMOVE_SHIFT_BUFFER_REQUEST } from 'src/api/shifts';
 import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
 // local imports
 import ShiftItems from 'src/components/shifts/shift-items';
-import { Organization, Shift } from 'src/__generated__/resolvers-types';
+import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
 // ----------------------------------------------------------------------
 
-const getButtonInfo = (organization: Organization, shift: Shift) => {
+const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferRequest) => {
+  if (shift.__typename === 'ShiftBufferRequest') {
+    return {
+      icon: 'mdi:close-thick',
+      title: 'Cancel Buffer Request',
+      disabled: false,
+    };
+  }
+
   if (!organization?.settings?.userRelinquishShift?.enabled) {
     return {
       icon: 'mdi:check',
@@ -87,15 +95,20 @@ export default function MyOvertimeView() {
   const [assignShift, { loading: relinquishLoading }] = useMutation(ASSIGN_SHIFT, {
     refetchQueries: [GET_ALL_SHIFTS],
   });
+  const [removeShiftBuffer, { loading: removeShiftBufferLoading }] = useMutation(REMOVE_SHIFT_BUFFER_REQUEST, {
+    refetchQueries: [GET_SHIFT_BUFFER_REQUESTS],
+  });
+
+  const [editShift, setEditShift] = useState<Shift | ShiftBufferRequest | null>(null);
 
   const relinquishNoteRequired = organization?.settings?.userRelinquishShift?.enabled && organization?.settings?.userRelinquishShift?.requireNoteWhenRelinquishing;
   const relinquishSubmitEnabled = useMemo(() => {
+    if (editShift?.__typename === 'ShiftBufferRequest') return true;
     if (!relinquishNoteRequired) return true;
     const validNote = relinquishNote && relinquishNote.trim() !== '';
     return validNote;
-  }, [relinquishNote, relinquishNoteRequired]);
+  }, [editShift, relinquishNote, relinquishNoteRequired]);
 
-  const [editShift, setEditShift] = useState<Shift | null>(null);
   const relinquishConfirm = useBoolean();
 
   const { data, loading } = useQuery(GET_ALL_SHIFTS, {
@@ -108,7 +121,32 @@ export default function MyOvertimeView() {
     }
   });
 
+  const { data: shiftBufferRequests, loading: loadingShiftBuffers } = useQuery(GET_SHIFT_BUFFER_REQUESTS, {
+    fetchPolicy: 'no-cache', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        ...filters,
+        status: ShiftBufferRequestStatus.Pending,
+      },
+    }
+  });
+
   const { shifts: { items, total } } = data || { shifts: { items: [], total: 0 } };
+  const { shiftBufferRequests: { items: bufferItems } } = shiftBufferRequests || { shiftBufferRequests: { items: [] } };
+
+
+  const listData = useMemo(() => {
+    if (!items || !bufferItems) return [];
+    return [
+      ...items,
+      ...bufferItems,
+    ].sort((a: any, b: any) => {
+      const aStart = new Date(a.startTime);
+      const bStart = new Date(b.startTime);
+      return aStart.getTime() - bStart.getTime();
+    });
+  }, [items, bufferItems]);
 
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
@@ -148,31 +186,49 @@ export default function MyOvertimeView() {
   const handleRelinquish = useCallback(
     async () => {
       try {
-        await assignShift({
-          variables: {
-            id: editShift?.id,
-            note: relinquishNote,
-          }
-        });
+        if (editShift?.__typename === 'ShiftBufferRequest') {
+          await removeShiftBuffer({
+            variables: {
+              id: editShift?.id,
+            },
+          });
+        } else {
+          await assignShift({
+            variables: {
+              id: editShift?.id,
+              note: relinquishNote,
+            }
+          });
+        }
         closeRelinquish();
       } catch(error) {
         console.error(error);
       }
     },
-    [editShift, relinquishNote, assignShift, closeRelinquish]
+    [
+      editShift,
+      relinquishNote,
+      assignShift,
+      closeRelinquish,
+      removeShiftBuffer
+    ]
   );
 
   const shiftActions = [
     {
       key: 'relinquish',
       color: 'error',
-      disabled: (shift: Shift) => getButtonInfo(organization, shift).disabled,
-      onClick: (shift: Shift) => {
-        setEditShift(shift);
+      disabled: (shift: any) => getButtonInfo(organization, shift).disabled,
+      onClick: (shift: any) => {
+        if (shift.__typename === 'ShiftBufferRequest') {
+          setEditShift(shift);
+        } else {
+          setEditShift(shift);
+        }
         relinquishConfirm.onTrue();
       },
-      getIcon: (shift: Shift) => getButtonInfo(organization, shift).icon,
-      getName: (shift: Shift) => getButtonInfo(organization, shift).title,
+      getIcon: (shift: any) => getButtonInfo(organization, shift).icon,
+      getName: (shift: any) => getButtonInfo(organization, shift).title,
     }
   ]
 
@@ -214,7 +270,7 @@ export default function MyOvertimeView() {
           }));
         }}
         currentPage={table.page + 1}
-        shifts={items.map((rawShift: any) => {
+        shifts={listData.map((rawShift: any) => {
           const shift = JSON.parse(JSON.stringify(rawShift));
           if (shift.locked) {
             shift.disabled = true;
@@ -229,7 +285,7 @@ export default function MyOvertimeView() {
           return shift;
         })}
         shiftActions={shiftActions}
-        loading={loading}
+        loading={loading || loadingShiftBuffers}
       />
 
       <ConfirmDialog
@@ -238,8 +294,12 @@ export default function MyOvertimeView() {
         title="Relinquish Overtime"
         content={(
           <>
-            <Typography variant="body2">Are you sure you want to relinquish this overtime?</Typography>
-            <TextField
+            <Typography variant="body2">{
+              editShift?.__typename === 'ShiftBufferRequest'
+                ? 'Are you sure you want to remove this buffer request?'
+                : 'Are you sure you want to relinquish this overtime?'
+            }</Typography>
+            {editShift?.__typename !== 'ShiftBufferRequest' && <TextField
               fullWidth
               multiline
               rows={4}
@@ -248,18 +308,18 @@ export default function MyOvertimeView() {
               value={relinquishNote}
               helperText={relinquishNoteRequired ? 'This field is required' : undefined}
               onChange={(e: any) => setRelinquishNote(e.target.value)}
-            />
+            />}
           </>
         )}
         action={
           <LoadingButton
             disabled={!relinquishSubmitEnabled}
-            loading={relinquishLoading}
+            loading={relinquishLoading || removeShiftBufferLoading}
             variant="contained"
             color="error"
             onClick={handleRelinquish}
           >
-            Relinquish Overtime
+            {editShift?.__typename === 'ShiftBufferRequest' ? 'Remove Buffer Request' : 'Relinquish Overtime'}
           </LoadingButton>
         }
       />

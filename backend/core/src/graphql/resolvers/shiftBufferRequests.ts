@@ -1,6 +1,11 @@
 import { Context } from "../../utils/createContext";
-import { CreateShiftBufferRequest, DocType, ShiftBufferRequestsSearchInput, ShiftBufferRequest, ShiftBufferRequestStatus } from "../../__generated__/resolvers-types";
-import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import {
+  CreateShiftBufferRequest,
+  ShiftBufferRequestsSearchInput,
+  ShiftBufferRequest,
+  ShiftBufferRequestStatus,
+} from "../../__generated__/resolvers-types";
+import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
 
@@ -11,15 +16,50 @@ export const shiftBufferRequests = {
       { input }: {input: ShiftBufferRequestsSearchInput},
       { shiftBufferRequests, user }: Context
     ): Promise<SearchResults<ShiftBufferRequest>> => {
-      adminOnly(user);
+      const { startTime, endTime, userId, ...searchInput } = input;
+
+      if (userId) {
+        adminOrOwnerOnly(userId, user);
+        (searchInput as any).userId = userId;
+      } else {
+        adminOnly(user);
+      }
+
+      if (startTime) {
+        (searchInput as any).endTime = {
+          $gte: new Date(startTime).getTime(),
+        };
+      } else if (endTime) {
+        (searchInput as any).startTime = {
+          $lte: new Date(endTime).getTime(),
+        };
+      }
+
       return shiftBufferRequests.search({
         orgId: user?.member.orgId!,
         queryField: 'shiftId',
-        ...input,
+        ...searchInput,
       });
     },
   },
   Mutation: {
+    removeShiftBufferRequest: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { shiftBufferRequests, user }: Context
+    ): Promise<string> => {
+      const request = await shiftBufferRequests.get(id);
+      if (!request) {
+        throw new GraphQLError('Shift buffer request not found.');
+      }
+
+      if (request.userId !== user?.id && !userIsAdmin(user)) {
+        throw new GraphQLError('You do not have permission to remove this shift buffer request.');
+      }
+
+      await shiftBufferRequests.remove(id);
+      return id;
+    },
     setShiftBufferStatus: async (
       _parent: unknown,
       { id, status, reason }: { id: string, status: ShiftBufferRequestStatus, reason: string },
@@ -111,6 +151,8 @@ export const shiftBufferRequests = {
   fields: {
     ShiftBufferRequest: {
       ...commonResolvers,
+      startTime: (item: ShiftBufferRequest) => new Date(item.startTime).toISOString(),
+      endTime: (item: ShiftBufferRequest) => new Date(item.endTime).toISOString(),
       org: (item: ShiftBufferRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId),
       event: (item: ShiftBufferRequest, _, { events }: Context) => events.loader.load(item.eventId),
       assignment: (item: ShiftBufferRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),

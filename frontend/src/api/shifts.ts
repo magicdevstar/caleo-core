@@ -26,6 +26,12 @@ export const ASSIGN_SHIFT = gql`
   }
 `;
 
+export const REMOVE_SHIFT_BUFFER_REQUEST = gql`
+  mutation RemoveShiftBufferRequests($id: String!) {
+    removeShiftBufferRequest(id: $id)
+  }
+`;
+
 export const CREATE_SHIFT_BUFFER = gql`
   mutation CreateShiftBuffer($input: CreateShiftBufferRequest) {
     shiftBufferRequest(shiftBufferRequest: $input) {
@@ -355,10 +361,60 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         status
         note
         createdAt
+        startTime
+        endTime
         shift {
           id
           startTime
           endTime
+          event {
+            id
+            referenceId
+            name
+            attachments
+            notes
+            venue {
+              id
+              name
+              address
+              city
+              state
+              zip
+              phone
+              contact {
+                firstName
+                lastName
+                email
+                phone
+              }
+            }
+          }
+          assignment {
+            id
+            name
+            bwNeeded
+            description
+            requiredSkills {
+              id
+              name
+            }
+            ranks {
+              id
+              name
+            }
+          }
+          otherShiftSlots {
+            id
+            order
+            user {
+              id
+              firstName
+              lastName
+              member {
+                pNumber
+              }
+            }
+          }
         }
         shiftBufferShift {
           id

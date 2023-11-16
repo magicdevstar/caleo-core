@@ -1,12 +1,8 @@
 import { useCallback, useState } from "react";
-import { capitalize } from "lodash";
 // @apollo/client
 import { useMutation } from "@apollo/client";
 
 // @mui
-import LoadingButton from "@mui/lab/LoadingButton";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
 import red from "@mui/material/colors/red";
 
 // Types
@@ -16,8 +12,7 @@ import GQLTable from "src/components/table/gql/table"
 // Hooks
 import { useBoolean } from "src/hooks/use-boolean";
 // Components
-import { ConfirmDialog } from "src/components/custom-dialog";
-import { TableConfig } from "src/components/table/table-config"
+import { TableConfig } from "src/components/table/table-config";
 import { ShiftBufferRequestConfirm } from "./shift-buffer-request-confirm";
 
 export default function ShiftBufferRequestsTable() {

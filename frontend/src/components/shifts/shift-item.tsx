@@ -10,7 +10,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 // types
-import { Rank, Shift, Skill } from "src/__generated__/resolvers-types";
+import { Rank, Shift, ShiftBufferRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -27,26 +27,43 @@ const labelSx = {
 };
 
 export default function ShiftItem({
-  shift,
+  shift: inputShift,
   shiftActions,
 }: {
-  shift: Shift;
+  shift: Shift | ShiftBufferRequest;
   shiftActions: {
     key: string;
     color?: string;
-    disabled: (shift: Shift) => boolean;
-    onClick: (shift: Shift) => void;
-    getIcon: (shift: Shift) => string;
-    getName: (shift: Shift) => string;
+    disabled: (shift: any) => boolean;
+    onClick: (shift: any) => void;
+    getIcon: (shift: any) => string;
+    getName: (shift: any) => string;
   }[];
 }) {
+  const labelComponent = useMemo(() => {
+    if (inputShift.__typename === 'ShiftBufferRequest') {
+      return (
+        <Label sx={{ ml: 2 }} variant="soft" color='info'>
+          PENDING
+        </Label>
+      );
+    }
+
+    return (<span />);
+  }, [inputShift]);
+  const shift = useMemo<Shift>(() => {
+    if (inputShift.__typename === 'ShiftBufferRequest') {
+      return inputShift.shift as Shift;
+    }
+    return inputShift as Shift;
+  }, [inputShift]);
   const { user } = useAuthContext();
   const [detailHeight, setDetailHeight] = useState<string>('0px');
   const popover = usePopover();
 
   const requiredSkillRender = useMemo(() => {
     let value: any = (
-      <Label variant="soft" color='info'>
+      <Label sx={{ pl: 1 }} variant="soft" color='info'>
         N/A
       </Label>
     );
@@ -213,11 +230,13 @@ export default function ShiftItem({
         >
           <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h5" sx={{
+              display: 'flex',
+              alignItems: 'center',
               '&:hover': {
                 textDecoration: 'underline',
               }
             }}>
-              {shift.event.name} - {shift.assignment.name}
+              {shift.event.name} - {shift.assignment.name} {labelComponent}
             </Typography>
 
             {
@@ -228,12 +247,12 @@ export default function ShiftItem({
                   startIcon={<Iconify icon={shiftActions[0].getIcon(shift)} />}
                   onClick={(event) => {
                     event.stopPropagation();
-                    shiftActions[0].onClick(shift)
+                    shiftActions[0].onClick(inputShift)
                   }}
                   sx={{ flex: '0 0 auto' }}
                   color={shiftActions[0].color as any}
                   variant="outlined"
-                >{shiftActions[0].getName(shift)}</Button>
+                >{shiftActions[0].getName(inputShift)}</Button>
               ) : (
                 <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
                   e.stopPropagation();
@@ -401,11 +420,11 @@ export default function ShiftItem({
           <MenuItem
             key={key}
             onClick={() => {
-              onClick(shift);
+              onClick(inputShift);
             }}
           >
             <Iconify icon={getIcon(shift)} />
-            {getName(shift)}
+            {getName(inputShift)}
           </MenuItem>
         ))}
       </CustomPopover>

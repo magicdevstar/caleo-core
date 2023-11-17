@@ -151,8 +151,8 @@ const sendEmail = async (input: MailerEvent) => {
 
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
-      const bufferShiftStart = convertDate(shift.startTime as any, organization);
-      const bufferShiftEnd = convertDate(shift.endTime as any, organization);
+      const bufferShiftStart = convertDate(shiftBufferShift.startTime as any, organization);
+      const bufferShiftEnd = convertDate(shiftBufferShift.endTime as any, organization);
 
       // TODO: Look up conflicting shift
       Addresses = (allAdmins || []).reduce((obj, admin) => {

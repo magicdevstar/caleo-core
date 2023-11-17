@@ -1,10 +1,8 @@
 import { useCallback, useState } from "react";
 // @apollo/client
 import { useMutation } from "@apollo/client";
-
 // @mui
-import red from "@mui/material/colors/red";
-
+import Button from "@mui/material/Button";
 // Types
 import { ShiftBufferRequest, ShiftBufferRequestStatus } from "src/__generated__/resolvers-types";
 import { GET_SHIFT_BUFFER_REQUESTS, SET_SHIFT_BUFFER_STATUS } from "src/api/shifts";
@@ -21,7 +19,6 @@ export default function ShiftBufferRequestsTable() {
   });
   const [editRequest, setEditRequest] = useState<{
     buffer: ShiftBufferRequest,
-    status: ShiftBufferRequestStatus
     reason: string,
   } | null>(null);
   const editRequestModal = useBoolean();
@@ -43,38 +40,30 @@ export default function ShiftBufferRequestsTable() {
         };
       }
     },
-    rowActions: [
-      {
-        getName: () => 'Approve',
-        getIcon: () => 'solar:check-circle-bold',
-        onClick: (row: ShiftBufferRequest) => {
-          setEditRequest({
-            buffer: row,
-            status: ShiftBufferRequestStatus.Approved,
-            reason: '',
-          });
-          editRequestModal.onTrue();
-        },
-      },
-      {
-        getName: () => 'Deny',
-        getIcon: () => 'solar:close-circle-bold',
-        getColor: () => red[500],
-        onClick: (row: ShiftBufferRequest) => {
-          setEditRequest({
-            buffer: row,
-            status: ShiftBufferRequestStatus.Rejected,
-            reason: '',
-          });
-          editRequestModal.onTrue();
-        },
-      }
-    ],
+    rowActions: [],
     columns: [
       { id: 'user.name', label: 'Name', columnType: 'string' },
       { id: 'note', label: 'Note', columnType: 'string' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
-      { id: '', width: 88, columnType: 'action', label: '' },
+      {
+        id: '',
+        width: 88,
+        columnType: 'action',
+        label: '',
+        renderValue: (_value: any, _index: number, row: ShiftBufferRequest) => (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setEditRequest({
+                buffer: row,
+                reason: '',
+              });
+              editRequestModal.onTrue();
+            }}
+          >View</Button>
+        ),
+      },
     ],
     filters: [
       {
@@ -88,12 +77,12 @@ export default function ShiftBufferRequestsTable() {
   };
 
   const handleUpsert = useCallback(
-    async () => {
+    async (status: ShiftBufferRequestStatus) => {
       try {
         await updateRequest({
           variables: {
             id: editRequest?.buffer.id,
-            status: editRequest?.status,
+            status,
             reason: editRequest?.reason,
           },
         });

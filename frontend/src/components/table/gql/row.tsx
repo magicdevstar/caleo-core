@@ -180,6 +180,13 @@ export default function GQLTableRow({
                 return (<ArrayCell width={column.width} emptyArrayLabel={column.emptyArrayLabel} key={column.id} value={value} maxRender={column.maxRender || 1} />);
               case 'action': 
               default:
+                if (column.renderValue) {
+                  return (
+                    <TableCell key={column.id} align="right" width={column.width}>
+                      {column.renderValue(undefined, index, row)}
+                    </TableCell>
+                  );
+                }
                 return (
                   <TableCell key={column.id} align="right" width={column.width}>
                     <IconButton color={popover.open ? 'primary' : 'default'} onClick={popover.onOpen}>

@@ -4,7 +4,7 @@ import { EventSearchInput, Event, UpsertEvent, EventStatus, EventAttachmentUploa
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
-import { isAfter } from "date-fns";
+import { isAfter, setMinutes, setSeconds } from "date-fns";
 
 export const event = {
   Query: {
@@ -77,7 +77,7 @@ export const event = {
         ...event,
         ...(
           event.scheduledFirstComeFirstServe ? {
-            scheduledFirstComeFirstServe: new Date(event.scheduledFirstComeFirstServe).getTime()
+            scheduledFirstComeFirstServe: setMinutes(setSeconds(new Date(event.scheduledFirstComeFirstServe), 0), 0).getTime(),
           } : {}
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],

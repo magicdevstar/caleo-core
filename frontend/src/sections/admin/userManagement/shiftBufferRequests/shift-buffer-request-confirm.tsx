@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 // Components
 import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
@@ -29,7 +30,6 @@ export const ShiftBufferRequestConfirm = ({
 }: {
   editRequest: {
     buffer: ShiftBufferRequest,
-    status: ShiftBufferRequestStatus
     reason: string,
   } | null;
   setEditRequest: (value: any) => void;
@@ -40,12 +40,6 @@ export const ShiftBufferRequestConfirm = ({
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.up('md'));
   const { user } = useAuthContext();
-  const title = useMemo(() => {
-    if (editRequest?.status === ShiftBufferRequestStatus.Approved) {
-      return 'Approve Shift Buffer';
-    }
-    return 'Deny Shift Buffer';
-  }, [editRequest?.status]);
 
   const body = useMemo(() => {
     if (!editRequest?.buffer) {
@@ -76,7 +70,6 @@ export const ShiftBufferRequestConfirm = ({
     };
     return (
       <>
-        <Typography sx={{ mb: 1 }} variant="body1">{`Are you sure want to ${statusMap[editRequest?.status]} this Shift Buffer Request?`}</Typography>
         <Box sx={{
           borderRadius: '5px',
           padding: '5px 5px 10px 5px',
@@ -126,37 +119,48 @@ export const ShiftBufferRequestConfirm = ({
     <ConfirmDialog
       open={editRequestModal.value}
       onClose={editRequestModal.onFalse}
-      title={title}
+      title="Buffer request details"
       maxWidth='md'
       content={(
         <>
           {body}
-          {editRequest?.status === ShiftBufferRequestStatus.Rejected && (
-            <TextField
-              label="Denied Reason"
-              multiline
-              fullWidth
-              sx={{ mt: 1 }}
-              rows={4}
-              onChange={(event) => {
-                setEditRequest((c: any) => ({
-                  ...c,
-                  reason: event.target.value,
-                } as any));
-              }}
-            />
-          )}
+          <TextField
+            label="Denied Reason"
+            multiline
+            fullWidth
+            helperText="Please enter a reason if you would like to deny this request."
+            sx={{ mt: 1 }}
+            rows={4}
+            onChange={(event) => {
+              setEditRequest((c: any) => ({
+                ...c,
+                reason: event.target.value,
+              } as any));
+            }}
+          />
         </>)}
       action={
-        <LoadingButton
-          disabled={editRequest?.status === ShiftBufferRequestStatus.Rejected && editRequest?.reason?.trim() === ''}
-          loading={updateRequestLoading}
-          variant="contained"
-          color={editRequest?.status === ShiftBufferRequestStatus.Approved ? "primary" : "error"}
-          onClick={handleUpsert}
-        >
-          {capitalize(statusMap[editRequest?.status || ''])}
-        </LoadingButton>
+        <>
+          <Stack direction="row" spacing={2} sx={{ mr: 2 }}>
+            <LoadingButton
+              disabled={editRequest?.reason?.trim() === ''}
+              loading={updateRequestLoading}
+              variant="contained"
+              color="error"
+              onClick={() => handleUpsert(ShiftBufferRequestStatus.Rejected)}
+            >
+              Denied
+            </LoadingButton>
+            <LoadingButton
+              loading={updateRequestLoading}
+              variant="contained"
+              color="primary"
+              onClick={() => handleUpsert(ShiftBufferRequestStatus.Approved)}
+            >
+              Approved
+            </LoadingButton>
+          </Stack>
+        </>
       }
     />
   )

@@ -117,6 +117,7 @@ export const ShiftBufferRequestConfirm = ({
 
   return (
     <ConfirmDialog
+      hasCancel={false}
       open={editRequestModal.value}
       onClose={editRequestModal.onFalse}
       title="Buffer request details"

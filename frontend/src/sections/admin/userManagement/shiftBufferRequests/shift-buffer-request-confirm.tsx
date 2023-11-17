@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { capitalize } from "lodash";
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
@@ -15,11 +14,6 @@ import { ShiftBufferRequest, ShiftBufferRequestStatus } from "src/__generated__/
 import { convertDate } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import Iconify from "src/components/iconify";
-
-const statusMap: any = {
-  [ShiftBufferRequestStatus.Approved]: 'approve',
-  [ShiftBufferRequestStatus.Rejected]: 'deny',
-};
 
 export const ShiftBufferRequestConfirm = ({
   editRequest,
@@ -69,49 +63,47 @@ export const ShiftBufferRequestConfirm = ({
       }).format('ddd DD MMM YYYY HH:mm'),
     };
     return (
-      <>
+      <Box sx={{
+        borderRadius: '5px',
+        padding: '5px 5px 10px 5px',
+        background: 'rgba(0,0,0,0.3)',
+        marginTop: '10px',
+        p: 2,
+        mb: 1,
+      }}>
         <Box sx={{
-          borderRadius: '5px',
-          padding: '5px 5px 10px 5px',
-          background: 'rgba(0,0,0,0.3)',
-          marginTop: '10px',
-          p: 2,
-          mb: 1,
+          display: 'flex',
+          gap: '10px',
+          flexDirection: {
+            xs: 'column',
+            sm: 'column',
+            md: 'row',
+          },
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
         }}>
-          <Box sx={{
-            display: 'flex',
-            gap: '10px',
-            flexDirection: {
-              xs: 'column',
-              sm: 'column',
-              md: 'row',
-            },
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 2,
-          }}>
-            <Box>
-              <Typography sx={{ mb: 1, fontWeight: 'bold' }} variant="body1">Conflicting Shift</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>(#{editRequest?.buffer?.shiftBufferShift?.event?.referenceId}) {editRequest?.buffer?.shiftBufferShift?.event?.name} - {editRequest?.buffer?.shiftBufferShift?.assignment?.name}</Typography>
-              <Typography variant="caption">{shiftBufferDates.startTime} - {shiftBufferDates.endTime}</Typography>
-            </Box>
-            <Iconify icon={matches ? "ic:baseline-arrow-forward" : "ic:baseline-arrow-downward"} />
-            <Box>
-              <Typography sx={{ mb: 1, fontWeight: 'bold' }} variant="body1">Requested Shift</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>(#{editRequest?.buffer?.event?.referenceId}) {editRequest?.buffer?.event?.name} - {editRequest?.buffer?.assignment?.name}</Typography>
-              <Typography variant="caption">{shiftDates.startTime} - {shiftDates.endTime}</Typography>
-            </Box>
+          <Box>
+            <Typography sx={{ mb: 1, fontWeight: 'bold' }} variant="body1">Conflicting Shift</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>(#{editRequest?.buffer?.shiftBufferShift?.event?.referenceId}) {editRequest?.buffer?.shiftBufferShift?.event?.name} - {editRequest?.buffer?.shiftBufferShift?.assignment?.name}</Typography>
+            <Typography variant="caption">{shiftBufferDates.startTime} - {shiftBufferDates.endTime}</Typography>
           </Box>
-          <Typography sx={{
-            mb: 1,
-            textAlign: {
-              xs: 'center',
-              sm: 'center',
-              md: 'left',
-            },
-          }} variant="body1">Reason for request: {editRequest?.buffer?.note}</Typography>
+          <Iconify icon={matches ? "ic:baseline-arrow-forward" : "ic:baseline-arrow-downward"} />
+          <Box>
+            <Typography sx={{ mb: 1, fontWeight: 'bold' }} variant="body1">Requested Shift</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>(#{editRequest?.buffer?.event?.referenceId}) {editRequest?.buffer?.event?.name} - {editRequest?.buffer?.assignment?.name}</Typography>
+            <Typography variant="caption">{shiftDates.startTime} - {shiftDates.endTime}</Typography>
+          </Box>
         </Box>
-      </>
+        <Typography sx={{
+          mb: 1,
+          textAlign: {
+            xs: 'center',
+            sm: 'center',
+            md: 'left',
+          },
+        }} variant="body1">Reason for request: {editRequest?.buffer?.note}</Typography>
+      </Box>
     )
   }, [editRequest, user, matches]);
 
@@ -141,27 +133,25 @@ export const ShiftBufferRequestConfirm = ({
           />
         </>)}
       action={
-        <>
-          <Stack direction="row" spacing={2} sx={{ mr: 2 }}>
-            <LoadingButton
-              disabled={editRequest?.reason?.trim() === ''}
-              loading={updateRequestLoading}
-              variant="contained"
-              color="error"
-              onClick={() => handleUpsert(ShiftBufferRequestStatus.Rejected)}
-            >
-              Denied
-            </LoadingButton>
-            <LoadingButton
-              loading={updateRequestLoading}
-              variant="contained"
-              color="primary"
-              onClick={() => handleUpsert(ShiftBufferRequestStatus.Approved)}
-            >
-              Approved
-            </LoadingButton>
-          </Stack>
-        </>
+        <Stack direction="row" spacing={2} sx={{ mr: 2 }}>
+          <LoadingButton
+            disabled={editRequest?.reason?.trim() === ''}
+            loading={updateRequestLoading}
+            variant="contained"
+            color="error"
+            onClick={() => handleUpsert(ShiftBufferRequestStatus.Rejected)}
+          >
+            Denied
+          </LoadingButton>
+          <LoadingButton
+            loading={updateRequestLoading}
+            variant="contained"
+            color="primary"
+            onClick={() => handleUpsert(ShiftBufferRequestStatus.Approved)}
+          >
+            Approved
+          </LoadingButton>
+        </Stack>
       }
     />
   )

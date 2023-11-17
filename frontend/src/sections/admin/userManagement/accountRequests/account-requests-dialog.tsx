@@ -108,7 +108,7 @@ export default function AccountRequestsDialog({
       input: {},
     },
   });
-  const ranks = useMemo(() => data?.ranks?.items || { ranks: { items: [] } }, [data]);
+  const ranks = useMemo(() => data?.ranks?.items || [], [data]);
 
   const closeDialog = () => {
     methods.reset();

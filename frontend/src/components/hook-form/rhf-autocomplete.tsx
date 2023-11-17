@@ -31,7 +31,7 @@ export default function RHFAutocomplete<
   valueKey,
   ...other
 }: Omit<Props<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'>) {
-  const { control, setValue } = useFormContext();
+  const { control } = useFormContext();
 
   return (
     <Controller
@@ -41,10 +41,10 @@ export default function RHFAutocomplete<
         <Autocomplete
           {...field}
           onChange={(event, newValue: any) => {
-            if (valueKey) {
-              setValue(name, newValue[valueKey], { shouldValidate: true })
+            if (valueKey && !other.multiple) {
+              field.onChange(newValue[valueKey]) // Currently breaks with Multiple selection
             } else {
-              setValue(name, newValue, { shouldValidate: true })
+              field.onChange(newValue);
             }
           }}
           renderInput={(params) => (

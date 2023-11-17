@@ -1,4 +1,7 @@
 import { ChangeEvent, useState } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 // @mui
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -6,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 // components
 import { useSettingsContext } from 'src/components/settings';
+import EventsByDate from '../reports/events-by-date';
 
 enum ReportType {
   EVENTS_BY_DATE = 'EVENTS_BY_DATE',
@@ -27,10 +31,14 @@ const ReportTypeNames = {
   [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Relinquished Shifts by Officer',
 };
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 function ReportTypeSwitch({ reportType }: { reportType: ReportType }) {
   // TODO: create and add each component for creating reports
   switch (reportType) {
     case ReportType.EVENTS_BY_DATE:
+      return <EventsByDate />;
     case ReportType.EVENTS_BY_VENUE:
     case ReportType.SHIFTS_BY_EVENT:
     case ReportType.SHIFTS_BY_OFFICER:
@@ -60,6 +68,7 @@ export default function ReportsView() {
         fullWidth
         sx={{
           maxWidth: 250,
+          mb: 5,
         }}
         label="Report Type"
         value={reportType}

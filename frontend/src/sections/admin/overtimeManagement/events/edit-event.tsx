@@ -75,6 +75,7 @@ export default function EditEvent({ currentEvent }: Props) {
   const { user } = useAuthContext();
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
+    countValue: currentEvent?.lotteryNumber,
     dateLimit: currentEvent?.endTime || undefined,
   });
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {

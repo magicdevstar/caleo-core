@@ -22,9 +22,11 @@ const dayMap: Record<string, number> = {
 export const useLotteryCounterOptions = ({
   org,
   dateLimit,
+  countValue,
 }: {
   org: Organization;
   dateLimit?: string;
+  countValue?: any;
 }) => {
   const { data } = useQuery(GET_LOTTERY_COUNTER);
 
@@ -54,19 +56,38 @@ export const useLotteryCounterOptions = ({
       .millisecond(0);
 
     let startNumber = data?.lotteryCounter.counter;
+
+    // Set the lottery start date to the next 
     if (dayjs.utc().isAfter(startOfLottery)) {
       startNumber += 1;
       startOfLottery = startOfLottery.add(1, 'week');
       closeOfLottery = closeOfLottery.add(1, 'week');
     }
-
+    // Off set the end date if the lottery is open across weeks
     if (dayjs.utc().isAfter(closeOfLottery)) {
       closeOfLottery = closeOfLottery.add(1, 'week');
     }
 
+    // If the lottery was in the past calculate the date it was run
+    const opts: any[] = [];
+    if (Number.isInteger(countValue) && countValue < startNumber) {
+      const diff = startNumber - countValue;
+
+      const oldLotteryStart = startOfLottery.subtract(diff, 'week');
+      const oldLotteryEnd = closeOfLottery.subtract(diff, 'week');
+
+      opts.push({
+        counter: countValue,
+        date: oldLotteryStart,
+        time: oldLotteryStart.format('ddd DD MMM YYYY HH:mm'),
+        endDate: oldLotteryEnd,
+        endTime: oldLotteryEnd.format('ddd DD MMM YYYY HH:mm'),
+      });
+    }
+
     const limit = dateLimit && dayjs.utc(dateLimit);
 
-    return new Array(5)
+    const list = new Array(5)
       .fill(0)
       .map((_, i) => ({
         counter: startNumber + i,
@@ -76,7 +97,9 @@ export const useLotteryCounterOptions = ({
         endTime: closeOfLottery.add(i, 'week').format('ddd DD MMM YYYY HH:mm'),
       }))
       .filter(({ date }) => !limit || limit.isAfter(date));
-  }, [data, org, dateLimit]);
+
+    return [...opts, ...list];
+  }, [data, org, dateLimit, countValue]);
 
   return {
     options,

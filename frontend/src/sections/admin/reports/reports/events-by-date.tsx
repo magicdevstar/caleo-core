@@ -59,10 +59,12 @@ const eventsByDateSchema = Yup.object().shape({
     .test('is-before-max', 'Date must be after Min Date', (max, context) =>
       context?.parent?.dateRangeMin ? max >= context?.parent?.dateRangeMin : true
     ),
-  eventStatus: Yup.mixed<typeof eventStatusOptions | string[]>().transform(
-    (value: typeof eventStatusOptions) => value.map((v) => v.value)
-  ),
-  createdBy: Yup.mixed<User[] | string[]>().transform((value: User[]) => value.map((v) => v.id)),
+  eventStatus: Yup.array()
+    .of(Yup.mixed<(typeof eventStatusOptions)[0] | string>())
+    .transform((value: typeof eventStatusOptions) => value.map((v) => v.value)),
+  createdBy: Yup.array()
+    .of(Yup.mixed<User | string>())
+    .transform((value: User[]) => value.map((v) => v.id)),
 });
 
 export default function EventsByDate() {
@@ -73,7 +75,6 @@ export default function EventsByDate() {
     variables: {
       input: {
         // "admin": true,
-        skip: 0,
         orderBy: 'createdAt',
         order: 'desc',
       },

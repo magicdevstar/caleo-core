@@ -10,6 +10,7 @@ import MenuItem from '@mui/material/MenuItem';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import EventsByDate from '../reports/events-by-date';
+import EventsByVenue from '../reports/events-by-venue';
 
 enum ReportType {
   EVENTS_BY_DATE = 'EVENTS_BY_DATE',
@@ -40,6 +41,7 @@ function ReportTypeSwitch({ reportType }: { reportType: ReportType }) {
     case ReportType.EVENTS_BY_DATE:
       return <EventsByDate />;
     case ReportType.EVENTS_BY_VENUE:
+      return <EventsByVenue />;
     case ReportType.SHIFTS_BY_EVENT:
     case ReportType.SHIFTS_BY_OFFICER:
     case ReportType.SHIFTS_BY_DATE:

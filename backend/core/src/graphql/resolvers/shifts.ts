@@ -10,6 +10,7 @@ import {
 import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
+  EventStatus,
   MemberRole,
   MemberTier,
   Shift,
@@ -68,9 +69,14 @@ export const shift = {
     lotteryShifts: async (
       _parent: unknown,
       _: unknown,
-      { shifts, user }: Context
-    ): Promise<SearchResults<Shift>> => shifts.findOpenLotteryShifts({
-      orgId: user?.member?.orgId!,
+      { users, user, organization }: Context
+    ): Promise<SearchResults<Shift>> => users.findOpenShifts({
+      user: user!,
+      organization: organization!,
+      orgId: user?.member.orgId!,
+      limit: 100000,
+      skip: 0,
+      eventType: EventStatus.ReadyForLottery,
     }),
     shifts: async (
       _parent: unknown,
@@ -469,6 +475,12 @@ export const shift = {
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
       user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
+      lotteryRequest: (shift: Shift, _, { shiftLotteryRequests, user, organization }: Context) =>
+        shiftLotteryRequests.requestLoader.load({
+          userId: user?.id!,
+          orgId: organization?.id!,
+          shiftGroupId: shift.shiftId,
+        }),
       otherShiftSlots: (
         shift: Shift,
         _,

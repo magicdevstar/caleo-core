@@ -9,8 +9,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
 // types
-import { Rank, Shift, ShiftBufferRequest, Skill } from "src/__generated__/resolvers-types";
+import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -28,9 +30,19 @@ const labelSx = {
 
 export default function ShiftItem({
   shift: inputShift,
+  index,
+  selectable = false,
+  selectLoading = false,
+  onSelect = () => {},
+  cursor = 'pointer',
   shiftActions,
 }: {
-  shift: Shift | ShiftBufferRequest;
+  shift: Shift | ShiftBufferRequest | ShiftLotteryRequest;
+  index: number;
+  selectable?: boolean;
+  selectLoading?: boolean;
+  cursor?: string;
+  onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   shiftActions: {
     key: string;
     color?: string;
@@ -52,8 +64,8 @@ export default function ShiftItem({
     return (<span />);
   }, [inputShift]);
   const shift = useMemo<Shift>(() => {
-    if (inputShift.__typename === 'ShiftBufferRequest') {
-      return inputShift.shift as Shift;
+    if (['ShiftBufferRequest', 'ShiftLotteryRequest'].includes(inputShift.__typename || '')) {
+      return (inputShift as any).shift as Shift;
     }
     return inputShift as Shift;
   }, [inputShift]);
@@ -112,16 +124,15 @@ export default function ShiftItem({
       );
     }
 
-    return (shift as Shift)?.event?.attachments?.map((url: string, index: number) => (
-      <Label key={url} variant="soft" color='info' sx={{...labelSx, width: 'fit-content', cursor: 'pointer'}} onClick={(e) => {
+    return (shift as Shift)?.event?.attachments?.map((url: string, i: number) => (
+      <Label key={url} variant="soft" color='info' sx={{...labelSx, width: 'fit-content', cursor}} onClick={(e) => {
         e.stopPropagation();
         window.open(url, '_blank');
       }}>
-        Attachment # {index + 1}
+        Attachment # {i + 1}
       </Label>
     ));
-  },
-  [shift]);
+  }, [shift, cursor]);
 
   const contactInfo = useMemo(() => {
     let value: any = (
@@ -212,6 +223,20 @@ export default function ShiftItem({
     }).format('ddd DD MMM YYYY HH:mm'),
   };
 
+  let selectRender = (<></>);
+  if (selectable && selectLoading) {
+    selectRender = (<CircularProgress color="info" size={22} thickness={5} />);
+  } else if (selectable) {
+    selectRender = (
+      <Checkbox
+        checked={!!shift.lotteryRequest}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(event) => onSelect(shift, event, index)}
+        inputProps={{ 'aria-label': 'controlled' }}
+      />
+    );
+  }
+
   return (
     <Grid sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
       <Stack
@@ -220,7 +245,7 @@ export default function ShiftItem({
         }}
         component={Card}
         direction="row"
-        sx={{ cursor: 'pointer', width: '100%', height: '100%' }}
+        sx={{ cursor, width: '100%', height: '100%' }}
       >
         <Stack
           sx={{
@@ -240,7 +265,7 @@ export default function ShiftItem({
             </Typography>
 
             {
-              shiftActions.length === 1 ? (
+              shiftActions.length === 1 && (
                 <Button
                   size="small"
                   disabled={shiftActions[0].disabled(shift)}
@@ -253,7 +278,10 @@ export default function ShiftItem({
                   color={shiftActions[0].color as any}
                   variant="outlined"
                 >{shiftActions[0].getName(inputShift)}</Button>
-              ) : (
+              )
+            }
+            {
+              shiftActions?.length > 1 && (
                 <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
                   e.stopPropagation();
                   popover.onOpen(e);
@@ -262,6 +290,7 @@ export default function ShiftItem({
                 </IconButton>
               )
             }
+            {selectRender}
           </Stack>
 
           <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>

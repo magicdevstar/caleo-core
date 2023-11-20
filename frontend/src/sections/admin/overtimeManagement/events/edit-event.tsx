@@ -216,8 +216,6 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
     try {
-      // TODO: Impalement upload for attachments
-
       let imageUploadUrls = [];
       const existingAttachments = formData.attachments
         .filter(({ existing, attachmentPath }: any) => existing && attachmentPath);

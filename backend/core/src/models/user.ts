@@ -39,6 +39,7 @@ const cognito = new CognitoIdentityProviderClient({});
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
+  lotteryCounterCollection: Collection;
   constructor(
     db: Db,
     private assignments: AssignmentModel,
@@ -49,6 +50,7 @@ export class UserModel extends BaseModel<User> {
   ) {
     super(db, DocType.User, 'users');
     this.memberSkillsCollection = this.db.collection('memberSkills');
+    this.lotteryCounterCollection = db.collection('lotteryCounter');
   }
 
   async getAllAdmins({
@@ -96,6 +98,7 @@ export class UserModel extends BaseModel<User> {
     orgId,
     organization,
     defaultEventIds,
+    eventType = EventStatus.FirstComeFirstServe,
   }: {
     user: User;
     organization: Organization;
@@ -104,6 +107,7 @@ export class UserModel extends BaseModel<User> {
     limit: number;
     skip: number;
     orgId: string;
+    eventType?: EventStatus;
     defaultEventIds?: string[];
   }) {
     let skillIds: string[] = [];
@@ -116,10 +120,8 @@ export class UserModel extends BaseModel<User> {
       }).toArray();
       skillIds = skillList.map(({ skillId }) => skillId);
     }
-    // Find first come first serve events
-    const {
-      items: eventList,
-    } = await this.events.search({
+
+    let eventQuery: any = {
       orgId,
       $or: [
         {
@@ -135,7 +137,28 @@ export class UserModel extends BaseModel<User> {
           ],
         }
       ]
-    });
+    };
+    if (eventType === EventStatus.ReadyForLottery) {
+      let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
+        orgId,
+      });
+      if (!lotteryCounterDoc) {
+        lotteryCounterDoc = {
+          counter: 0,
+        };
+      }
+      eventQuery = {
+        orgId,
+        status: EventStatus.ReadyForLottery,
+        lotteryNumber: lotteryCounterDoc.counter,
+      };
+    }
+
+
+    // Find first come first serve events
+    const {
+      items: eventList,
+    } = await this.events.search(eventQuery);
     const eventIds = defaultEventIds || eventList.map(({ id }) => id);
 
     // Find assignments that are attached to those events

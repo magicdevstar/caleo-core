@@ -44,10 +44,9 @@ export const shiftLotteryRequests = {
     },
     shiftLotteryRequest: async (
       _parent: unknown,
-      { shiftLotteryRequest: incomingShiftLotteryRequest }: { shiftLotteryRequest: UpsertShiftLotteryRequest },
-      { shiftLotteryRequests, shifts, user }: Context
+      { shiftLotteryRequest }: { shiftLotteryRequest: UpsertShiftLotteryRequest },
+      { shiftLotteryRequests, shifts, user, lotteryCounter, organization }: Context
     ): Promise<ShiftLotteryRequest> => {
-      const { newId, ...shiftLotteryRequest } = incomingShiftLotteryRequest
       adminOrOwnerOnly(shiftLotteryRequest.userId, user);
 
       const shift = await shifts.findOne({
@@ -57,25 +56,19 @@ export const shiftLotteryRequests = {
         throw new GraphQLError('Shift not found');
       }
 
+      const { counter } = await lotteryCounter.get(organization!.id);
+
       const upsertObject = {
         ...shiftLotteryRequest,
         shiftGroupId: shift.shiftId,
         eventId: shift.eventId,
         assignmentId: shift.assignmentId,
+        lotteryCounter: counter,
         orgId: shift.orgId,
         userId: user?.id!,
       } as any;
 
-      let res: ShiftLotteryRequest;
-      if (newId) {
-        const { id, ...doc } = upsertObject;
-        res = await shiftLotteryRequests.create({
-          ...doc,
-          _id: new ObjectId(id),
-        });
-      } else {
-        res = await shiftLotteryRequests.update(upsertObject, { skipMerge: true }) as ShiftLotteryRequest;
-      }
+      const res = await shiftLotteryRequests.upsert(upsertObject);
       logger.info('Upsert Res', { res });
 
       return res;

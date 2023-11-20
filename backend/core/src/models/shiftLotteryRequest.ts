@@ -1,9 +1,26 @@
-import { Db, ObjectId } from 'mongodb';
+import { Db } from 'mongodb';
+import DataLoader from 'dataloader';
 import { ShiftLotteryRequest, DocType, MemberTier } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
+import { LotteryCounterModel } from './lotteryCounter';
 
 export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
-  constructor(db: Db) {
+  public requestLoader = new DataLoader(async (keys: readonly {userId: string; orgId: string; shiftGroupId: string}[]) => {
+    const { counter } = await this.lotteryCounter.get(keys[0].orgId);
+    const userId = keys[0].userId;
+    const groupIds = keys.map((key) => key.shiftGroupId);
+    const res = await this.collection.find({
+      userId,
+      lotteryCounter: counter,
+      shiftGroupId: {
+        $in: groupIds,
+      },
+    }).toArray();
+
+    return keys.map(({ shiftGroupId }) => res.find((item) => item.shiftGroupId === shiftGroupId));
+  });
+
+  constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.ShiftLotteryRequest, 'shiftLotteryRequests');
   }
 

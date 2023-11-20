@@ -140,18 +140,41 @@ export const GET_LOTTERY_SHIFTS = gql`
           id
           name
           bwNeeded
-          ranks {
-            id
-            name
-          }
+          description
           requiredSkills {
             id
             name
           }
+          ranks {
+            id
+            name
+          }
+        }
+        lotteryRequest {
+          id
+          shiftGroupId
         }
         event {
           id
+          referenceId
           name
+          attachments
+          notes
+          venue {
+            id
+            name
+            address
+            city
+            state
+            zip
+            phone
+            contact {
+              firstName
+              lastName
+              email
+              phone
+            }
+          }
         }
       }
     }
@@ -165,27 +188,52 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
         id
         shiftGroupId
         order
+        userId
         shift {
           id
+          shiftId
           startTime
           endTime
-        }
-        assignment {
-          id
-          name
-          bwNeeded
-          ranks {
+          assignment {
             id
             name
+            bwNeeded
+            description
+            requiredSkills {
+              id
+              name
+            }
+            ranks {
+              id
+              name
+            }
           }
-          requiredSkills {
+          lotteryRequest {
             id
-            name
+            shiftGroupId
           }
-        }
-        event {
-          id
-          name
+          event {
+            id
+            referenceId
+            name
+            attachments
+            notes
+            venue {
+              id
+              name
+              address
+              city
+              state
+              zip
+              phone
+              contact {
+                firstName
+                lastName
+                email
+                phone
+              }
+            }
+          }
         }
       }
     }

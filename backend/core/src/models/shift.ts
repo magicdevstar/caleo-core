@@ -22,6 +22,7 @@ const lambda = new LambdaClient({});
 
 export class ShiftModel extends BaseModel<Shift> {
   lotteryCounterCollection: Collection;
+  eventsCollection: Collection;
 
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.aggregate([
@@ -76,6 +77,7 @@ export class ShiftModel extends BaseModel<Shift> {
   constructor(db: Db) {
     super(db, DocType.Shift, 'shifts');
     this.lotteryCounterCollection = db.collection('lotteryCounter');
+    this.eventsCollection = db.collection('events');
   }
 
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
@@ -193,103 +195,6 @@ export class ShiftModel extends BaseModel<Shift> {
     });
   }
 
-  async findOpenLotteryShifts({
-    orgId,
-  }: {
-    orgId: string;
-  }) {
-    let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
-      orgId,
-    });
-    if (!lotteryCounterDoc) {
-      lotteryCounterDoc = {
-        counter: 0,
-      };
-    }
-    // TODO: Ensure user is qualified for the shift :)
-    const pipeline = [
-      // Filter for only open shifts
-      {
-        $match: {
-          orgId,
-          $and: [
-            {
-              $or: [
-                { userId: null },
-                { userId: { $exists: false } },
-              ],
-            },
-            {
-              $or: [
-                { locked: false },
-                { locked: { $exists: false } },
-              ],
-            }
-          ],
-        },
-      },
-      // Convert eventId to objectId
-      {
-        $addFields: {
-          eventId: { $toObjectId: '$eventId' }
-        }
-      },
-      {
-        $lookup: {
-          from: 'events',
-          localField: 'eventId',
-          foreignField: '_id',
-          as: 'event'
-        }
-      },
-      {
-        $group: {
-          _id: '$eventId',
-          event: {
-            $first: { $arrayElemAt: ['$event', 0] }
-          },
-          shifts: { $push: '$$ROOT' }
-        }
-      },
-      {
-        $match: {
-          'event.status': 'READY_FOR_LOTTERY',
-          'event.lotteryNumber': lotteryCounterDoc.counter,
-        }
-      },
-      { $unwind: { path: '$shifts' } },
-      { $replaceRoot: { newRoot: '$shifts' } },
-      {
-        $addFields: {
-          eventId: { $toString: '$eventId' }
-        }
-      },
-      {
-        $group: {
-          _id: '$shiftId',
-          shift: { $first: '$$ROOT' }
-        }
-      },
-      { $replaceRoot: { newRoot: '$shift' } }
-    ];
-    const res = await this.collection.aggregate<Shift>(pipeline).toArray();
-    const totalRes = await this.collection.aggregate<{
-      total: number;
-    }>([
-      ...pipeline,
-      {
-        $count: 'total',
-      },
-    ]);
-
-    logger.info('Res', { totalRes, res });
-
-    return {
-      items: res,
-      total: totalRes?.[0]?.total || 0,
-    };
-  }
-
   async findOpenLotteryShiftsGroupedById({
     orgId,
   }: {
@@ -305,70 +210,74 @@ export class ShiftModel extends BaseModel<Shift> {
     }
 
     const pipeline = [
-      // Filter for only open shifts
       {
         $match: {
-          orgId,
+          status: "READY_FOR_LOTTERY",
+          lotteryNumber: lotteryCounterDoc.counter,
+        },
+      },
+      {
+        $addFields: {
+          eventId: {
+            $toString: "$_id",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "shifts",
+          localField: "eventId",
+          foreignField: "eventId",
+          as: "shifts",
+        },
+      },
+      {
+        $unwind: {
+          path: "$shifts",
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shifts",
+        },
+      },
+      {
+        $match: {
           $and: [
             {
               $or: [
                 { userId: null },
-                { userId: { $exists: false } },
+                {
+                  userId: {
+                    $exists: false,
+                  },
+                },
               ],
             },
             {
               $or: [
                 { locked: false },
-                { locked: { $exists: false } },
+                {
+                  locked: {
+                    $exists: false,
+                  },
+                },
               ],
-            }
+            },
           ],
         },
       },
-      // Convert eventId to objectId
-      {
-        $addFields: {
-          eventId: { $toObjectId: '$eventId' }
-        }
-      },
-      {
-        $lookup: {
-          from: 'events',
-          localField: 'eventId',
-          foreignField: '_id',
-          as: 'event'
-        }
-      },
       {
         $group: {
-          _id: '$eventId',
-          event: {
-            $first: { $arrayElemAt: ['$event', 0] }
+          _id: "$shiftId",
+          shifts: {
+            $push: "$$ROOT",
           },
-          shifts: { $push: '$$ROOT' }
-        }
-      },
-      {
-        $match: {
-          'event.status': 'READY_FOR_LOTTERY',
-          'event.lotteryNumber': lotteryCounterDoc.counter,
-        }
-      },
-      { $unwind: { path: '$shifts' } },
-      { $replaceRoot: { newRoot: '$shifts' } },
-      {
-        $addFields: {
-          eventId: { $toString: '$eventId' }
-        }
-      },
-      {
-        $group: {
-          _id: '$shiftId',
-          shifts: { $push: '$$ROOT' }
-        }
+        },
       },
     ];
-    const res = await this.collection.aggregate<{
+
+    const res = await this.eventsCollection.aggregate<{
       _id: string;
       shifts: Shift[];
     }>(pipeline).toArray();

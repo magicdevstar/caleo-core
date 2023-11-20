@@ -319,8 +319,9 @@
     eventId: String!
     assignmentId: String!
     orgId: String!
-    order: Int!
+    order: Int
     userId: String!
+    lotteryCounter: Int!
     createdAt: String!
     updatedAt: String!
 
@@ -354,6 +355,7 @@
     shiftBufferShift: Shift
     # This field will only be included on otherShiftSlots
     order: Int
+    lotteryRequest: ShiftLotteryRequest
     otherShiftSlots: [Shift]
     user: User
     event: Event!
@@ -385,10 +387,9 @@
 
   input UpsertShiftLotteryRequest {
     id: String
-    newId: String
     shiftGroupId: String!
-    order: Int!
     userId: String!
+    order: Int
   }
 
   input UpsertAssignment {

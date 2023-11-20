@@ -224,7 +224,6 @@ export default function LotterySelectView() {
           return;
         }
 
-        // TODO: Add or remove lotto selection
         if (destinationColumn.id === 'open' && shiftOrRequest.__typename === 'ShiftLotteryRequest') {
           removeRequest({
             variables: {

@@ -1,7 +1,7 @@
 // @mui
 import Grid from "@mui/material/Grid";
 import Pagination, { paginationClasses } from "@mui/material/Pagination";
-import { Shift, ShiftBufferRequest } from "src/__generated__/resolvers-types";
+import { Shift, ShiftBufferRequest, ShiftLotteryRequest } from "src/__generated__/resolvers-types";
 // components
 import ShiftItem from "./shift-item";
 import ShiftItemSkeleton from "./shift-item-skeleton";
@@ -16,14 +16,20 @@ export default function ShiftItems({
   total,
   currentPage,
   emptyMessage = 'No Data',
+  selectable = false,
+  selectLoadingIndex,
   setPage,
+  onSelect = () => {},
 }: {
-  shifts: Shift[] | ShiftBufferRequest[];
+  shifts: Shift[] | ShiftBufferRequest[] | ShiftLotteryRequest[];
   loading: boolean;
   total: number;
   pageSize: number;
   currentPage: number;
   emptyMessage?: string;
+  selectable?: boolean;
+  selectLoadingIndex?: number | null;
+  onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   setPage: (page: any) => void;
   shiftActions: {
     key: string;
@@ -49,8 +55,16 @@ export default function ShiftItems({
   if (shifts.length > 0) {
     renderList = (
       <>
-        {shifts.map((shift) => (
-          <ShiftItem key={shift.id} shiftActions={shiftActions} shift={shift} />
+        {shifts.map((shift, index) => (
+          <ShiftItem
+            key={shift.id}
+            index={index}
+            selectLoading={selectLoadingIndex === index}
+            selectable={selectable}
+            onSelect={onSelect}
+            shiftActions={shiftActions}
+            shift={shift}
+          />
         ))}
       </>
     );

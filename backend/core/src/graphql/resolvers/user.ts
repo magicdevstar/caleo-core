@@ -8,6 +8,7 @@ import {
   ProfilePhotoAttachmentUpload,
   MemberTier,
   InputAdminResetPassword,
+  MemberRole,
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -37,6 +38,8 @@ export const user = {
       limit: input.limit,
       skip: input.skip,
       queryField: input.queryField || 'name',
+      order: input.order,
+      orderBy: input.orderBy,
       query: input.query,
       ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
       ...(input.pNumber ? {'member.pNumber': {
@@ -54,7 +57,7 @@ export const user = {
       ...(input.rankIds ? {'member.rankId': { $in: input.rankIds }} : {}),
       ...(input.statuses ? {'member.status': { $in: input.statuses }} : {}),
       ...(input.tiers ? {'member.tier': { $in: input.tiers }} : {}),
-      ...(input.admin ? {'member.admin': { $in: input.admin }} : {}),
+      ...('admin' in input ? {'member.role': input.admin ? MemberRole.Admin : MemberRole.Member} : {}),
       'member.orgId': user?.member.orgId!,
     }),
   },

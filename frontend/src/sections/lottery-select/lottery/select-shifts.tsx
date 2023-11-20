@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useSnackbar } from "notistack";
 // Hooks
 import { useAuthContext } from "src/auth/hooks";

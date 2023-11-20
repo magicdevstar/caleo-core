@@ -73,10 +73,10 @@ export interface TableConfig<T> {
 
 export interface Filter {
   id: string;
-  type: 'select' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
-  label: string;
-  defaultValue: any;
-  value: any;
+  type: 'select' | 'date' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
+  label?: string;
+  defaultValue?: any;
+  value?: any;
   fetchOptions?: () => {
     value: any;
     label: string;

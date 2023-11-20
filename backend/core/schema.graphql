@@ -848,17 +848,18 @@
     total: Int!
   }
 
-  enum EventStartTimeFilter {
-    gte
-    lte
+  input EventTimeFilter {
+    gte: String
+    lte: String
+    value: String
   }
 
   input EventSearchInput {
     limit: Int
     skip: Int
     query: String
-    startTime: String
-    startTimeFilter: EventStartTimeFilter
+    startTime: EventTimeFilter
+    endTime: EventTimeFilter
     orderBy: String
     order: String
   }

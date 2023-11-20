@@ -37,38 +37,6 @@ export default function EventsTable() {
         },
       }
     },
-    tabs: {
-      default: 'All',
-      items: [
-        {
-          value: 'All',
-          onClick: (setAllFilters) => {
-            setAllFilters([
-              { id: 'startTime', value: null },
-              { id: 'startTimeFilter', value: null },
-            ]);
-          }
-        },
-        {
-          value: 'Upcoming',
-          onClick: (setAllFilters) => {
-            setAllFilters([
-              { id: 'startTime', value: new Date().toISOString() },
-              { id: 'startTimeFilter', value: 'gte' },
-            ]);
-          }
-        },
-        {
-          value: 'Past',
-          onClick: (setAllFilters) => {
-            setAllFilters([
-              { id: 'startTime', value: new Date().toISOString() },
-              { id: 'startTimeFilter', value: 'lte' },
-            ]);
-          }
-        }
-      ]
-    },
     search: {
       defaultTableConfig: {
         defaultRowsPerPage: 10,
@@ -127,6 +95,13 @@ export default function EventsTable() {
         label: 'Search',
         defaultValue: '',
         value: '',
+      },
+      {
+        id: 'endTime',
+        type: 'hidden',
+        defaultValue: {
+          gte: new Date().toISOString(),
+        },
       },
     ]
   };

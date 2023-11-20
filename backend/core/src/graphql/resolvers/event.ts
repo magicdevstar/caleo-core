@@ -15,17 +15,37 @@ export const event = {
     ): Promise<Event | null> => events.get(id),
     events: async (
       _parent: unknown,
-      { input: { startTime, startTimeFilter, ...input } }: { input: EventSearchInput },
+      { input: { startTime, endTime, ...input } }: { input: EventSearchInput },
       { events, user }: Context
-    ): Promise<SearchResults<Event>> => events.search({
-      orgId: user?.member.orgId!,
-      // Do not show complete events in the overtime search :)
-      ...(startTime && startTimeFilter ? { startTime: { [`$${startTimeFilter}`]: new Date(startTime).getTime() } } : {}),
-      status: {
-        $nin: [EventStatus.Complete],
-      },
-      ...input,
-    })
+    ): Promise<SearchResults<Event>> => {
+      const timeFilters: any = {};
+      if (startTime && startTime.value) {
+        timeFilters.startTime = new Date(startTime.value).getTime();
+      } else if (startTime && (startTime.gte || startTime?.lte)) {
+        timeFilters.startTime = {
+          ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
+          ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
+        };
+      }
+
+      if (endTime && endTime.value) {
+        timeFilters.endTime = new Date(endTime.value).getTime();
+      } else if (endTime && (endTime.gte || endTime?.lte)) {
+        timeFilters.endTime = {
+          ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
+          ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+        };
+      }
+      return events.search({
+        orgId: user?.member.orgId!,
+        // Do not show complete events in the overtime search :)
+        ...timeFilters,
+        status: {
+          $nin: [EventStatus.Complete],
+        },
+        ...input,
+      })
+    }
   },
   Mutation: {
     eventAttachmentUploadUrl: async (

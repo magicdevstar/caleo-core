@@ -119,7 +119,8 @@ export const event = {
         }));
 
         return results.filter((result) => result.status === 'fulfilled').map((result: any) => result.value);
-      }
+      },
+      availableShifts: async (item: Event, _arg: unknown, { shifts }: Context) => shifts.eventShiftCount.load(item.id),
     },
   },
 };

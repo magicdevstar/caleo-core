@@ -81,7 +81,7 @@ export default function LotteryView() {
             );
           }
           return (
-            <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
+            <Tab key={tab.value} label={tab.label} iconPosition="end" icon={tab.icon} value={tab.value} />
           );
         })}
       </Tabs>

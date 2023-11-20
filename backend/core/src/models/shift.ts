@@ -74,6 +74,31 @@ export class ShiftModel extends BaseModel<Shift> {
       );
   });
 
+  public eventShiftCount = new DataLoader(async (keys: readonly string[]) => {
+    const res = await this.collection.aggregate<{
+      _id: string;
+      count: number;
+    }>([
+      {
+        $match: {
+          eventId: {
+            $in: keys,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$eventId",
+          count: {
+            $count: {},
+          },
+        },
+      },
+    ]).toArray();
+
+    return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
+  });
+
   constructor(db: Db) {
     super(db, DocType.Shift, 'shifts');
     this.lotteryCounterCollection = db.collection('lotteryCounter');

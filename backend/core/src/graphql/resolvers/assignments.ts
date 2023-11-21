@@ -11,7 +11,7 @@ export const assignments = {
       _parent: unknown,
       { id }: { id: string },
       { assignments }: Context,
-    ): Promise<Assignment | null> => assignments.get(id),
+    ): Promise<Assignment | null> => assignments.get(id, { removed: true }),
     assignments: async (
       _parent: unknown,
       { limit, skip }: SearchInput,

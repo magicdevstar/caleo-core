@@ -53,7 +53,7 @@ export default function SelectFilter({
             <Checkbox
               disableRipple
               size="small"
-              checked={filter?.value?.includes(option.value)}
+              checked={!!filter?.value?.includes(option.value)}
             />
             {option.label}
           </MenuItem>

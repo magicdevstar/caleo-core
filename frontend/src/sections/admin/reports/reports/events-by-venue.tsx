@@ -33,16 +33,12 @@ const eventStatusOptions = [
     value: EventStatus.FirstComeFirstServe,
   },
   {
-    label: 'First come first serve scheduled',
-    value: EventStatus.FirstComeFirstServeScheduled,
-  },
-  {
     label: 'Lottery',
     value: EventStatus.ReadyForLottery,
   },
   {
-    label: 'Upcoming',
-    value: EventStatus.Upcoming,
+    label: 'Removed',
+    value: EventStatus.Removed,
   },
 ];
 

@@ -243,7 +243,7 @@ export default function GQLTable({
                 emptyRows={table.rowsPerPage - items.length}
               />}
 
-              <TableNoData notFound={notFound} />
+              {!loading && <TableNoData notFound={notFound} />}
             </TableBody>
           </Table>
         </Scrollbar>

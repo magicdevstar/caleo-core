@@ -62,6 +62,7 @@ type Props = {
 
 const eventStatusNames = {
   [EventStatus.Complete]: 'Complete',
+  [EventStatus.Removed]: 'Removed',
   [EventStatus.Draft]: 'Draft',
   [EventStatus.ReadyForLottery]: 'Lottery',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
@@ -545,8 +546,10 @@ export default function EditEvent({ currentEvent }: Props) {
                     EventStatus.Draft,
                     EventStatus.ReadyForLottery,
                     EventStatus.FirstComeFirstServe,
+                    EventStatus.Complete,
+                    EventStatus.Removed,
                   ].map((option) => (
-                    <MenuItem key={option} value={option}>
+                    <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed].includes(option)} key={option} value={option}>
                       {(eventStatusNames as any)[option]}
                     </MenuItem>
                   ))}
@@ -672,6 +675,7 @@ export default function EditEvent({ currentEvent }: Props) {
           variant="contained"
           size="large"
           loading={isSubmitting}
+          disabled={[EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any)}
           sx={{ ml: 2 }}
         >
           {!currentEvent ? 'Create Event' : 'Save Changes'}

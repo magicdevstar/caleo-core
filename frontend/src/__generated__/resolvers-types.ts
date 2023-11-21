@@ -152,6 +152,7 @@ export type EventAttachmentUpload = {
 };
 
 export type EventSearchInput = {
+  createdById?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   endTime?: InputMaybe<EventTimeFilter>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
@@ -159,6 +160,7 @@ export type EventSearchInput = {
   query?: InputMaybe<Scalars['String']['input']>;
   range?: InputMaybe<EventTimeRange>;
   skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Array<InputMaybe<EventStatus>>>;
 };
 
 export type EventSearchResult = {
@@ -171,9 +173,8 @@ export enum EventStatus {
   Complete = 'COMPLETE',
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
-  FirstComeFirstServeScheduled = 'FIRST_COME_FIRST_SERVE_SCHEDULED',
   ReadyForLottery = 'READY_FOR_LOTTERY',
-  Upcoming = 'UPCOMING'
+  Removed = 'REMOVED'
 }
 
 export type EventTimeFilter = {

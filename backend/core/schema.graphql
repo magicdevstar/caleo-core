@@ -203,12 +203,16 @@
 
 ###### START Events ######
   enum EventStatus {
+    # Event that is being built and not ready for assignments
     DRAFT
-    UPCOMING
+    # Event that assigned to a lottery run
     READY_FOR_LOTTERY
+    # Event where shifts are available to sign up for whenever
     FIRST_COME_FIRST_SERVE
-    FIRST_COME_FIRST_SERVE_SCHEDULED
+    # Event is past the end date
     COMPLETE
+    # Event has removedAt set
+    REMOVED
   }
 
   type EventAttachmentUpload {

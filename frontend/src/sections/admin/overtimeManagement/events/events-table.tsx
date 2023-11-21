@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 import { client } from 'src/utils/apollo';
@@ -127,6 +127,14 @@ export default function EventsTable() {
             {
               label: 'Lottery',
               value: EventStatus.ReadyForLottery,
+            },
+            {
+              label: 'Complete',
+              value: EventStatus.Complete,
+            },
+            {
+              label: 'Removed',
+              value: EventStatus.Removed,
             },
           ];
           // eslint-disable-next-line react/no-this-in-sfc

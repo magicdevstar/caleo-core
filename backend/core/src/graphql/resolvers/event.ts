@@ -12,13 +12,14 @@ export const event = {
       _parent: unknown,
       { id }: { id: string },
       { events }: Context,
-    ): Promise<Event | null> => events.get(id),
+    ): Promise<Event | null> => events.get(id, { removed: true }),
     events: async (
       _parent: unknown,
       { input: { range, endTime, createdById, status, ...input } }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => {
-      const timeFilters: any = {};
+      let timeFilters: any = {};
+      const $or: any[] = [];
 
       if (range) {
         const { startTime, endTime } = range;
@@ -52,17 +53,58 @@ export const event = {
       if (createdById) {
         (input as any).createdById = { $in: createdById };
       }
+      // Kill me :) Maybe I should consider just calculating the status with event bridge instead of this mess
       if (status) {
-        (input as any).status = { $in: status };
+        const includeRemoved = status.includes(EventStatus.Removed);
+        const includeComplete = status.includes(EventStatus.Complete);
+        const filteredStatus = status.filter((s) => s !== EventStatus.Removed && s !== EventStatus.Complete);
+
+        if (includeRemoved) {
+          (input as any).includeRemoved = true;
+          if (filteredStatus.length > 0) {
+            $or.push({
+              removedAt: { $exists: true },
+            }, {
+              status: { $in: filteredStatus },
+            });
+          } else {
+            (input as any).removedAt = { $exists: true };
+          }
+        } 
+        if (filteredStatus.length > 0 && (includeRemoved || includeComplete)) {
+          $or.push({
+            status: { $in: filteredStatus },
+          });
+        } else if (filteredStatus.length > 0) {
+          (input as any).status = { $in: filteredStatus };
+        }
+        if (includeComplete && filteredStatus.length > 0) {
+          let time = Date.now();
+          if (timeFilters.endTime && typeof timeFilters.endTime === 'number') {
+            time = timeFilters.endTime;
+          } else if (timeFilters.endTime?.gte) {
+            time = timeFilters.endTime.gte;
+          }
+          $or.push({
+            endTime: {
+              $gte: time,
+            },
+          });
+        } else if (includeComplete) {
+          timeFilters = {
+            ...timeFilters,
+            endTime: {
+              $lte: Date.now(),
+            }
+          };
+        }
       }
 
       return events.search({
         orgId: user?.member.orgId!,
         // Do not show complete events in the overtime search :)
         ...timeFilters,
-        status: {
-          $nin: [EventStatus.Complete],
-        },
+        ...($or.length > 0 ? { $or } : {}),
         ...input,
       })
     }
@@ -147,6 +189,9 @@ export const event = {
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
       status: (item: Event) => {
+        if (item.removedAt) {
+          return EventStatus.Removed;
+        }
         if (item.endTime && isAfter(new Date(), new Date(item.endTime))) {
           return EventStatus.Complete;
         }

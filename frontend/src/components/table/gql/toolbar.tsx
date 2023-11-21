@@ -1,17 +1,16 @@
+import dayjs from 'dayjs';
 // @mui
 import Stack from '@mui/material/Stack';
-import MenuItem from '@mui/material/MenuItem';
-import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-import Select from '@mui/material/Select';
+import { DateRangePicker } from '@mui/x-date-pickers-pro';
 // components
 import Iconify from 'src/components/iconify';
+// hooks
+import { useAuthContext } from 'src/auth/hooks';
 // types
 import { Filter } from '../table-config';
+import SelectFilter from './select-filter';
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +23,7 @@ export default function TableToolbar({
   filters,
   onFilters,
 }: Props) {
+  const { user } = useAuthContext();
 
   return (
     <Stack
@@ -48,44 +48,21 @@ export default function TableToolbar({
     >
       {filters.map((filter) => {
         if (filter.type === 'select') {
-          const options = filter.fetchOptions?.() || [];
+          return (<SelectFilter key={filter.id} filter={filter} onFilters={onFilters} />);
+        }
+        if (filter.type === 'dateRange') {
           return (
-            <FormControl
-              id={filter.id}
-              sx={{
-                flexShrink: 0,
-                width: { xs: 1, md: 200 },
-              }}
-            >
-              <InputLabel>{filter.label}</InputLabel>
-
-              <Select
-                multiple
-                value={filter.value}
-                onChange={(event) => {
-                  const value = typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value;
-                  onFilters(filter.id, value);
-                }}
-                input={<OutlinedInput label={filter.label} />}
-                renderValue={(selected) => selected.map((value: any) => value).join(', ')}
-                sx={{ textTransform: 'capitalize' }}
-              >
-                {options.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    <Checkbox
-                      disableRipple
-                      size="small"
-                      checked={filter.value.includes(option.value)}
-                    />
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Stack key={filter.id} direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
+              <DateRangePicker onChange={(event) => {
+                if (event[0] && event[1]) {
+                  onFilters(filter.id, event);
+                }
+              }} sx={{ width: '100% !important' }} maxDate={dayjs().endOf('day')} timezone={user.member.org?.timezone} localeText={{ start: 'Start After', end: 'Start Before' }} />
+            </Stack>
           );
         }
         return (
-          <Stack id={filter.id} direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
+          <Stack key={filter.id} direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
             <TextField
               fullWidth
               value={filter.value}

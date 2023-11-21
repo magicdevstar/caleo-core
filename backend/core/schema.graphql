@@ -917,12 +917,19 @@
     value: String
   }
 
+  input EventTimeRange {
+    startTime: EventTimeFilter
+    endTime: EventTimeFilter
+  }
+
   input EventSearchInput {
     limit: Int
     skip: Int
     query: String
-    startTime: EventTimeFilter
+    range: EventTimeRange
+    status: [EventStatus]
     endTime: EventTimeFilter
+    createdById: [String]
     orderBy: String
     order: String
   }

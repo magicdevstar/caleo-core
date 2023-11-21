@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
+import { client } from 'src/utils/apollo';
 // components
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
-import { Event } from 'src/__generated__/resolvers-types';
+import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
+import { GET_USERS_SLIM } from 'src/api/user';
 
 // ----------------------------------------------------------------------
 
@@ -101,6 +103,56 @@ export default function EventsTable() {
         type: 'hidden',
         defaultValue: {
           gte: new Date().toISOString(),
+        },
+      },
+      {
+        id: 'range',
+        type: 'dateRange',
+        dateRangeType: 'start',
+      },
+      {
+        id: 'status',
+        type: 'select',
+        label: 'Status',
+        async fetchOptions () {
+          const formattedOptions = [
+            {
+              label: 'Draft',
+              value: EventStatus.Draft,
+            },
+            {
+              label: 'First Come First Serve',
+              value: EventStatus.FirstComeFirstServe,
+            },
+            {
+              label: 'Lottery',
+              value: EventStatus.ReadyForLottery,
+            },
+          ];
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedOptions;
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'createdById',
+        type: 'select',
+        label: 'Created by',
+        async fetchOptions () {
+          const { data } = await client.query({
+            query: GET_USERS_SLIM,
+            variables: {
+              input: {
+                admin: true,
+                limit: 100000,
+              }
+            },
+          });
+          const admins = data?.users?.items || [];
+          const formattedAdmins = admins.map(({ id, name }: User) => ({ value: id, label: name }));
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedAdmins;
+          return formattedAdmins;
         },
       },
     ]

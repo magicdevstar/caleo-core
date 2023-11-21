@@ -15,7 +15,6 @@ const FORMAT_POWERPOINT = ['ppt', 'pptx'];
 const FORMAT_AUDIO = ['wav', 'aif', 'mp3', 'aac'];
 const FORMAT_IMG = ['jpg', 'jpeg', 'gif', 'bmp', 'png', 'svg'];
 const FORMAT_VIDEO = ['m4v', 'avi', 'mpg', 'mp4', 'webm'];
-const FORMAT_BLOB = ['blob:'];
 
 const iconUrl = (icon: string) => `/assets/icons/files/${icon}.svg`;
 

@@ -54,7 +54,7 @@ export default function SelectShifts({
         variant: 'error',
         autoHideDuration: 3000,
       });
-      console.log(error);
+      console.error(error);
     } finally {
       setSelectLoadingIndex(null);
     }

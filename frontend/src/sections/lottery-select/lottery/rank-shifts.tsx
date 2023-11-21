@@ -82,7 +82,6 @@ export default function RankShifts() {
         variables: updates.variables,
       });
     } catch(error) {
-      console.log(error);
       await client.writeQuery({
         query: GET_LOTTERY_SHIFT_REQUESTS,
         data: {
@@ -124,7 +123,7 @@ export default function RankShifts() {
           {(dropProvided) => (
             <div {...dropProvided.droppableProps} ref={dropProvided.innerRef}>
               {items
-                .sort((a: ShiftLotteryRequest, b: ShiftLotteryRequest) => a.order - b.order)
+                .sort((a: ShiftLotteryRequest, b: ShiftLotteryRequest) => (a.order || -1) - (b.order || -1))
                 .map((shift: ShiftLotteryRequest, index: number) => (
                   <Draggable key={shift.id} draggableId={shift.id} index={index}>
                     {(provided, snapshot) => (

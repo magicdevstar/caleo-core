@@ -15,6 +15,7 @@ import 'react-quill/dist/quill.snow.css';
 // @mui
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { LicenseInfo } from '@mui/x-license-pro';
 
 // routes
 import Router from 'src/routes/sections';
@@ -32,6 +33,8 @@ import { client } from './utils/apollo';
 import { SnackbarProvider } from './components/snackbar';
 
 // ----------------------------------------------------------------------
+
+LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyOTU1NzQwMDAsUz1wcm8sTE09cGVycGV0dWFsLEtWPTI=');
 
 export default function App() {
   const charAt = `

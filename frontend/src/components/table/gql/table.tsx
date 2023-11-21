@@ -70,7 +70,9 @@ export default function GQLTable({
   const denseHeight = 60;
 
   const canReset = filters
-    .filter(({ type }) => type !== 'hidden' && type !== 'hiddenValue')
+    .filter(({ type, value }) =>
+      type !== 'hidden' && type !== 'hiddenValue' && (Array.isArray(value) && value.length > 0)
+    )
     .some((filter) => JSON.stringify(filter.value) !== JSON.stringify(filter.defaultValue));
 
   const notFound = (!items.length && canReset) || (isEmpty && !loading);

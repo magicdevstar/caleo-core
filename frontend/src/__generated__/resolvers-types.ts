@@ -32,12 +32,15 @@ export type Assignment = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkills?: Maybe<Array<Maybe<Skill>>>;
   shiftIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -117,6 +120,7 @@ export type Event = {
   assignments?: Maybe<Array<Assignment>>;
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   attachments?: Maybe<Array<Scalars['String']['output']>>;
+  availableShifts?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
@@ -124,12 +128,15 @@ export type Event = {
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   lotteryNumber?: Maybe<Scalars['Int']['output']>;
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   referenceId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
@@ -145,13 +152,13 @@ export type EventAttachmentUpload = {
 };
 
 export type EventSearchInput = {
+  endTime?: InputMaybe<EventTimeFilter>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+  range?: InputMaybe<EventTimeRange>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  startTime?: InputMaybe<Scalars['String']['input']>;
-  startTimeFilter?: InputMaybe<EventStartTimeFilter>;
 };
 
 export type EventSearchResult = {
@@ -159,11 +166,6 @@ export type EventSearchResult = {
   items?: Maybe<Array<Maybe<Event>>>;
   total: Scalars['Int']['output'];
 };
-
-export enum EventStartTimeFilter {
-  Gte = 'gte',
-  Lte = 'lte'
-}
 
 export enum EventStatus {
   Complete = 'COMPLETE',
@@ -173,6 +175,17 @@ export enum EventStatus {
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Upcoming = 'UPCOMING'
 }
+
+export type EventTimeFilter = {
+  gte?: InputMaybe<Scalars['String']['input']>;
+  lte?: InputMaybe<Scalars['String']['input']>;
+  value?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type EventTimeRange = {
+  endTime?: InputMaybe<EventTimeFilter>;
+  startTime?: InputMaybe<EventTimeFilter>;
+};
 
 export type InputAdminResetPassword = {
   password: Scalars['String']['input'];
@@ -205,8 +218,11 @@ export type LotteryCounter = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -268,7 +284,10 @@ export type MemberSkill = {
   id: Scalars['ID']['output'];
   image?: Maybe<Scalars['String']['output']>;
   imagePath: Scalars['String']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   skill: Skill;
   skillId: Scalars['String']['output'];
   status: SkillStatus;
@@ -554,10 +573,13 @@ export type Notification = {
   frequency: NotificationFrequency;
   id: Scalars['ID']['output'];
   memberNotification?: Maybe<MemberNotification>;
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks: Array<Maybe<Rank>>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   seen?: Maybe<Scalars['Boolean']['output']>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
@@ -592,7 +614,10 @@ export type Organization = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   settings?: Maybe<OrganizationOvertimeSettings>;
   state: Scalars['String']['output'];
   timezone: Scalars['String']['output'];
@@ -777,9 +802,12 @@ export type Rank = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   org?: Maybe<Organization>;
   orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -821,12 +849,15 @@ export type Shift = {
   id: Scalars['ID']['output'];
   locked?: Maybe<Scalars['Boolean']['output']>;
   lotteryRequest?: Maybe<ShiftLotteryRequest>;
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   notificationId?: Maybe<Scalars['String']['output']>;
   order?: Maybe<Scalars['Int']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   otherShiftSlots?: Maybe<Array<Maybe<Shift>>>;
   relinquishNote?: Maybe<Scalars['String']['output']>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   shiftBufferShift?: Maybe<Shift>;
   shiftId: Scalars['String']['output'];
   startTime: Scalars['String']['output'];
@@ -863,10 +894,13 @@ export type ShiftBufferRequest = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   note?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   reason?: Maybe<Scalars['String']['output']>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   shift: Shift;
   shiftBufferShift: Shift;
   shiftBufferShiftId: Scalars['String']['output'];
@@ -917,15 +951,26 @@ export type ShiftLotteryRequest = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  order: Scalars['Int']['output'];
+  lotteryCounter: Scalars['Int']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  order?: Maybe<Scalars['Int']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   shift?: Maybe<Shift>;
   shiftGroupId: Scalars['String']['output'];
+  status?: Maybe<ShiftLotteryRequestStatus>;
   updatedAt: Scalars['String']['output'];
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
 };
+
+export enum ShiftLotteryRequestStatus {
+  Approved = 'APPROVED',
+  Pending = 'PENDING',
+  Rejected = 'REJECTED'
+}
 
 export type ShiftLotteryRequestsSearchResult = {
   __typename?: 'ShiftLotteryRequestsSearchResult';
@@ -948,6 +993,7 @@ export enum ShiftReminderUnit {
 
 export type ShiftSearchInput = {
   endTime?: InputMaybe<Scalars['String']['input']>;
+  includeRemoved?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
@@ -964,7 +1010,14 @@ export type ShiftSearchResult = {
 
 export enum ShiftStatus {
   Assigned = 'ASSIGNED',
-  Available = 'AVAILABLE'
+  Available = 'AVAILABLE',
+  InProgress = 'IN_PROGRESS',
+  Locked = 'LOCKED',
+  Relinquished = 'RELINQUISHED',
+  Removed = 'REMOVED',
+  Secured = 'SECURED',
+  Unassigned = 'UNASSIGNED',
+  Unfulfilled = 'UNFULFILLED'
 }
 
 export type Skill = {
@@ -973,11 +1026,14 @@ export type Skill = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   org: Organization;
   orgId: Scalars['String']['output'];
   rankOnlyIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranksOnly?: Maybe<Array<Maybe<Rank>>>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   requiresAdminApproval: Scalars['Boolean']['output'];
   requiresCert: Scalars['Boolean']['output'];
   updatedAt: Scalars['String']['output'];
@@ -1132,8 +1188,7 @@ export type UpsertShiftBuffer = {
 
 export type UpsertShiftLotteryRequest = {
   id?: InputMaybe<Scalars['String']['input']>;
-  newId?: InputMaybe<Scalars['String']['input']>;
-  order: Scalars['Int']['input'];
+  order?: InputMaybe<Scalars['Int']['input']>;
   shiftGroupId: Scalars['String']['input'];
   userId: Scalars['String']['input'];
 };
@@ -1191,7 +1246,10 @@ export type User = {
   imagePath?: Maybe<Scalars['String']['output']>;
   lastName: Scalars['String']['output'];
   member: Member;
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   superAdmin: Scalars['Boolean']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -1247,11 +1305,14 @@ export type Venue = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   phone?: Maybe<Scalars['String']['output']>;
+  removedAt?: Maybe<Scalars['String']['output']>;
   state?: Maybe<Scalars['String']['output']>;
   status?: Maybe<VenueStatus>;
   updatedAt: Scalars['String']['output'];
@@ -1374,8 +1435,9 @@ export type ResolversTypes = ResolversObject<{
   EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
-  EventStartTimeFilter: EventStartTimeFilter;
   EventStatus: EventStatus;
+  EventTimeFilter: EventTimeFilter;
+  EventTimeRange: EventTimeRange;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1423,6 +1485,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftBufferRequestsSearchResult: ResolverTypeWrapper<ShiftBufferRequestsSearchResult>;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
   ShiftLotteryRequest: ResolverTypeWrapper<ShiftLotteryRequest>;
+  ShiftLotteryRequestStatus: ShiftLotteryRequestStatus;
   ShiftLotteryRequestsSearchResult: ResolverTypeWrapper<ShiftLotteryRequestsSearchResult>;
   ShiftReminder: ResolverTypeWrapper<ShiftReminder>;
   ShiftReminderUnit: ShiftReminderUnit;
@@ -1481,6 +1544,8 @@ export type ResolversParentTypes = ResolversObject<{
   EventAttachmentUpload: EventAttachmentUpload;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
+  EventTimeFilter: EventTimeFilter;
+  EventTimeRange: EventTimeRange;
   ID: Scalars['ID']['output'];
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1576,12 +1641,15 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   shiftIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -1627,6 +1695,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1634,12 +1703,15 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lotteryNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
@@ -1666,8 +1738,11 @@ export type LotteryCounterResolvers<ContextType = any, ParentType extends Resolv
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1724,7 +1799,10 @@ export type MemberSkillResolvers<ContextType = any, ParentType extends Resolvers
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   skill?: Resolver<ResolversTypes['Skill'], ParentType, ContextType>;
   skillId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['SkillStatus'], ParentType, ContextType>;
@@ -1794,10 +1872,13 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   frequency?: Resolver<ResolversTypes['NotificationFrequency'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   memberNotification?: Resolver<Maybe<ResolversTypes['MemberNotification']>, ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Array<Maybe<ResolversTypes['Rank']>>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   seen?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1817,7 +1898,10 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1890,9 +1974,12 @@ export type RankResolvers<ContextType = any, ParentType extends ResolversParentT
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1917,12 +2004,15 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   locked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   notificationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   order?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   otherShiftSlots?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
   relinquishNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1959,10 +2049,13 @@ export type ShiftBufferRequestResolvers<ContextType = any, ParentType extends Re
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   note?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
   shiftBufferShift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
   shiftBufferShiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1995,11 +2088,16 @@ export type ShiftLotteryRequestResolvers<ContextType = any, ParentType extends R
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  order?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  lotteryCounter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  order?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestStatus']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2030,11 +2128,14 @@ export type SkillResolvers<ContextType = any, ParentType extends ResolversParent
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rankOnlyIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranksOnly?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requiresAdminApproval?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   requiresCert?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2057,7 +2158,10 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   imagePath?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   member?: Resolver<ResolversTypes['Member'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   superAdmin?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2095,11 +2199,14 @@ export type VenueResolvers<ContextType = any, ParentType extends ResolversParent
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['VenueStatus']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

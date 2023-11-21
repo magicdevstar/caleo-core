@@ -15,27 +15,47 @@ export const event = {
     ): Promise<Event | null> => events.get(id),
     events: async (
       _parent: unknown,
-      { input: { startTime, endTime, ...input } }: { input: EventSearchInput },
+      { input: { range, endTime, createdById, status, ...input } }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => {
       const timeFilters: any = {};
-      if (startTime && startTime.value) {
-        timeFilters.startTime = new Date(startTime.value).getTime();
-      } else if (startTime && (startTime.gte || startTime?.lte)) {
-        timeFilters.startTime = {
-          ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
-          ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
-        };
+
+      if (range) {
+        const { startTime, endTime } = range;
+        if (startTime && startTime.value) {
+          timeFilters.startTime = new Date(startTime.value).getTime();
+        } else if (startTime && (startTime.gte || startTime?.lte)) {
+          timeFilters.startTime = {
+            ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
+            ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
+          };
+        }
+  
+        if (endTime && endTime.value) {
+          timeFilters.endTime = new Date(endTime.value).getTime();
+        } else if (endTime && (endTime.gte || endTime?.lte)) {
+          timeFilters.endTime = {
+            ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
+            ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+          };
+        }
+      } else if (endTime) {
+        if (endTime.value) {
+          timeFilters.endTime = new Date(endTime.value).getTime();
+        } else if (endTime.gte || endTime?.lte) {
+          timeFilters.endTime = {
+            ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
+            ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+          };
+        }
+      }
+      if (createdById) {
+        (input as any).createdById = { $in: createdById };
+      }
+      if (status) {
+        (input as any).status = { $in: status };
       }
 
-      if (endTime && endTime.value) {
-        timeFilters.endTime = new Date(endTime.value).getTime();
-      } else if (endTime && (endTime.gte || endTime?.lte)) {
-        timeFilters.endTime = {
-          ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
-          ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
-        };
-      }
       return events.search({
         orgId: user?.member.orgId!,
         // Do not show complete events in the overtime search :)

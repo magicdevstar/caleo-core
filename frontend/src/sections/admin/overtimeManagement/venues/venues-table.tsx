@@ -172,10 +172,10 @@ export default function VenuesTable() {
         label: 'Active',
         defaultValue: [],
         value: [],
-        fetchOptions: () => [
+        fetchOptions: () => Promise.resolve([
           { value: VenueStatus.Active, label: 'Active' },
           { value: VenueStatus.Inactive, label: 'InActive' },
-        ],
+        ]),
       },
       {
         id: 'query',

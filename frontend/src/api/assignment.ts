@@ -56,6 +56,11 @@ export const GET_ASSIGNMENT = gql`
         active
       }
 
+      event {
+        id
+        status
+      }
+
       ranks {
         id
         name

@@ -68,6 +68,7 @@ export default function EditShift({
     currentShifts?.[0]?.event?.status === EventStatus.FirstComeFirstServe &&
     currentShifts.some((shift) => shift.userId === null || !('userId' in shift)),
   [currentShifts]);
+  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentShifts?.[0]?.event?.status || '' as any), [currentShifts]);
 
   const [notify] = useMutation(NOTIFY_OF_SHIFT, {
     variables: {
@@ -188,7 +189,7 @@ export default function EditShift({
         text: 'Add Shift Slot',
         icon: 'ic:baseline-add',
         loading: isSubmitting,
-        disabled: !startTime || !endTime,
+        disabled: !startTime || !endTime || allDisabled,
         onClick: async () => {
           const groupId = shiftId || uuid();
           await upsertShifts({
@@ -232,7 +233,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold',
-        getDisabled: (row: Shift) => !!row.locked,
+        getDisabled: (row: Shift) => !!row.locked || allDisabled,
         onClick: (row: Shift) => {
           setEditShiftId(row.id);
           if (row.user) {
@@ -245,6 +246,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
         getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold' : 'solar:lock-keyhole-bold',
+        getDisabled: () => allDisabled,
         onClick: (row: Shift) => {
           setLockShift(row);
           lockConfirm.onTrue();
@@ -252,7 +254,7 @@ export default function EditShift({
       },
       {
         getName: () => 'Delete',
-        getDisabled: (row: Shift) => !!row.locked,
+        getDisabled: (row: Shift) => !!row.locked || allDisabled,
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (row: Shift) => {
           openRemoveShift(row.id);
@@ -316,7 +318,7 @@ export default function EditShift({
         <Tooltip title={!canNotify ? 'Event must be first come first serve and there must be available shifts' : ''}>
           <span>
             <Button
-              disabled={!canNotify}
+              disabled={!canNotify || allDisabled}
               variant='outlined'
               size="large"
               onClick={notify as any}
@@ -337,6 +339,7 @@ export default function EditShift({
           variant="contained"
           size="large"
           sx={{ ml: 2 }}
+          disabled={allDisabled}
           onClick={() => {
             enqueueSnackbar({ message: 'Shifts saved', variant: 'success' })
             router.push(backLink);

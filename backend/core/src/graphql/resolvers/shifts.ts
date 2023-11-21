@@ -63,6 +63,8 @@ export const shift = {
         orgId: user?.member.orgId!,
         order: 'desc',
         orderBy: '_id',
+        includeRemoved: true,
+        status: {$in: [ShiftStatus.Assigned, ShiftStatus.Available]},
       });
       return items;
     },
@@ -157,7 +159,7 @@ export const shift = {
         throw new GraphQLError("Shift not found");
       }
       
-      await shifts.remove(id);
+      await shifts.remove(id, { status: ShiftStatus.Removed });
       
       // Remove shift from assignment
       await assignments.removeShifts(shift.assignmentId, [id], user!.id);
@@ -206,6 +208,7 @@ export const shift = {
         shiftId,
         orgId: user?.member.orgId!,
       }, {
+        status: ShiftStatus.Removed,
         modifiedById: user!.id,
       });
 

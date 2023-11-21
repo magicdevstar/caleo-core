@@ -19,7 +19,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, Rank, Shift, Skill } from 'src/__generated__/resolvers-types';
+import { Assignment, EventStatus, Rank, Shift, Skill } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -54,6 +54,7 @@ export default function EditAssignment({
 
   const [removeShiftId, setRemoveShiftId] = useState<string | null>();
   const deleteConfirm = useBoolean();
+  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentAssignment?.event?.status || '' as any), [currentAssignment?.event?.status]);
 
   const shiftMeta = useMemo(() =>
     Object.values((currentAssignment?.shifts || []).reduce((acc, shift) => {
@@ -321,7 +322,7 @@ export default function EditAssignment({
           {!mdUp && <CardHeader title="Details" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="name" label="Name" />
+            <RHFTextField disabled={allDisabled} name="name" label="Name" />
             
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
@@ -331,6 +332,7 @@ export default function EditAssignment({
             <RHFAutocomplete
               name="requiredSkills"
               placeholder="Required Skills"
+              disabled={allDisabled}
               multiple
               disableCloseOnSelect
               helperText="Leave empty to not require any shifts"
@@ -360,6 +362,7 @@ export default function EditAssignment({
               placeholder="Open to Ranks"
               multiple
               disableCloseOnSelect
+              disabled={allDisabled}
               helperText="Enter the ranks that are allowed to work this assignment"
               options={(ranks || [])}
               getOptionLabel={(rank: any) => rank?.name}
@@ -383,8 +386,8 @@ export default function EditAssignment({
             />
 
             <Stack direction="row" spacing={2}>
-              <RHFSwitch name="bwNeeded" label="B&W Needed" />
-              <RHFSwitch name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+              <RHFSwitch disabled={allDisabled} name="bwNeeded" label="B&W Needed" />
+              <RHFSwitch disabled={allDisabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
             </Stack>
           </Stack>
         </Card>
@@ -430,6 +433,7 @@ export default function EditAssignment({
           variant="contained"
           size="large"
           loading={isSubmitting}
+          disabled={allDisabled}
           sx={{ ml: 2 }}
         >
           {!currentAssignment ? 'Create Assignment' : 'Save Changes'}

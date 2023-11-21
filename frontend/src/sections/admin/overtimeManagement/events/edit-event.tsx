@@ -79,6 +79,7 @@ export default function EditEvent({ currentEvent }: Props) {
     countValue: currentEvent?.lotteryNumber,
     dateLimit: currentEvent?.endTime || undefined,
   });
+  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any), [currentEvent?.status]);
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -486,11 +487,13 @@ export default function EditEvent({ currentEvent }: Props) {
             <RHFTextField
               name="name"
               label="Name"
+              disabled={allDisabled}
               helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
             />
             <RHFSelect
               name="venueId"
               label="Venue"
+              disabled={allDisabled}
             >
               {venues.map((option: any) => (
                 <MenuItem key={option.id} value={option.id}>
@@ -523,6 +526,7 @@ export default function EditEvent({ currentEvent }: Props) {
               <RHFUpload
                 multiple
                 thumbnail
+                disabled={allDisabled}
                 name="attachments"
                 maxSize={3145728}
                 onDrop={handleDrop}
@@ -538,7 +542,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   fullWidth
                   name="status"
                   label="Posting type"
-                  disabled={currentEvent?.status === EventStatus.Complete}
+                  disabled={allDisabled}
                   InputLabelProps={{ shrink: true }}
                   PaperPropsSx={{ textTransform: 'capitalize' }}
                 >
@@ -630,7 +634,7 @@ export default function EditEvent({ currentEvent }: Props) {
               </>
             }
 
-            <RHFSwitch name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+            <RHFSwitch disabled={allDisabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
           </Stack>
         </Card>
       </Grid>
@@ -675,7 +679,7 @@ export default function EditEvent({ currentEvent }: Props) {
           variant="contained"
           size="large"
           loading={isSubmitting}
-          disabled={[EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any)}
+          disabled={allDisabled}
           sx={{ ml: 2 }}
         >
           {!currentEvent ? 'Create Event' : 'Save Changes'}

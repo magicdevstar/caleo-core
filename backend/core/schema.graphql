@@ -281,6 +281,12 @@
     AVAILABLE
     # Assigned shifts that are not started
     ASSIGNED
+    # Shifts that are marked as removed and have status as RELINQUISHED
+    RELINQUISHED
+    # Shifts that are marked as removed and have status as UNASSIGNED
+    UNASSIGNED
+
+    # The rest fo these status are calculated
     # Assigned shifts that are past the start date but not the end date
     SECURED
     # Assigned shifts that are past the start date but not the end date
@@ -291,10 +297,6 @@
     REMOVED
     # Shifts that are marked as locked
     LOCKED
-    # Shifts that are marked as removed and have status as RELINQUISHED
-    RELINQUISHED
-    # Shifts that are marked as removed and have status as UNASSIGNED
-    UNASSIGNED
   }
 
   enum ShiftBufferRequestStatus {
@@ -951,6 +953,7 @@
     endTime: String
     orderBy: String
     order: String
+    status: [ShiftStatus]
     includeRemoved: Boolean
   }
 

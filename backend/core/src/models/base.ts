@@ -28,7 +28,7 @@ export class BaseModel<T> {
 
   public loader = new DataLoader(async (keys: readonly string[]) => {
     const ids = keys.map((key) => new ObjectId(key));
-    const res = await this.findAll(ids);
+    const res = await this.findAll(ids, { includedRemoved: true });
     return keys.map((key) => res.find((item: any) => item.id === key));
   });
 

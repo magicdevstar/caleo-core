@@ -86,7 +86,7 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
     return res;
   }
 
-  async removeDoc(id: string): Promise<void> {
+  async removeDoc(id: string, modifiedById: string): Promise<void> {
     const memberSkill = await this.get(id);
     if (!memberSkill) {
       throw new GraphQLError('MemberSkill not found');
@@ -100,6 +100,7 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
     logger.info('User Before', { user });
     await this.users.update({
       ...user,
+      modifiedById,
       member: {
         ...user.member,
         memberSkillIds: (user.member?.memberSkillIds || [])
@@ -109,7 +110,9 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
       skipMerge: true,
     });
 
-    await super.remove(id);
+    await super.remove(id, {
+      modifiedById
+    });
   }
 
   async getUploadUrl({

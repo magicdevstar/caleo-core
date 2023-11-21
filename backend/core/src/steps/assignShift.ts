@@ -3,7 +3,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
 
 import logger from '../utils/logger';
-import { DocType, Shift, ShiftStatus } from '../__generated__/resolvers-types';
+import { DocType, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
 
 interface InputEvent {
@@ -29,6 +29,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
   });
 
   const shiftAssignments: any[] = [];
+  const acceptedRequestIds: ObjectId[] = [];
   // Loop through requests, check if user can sign up for shift and assign the shift if so
   for(const request of requests) {
     const { total } = await users.findOpenShifts({
@@ -56,6 +57,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
             update: { $set: { userId: request.userId.toString(), status: ShiftStatus.Assigned } },
           },
         });
+        acceptedRequestIds.push(new ObjectId(request._id));
       }
     }
     // If we don't have any more shifts to assign break here
@@ -75,8 +77,21 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
   }
 
   // Remove all open requests for this shift group
-  await lottery.collection.deleteMany({
+  await lottery.removeMany({
     shiftGroupId: shiftGroupId,
+    _id: {
+      $nin: acceptedRequestIds,
+    },
+  }, {
+    status: ShiftLotteryRequestStatus.Rejected,
+  });
+
+  await lottery.removeMany({
+    _id: {
+      $in: acceptedRequestIds,
+    },
+  }, {
+    status: ShiftLotteryRequestStatus.Approved,
   });
 
   return {

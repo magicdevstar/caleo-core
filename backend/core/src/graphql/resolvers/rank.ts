@@ -29,6 +29,7 @@ export const rank = {
         ranks,
         skills,
         users,
+        user,
       }: Context
     ): Promise<string> => {
       const countUsersWithRole = await users.collection.countDocuments({
@@ -39,12 +40,17 @@ export const rank = {
         throw new GraphQLError("Cannot remove a rank that is assigned to users");
       }
 
-      await ranks.remove(id);
+      await ranks.remove(id, {
+        modifiedById: user!.id,
+      });
 
       // Remove all references to the rank from any shifts
       const res = await skills.collection.updateMany({
         rankOnlyIds: id
       }, {
+        $set: {
+          modifiedById: user!.id,
+        },
         $pull: {
           rankOnlyIds: id
         } as any,
@@ -63,6 +69,7 @@ export const rank = {
       return ranks.upsert({
         ...rank,
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       } as any);
     },
   },

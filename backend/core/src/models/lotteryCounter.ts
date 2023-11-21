@@ -9,7 +9,7 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
   }
 
   async get(orgId: string): Promise<LotteryCounter> {
-    const res = await this.findOne({ orgId });
+    const res = await this.findOne({ orgId, removedAt: { $exists: false } });
 
     if (!res) {
       return {

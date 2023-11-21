@@ -5,6 +5,7 @@ import { Assignment, DocType, Organization, User } from '../__generated__/resolv
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { ShiftModel } from './shift';
 
 const lambda = new LambdaClient({});
 
@@ -15,13 +16,14 @@ export class AssignmentModel extends BaseModel<Assignment> {
 
   async removeAssignment({
     assignment,
-    organization
+    organization,
+    user,
   }: {
     assignment: Assignment;
     organization: Organization;
+    user: User;
   }) {
-    await this.remove(assignment.id);
-
+    await this.remove(assignment.id, { modifiedById: user.id });
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
       Payload: JSON.stringify({
@@ -30,12 +32,13 @@ export class AssignmentModel extends BaseModel<Assignment> {
         data: {
           assignment,
           organization,
+          modifiedById: user.id,
         },
       } as MailerEvent),
     }));
   }
 
-  async linkShifts(shiftIds: string[], assignment: Assignment) {
+  async linkShifts(shiftIds: string[], assignment: Assignment, modifiedById: string) {
     const currentShiftIds = assignment.shiftIds || [];
     const newIds = shiftIds.filter((id) => !currentShiftIds.includes(id));
     if (newIds.length > 0) {
@@ -43,27 +46,31 @@ export class AssignmentModel extends BaseModel<Assignment> {
       await this.update({
         ...assignment,
         shiftIds,
+        modifiedById,
       }, { skipMerge: true });
     }
   }
 
-  async removeShifts(assignmentId: string, shiftIds: string[]) {
+  async removeShifts(assignmentId: string, shiftIds: string[], modifiedById: string) {
     const assignment = await this.get(assignmentId);
     if (assignment) {
       await this.update({
         ...assignment,
         shiftIds: (assignment.shiftIds || []).filter((sid) => !shiftIds.includes(sid as string)),
+        modifiedById,
       } as any, { skipMerge: true });
     }
   }
 
-  async removeAllByEventId(orgId: string, eventId: string) {
-    const assignmentRes = await this.collection.deleteMany({
+  async removeAllByEventId(orgId: string, eventId: string, modifiedById: string) {
+    const assignmentRes = await this.removeMany({
       orgId,
       eventId,
+    }, {
+      modifiedById,
     });
 
-    if (assignmentRes.deletedCount === 0) {
+    if (assignmentRes.modifiedCount === 0) {
       logger.warn('No assignments removed', {
         orgId,
         eventId,

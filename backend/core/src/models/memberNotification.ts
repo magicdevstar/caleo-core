@@ -38,7 +38,7 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     await this.collection.updateMany({
       notificationId: { $in: notificationIds },
       userId,
-    }, {  $set: { lastSeen: now }});
+    }, { $set: { lastSeen: now }});
 
     // Get all notifications
     const {items: allMemberNotifications} = await this.search({

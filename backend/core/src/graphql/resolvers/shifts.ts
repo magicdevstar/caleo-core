@@ -160,10 +160,10 @@ export const shift = {
       await shifts.remove(id);
       
       // Remove shift from assignment
-      await assignments.removeShifts(shift.assignmentId, [id]);
+      await assignments.removeShifts(shift.assignmentId, [id], user!.id);
 
       // Remove any shift buffer requests
-      await shiftBufferRequests.removeByShiftId(id);
+      await shiftBufferRequests.removeByShiftId(id, user!.id);
       // TODO: If there are no more shifts then I need to remove all shift lottery requests
 
       // Update event status or update event start/end time if needed
@@ -174,6 +174,7 @@ export const shift = {
         orgId: user?.member.orgId!,
         removeStart: shift.startTime as any,
         removeEnd: shift.endTime as any,
+        modifiedById: user!.id,
       });
 
       // TODO: Remove shift notifications
@@ -201,17 +202,19 @@ export const shift = {
         throw new GraphQLError("No shifts found");
       }
 
-      await shifts.collection.deleteMany({
+      await shifts.removeMany({
         shiftId,
         orgId: user?.member.orgId!,
+      }, {
+        modifiedById: user!.id,
       });
 
       // Remove from shift
-      await assignments.removeShifts(allShifts[0].assignmentId, allShifts.map(({ id }) => id));
+      await assignments.removeShifts(allShifts[0].assignmentId, allShifts.map(({ id }) => id), user!.id);
 
       // Remove any shift buffer requests
-      await shiftBufferRequests.removeByShiftGroupId(shiftId);
-      await shiftLotteryRequests.removeByShiftGroupId(shiftId);
+      await shiftBufferRequests.removeByShiftGroupId(shiftId, user!.id);
+      await shiftLotteryRequests.removeByShiftGroupId(shiftId, user!.id);
       
       // Set event start/end date
       const eventId = allShifts[0].eventId;
@@ -220,6 +223,7 @@ export const shift = {
         removeId: shiftId,
         removeType: EventRemoveEventType.shifts,
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       });
 
       // TODO: Bulk remove shift notifications
@@ -267,6 +271,7 @@ export const shift = {
           orgId: user?.member.orgId!,
           startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
           endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
+          modifiedById: user?.id!,
         };
       }) as any;
 
@@ -276,13 +281,13 @@ export const shift = {
 
       // Add ids to assignment
       const ids = writtenShifts.map(({ id }) => id);
-      await assignments.linkShifts(ids, assignment);
+      await assignments.linkShifts(ids, assignment, user!.id);
 
       // Update any shift buffer requests
       const shiftGroupId = updatedShifts[0].shiftId;
       const startTime = updatedShifts[0].startTime;
       const endTime = updatedShifts[0].endTime;
-      await shiftBufferRequests.updateByShiftGroupId(shiftGroupId, startTime, endTime);
+      await shiftBufferRequests.updateByShiftGroupId(shiftGroupId, startTime, endTime, user!.id);
 
       // Update event start/end time
       await events.updateEvent({
@@ -290,6 +295,7 @@ export const shift = {
         removeId: shifts[0].shiftId,
         removeType: EventRemoveEventType.shiftUpdate,
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       });
 
       // TODO: Bulk update shift notifications
@@ -367,16 +373,39 @@ export const shift = {
       }
 
       shift.userId = userId ? userId : null;
-      shift.relinquishNote = note || shift.relinquishNote;
+      // shift.relinquishNote = note || shift.relinquishNote;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
 
-      const updatedShift = await shifts.update(shift, { skipMerge: true });
+      const removingShiftUser = !userId && existingUserId;
+
+      let updatedShift: Shift;
+      let removedShift: Shift;
+      if (removingShiftUser) {
+        // Create removed shift
+        const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
+        const status = user!.id !== existingUserId && userIsAdmin(user) ?
+          ShiftStatus.Unassigned :
+          ShiftStatus.Relinquished;
+        removedShift = await shifts.create({
+          ...createShift,
+          relinquishNote: note,
+          status,
+          modifiedById: user?.id!,
+          removedAt: Date.now(),
+          userId: existingUserId,
+        }) as any;
+        updatedShift = await shifts.update(shift, { skipMerge: true });
+      } else {
+        updatedShift = await shifts.update(shift, { skipMerge: true });
+      }
+
 
       if (userId) {
         // Deny all open requests
         // TODO: Move shift buffer request to another shift slot if one is available
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
-          shiftId: shift.id
+          shiftId: shift.id,
+          modifiedById: user?.id!,
         });
         // Scheduler reminder notification
         await lambda.send(new InvokeCommand({
@@ -397,7 +426,7 @@ export const shift = {
             template: MailerEvents.OfficerAdminAssignedShift,
             data: {
               adminAssignedShift: user?.member.role === MemberRole.Admin,
-              shift: updatedShift,
+              shift: updatedShift!,
               organization,
             }
           } as MailerEvent),
@@ -427,7 +456,7 @@ export const shift = {
             action: Action.Email,
             template,
             data: {
-              shift: updatedShift,
+              shift: removedShift!,
               existingUserId,
               organization,
             }
@@ -445,6 +474,7 @@ export const shift = {
           $set: {
             'member.tier': tier,
             'member.tierUntil': tierUntil.getTime(),
+            modifiedById: user?.id!,
           },
         });
         
@@ -463,7 +493,7 @@ export const shift = {
         });
       }
 
-      return updatedShift;
+      return updatedShift!;
     }
   },
   fields: {
@@ -475,6 +505,47 @@ export const shift = {
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
       user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
+      status: (shift: Shift, _, { organization }: Context) => {
+        if (shift.locked) {
+          return ShiftStatus.Locked;
+        }
+        // If the shift was removed
+        if (shift.removedAt) {
+          // The database will contain the unassigned or relinquished reason
+          if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned].includes(shift.status)) {
+            return shift.status;
+          }
+          return ShiftStatus.Removed;
+        }
+
+        const startTime = new Date(shift.startTime).getTime();
+        const endTime = new Date(shift.endTime).getTime();
+        
+        // If the shift is currently in progress
+        if (startTime < Date.now() && endTime > Date.now() && shift.userId) {
+          return ShiftStatus.InProgress;
+        }
+        // If the shift was assigned and is complete
+        if (endTime < Date.now() && shift.userId) {
+          return ShiftStatus.Secured;
+        }
+        // If the shift was not assigned and the shift has already started
+        if (startTime < Date.now() && !shift.userId) {
+          return ShiftStatus.Unfulfilled;
+        }
+
+        // If the shift has not started yet and is assigned
+        if (startTime > Date.now() && shift.userId) {
+          return ShiftStatus.Assigned;
+        }
+        // If the shift has not started yet and is not assigned
+        if (startTime > Date.now() && !shift.userId) {
+          return ShiftStatus.Available;
+        }
+
+        // Fallback to DB status 🤷‍♂️
+        return shift.status;
+      },
       lotteryRequest: (shift: Shift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
           userId: user?.id!,

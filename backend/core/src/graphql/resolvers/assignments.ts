@@ -45,6 +45,7 @@ export const assignments = {
       await assignments.removeAssignment({
         assignment,
         organization: organization!,
+        user: user!,
       });
 
       // Remove all shifts for this assignment
@@ -52,8 +53,8 @@ export const assignments = {
       // await shifts.removeAllByAssignmentId(user?.member.orgId!, id);
 
       // Remove shift buffer requests
-      await shiftBufferRequests.removeByAssignmentId(id);
-      await shiftLotteryRequests.removeByAssignmentId(id);
+      await shiftBufferRequests.removeByAssignmentId(id, user!.id);
+      await shiftLotteryRequests.removeByAssignmentId(id, user!.id);
 
       // Remove assignmentId from event and update status if needed
       await events.updateEvent({
@@ -61,6 +62,7 @@ export const assignments = {
         removeId: id,
         removeType: EventRemoveEventType.assignment,
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       });
 
       return id;
@@ -86,11 +88,13 @@ export const assignments = {
         updatedAssignment = await assignments.update({
           ...currentAssignment,
           ...assignment,
+          modifiedById: user!.id,
         } as any, { skipMerge: true });
       } else {
         updatedAssignment = await assignments.upsert({
           ...assignment,
           orgId: user?.member.orgId!,
+          modifiedById: user!.id,
         } as any);
       }
 
@@ -99,6 +103,7 @@ export const assignments = {
         await events.update({
           ...event,
           assignmentIds: [...(event.assignmentIds || []), updatedAssignment.id],
+          modifiedById: user!.id,
         } as any, { skipMerge: true });
       }
 

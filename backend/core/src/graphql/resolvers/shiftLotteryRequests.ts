@@ -1,6 +1,7 @@
 import { Context } from "../../utils/createContext";
 import {
   ShiftLotteryRequest,
+  ShiftLotteryRequestStatus,
   UpsertShiftLotteryRequest
 } from "../../__generated__/resolvers-types";
 import { adminOrOwnerOnly } from "../../utils/access";
@@ -38,7 +39,7 @@ export const shiftLotteryRequests = {
 
       adminOrOwnerOnly(foundRequest.userId, user);
 
-      await shiftLotteryRequests.remove(id);
+      await shiftLotteryRequests.remove(id, { modifiedById: user?.id });
 
       return id;
     },
@@ -51,6 +52,7 @@ export const shiftLotteryRequests = {
 
       const shift = await shifts.findOne({
         shiftId: shiftLotteryRequest.shiftGroupId,
+        removedAt: { $exists: false },
       });
       if (!shift) {
         throw new GraphQLError('Shift not found');
@@ -59,6 +61,7 @@ export const shiftLotteryRequests = {
       const { counter } = await lotteryCounter.get(organization!.id);
 
       const upsertObject = {
+        status: ShiftLotteryRequestStatus.Pending,
         ...shiftLotteryRequest,
         shiftGroupId: shift.shiftId,
         eventId: shift.eventId,
@@ -66,6 +69,7 @@ export const shiftLotteryRequests = {
         lotteryCounter: counter,
         orgId: shift.orgId,
         userId: user?.id!,
+        modifiedById: user?.id!,
       } as any;
 
       const res = await shiftLotteryRequests.upsert(upsertObject);

@@ -1,4 +1,4 @@
-import { AnyBulkWriteOperation, Collection, Db, ObjectId } from "mongodb";
+import { AnyBulkWriteOperation, Collection, Db, ObjectId, UpdateResult } from "mongodb";
 import DataLoader from 'dataloader';
 import merge from 'lodash.merge';
 import { DocType } from "../__generated__/resolvers-types";
@@ -67,9 +67,10 @@ export class BaseModel<T> {
     return createdDoc;
   }
 
-  async findAll(ids: ObjectId[]): Promise<T[]> {
+  async findAll(ids: ObjectId[], { includedRemoved = false } = {}): Promise<T[]> {
     const res = await this.collection.find({
       _id: { $in: ids },
+      ...(includedRemoved ? {} : { removedAt: { $exists: false } }),
     }).toArray();
     return res.map(({_id, ...item}) => ({
       ...item,
@@ -91,9 +92,13 @@ export class BaseModel<T> {
     } as T;
   }
 
-  async get(id: string): Promise<T | null> {
+  async get(
+    id: string,
+    { removed = false } = {}
+  ): Promise<T | null> {
     const res = await this.collection.findOne({
       _id: new ObjectId(id),
+      ...(removed ? {} : { removedAt: { $exists: false } }),
     });
     if (!res) {
       return null;
@@ -158,7 +163,7 @@ export class BaseModel<T> {
 
     let updateDoc: T = item;
     if (!options.skipMerge) {
-      const existingDoc = await this.get(item.id);
+      const existingDoc = await this.get(item.id!);
   
       if (!existingDoc) {
         throw new GraphQLError(`${this.typeName} not found`, {
@@ -198,8 +203,15 @@ export class BaseModel<T> {
       orderBy,
       query,
       queryField,
+      includeRemoved = false,
       ...rest
     } = searchInput;
+
+    // Ignore any removed items
+    if (!includeRemoved) {
+      rest.removedAt = { $exists: false };
+    }
+
     const transaction = this.collection.find({
       ...rest,
       ...(query ? {
@@ -258,7 +270,23 @@ export class BaseModel<T> {
     return res as K[];
   }
 
-  async remove(id: string): Promise<void> {
-    await this.collection.deleteOne({ _id: new ObjectId(id) });
+  async remove(id: string, setValues?: any): Promise<void> {
+    await this.collection.updateOne({
+      _id: new ObjectId(id)
+    }, {
+      $set: {
+        removedAt: Date.now(),
+        ...(setValues || {})
+      },
+    });
+  }
+
+  async removeMany(filter: any, setValues?: any): Promise<UpdateResult<Document>> {
+    return this.collection.updateMany(filter, {
+      $set: {
+        removedAt: Date.now(),
+        ...(setValues || {}),
+      },
+    });
   }
 }

@@ -28,16 +28,21 @@ export const handler = startServerAndCreateLambdaHandler(
   {
     middleware: [loggerMiddleware],
     context: async ({ event, context }): Promise<Context> => {
-      logger.addContext(context);
-      const classContext = await createContext();
-      classContext.user = event.requestContext?.authorizer?.lambda?.user;
-      classContext.lambdaEvent = event;
-      classContext.lambdaContext = context;
-      if (event.requestContext?.authorizer?.lambda?.user) {
-        classContext.organization = await classContext.organizations.get(event.requestContext?.authorizer?.lambda?.user.member.orgId) as any;
+      try {
+        logger.addContext(context);
+        const classContext = await createContext();
+        classContext.user = event.requestContext?.authorizer?.lambda?.user;
+        classContext.lambdaEvent = event;
+        classContext.lambdaContext = context;
+        if (event.requestContext?.authorizer?.lambda?.user) {
+          classContext.organization = await classContext.organizations.get(event.requestContext?.authorizer?.lambda?.user.member.orgId) as any;
+        }
+  
+        return classContext;
+      } catch(error) {
+        logger.error('Error creating context', {error});
+        throw error;
       }
-
-      return classContext;
     },
   }
 );

@@ -66,7 +66,9 @@ export const notification = {
       { notifications, user }: Context
     ): Promise<string> => {
       adminOnly(user);
-      await notifications.remove(id)
+      await notifications.remove(id, {
+        modifiedById: user?.id!,
+      });
       return id;
     },
     notification: async (
@@ -86,6 +88,7 @@ export const notification = {
         ...notification,
         createdById: user?.id!,
         orgId: user?.member.orgId!,
+        modifiedById: user?.id!,
       } as any);
     },
     seenNotifications: async (
@@ -104,7 +107,7 @@ export const notification = {
     Notification: {
       ...commonResolvers,
       org: (notification: Notification, _, { organizations }: Context) => organizations.loader.load(notification.orgId),
-      createdBy: (notification: Notification, _, { users }: Context) => users.loader.load(notification.createdById),
+      createdBy: (notification: Notification, _, { users }: Context) => notification.createdById ? users.loader.load(notification.createdById) : null,
       expiration: (notification: Notification) => notification.expiration ? new Date(notification.expiration).toISOString() : null,
       ranks: (notification: Notification, _, { ranks }: Context) =>
         notification.rankIds ?

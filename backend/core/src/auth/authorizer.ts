@@ -33,7 +33,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
     }
 
     const { users } = await createContext();
-    const user = await users.findOne({ cognitoId: sub });
+    const user = await users.findOne({ cognitoId: sub, removedAt: { $exists: false } });
 
     return {
       isAuthorized: true,
@@ -42,6 +42,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
       },
     };
   } catch(error) {
+    logger.error('Authorizer failed', {error});
     return {
       isAuthorized: false,
     };

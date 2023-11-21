@@ -82,6 +82,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       note: shiftBufferRequest.note,
       orgId: shift.orgId,
       userId: user?.id!,
+      modifiedById: user?.id!,
     } as any);
 
     await lambda.send(new InvokeCommand({
@@ -103,35 +104,44 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
     return createdShiftBuffer;
   }
 
-  async removeByShiftId(shiftId: string) {
-    await this.collection.deleteOne({
+  async removeByShiftId(shiftId: string, modifiedById: string) {
+    await this.removeMany({
       shiftId,
+    }, {
+      modifiedById,
     });
   }
 
-  async removeByShiftGroupId(shiftGroupId: string) {
-    await this.collection.deleteOne({
+  async removeByShiftGroupId(shiftGroupId: string, modifiedById: string) {
+    await this.removeMany({
       shiftGroupId,
+    }, {
+      modifiedById,
     });
   }
 
-  async removeByAssignmentId(assignmentId: string) {
-    await this.collection.deleteOne({
+  async removeByAssignmentId(assignmentId: string, modifiedById: string) {
+    await this.removeMany({
       assignmentId,
+    }, {
+      modifiedById
     });
   }
 
-  async removeByEventId(eventId: string) {
-    await this.collection.deleteOne({
+  async removeByEventId(eventId: string, modifiedById: string) {
+    await this.removeMany({
       eventId,
+    }, {
+      modifiedById,
     });
   }
   
   async denyAllOpenShiftBufferRequests({
     shiftId,
     reason,
-    ignoreIds
-  }: {shiftId: string, reason?: string, ignoreIds?: string[]}) {
+    ignoreIds,
+    modifiedById,
+  }: {shiftId: string, reason?: string, ignoreIds?: string[], modifiedById: string}) {
     await this.collection.updateMany({
       shiftId,
       status: ShiftBufferRequestStatus.Pending,
@@ -140,17 +150,19 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       $set: {
         status: ShiftBufferRequestStatus.Rejected,
         reason: reason || 'Shift was assigned to someone else',
+        modifiedById,
       },
     });
   }
 
-  async updateByShiftGroupId(shiftGroupId: string, startTime: number, endTime: number) {
+  async updateByShiftGroupId(shiftGroupId: string, startTime: number, endTime: number, modifiedById: string) {
     await this.collection.updateMany({
       shiftGroupId,
     }, {
       $set: {
         startTime,
         endTime,
+        modifiedById,
       },
     });
   }

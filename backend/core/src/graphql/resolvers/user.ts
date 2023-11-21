@@ -103,7 +103,7 @@ export const user = {
     user: async (
       _parent: unknown,
       { user }: { user: UpdateUser },
-      { organizations, users }: Context
+      { organizations, users, user: reqUser }: Context
     ): Promise<User> => {
       const existingUser = await users.get(user.id);
 
@@ -131,7 +131,8 @@ export const user = {
           contactInfo: user.member?.contactInfo || existingUser.member?.contactInfo,
           memberSkillIds: user.member?.memberSkillIds || existingUser.member?.memberSkillIds,
           availability: user.member?.availability || existingUser.member?.availability,
-        }
+        },
+        modifiedById: reqUser!.id,
       };
 
       return users.update(updateUser as any, { skipMerge: true });
@@ -151,7 +152,9 @@ export const user = {
       { users, user }: Context
     ): Promise<string> => {
       adminOnly(user);
-      await users.remove(id);
+      await users.remove(id, {
+        modifiedById: user!.id,
+      });
       return id;
     },
     adminEditPassword: async (

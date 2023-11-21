@@ -7,6 +7,7 @@ import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMinutes } from 'date-fns';
 import DataLoader from 'dataloader';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { LotteryCounterModel } from './lotteryCounter';
 
 const dayOfWeek = [
   'sunday',
@@ -21,7 +22,6 @@ const dayOfWeek = [
 const lambda = new LambdaClient({});
 
 export class ShiftModel extends BaseModel<Shift> {
-  lotteryCounterCollection: Collection;
   eventsCollection: Collection;
 
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
@@ -29,6 +29,7 @@ export class ShiftModel extends BaseModel<Shift> {
       {
         $match: {
           shiftId: { $in: groupKeys },
+          removedAt: { $exists: false },
         }
       },
       {
@@ -51,6 +52,7 @@ export class ShiftModel extends BaseModel<Shift> {
   public loadOtherShiftSlots = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.find({
       shiftId: { $in: groupKeys },
+      removedAt: { $exists: false },
     }).sort({ _id: -1 }).toArray();
 
     const groupedByShiftId = res.reduce((acc, shift) => {
@@ -84,6 +86,7 @@ export class ShiftModel extends BaseModel<Shift> {
           eventId: {
             $in: keys,
           },
+          removedAt: { $exists: false },
         },
       },
       {
@@ -99,15 +102,15 @@ export class ShiftModel extends BaseModel<Shift> {
     return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
   });
 
-  constructor(db: Db) {
+  constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.Shift, 'shifts');
-    this.lotteryCounterCollection = db.collection('lotteryCounter');
     this.eventsCollection = db.collection('events');
   }
 
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
     const emptyShifts = await this.collection.find({
       shiftId,
+      removedAt: { $exists: false },
       $or: [
         { userId: null },
         { userId: { $exists: false } },
@@ -177,13 +180,15 @@ export class ShiftModel extends BaseModel<Shift> {
     }, {} as any);
   }
 
-  async removeAllByEventId(orgId: string, eventId: string): Promise<void> {
-    const shiftRes = await this.collection.deleteMany({
+  async removeAllByEventId(orgId: string, eventId: string, modifiedById: string): Promise<void> {
+    const shiftRes = await this.removeMany({
       orgId,
       eventId,
+    }, {
+      modifiedById,
     });
 
-    if (shiftRes.deletedCount === 0) {
+    if (shiftRes.modifiedCount === 0) {
       logger.warn('No shifts removed', {
         orgId,
         eventId,
@@ -191,12 +196,14 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   }
 
-  async removeAllByAssignmentId(orgId: string, assignmentId: string): Promise<void> {
-    const shiftRes = await this.collection.deleteMany({
+  async removeAllByAssignmentId(orgId: string, assignmentId: string, modifiedById: string): Promise<void> {
+    const shiftRes = await this.removeMany({
       orgId,
       assignmentId,
+    }, {
+      modifiedById,
     });
-    if (shiftRes.deletedCount === 0) {
+    if (shiftRes.modifiedCount === 0) {
       logger.warn('No shifts removed', {
         orgId,
         assignmentId,
@@ -207,6 +214,7 @@ export class ShiftModel extends BaseModel<Shift> {
   async getAllShiftsById(shiftId: string): Promise<Shift[]> {
     const shifts = await this.collection.find({
       shiftId,
+      removedAt: { $exists: false },
     }).toArray();
     return shifts.map((shift) => ({
       ...shift,
@@ -217,6 +225,7 @@ export class ShiftModel extends BaseModel<Shift> {
   async getByShiftId(shiftId: string): Promise<Shift | null> {
     return this.findOne({
       shiftId,
+      removedAt: { $exists: false },
     });
   }
 
@@ -225,20 +234,14 @@ export class ShiftModel extends BaseModel<Shift> {
   }: {
     orgId: string;
   }) {
-    let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
-      orgId,
-    });
-    if (!lotteryCounterDoc) {
-      lotteryCounterDoc = {
-        counter: 0,
-      };
-    }
+    const { counter } = await this.lotteryCounter.get(orgId);
 
     const pipeline = [
       {
         $match: {
           status: "READY_FOR_LOTTERY",
-          lotteryNumber: lotteryCounterDoc.counter,
+          lotteryNumber: counter,
+          removedAt: { $exists: false },
         },
       },
       {
@@ -269,6 +272,7 @@ export class ShiftModel extends BaseModel<Shift> {
       {
         $match: {
           $and: [
+            { removedAt: { $exists: false } },
             {
               $or: [
                 { userId: null },

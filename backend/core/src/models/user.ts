@@ -33,13 +33,13 @@ import {
 } from 'date-fns';
 import { DocumentModel } from './document';
 import { ShiftBufferRequestModel } from './shiftBufferRequest';
+import { LotteryCounterModel } from './lotteryCounter';
 
 const cognito = new CognitoIdentityProviderClient({});
 
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
-  lotteryCounterCollection: Collection;
   constructor(
     db: Db,
     private assignments: AssignmentModel,
@@ -47,10 +47,10 @@ export class UserModel extends BaseModel<User> {
     private events: EventModel,
     private shiftBufferRequests: ShiftBufferRequestModel,
     private document: DocumentModel,
+    private lotteryCounter: LotteryCounterModel,
   ) {
     super(db, DocType.User, 'users');
     this.memberSkillsCollection = this.db.collection('memberSkills');
-    this.lotteryCounterCollection = db.collection('lotteryCounter');
   }
 
   async getAllAdmins({
@@ -59,6 +59,7 @@ export class UserModel extends BaseModel<User> {
     return this.collection.find({
       'member.orgId': orgId,
       'member.role': MemberRole.Admin,
+      removedAt: { $exists: false },
     }).toArray();
   }
 
@@ -117,6 +118,7 @@ export class UserModel extends BaseModel<User> {
         _id: {
           $in: (user.member.memberSkillIds || []).map((id) => new ObjectId(id as string)),
         },
+        removedAt: { $exists: false },
       }).toArray();
       skillIds = skillList.map(({ skillId }) => skillId);
     }
@@ -139,14 +141,7 @@ export class UserModel extends BaseModel<User> {
       ]
     };
     if (eventType === EventStatus.ReadyForLottery) {
-      let lotteryCounterDoc: any = await this.lotteryCounterCollection.findOne({
-        orgId,
-      });
-      if (!lotteryCounterDoc) {
-        lotteryCounterDoc = {
-          counter: 0,
-        };
-      }
+      const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
       eventQuery = {
         orgId,
         status: EventStatus.ReadyForLottery,
@@ -193,7 +188,8 @@ export class UserModel extends BaseModel<User> {
       userId: user.id,
       endTime: {
         $gte: maxEndTime,
-      }
+      },
+      removedAt: { $exists: false },
     }).toArray() as any[]) as Shift[];
     const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
       startTime,
@@ -206,7 +202,8 @@ export class UserModel extends BaseModel<User> {
       status: ShiftBufferRequestStatus.Pending,
       endTime: {
         $gte: maxEndTime,
-      }
+      },
+      removedAt: { $exists: false },
     }).toArray();
     shiftIds.push(...myShiftBufferRequests.map(({ shiftGroupId }) => shiftGroupId));
 
@@ -387,7 +384,8 @@ export class UserModel extends BaseModel<User> {
       orgId: organization.id,
       endTime: {
         $gte: maxEndTime,
-      }
+      },
+      removedAt: { $exists: false },
     }).toArray() as any[]) as Shift[];
     const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
       startTime,
@@ -405,6 +403,7 @@ export class UserModel extends BaseModel<User> {
     const res = await this.shifts.collection.find({
       _id: new ObjectId(shiftId),
       endTime: { $gte: maxEndTime },
+      removedAt: { $exists: false },
       // Handles shift ranges
       ...($and.length > 0 ? { $and } : {}),
     }).toArray();
@@ -440,6 +439,7 @@ export class UserModel extends BaseModel<User> {
 
     const shifts = await this.shifts.collection.find({
       shiftId: shift.shiftId,
+      removedAt: { $exists: false },
     }).toArray();
     const userIds = shifts.filter(({ userId }) => !!userId).map(shift => new ObjectId(shift.userId));
 

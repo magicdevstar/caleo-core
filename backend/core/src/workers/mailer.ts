@@ -24,8 +24,7 @@ const sendEmail = async (input: MailerEvent) => {
     const context = await createContext();
     let Addresses: Record<string, AddressConfiguration> = {};
     if (input.template === MailerEvents.OfficerEventRemoved) {
-      // DONE :)
-      const { event, organization } = input.data;
+      const { event, organization, modifiedById } = input.data;
 
       const allShifts = await context.shifts.collection.aggregate([
         {
@@ -34,6 +33,7 @@ const sendEmail = async (input: MailerEvent) => {
             userId: {
               $exists: true,
             },
+            removedAt: { $exists: false },
           },
         },
         {
@@ -70,13 +70,18 @@ const sendEmail = async (input: MailerEvent) => {
               },
             },
         },
+        {
+          $match: {
+            'assignment.removedAt': { $exists: false },
+          }
+        }
       ]);
 
       Addresses = {};
       let shift: Shift | null;
       do {
         shift = await allShifts.next() as any;
-        if (shift) {
+        if (shift && shift.user) {
           Addresses[shift.user!.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -89,10 +94,14 @@ const sendEmail = async (input: MailerEvent) => {
         }
       } while(shift);
 
-      await context.assignments.removeAllByEventId(organization.orgId, event.id);
-      await context.shifts.removeAllByEventId(organization.orgId, event.id);
-      await context.shiftBufferRequests.removeByEventId(event.id);
-      await context.shiftLotteryRequests.removeByEventId(event.id);
+      try {
+        await context.assignments.removeAllByEventId(organization.id, event.id, modifiedById);
+        await context.shifts.removeAllByEventId(organization.id, event.id, modifiedById);
+        await context.shiftBufferRequests.removeByEventId(event.id, modifiedById);
+        await context.shiftLotteryRequests.removeByEventId(event.id, modifiedById);
+      } catch(error) {
+        logger.error('Failed to clean up event', { error, input });
+      }
     } else if (
       input.template === MailerEvents.OfficerAdminApprovedSkill ||
       input.template === MailerEvents.OfficerAdminDeniedSkill
@@ -249,6 +258,7 @@ const sendEmail = async (input: MailerEvent) => {
       if (event.notifyWhenFullyStaffed) {
         const totalUnassignedShifts = await context.shifts.collection.countDocuments({
           eventId: event.id,
+          removedAt: { $exists: false },
           $or: [
             { userId: null },
             { userId: { $exists: false } },
@@ -314,6 +324,7 @@ const sendEmail = async (input: MailerEvent) => {
             { userId: null },
             { userId: { $exists: false } },
           ],
+          removedAt: { $exists: false },
         });
         if (totalUnassignedShifts === 0) {
           const allAdmins = await context.users.getAllAdmins({
@@ -492,7 +503,7 @@ const sendEmail = async (input: MailerEvent) => {
         };
       }, {} as Record<string, AddressConfiguration>);
     } else if (input.template === MailerEvents.OfficerAssignmentRemoved) {
-      const { assignment, organization } = input.data;
+      const { assignment, organization, modifiedById } = input.data;
 
       const event = await context.events.get(assignment.eventId);
       if (!event) {
@@ -508,6 +519,7 @@ const sendEmail = async (input: MailerEvent) => {
             userId: {
               $exists: true,
             },
+            removedAt: { $exists: false },
           },
         },
         {
@@ -532,6 +544,11 @@ const sendEmail = async (input: MailerEvent) => {
               },
             },
         },
+        {
+          $match: {
+            'user.removedAt': { $exists: false },
+          }
+        }
       ]);
 
       let shift: Shift | null;
@@ -553,7 +570,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       // Remove shifts after notification is sent
       try {
-        await context.shifts.removeAllByAssignmentId(organization.id, assignment.id);
+        await context.shifts.removeAllByAssignmentId(organization.id, assignment.id, modifiedById);
       } catch(error) {
         logger.error('Failed to remove shifts by assignment', { error, input });
       }
@@ -618,6 +635,7 @@ const sendEmail = async (input: MailerEvent) => {
       const allUsers = await context.users.collection.find({
         'member.orgId': orgId,
         'member.status': MemberStatus.Active,
+        removedAt: { $exists: false },
       });
 
       let user: User | null;
@@ -645,6 +663,7 @@ const sendEmail = async (input: MailerEvent) => {
             userId: {
               $ne: null,
             },
+            removedAt: { $exists: false },
           },
         },
         {
@@ -672,6 +691,7 @@ const sendEmail = async (input: MailerEvent) => {
         {
           $match: {
             'event.status': EventStatus.FirstComeFirstServe,
+            'event.removedAt': { $exists: false },
           }
         },
         {
@@ -693,6 +713,7 @@ const sendEmail = async (input: MailerEvent) => {
       const allUsers = await context.users.collection.find({
         'member.orgId': orgId,
         'member.status': MemberStatus.Active,
+        removedAt: { $exists: false },
       });
 
       let user: User | null;
@@ -714,6 +735,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       const shift = await context.shifts.findOne({
         shiftId,
+        removedAt: { $exists: false },
         $or: [
           { userId: null },
           { userId: { $exists: false } },
@@ -742,6 +764,7 @@ const sendEmail = async (input: MailerEvent) => {
       const allUsers = await context.users.collection.find({
         'member.orgId': organization.id,
         'member.status': MemberStatus.Active,
+        removedAt: { $exists: false },
       });
 
       let user: User | null;
@@ -784,6 +807,14 @@ const sendEmail = async (input: MailerEvent) => {
         logger.warn('No users found', { input });
         return;
       }
+    }
+
+    if (Object.keys(Addresses).length === 0) {
+      logger.info('No addresses to send emails to', {
+        input,
+        Addresses,
+      });
+      return;
     }
     // Attaching to input so it will get logged with the error :)
     (input as any).pinpointInput = {

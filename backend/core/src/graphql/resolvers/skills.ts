@@ -49,11 +49,25 @@ export const skill = {
     removeSkill: async (
       _parent: unknown,
       { id }: { id: string },
-      { skills, user }: Context
+      { assignments, skills, user }: Context
     ): Promise<string> => {
       adminOnly(user);
 
-      await skills.remove(id)
+      await skills.remove(id, {
+        modifiedById: user!.id,
+      });
+
+      await assignments.collection.updateMany({
+        requiredSkillIds: id,
+      }, {
+        $set: {
+          modifiedById: user!.id,
+        },
+        $pull: {
+          requiredSkillIds: id,
+        },
+      } as any);
+
       return id;
     },
     removeUserSkill: async (
@@ -66,12 +80,15 @@ export const skill = {
       if (!memberSkill) {
         throw new GraphQLError('Could not find member skill');
       }
-      await memberSkills.removeDoc(id);
+      await memberSkills.removeDoc(id, user!.id);
       const skillUser = await users.get(memberSkill.userId);
 
       if (skillUser) {
         skillUser.member.memberSkillIds = skillUser.member.memberSkillIds?.filter((s) => s !== id);
-        await users.update(skillUser as any, {
+        await users.update({
+          ...skillUser,
+          modifiedById: user!.id,
+        } as any, {
           skipMerge: true,
         });
       }
@@ -90,6 +107,7 @@ export const skill = {
       return skills.upsert({
         ...skill,
         orgId: user?.member.orgId!,
+        modifiedById: user?.id!,
       } as any);
     },
     userSkill: async (
@@ -108,6 +126,7 @@ export const skill = {
       return memberSkills.upsertDoc({
         ...userSkill,
         orgId: user?.member.orgId!,
+        modifiedById: user?.id!,
       } as any, organization!);
     },
     userSkillAttachmentUploadUrl: async (

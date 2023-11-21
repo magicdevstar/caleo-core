@@ -10,7 +10,7 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
     const services = await createContext();
 
     const user = await services.users.collection.findOne({
-      cognitoId: event.userName
+      cognitoId: event.userName,
     });
     if (!user) {
       await services.users.create({
@@ -67,6 +67,12 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
           },
         }
       } as any);
+    }
+
+    if (user && user.removedAt) {
+      delete user.removedAt;
+      user.id = user._id.toString();
+      await services.users.update(user as any, { skipMerge: true });
     }
 
     return event;

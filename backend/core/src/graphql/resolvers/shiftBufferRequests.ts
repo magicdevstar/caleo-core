@@ -57,7 +57,9 @@ export const shiftBufferRequests = {
         throw new GraphQLError('You do not have permission to remove this shift buffer request.');
       }
 
-      await shiftBufferRequests.remove(id);
+      await shiftBufferRequests.remove(id, {
+        modifiedById: user!.id,
+      });
       return id;
     },
     setShiftBufferStatus: async (
@@ -88,6 +90,7 @@ export const shiftBufferRequests = {
         ...request,
         status,
         reason,
+        modifiedById: user!.id,
       };
       await shiftBufferRequests.updateWithNotification({
         request: updatedShiftBuffer,
@@ -100,6 +103,7 @@ export const shiftBufferRequests = {
       await shiftBufferRequests.denyAllOpenShiftBufferRequests({
         shiftId: request.shiftId,
         ignoreIds: [id],
+        modifiedById: user!.id,
       });
 
       // Assign user to shift
@@ -107,6 +111,7 @@ export const shiftBufferRequests = {
         await shifts.update({
           ...shift,
           userId: request.userId,
+          modifiedById: user!.id,
         });
       }
 
@@ -123,6 +128,7 @@ export const shiftBufferRequests = {
         shiftId: shiftBufferRequest.shiftId,
         userId: user?.id,
         status: ShiftBufferRequestStatus.Pending,
+        removedAt: { $exists: false },
       });
 
       if (foundShiftBuffer) {

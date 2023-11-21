@@ -56,15 +56,15 @@ export const createContext = async (): Promise<Context> => {
   const document = new DocumentModel();
   const notifications = new NotificationModel(db);
   const scheduler = new SchedulerModel();
-  const assignments = new AssignmentModel(db);
   const venues = new VenueModel(db);
-  const shifts = new ShiftModel(db);
+  const shifts = new ShiftModel(db, lotteryCounter);
+  const assignments = new AssignmentModel(db);
   const skills = new SkillModel(db);
   const ranks = new RankModel(db);
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
   const shiftLotteryRequests = new ShiftLotteryRequestModel(db, lotteryCounter);
   const events = new EventModel(db, document, shifts);
-  const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document);
+  const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document, lotteryCounter);
   const memberSkills = new MemberSkillModel(db, users, document, skills);
   const memberNotifications = new MemberNotificationModel(db, notifications);
 

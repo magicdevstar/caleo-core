@@ -93,6 +93,7 @@ const upsertAll = async ({
 }) => {
   const allShifts = await context.shifts.collection.find({
     shiftId,
+    removedAt: { $exists: false },
   }).toArray();
   await Promise.all(allShifts.map(async (shift) => {
     if (shift.userId) {
@@ -110,6 +111,7 @@ const removeAll = async ({
 }) => {
   const allShifts = await context.shifts.collection.find({
     shiftId,
+    removedAt: { $exists: false },
   }).toArray();
   await Promise.all(allShifts.map(async (shift) => {
     if (shift.notificationId) {

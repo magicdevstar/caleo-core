@@ -12,6 +12,7 @@ import { BaseModel } from './base';
 import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { AssignmentModel } from './assignment';
 
 const lambda = new LambdaClient({});
 
@@ -34,12 +35,17 @@ export class EventModel extends BaseModel<Event> {
 
   async removeEvent({
     event,
-    organization
+    organization,
+    modifiedById,
   } : {
     event: Event;
     organization: Organization;
+    modifiedById: string;
   }) {
-    await this.remove(event.id);
+    await this.remove(event.id, {
+      modifiedById,
+    });
+
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA,
       InvocationType: 'Event',
@@ -49,6 +55,7 @@ export class EventModel extends BaseModel<Event> {
         data: {
           event,
           organization,
+          modifiedById,
         }
       } as MailerEvent),
     }));
@@ -61,6 +68,7 @@ export class EventModel extends BaseModel<Event> {
     removeStart,
     removeEnd,
     orgId,
+    modifiedById,
   }: {
     eventId: string;
     removeId: string;
@@ -68,6 +76,7 @@ export class EventModel extends BaseModel<Event> {
     orgId: string;
     removeStart?: number;
     removeEnd?: number;
+    modifiedById: string;
   }) {
     const event = await this.get(eventId);
 
@@ -99,13 +108,19 @@ export class EventModel extends BaseModel<Event> {
       }
   
       const [earliestShift] = await this.shifts.collection
-        .find(shiftFilter)
+        .find({
+          ...shiftFilter,
+          removedAt: { $exists: false },
+        })
         .sort('startTime', 'asc')
         .limit(1)
         .toArray();
   
       const [latestShift] = await this.shifts.collection
-        .find(shiftFilter)
+        .find({
+          ...shiftFilter,
+          removedAt: { $exists: false },
+        })
         .sort('endTime', 'desc')
         .limit(1)
         .toArray();
@@ -118,6 +133,7 @@ export class EventModel extends BaseModel<Event> {
         ...eventUpdates,
         startTime,
         endTime,
+        modifiedById,
       } as any, { skipMerge: true });
     }
     return true;

@@ -71,6 +71,7 @@ export const event = {
       await events.removeEvent({
         event,
         organization: organization!,
+        modifiedById: user!.id,
       });
       return id;
     },
@@ -102,6 +103,7 @@ export const event = {
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       };
 
       logger.info('Upsert event', { event: inputEvent });

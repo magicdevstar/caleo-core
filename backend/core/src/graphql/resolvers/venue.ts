@@ -28,7 +28,9 @@ export const venue = {
       { venues, user }: Context
     ): Promise<string> => {
       adminOnly(user);
-      await venues.remove(id)
+      await venues.remove(id, {
+        modifiedById: user!.id,
+      });
       return id;
     },
     venue: async (
@@ -40,6 +42,7 @@ export const venue = {
       return venues.upsert({
         ...venue,
         orgId: user?.member.orgId!,
+        modifiedById: user!.id,
       } as any);
     },
   },

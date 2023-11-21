@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import DataLoader from 'dataloader';
 import { ShiftLotteryRequest, DocType, MemberTier } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
@@ -15,6 +15,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       shiftGroupId: {
         $in: groupIds,
       },
+      removedAt: { $exists: false },
     }).toArray();
 
     return keys.map(({ shiftGroupId }) => res.find((item) => item.shiftGroupId === shiftGroupId));
@@ -24,25 +25,32 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     super(db, DocType.ShiftLotteryRequest, 'shiftLotteryRequests');
   }
 
-  async removeByShiftGroupId(shiftGroupId: string) {
-    await this.collection.deleteOne({
+  async removeByShiftGroupId(shiftGroupId: string, modifiedById: string) {
+    await this.removeMany({
       shiftGroupId,
+    }, {
+      modifiedById,
     });
   }
 
-  async removeByAssignmentId(assignmentId: string) {
-    await this.collection.deleteOne({
+  async removeByAssignmentId(assignmentId: string, modifiedById: string) {
+    await this.removeMany({
       assignmentId,
+    }, {
+      modifiedById,
     });
   }
 
-  async removeByEventId(eventId: string) {
-    await this.collection.deleteOne({
+  async removeByEventId(eventId: string, modifiedById: string) {
+    await this.removeMany({
       eventId,
+    }, {
+      modifiedById,
     });
   }
 
   async requestsStagedForAssignment(shiftGroupId: string): Promise<{
+    _id: ObjectId;
     shiftGroupId: string;
     docType: string;
     order: number;
@@ -59,6 +67,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
         $match:
           {
             shiftGroupId,
+            removedAt: { $exists: false },
           },
       },
       {
@@ -87,6 +96,11 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
           },
       },
       {
+        $match: {
+          'user.removedAt': { $exists: false },
+        },
+      },
+      {
         $sort:
           {
             "user.member.tier": 1,
@@ -104,6 +118,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       {
         $project:
           {
+            _id: 1,
             shiftGroupId: 1,
             docType: 1,
             order: 1,

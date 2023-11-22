@@ -25,6 +25,7 @@ const Reports = lazy(() => import('src/pages/dashboard/admin/reports'));
 const OvertimeSettings = lazy(() => import('src/pages/dashboard/admin/settings/overtime'));
 const DepartmentSettings = lazy(() => import('src/pages/dashboard/admin/settings/department'));
 const Venues = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/venues'));
+const DynamicShiftFilter = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/dynamicShiftFilter'));
 const EditVenue = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
 const Events = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 const EditEvent = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
@@ -63,6 +64,7 @@ export const dashboardRoutes = [
               { path: 'events/:eventId/assignment/:assignmentId/shifts/:shiftId', element: <EditEventAssignmentShift /> },
               { path: 'venues', element: <Venues /> },
               { path: 'venues/:id', element: <EditVenue /> },
+              { path: 'dynamic-shift-filter', element: <DynamicShiftFilter /> },
             ]
           },
           {

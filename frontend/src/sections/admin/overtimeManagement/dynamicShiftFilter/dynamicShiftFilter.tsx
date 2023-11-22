@@ -1,0 +1,282 @@
+import { uniqBy } from "lodash";
+import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
+import { GET_ALL_EVENTS_SLIM } from "src/api/event";
+import { GET_RANKS } from "src/api/rank";
+import { DYNAMIC_SHIFT_SEARCH, GET_ALL_SHIFTS } from "src/api/shifts";
+import { GET_SKILLS, GET_SKILL_SLIM } from "src/api/skill";
+import { GET_USERS_SLIM } from "src/api/user";
+import GQLTable from "src/components/table/gql/table";
+import { TableConfig } from "src/components/table/table-config";
+import { client } from "src/utils/apollo";
+
+
+export default function DynamicShiftFilter() {
+  const config: TableConfig<Shift> = {
+    header: {
+      title: 'Dynamic Shift Filter',
+    },
+    table: {
+      sx: {
+        minWidth: 'inherit',
+      }
+    },
+    search: {
+      defaultTableConfig: {
+        defaultRowsPerPage: 25,
+      },
+      query: DYNAMIC_SHIFT_SEARCH,
+      processResult: (data: any) => {
+        const { shifts: { items, total } } = data || { shifts: { items: [], total: 0 } };
+        return {
+          total,
+          items,
+        };
+      },
+    },
+    rowActions: [],
+    columns: [
+      {
+        id: 'startTime',
+        label: 'Start',
+        columnType: 'date',
+        width: '20%',
+      },
+      {
+        id: 'endTime',
+        label: 'End',
+        columnType: 'date',
+        width: '20%',
+      },
+      {
+        id: 'assignment.name',
+        label: 'Shift Name',
+        columnType: 'string',
+        width: '40%',
+      },
+      {
+        id: 'status',
+        label: 'Status',
+        columnType: 'string',
+        getLabelColor: () => 'info',
+      }
+    ],
+    filters: [
+      {
+        id: 'includeRemoved',
+        type: 'hidden',
+        defaultValue: true,
+        value: true,
+      },
+      {
+        id: 'range',
+        type: 'dateRange',
+        dateRangeType: 'start',
+      },
+      {
+        id: 'status',
+        type: 'select',
+        label: 'Status',
+        async fetchOptions () {
+          const formattedOptions = [
+            {
+              label: 'Assigned',
+              value: ShiftStatus.Assigned,
+            },
+            {
+              label: 'Available',
+              value: ShiftStatus.Available,
+            },
+            {
+              label: 'In Progress',
+              value: ShiftStatus.InProgress,
+            },
+            {
+              label: 'Locked',
+              value: ShiftStatus.Locked,
+            },
+            {
+              label: 'Relinquished',
+              value: ShiftStatus.Relinquished,
+            },
+            {
+              label: 'Removed',
+              value: ShiftStatus.Removed,
+            },
+            {
+              label: 'Secured',
+              value: ShiftStatus.Secured,
+            },
+            {
+              label: 'Unassigned',
+              value: ShiftStatus.Unassigned,
+            },
+            {
+              label: 'Unfulfilled',
+              value: ShiftStatus.Unfulfilled,
+            },
+          ];
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedOptions;
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'daysOfWeek',
+        type: 'select',
+        label: 'Day',
+        async fetchOptions () {
+          const formattedOptions = [
+            {
+              label: 'Monday',
+              value: DayOfWeek.Monday,
+            },
+            {
+              label: 'Tuesday',
+              value: DayOfWeek.Tuesday,
+            },
+            {
+              label: 'Wednesday',
+              value: DayOfWeek.Wednesday,
+            },
+            {
+              label: 'Thursday',
+              value: DayOfWeek.Thursday,
+            },
+            {
+              label: 'Friday',
+              value: DayOfWeek.Friday,
+            },
+            {
+              label: 'Saturday',
+              value: DayOfWeek.Saturday,
+            },
+            {
+              label: 'Sunday',
+              value: DayOfWeek.Sunday,
+            },
+          ];
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedOptions;
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'rankIds',
+        type: 'select',
+        label: 'Ranks',
+        async fetchOptions () {
+          const { data } = await client.query({
+            query: GET_RANKS,
+            variables: {
+              input: {
+                active: true,
+                limit: 100000,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.ranks?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedOptions;
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'skillIds',
+        type: 'select',
+        label: 'Skills',
+        async fetchOptions () {
+          const { data } = await client.query({
+            query: GET_SKILL_SLIM,
+            variables: {
+              input: {
+                active: true,
+                limit: 100000,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.skills?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          // eslint-disable-next-line react/no-this-in-sfc
+          this.calculatedOptions = formattedOptions;
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'createdById',
+        type: 'autocomplete',
+        label: 'Created By',
+        autoComplete: {
+          multiSelect: true,
+          inputLabel: 'Created By',
+          inputPlaceholder: 'Search...',
+        },
+        async fetchOptions (query?: string) {
+          const { data } = await client.query({
+            query: GET_USERS_SLIM,
+            variables: {
+              input: {
+                query: query?.trim() === '' ? undefined : query?.trim(),
+                admin: true,
+                limit: 10,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.users?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'assignedIds',
+        type: 'autocomplete',
+        label: 'Assigned To',
+        autoComplete: {
+          multiSelect: true,
+          inputLabel: 'Assigned To',
+          inputPlaceholder: 'Search...',
+        },
+        async fetchOptions (query?: string) {
+          const { data } = await client.query({
+            query: GET_USERS_SLIM,
+            variables: {
+              input: {
+                query: query?.trim() === '' ? undefined : query?.trim(),
+                limit: 10,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.users?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          return formattedOptions;
+        },
+      },
+      {
+        id: 'eventIds',
+        type: 'autocomplete',
+        label: 'Event Name or Ref',
+        autoComplete: {
+          multiSelect: true,
+          inputLabel: 'Event Name or Ref',
+          inputPlaceholder: 'Search...',
+        },
+        async fetchOptions (query?: string) {
+          const { data } = await client.query({
+            query: GET_ALL_EVENTS_SLIM,
+            variables: {
+              input: {
+                query: query?.trim() === '' ? undefined : query?.trim(),
+                limit: 10,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.events?.items?.map(({ id, name, referenceId }: any) => ({ value: id, label: `${name} (Ref #${referenceId})` })) || [];
+          return formattedOptions;
+        },
+      },
+    ]
+  };
+  
+  return <GQLTable config={config} />
+}

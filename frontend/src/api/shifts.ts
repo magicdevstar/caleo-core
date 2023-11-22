@@ -247,6 +247,7 @@ export const GET_ALL_SHIFTS = gql`
         id
         startTime
         endTime
+        status
         event {
           id
           referenceId
@@ -293,6 +294,49 @@ export const GET_ALL_SHIFTS = gql`
             member {
               pNumber
             }
+          }
+        }
+      }
+      total
+    }
+  }
+`;
+
+export const DYNAMIC_SHIFT_SEARCH = gql`
+  query GetAllShifts($input: ShiftSearchInput!) {
+    shifts(input: $input) {
+      items {
+        id
+        startTime
+        endTime
+        status
+        user {
+          id
+          name
+          member {
+            pNumber
+            contactInfo {
+              primaryPhone {
+                number
+              }
+            }
+          }
+        }
+        event {
+          id
+          referenceId
+          name
+        }
+        assignment {
+          id
+          name
+          requiredSkills {
+            id
+            name
+          }
+          ranks {
+            id
+            name
           }
         }
       }

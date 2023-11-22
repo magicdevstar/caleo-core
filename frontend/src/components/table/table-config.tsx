@@ -31,7 +31,8 @@ export interface TableConfig<T> {
   table?: {
     sx?: {
       minWidth?: number | string;
-    }
+    },
+    toolbar?: ToolbarConfig;
   },
   search: {
     data?: T[],
@@ -73,18 +74,30 @@ export interface TableConfig<T> {
 
 export interface Filter {
   id: string;
-  type: 'select' | 'dateRange' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
+  type: 'select' | 'autocomplete' | 'dateRange' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
   dateRangeType?: 'start' | 'end';
   label?: string;
   defaultValue?: any;
+  autoComplete?: {
+    multiSelect?: boolean;
+    inputLabel?: string;
+    inputPlaceholder?: string;
+  };
   value?: any;
   // This will be used to store the options once they are queried
   calculatedOptions?: any[];
-  fetchOptions?: () => Promise<{
+  fetchOptions?: (query?: string) => Promise<{
     value: any;
     label: string;
   }[]>,
   resolveAsBoolean?: boolean,
+}
+
+export interface ToolbarConfig {
+  xs?: number;
+  sm?: number;
+  md?: number;
+  lg?: number;
 }
 
 export const getBooleanFilters = () => Promise.resolve([
@@ -128,6 +141,10 @@ export const resolveFilterValue = (filter: Filter) => {
     if (filter.value.length > 1) return undefined;
     if (filter.value[0] === 'yes') return true;
     return false;
+  }
+  if (filter.type === 'autocomplete') {
+    if (Array.isArray(filter.value) && filter.value.length === 0) return undefined;
+    return filter.value.map((v: any) => v.value);
   }
   if (filter.type === 'select') {
     if (Array.isArray(filter.value) && filter.value.length === 0) return undefined;

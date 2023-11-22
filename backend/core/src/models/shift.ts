@@ -1,13 +1,15 @@
 import { Collection, Db } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DocType, Organization, Shift } from '../__generated__/resolvers-types';
+import { DayOfWeek, DocType, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMinutes } from 'date-fns';
 import DataLoader from 'dataloader';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
+import { userIsAdmin } from '../utils/access';
+import { SearchResults } from '../utils/common.resolvers';
 
 const dayOfWeek = [
   'sunday',
@@ -18,6 +20,11 @@ const dayOfWeek = [
   'friday',
   'saturday', // [6]
 ];
+
+export interface ShiftSearchExtended extends ShiftSearchInput {
+  orgId: string;
+  requestingUser: User;
+}
 
 const lambda = new LambdaClient({});
 
@@ -315,6 +322,187 @@ export class ShiftModel extends BaseModel<Shift> {
 
     return {
       items: res,
+    };
+  }
+
+  async dynamicSearch(input: ShiftSearchExtended): Promise<SearchResults<Shift>> {
+    const {
+      skip,
+      limit,
+      order,
+      orderBy,
+      range,
+      query,
+      queryField,
+      startTime,
+      endTime,
+      userId,
+      createdById,
+      requestingUser,
+      daysOfWeek,
+      includeRemoved,
+      assignedIds,
+      eventIds,
+      rankIds,
+      skillIds,
+      status,
+      ...matchInput
+    } = input;
+
+    if (createdById) {
+      (matchInput as any).createdById = { $in: createdById };
+    }
+
+    if (eventIds) {
+      (matchInput as any).eventId = { $in: eventIds };
+    }
+
+    // const realStatuses = (status || []).filter((s) => [ShiftStatus.Assigned].includes(s || ''));
+
+    // Find set of assigned users if requester is admin
+    if (assignedIds && userIsAdmin(requestingUser)) {
+      (matchInput as any).userId = { $in: assignedIds };
+    // Find set user assignments if requester is admin and the userId provided does not match the requesting user
+    } else if (userId !== requestingUser?.id && userIsAdmin(requestingUser)) {
+      (matchInput as any).userId = userId;
+    } else {
+      (matchInput as any).userId = requestingUser?.id;
+    }
+
+    if (range) {
+      const { startTime, endTime } = range;
+      if (startTime && startTime.value) {
+        (matchInput as any).startTime = new Date(startTime.value).getTime();
+      } else if (startTime && (startTime.gte || startTime?.lte)) {
+        (matchInput as any).startTime = {
+          ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
+          ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
+        };
+      }
+
+      if (endTime && endTime.value) {
+        (matchInput as any).endTime = new Date(endTime.value).getTime();
+      } else if (endTime && (endTime.gte || endTime?.lte)) {
+        (matchInput as any).endTime = {
+          ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
+          ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+        };
+      }
+    } else if (startTime || endTime) {
+      if (startTime) {
+        (matchInput as any).endTime = {
+          $gte: new Date(startTime).getTime(),
+        };
+      } else if (endTime) {
+        (matchInput as any).startTime = {
+          $lte: new Date(endTime).getTime(),
+        };
+      }
+    }
+
+    if (daysOfWeek) {
+      (matchInput as any).$or = daysOfWeek.map((day: DayOfWeek) => ({
+        [`availability.${day.toLowerCase()}`]: { $exists: true },
+      }));
+    }
+
+    if (!includeRemoved) {
+      (matchInput as any).removedAt = { $exists: false };
+    }
+
+    const pipeline: any = [
+      {
+        $match: matchInput,
+      },
+    ];
+
+    if (rankIds || skillIds) {
+      pipeline.push({
+        $addFields:
+          {
+            assignmentId: {
+              $toObjectId: "$assignmentId",
+            },
+          },
+      },
+      {
+        $lookup:
+          {
+            from: "assignments",
+            localField: "assignmentId",
+            foreignField: "_id",
+            as: "assignment",
+          },
+      },
+      {
+        $addFields:
+          {
+            user: {
+              $arrayElemAt: ["$assignment", 0],
+            },
+          },
+      });
+
+      let assignmentMatch: any = {
+        $match: {},
+      };
+
+      if (rankIds) {
+        assignmentMatch.$match["assignment.rankIds"] = { $in: rankIds };
+      }
+      if (skillIds) {
+        assignmentMatch.$match["assignment.requiredSkillIds"] = { $in: skillIds };
+      }
+      pipeline.push(assignmentMatch);
+    }
+
+    if (order && orderBy) {
+      pipeline.push({
+        $sort: { [orderBy]: order === 'asc' ? 1 : -1 },
+      });
+    } else {
+      pipeline.push({
+        $sort: { createdAt: -1 },
+      });
+    }
+
+    const totalPipeline = JSON.parse((JSON.stringify(pipeline)));
+    totalPipeline.push({
+      $count: "total",
+    });
+
+    if (skip) {
+      pipeline.push({
+        $skip: skip,
+      });
+    }
+    if (limit) {
+      pipeline.push({
+        $limit: limit,
+      });
+    }
+
+    logger.info('Dynamic Shift Pipeline', {
+      input,
+      pipeline,
+      totalPipeline,
+    });
+
+    const itemResult = await this.collection.aggregate(pipeline).toArray();
+    const totalResult = await this.collection.aggregate(totalPipeline).toArray();
+
+    logger.info('Dynamic Shift Result', {
+      itemResult,
+      totalResult,
+    });
+
+    return {
+      items: itemResult.map(({_id, assignmentId, ...item}) => ({
+        ...item,
+        assignmentId: typeof assignmentId === 'string' ? assignmentId : assignmentId.toString(),
+        id: _id.toString(),
+      })) as any,
+      total: totalResult.length > 0 ? totalResult[0].total : 0,
     };
   }
 };

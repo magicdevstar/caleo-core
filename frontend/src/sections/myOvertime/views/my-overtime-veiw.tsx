@@ -17,7 +17,7 @@ import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
 // local imports
 import ShiftItems from 'src/components/shifts/shift-items';
-import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
+import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, ShiftStatus } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -59,6 +59,13 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
       icon: 'mdi:check',
       title: 'Secured',
       disabled,
+    }
+  }
+  if (shift.status === ShiftStatus.Locked) {
+    return {
+      icon: 'mdi:lock',
+      title: 'Locked',
+      disabled: true,
     }
   }
   return {

@@ -190,6 +190,7 @@ export class BaseModel<T> {
 
   async upsert<T extends UpsertModel>(item: T): Promise<T> {
     if (!item.id) {
+      (item as any).createdById = (item as any).modifiedById;
       return this.create(item);
     }
     return this.update(item as UpdateModel) as Promise<T>;
@@ -234,17 +235,17 @@ export class BaseModel<T> {
       }
     });
 
+    if (order && orderBy) {
+      transaction.sort({ [orderBy]: order === 'asc' ? 1 : -1 });
+    } else {
+      transaction.sort({ createdAt: -1 });
+    }
+
     if (skip) {
       transaction.skip(skip);
     }
     if (limit) {
       transaction.limit(limit);
-    }
-
-    if (order && orderBy) {
-      transaction.sort({ [orderBy]: order === 'asc' ? 1 : -1 });
-    } else {
-      transaction.sort({ createdAt: -1 });
     }
 
     const res = await transaction.toArray();

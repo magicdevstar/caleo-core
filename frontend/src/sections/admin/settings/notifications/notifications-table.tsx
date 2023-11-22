@@ -55,6 +55,11 @@ export default function NotificationTable() {
         };
       }
     },
+    table: {
+      toolbar: {
+        lg: 6,
+      }
+    },
     rowActions: [
       {
         getName: () => 'Edit',

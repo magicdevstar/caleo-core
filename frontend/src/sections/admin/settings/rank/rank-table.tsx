@@ -56,6 +56,11 @@ export default function RankTable() {
         };
       }
     },
+    table: {
+      toolbar: {
+        lg: 6,
+      }
+    },
     rowActions: [
       {
         getName: () => 'Edit',

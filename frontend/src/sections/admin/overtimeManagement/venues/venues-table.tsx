@@ -86,6 +86,11 @@ export default function VenuesTable() {
         },
       ]
     },
+    table: {
+      toolbar: {
+        lg: 6,
+      }
+    },
     search: {
       defaultTableConfig: {
         defaultRowsPerPage: 10,

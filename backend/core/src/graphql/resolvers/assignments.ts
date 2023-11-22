@@ -93,6 +93,7 @@ export const assignments = {
       } else {
         updatedAssignment = await assignments.upsert({
           ...assignment,
+          createdById: user!.id,
           orgId: user?.member.orgId!,
           modifiedById: user!.id,
         } as any);

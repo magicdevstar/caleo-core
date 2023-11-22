@@ -4,3 +4,4 @@ export { default as EventsView } from './events-view';
 export { default as EditEventView } from './edit-event-view';
 export { default as EditAssignmentView } from './edit-assignment-view';
 export { default as EditShiftView } from './edit-shift-view';
+export { default as DynamicShiftFilterView } from './dynamic-shift-filter-view';

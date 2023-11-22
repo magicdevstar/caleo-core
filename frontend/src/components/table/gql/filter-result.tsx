@@ -31,17 +31,26 @@ export default function TableFiltersResult({ filters, onFilters, results, onRese
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
         {
           filters
-            .filter((filter) => filter.type === 'select' && (filter.value || [])?.length)
+            .filter((filter) => (filter.type === 'select' || filter.type === 'autocomplete') && (filter.value || [])?.length)
             .map((filter) => (
               <Block key={filter.id} label={`${filter.label}:`}>
-                {filter.value.map((item: any) => (
-                  <Chip
-                    key={item}
-                    label={ filter.calculatedOptions ? filter.calculatedOptions.find(({ value }) => value === item)?.label || item : item}
-                    size="small"
-                    onDelete={() => onFilters(filter.id, filter.value.filter((value: any) => value !== item))}
-                  />
-                ))}
+                {filter.value.map((item: any) => {
+                  let label = item;
+                  if (filter.type === 'select' && filter.calculatedOptions) {
+                    label = filter.calculatedOptions.find(({ value }) => value === item)?.label || item;
+                  }
+                  if (filter.type === 'autocomplete') {
+                    label = item.label;
+                  }
+                  return (
+                    <Chip
+                      key={item}
+                      label={label}
+                      size="small"
+                      onDelete={() => onFilters(filter.id, filter.value.filter((value: any) => value !== item))}
+                    />
+                  )
+                })}
               </Block>
             ))
         }

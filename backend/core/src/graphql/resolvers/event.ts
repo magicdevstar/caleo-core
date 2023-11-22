@@ -151,6 +151,7 @@ export const event = {
           throw new GraphQLError('Could not find event');
         }
       } else {
+        (event as any).createdById = user!.id;
         (event as any).status = EventStatus.Draft;
         (event as any).referenceId = await eventReferenceNumber.get();
       }

@@ -86,7 +86,6 @@ export const notification = {
 
       return notifications.upsert({
         ...notification,
-        createdById: user?.id!,
         orgId: user?.member.orgId!,
         modifiedById: user?.id!,
       } as any);

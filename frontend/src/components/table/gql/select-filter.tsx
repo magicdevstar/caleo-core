@@ -28,13 +28,7 @@ export default function SelectFilter({
   }, [filter.fetchOptions]);
 
   return (
-    <FormControl
-      id={filter.id}
-      sx={{
-        flexShrink: 0,
-        width: { xs: 1, md: 200 },
-      }}
-    >
+    <FormControl id={filter.id} fullWidth>
       <InputLabel>{filter.label}</InputLabel>
 
       <Select

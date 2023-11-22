@@ -15,6 +15,19 @@ export const EVENT_UPLOAD_URL = gql`
   }
 `;
 
+export const GET_ALL_EVENTS_SLIM = gql`
+  query GetAllEvents($input: EventSearchInput!) {
+    events(input: $input) {
+      items {
+        id
+        referenceId
+        name
+      }
+      total
+    }
+  }
+`;
+
 export const GET_ALL_EVENTS = gql`
   query GetAllEvents($input: EventSearchInput!) {
     events(input: $input) {

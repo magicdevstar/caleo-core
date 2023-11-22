@@ -917,27 +917,28 @@
     total: Int!
   }
 
-  input EventTimeFilter {
+  input SearchTimeFilter {
     gte: String
     lte: String
     value: String
   }
 
-  input EventTimeRange {
-    startTime: EventTimeFilter
-    endTime: EventTimeFilter
+  input SearchTimeRange {
+    startTime: SearchTimeFilter
+    endTime: SearchTimeFilter
   }
 
   input EventSearchInput {
     limit: Int
     skip: Int
     query: String
-    range: EventTimeRange
+    range: SearchTimeRange
     status: [EventStatus]
-    endTime: EventTimeFilter
+    endTime: SearchTimeFilter
     createdById: [String]
     orderBy: String
     order: String
+    includeRemoved: Boolean
   }
 
   type AssignmentSearchResult {
@@ -948,7 +949,16 @@
   input ShiftSearchInput {
     limit: Int
     skip: Int
+    query: String
+    queryField: String
     userId: String
+    range: SearchTimeRange
+    daysOfWeek: [DayOfWeek!]
+    rankIds: [String]
+    skillIds: [String]
+    createdById: [String]
+    assignedIds: [String]
+    eventIds: [String]
     startTime: String
     endTime: String
     orderBy: String

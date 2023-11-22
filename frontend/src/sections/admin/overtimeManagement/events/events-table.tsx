@@ -52,6 +52,11 @@ export default function EventsTable() {
         };
       }
     },
+    table: {
+      toolbar: {
+        lg: 6,
+      }
+    },
     rowActions: [
       {
         getName: () => 'Edit',

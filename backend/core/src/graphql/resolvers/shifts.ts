@@ -64,7 +64,7 @@ export const shift = {
         order: 'desc',
         orderBy: '_id',
         includeRemoved: true,
-        status: {$in: [ShiftStatus.Assigned, ShiftStatus.Available]},
+        status: {$in: [ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked]},
       });
       return items;
     },
@@ -85,27 +85,10 @@ export const shift = {
       { input }: { input: ShiftSearchInput },
       { shifts, user }: Context
     ): Promise<SearchResults<Shift>> => {
-      const { startTime, endTime, userId, ...searchInput } = input;
-
-      if (userId !== user?.id && !userIsAdmin(user)) {
-        (searchInput as any).userId = user?.id;
-      } else {
-        (searchInput as any).userId = userId;
-      }
-
-      if (startTime) {
-        (searchInput as any).endTime = {
-          $gte: new Date(startTime).getTime(),
-        };
-      } else if (endTime) {
-        (searchInput as any).startTime = {
-          $lte: new Date(endTime).getTime(),
-        };
-      }
-
-      return shifts.search({
+      return shifts.dynamicSearch({
         orgId: user?.member.orgId!,
-        ...searchInput,
+        requestingUser: user!,
+        ...input,
       });
     },
     shiftUsers: async (
@@ -264,8 +247,13 @@ export const shift = {
       const updatedShifts = shifts.map((shift) => {
         const { startTime, endTime, ...rest } = shift;
         let status = rest.status;
+        let createdById = rest.createdById;
         if (!shift.id) {
+          createdById = user?.id!;
           status = ShiftStatus.Available;
+        }
+        if (rest.locked) {
+          status = ShiftStatus.Locked;
         }
         return {
           ...rest,
@@ -274,6 +262,7 @@ export const shift = {
           orgId: user?.member.orgId!,
           startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
           endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
+          createdById,
           modifiedById: user?.id!,
         };
       }) as any;

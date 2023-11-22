@@ -190,6 +190,7 @@ export default function GQLTable({
       </Tabs>}
 
       <TableToolbar
+        toolbarConfig={config?.table?.toolbar}
         filters={uiFilters}
         onFilters={handleFilters}
       />

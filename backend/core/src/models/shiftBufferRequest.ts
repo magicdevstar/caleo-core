@@ -82,6 +82,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       note: shiftBufferRequest.note,
       orgId: shift.orgId,
       userId: user?.id!,
+      createdById: user?.id!,
       modifiedById: user?.id!,
     } as any);
 

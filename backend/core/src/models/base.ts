@@ -264,7 +264,7 @@ export class BaseModel<T> {
 
   async aggregate<K>(pipeline: any[]): Promise<K[]> {
     const res = await this.collection.aggregate(
-      JSON.parse(JSON.stringify(pipeline)),
+      pipeline,
       { allowDiskUse: true, maxTimeMS: 60000 }
     ).toArray();
     return res as K[];

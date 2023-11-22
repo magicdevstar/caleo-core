@@ -136,6 +136,6 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       },
     ];
 
-    return this.collection.aggregate(pipeline).toArray() as any;
+    return this.collection.aggregate(JSON.parse(JSON.stringify(pipeline))).toArray() as any;
   }
 };

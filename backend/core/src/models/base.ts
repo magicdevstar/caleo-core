@@ -213,25 +213,24 @@ export class BaseModel<T> {
       rest.removedAt = { $exists: false };
     }
 
+    let textQuery: any = {};
+    if (query) {
+      const fieldName = queryField || 'name';
+      textQuery[fieldName] = {
+        $regex: query,
+        $options: 'i',
+      };
+    }
+
     const transaction = this.collection.find({
       ...rest,
-      ...(query ? {
-        [queryField || 'name']: {
-          $regex: query,
-          $options: 'i',
-        }
-      } : {}),
+      ...textQuery,
     });
 
     logger.info('Search', {
       find: {
         ...rest,
-        ...(query ? {
-          $text: {
-            $search: query,
-            $caseSensitive: false,
-          }
-        } : {}),
+        ...textQuery,
       }
     });
 
@@ -265,7 +264,7 @@ export class BaseModel<T> {
 
   async aggregate<K>(pipeline: any[]): Promise<K[]> {
     const res = await this.collection.aggregate(
-      pipeline,
+      JSON.parse(JSON.stringify(pipeline)),
       { allowDiskUse: true, maxTimeMS: 60000 }
     ).toArray();
     return res as K[];

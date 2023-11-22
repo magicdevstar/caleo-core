@@ -1,9 +1,9 @@
-import { uniqBy } from "lodash";
+import PhoneNumberFormatter from 'phone-number-formats';
 import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENTS_SLIM } from "src/api/event";
 import { GET_RANKS } from "src/api/rank";
-import { DYNAMIC_SHIFT_SEARCH, GET_ALL_SHIFTS } from "src/api/shifts";
-import { GET_SKILLS, GET_SKILL_SLIM } from "src/api/skill";
+import { DYNAMIC_SHIFT_SEARCH } from "src/api/shifts";
+import { GET_SKILL_SLIM } from "src/api/skill";
 import { GET_USERS_SLIM } from "src/api/user";
 import GQLTable from "src/components/table/gql/table";
 import { TableConfig } from "src/components/table/table-config";
@@ -39,25 +39,48 @@ export default function DynamicShiftFilter() {
         id: 'startTime',
         label: 'Start',
         columnType: 'date',
-        width: '20%',
+        width: 10,
       },
       {
         id: 'endTime',
         label: 'End',
         columnType: 'date',
-        width: '20%',
+        width: 10,
+      },
+      {
+        id: 'event.name',
+        label: 'Event Name',
+        columnType: 'string',
+        width: 300,
       },
       {
         id: 'assignment.name',
         label: 'Shift Name',
         columnType: 'string',
-        width: '40%',
+        width: 300,
       },
       {
         id: 'status',
         label: 'Status',
         columnType: 'string',
         getLabelColor: () => 'info',
+      },
+      {
+        id: 'user.name',
+        label: 'Assigned To',
+        columnType: 'string',
+        renderValue(_value, _index, row) {
+          if (row.user) {
+            let phoneNumber = row.user?.member?.contactInfo?.primaryPhone?.number;
+            try {
+              phoneNumber = new PhoneNumberFormatter(phoneNumber).format({type: 'domestic'}).string;
+            } catch(error) {
+              console.error(error);
+            }
+            return `${row.user?.name} P# ${row.user?.member.pNumber} ${phoneNumber}`;
+          }
+          return 'Not Assigned';
+        },
       }
     ],
     filters: [
@@ -261,11 +284,23 @@ export default function DynamicShiftFilter() {
           inputPlaceholder: 'Search...',
         },
         async fetchOptions (query?: string) {
+          let key = 'query';
+          let value: string | number | undefined = query?.trim() === '' ? undefined : query?.trim();
+          try {
+            const number = parseInt(query?.trim() || '', 10);
+            if (!Number.isNaN(number)) {
+              key = 'referenceId';
+              value = number;
+            }
+          } catch(error) {
+            console.error('Not a number');
+          }
+
           const { data } = await client.query({
             query: GET_ALL_EVENTS_SLIM,
             variables: {
               input: {
-                query: query?.trim() === '' ? undefined : query?.trim(),
+                [key]: value,
                 limit: 10,
                 skip: 0,
               },

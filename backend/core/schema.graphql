@@ -934,6 +934,7 @@
     query: String
     range: SearchTimeRange
     status: [EventStatus]
+    referenceIds: [Int]
     endTime: SearchTimeFilter
     createdById: [String]
     orderBy: String

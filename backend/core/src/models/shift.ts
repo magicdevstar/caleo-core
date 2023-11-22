@@ -32,7 +32,7 @@ export class ShiftModel extends BaseModel<Shift> {
   eventsCollection: Collection;
 
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
-    const res = await this.collection.aggregate([
+    const res = await this.collection.aggregate(JSON.parse(JSON.stringify([
       {
         $match: {
           shiftId: { $in: groupKeys },
@@ -52,7 +52,7 @@ export class ShiftModel extends BaseModel<Shift> {
           newRoot: "$shift"
         }
       }
-    ]).toArray();
+    ]))).toArray();
     return groupKeys.map((key) => res.find((item: any) => item.shiftId === key));
   });
 
@@ -462,7 +462,7 @@ export class ShiftModel extends BaseModel<Shift> {
       });
     } else {
       pipeline.push({
-        $sort: { createdAt: -1 },
+        $sort: { _id: -1 },
       });
     }
 
@@ -488,7 +488,7 @@ export class ShiftModel extends BaseModel<Shift> {
       totalPipeline,
     });
 
-    const itemResult = await this.collection.aggregate(pipeline).toArray();
+    const itemResult = await this.collection.aggregate(JSON.parse(JSON.stringify(pipeline))).toArray();
     const totalResult = await this.collection.aggregate(totalPipeline).toArray();
 
     logger.info('Dynamic Shift Result', {

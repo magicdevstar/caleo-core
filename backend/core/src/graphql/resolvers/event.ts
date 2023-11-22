@@ -15,11 +15,15 @@ export const event = {
     ): Promise<Event | null> => events.get(id, { removed: true }),
     events: async (
       _parent: unknown,
-      { input: { range, endTime, createdById, status, ...input } }: { input: EventSearchInput },
+      { input: { range, endTime, createdById, status, referenceIds, ...input } }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => {
       let timeFilters: any = {};
       const $or: any[] = [];
+
+      if (referenceIds) {
+        (input as any).referenceId = { $in: referenceIds };
+      }
 
       if (range) {
         const { startTime, endTime } = range;

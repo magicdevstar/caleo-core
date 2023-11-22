@@ -26,7 +26,7 @@ const sendEmail = async (input: MailerEvent) => {
     if (input.template === MailerEvents.OfficerEventRemoved) {
       const { event, organization, modifiedById } = input.data;
 
-      const allShifts = await context.shifts.collection.aggregate([
+      const allShifts = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
         {
           $match: {
             eventId: event.id,
@@ -75,7 +75,7 @@ const sendEmail = async (input: MailerEvent) => {
             'assignment.removedAt': { $exists: false },
           }
         }
-      ]);
+      ])));
 
       Addresses = {};
       let shift: Shift | null;
@@ -511,7 +511,7 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const allShifts = await context.shifts.collection.aggregate([
+      const allShifts = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
         {
           $match: {
             eventId: event.id,
@@ -549,7 +549,7 @@ const sendEmail = async (input: MailerEvent) => {
             'user.removedAt': { $exists: false },
           }
         }
-      ]);
+      ])));
 
       let shift: Shift | null;
       do {
@@ -656,7 +656,7 @@ const sendEmail = async (input: MailerEvent) => {
     } else if (input.template === MailerEvents.OfficerAvailableOtPosted) {
       const { orgId } = input.data;
 
-      const totalRes = await context.shifts.collection.aggregate([
+      const totalRes = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
         {
           $match: {
             orgId,
@@ -697,7 +697,7 @@ const sendEmail = async (input: MailerEvent) => {
         {
           $count: 'total',
         },
-      ]);
+      ])));
 
       if (totalRes?.[0]?.total === 0) {
         logger.warn('No open shifts found', { input });

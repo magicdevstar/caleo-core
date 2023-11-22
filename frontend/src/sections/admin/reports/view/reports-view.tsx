@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, memo, useCallback, useState } from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -35,7 +35,7 @@ const ReportTypeNames = {
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function ReportTypeSwitch({ reportType }: { reportType: ReportType }) {
+const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
   // TODO: create and add each component for creating reports
   switch (reportType) {
     case ReportType.EVENTS_BY_DATE:
@@ -50,15 +50,15 @@ function ReportTypeSwitch({ reportType }: { reportType: ReportType }) {
     default:
       return null;
   }
-}
+});
 
 export default function ReportsView() {
   const settings = useSettingsContext();
   const [reportType, setReportType] = useState(ReportType.EVENTS_BY_DATE);
 
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setReportType(event?.target?.value as ReportType);
-  };
+  }, []);
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>

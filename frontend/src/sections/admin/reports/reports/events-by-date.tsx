@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
+import { useSnackbar } from 'notistack';
 import { useForm } from 'react-hook-form';
 import { useQuery } from '@apollo/client';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import dayjs from 'dayjs';
 // @mui
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
@@ -12,12 +12,17 @@ import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import { LoadingButton } from '@mui/lab';
 // Types
-import { EventStatus, User } from 'src/__generated__/resolvers-types';
+import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // components
-import FormProvider, { RHFDatePicker, RHFAutocomplete } from 'src/components/hook-form';
+import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
+import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
+import { client } from 'src/utils/apollo';
+import { GET_ALL_EVENTS } from 'src/api/event';
+import { convertDate } from 'src/hooks/use-datejs';
+import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const eventStatusOptions = [
   {
@@ -43,18 +48,13 @@ const eventStatusOptions = [
 ];
 
 const eventsByDateSchema = Yup.object().shape({
-  dateRangeMin: Yup.date()
-    .typeError('Invalid Date')
-    .required('Minimum Date Range Required')
-    .test('is-before-max', 'Date must be before Max Date', (min, context) =>
-      context?.parent?.dateRangeMax ? min <= context?.parent?.dateRangeMax : true
-    ),
-  dateRangeMax: Yup.date()
-    .typeError('Invalid Date')
-    .required('Maximum Date Range Required')
-    .test('is-before-max', 'Date must be after Min Date', (max, context) =>
-      context?.parent?.dateRangeMin ? max >= context?.parent?.dateRangeMin : true
-    ),
+  dateRange: Yup.array()
+    .required('You must specify a date range')
+    .test('has-dates', 'Must select min and max date', (value, context) =>{
+      const hasMin = value[0];
+      const hasMax = value[1];
+      return !!hasMin && !!hasMax;
+    }),
   eventStatus: Yup.array()
     .of(Yup.mixed<(typeof eventStatusOptions)[0] | string>())
     .transform((value: typeof eventStatusOptions) => value.map((v) => v.value)),
@@ -65,6 +65,11 @@ const eventsByDateSchema = Yup.object().shape({
 
 export default function EventsByDate() {
   const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
+  const { download } = useDownloadCsv({
+    fileName: 'events-by-date',
+    ext: 'csv',
+  });
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
@@ -78,21 +83,56 @@ export default function EventsByDate() {
   });
   const users: User[] = useMemo(() => data?.users?.items || [], [data]);
 
+  const defaultValues = useMemo(() => ({
+    dateRange: undefined,
+    eventStatus: [],
+    createdBy: [],
+  } as any), []);
+
   const methods = useForm({
-    mode: 'onBlur',
     resolver: yupResolver(eventsByDateSchema),
-    defaultValues: {
-      dateRangeMin: undefined,
-      dateRangeMax: undefined,
-      eventStatus: [],
-      createdBy: [],
-    },
+    defaultValues,
   });
 
-  const dateRange = methods.watch(['dateRangeMin', 'dateRangeMax']);
-
   const onSubmit = methods.handleSubmit(async (values) => {
-    console.log(values);
+    try {
+      const { data: res } = await client.query({
+        query: GET_ALL_EVENTS,
+        variables: {
+          input: {
+            includeRemoved: true,
+            ...(values.eventStatus.length > 0 && { status: values.eventStatus }),
+            ...(values.createdBy.length > 0 && { createdById: values.createdBy }),
+            range: {
+              startTime: {
+                gte: values.dateRange[0].toDate().toISOString(), 
+              },
+              endTime: {
+                lte: values.dateRange[1].toDate().toISOString(),
+              },
+            },
+          },
+        },
+      });
+      const events = res.events.items;
+      if (events.length === 0) {
+        enqueueSnackbar('No data. Please try a different set of filters.', { variant: 'info', autoHideDuration: 3000 });
+        return;
+      }
+      const formattedJson = events.map((event: Event) => ({
+        'Event Name': event.name,
+        'Event Ref. #': event.referenceId,
+        'Event Created By P#': event.createdBy?.member?.pNumber || '',
+        'Venue Name': event.venue?.name || '',
+        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}) : '',
+        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}) : '',
+        'Event Status': event.status,
+      }));
+      download(formattedJson);
+    } catch(error) {
+      enqueueSnackbar('Error creating report', { variant: 'error', autoHideDuration: 3000 });
+      console.error(error);
+    }
   });
 
   return (
@@ -118,23 +158,18 @@ export default function EventsByDate() {
             xl: '1fr 1fr 25% 25%',
           }}
         >
-          <RHFDatePicker
-            name="dateRangeMin"
-            label="Date Range: Min *"
+          <RHFDateRangePicker
+            sx={{ width: '100%' }}
+            name="dateRange"
+            label="Date Range"
             timezone={user?.member?.org?.timezone}
-            maxDate={dateRange[1] && dayjs(dateRange[1])}
           />
-          <RHFDatePicker
-            name="dateRangeMax"
-            label="Date Range: Max *"
-            timezone={user?.member?.org?.timezone}
-            minDate={dateRange[0] && dayjs(dateRange[0])}
-          />
+
           <RHFAutocomplete
             multiple
             disableCloseOnSelect
             openOnFocus
-            limitTags={1}
+            limitTags={4}
             name="eventStatus"
             label="Event Status"
             options={eventStatusOptions}
@@ -150,7 +185,7 @@ export default function EventsByDate() {
             multiple
             disableCloseOnSelect
             openOnFocus
-            limitTags={1}
+            limitTags={4}
             name="createdBy"
             label="Created By"
             options={users}

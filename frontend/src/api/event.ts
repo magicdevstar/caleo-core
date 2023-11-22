@@ -36,7 +36,14 @@ export const GET_ALL_EVENTS = gql`
         referenceId
         name
         startTime
+        endTime
         availableShifts
+        status
+        createdBy {
+          member {
+            pNumber
+          }
+        }
         venue {
           id
           name

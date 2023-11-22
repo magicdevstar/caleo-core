@@ -15,7 +15,7 @@ export const event = {
     ): Promise<Event | null> => events.get(id, { removed: true }),
     events: async (
       _parent: unknown,
-      { input: { range, endTime, createdById, status, referenceIds, ...input } }: { input: EventSearchInput },
+      { input: { range, endTime, createdById, status, referenceIds, venueIds, ...input } }: { input: EventSearchInput },
       { events, user }: Context
     ): Promise<SearchResults<Event>> => {
       let timeFilters: any = {};
@@ -23,6 +23,9 @@ export const event = {
 
       if (referenceIds) {
         (input as any).referenceId = { $in: referenceIds };
+      }
+      if (venueIds) {
+        (input as any).venueId = { $in: venueIds };
       }
 
       if (range) {
@@ -196,6 +199,9 @@ export const event = {
       status: (item: Event) => {
         if (item.removedAt) {
           return EventStatus.Removed;
+        }
+        if (item.status === EventStatus.Draft) {
+          return item.status;
         }
         if (item.endTime && isAfter(new Date(), new Date(item.endTime))) {
           return EventStatus.Complete;

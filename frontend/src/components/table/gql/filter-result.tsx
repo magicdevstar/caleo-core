@@ -40,6 +40,7 @@ export default function TableFiltersResult({ filters, onFilters, results, onRese
                     label = filter.calculatedOptions.find(({ value }) => value === item)?.label || item;
                   }
                   if (filter.type === 'autocomplete') {
+                    // eslint-disable-next-line prefer-destructuring
                     label = item.label;
                   }
                   return (

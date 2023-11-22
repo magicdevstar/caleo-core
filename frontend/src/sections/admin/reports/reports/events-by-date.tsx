@@ -90,6 +90,7 @@ export default function EventsByDate() {
   } as any), []);
 
   const methods = useForm({
+    mode: 'onTouched',
     resolver: yupResolver(eventsByDateSchema),
     defaultValues,
   });
@@ -124,8 +125,8 @@ export default function EventsByDate() {
         'Event Ref. #': event.referenceId,
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
-        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}) : '',
-        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}) : '',
+        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format('MM/DD/YYYY') : '',
+        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format('MM/DD/YYYY') : '',
         'Event Status': event.status,
       }));
       download(formattedJson);

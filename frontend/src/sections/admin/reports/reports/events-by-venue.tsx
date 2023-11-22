@@ -91,7 +91,7 @@ export default function EventsByVenue() {
   } as any), []);
 
   const methods = useForm({
-    mode: 'onBlur',
+    mode: 'onTouched',
     resolver: yupResolver(eventsByVenueSchema),
     defaultValues,
   });
@@ -126,8 +126,8 @@ export default function EventsByVenue() {
         'Event Name': event.name,
         'Event Ref. #': event.referenceId,
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
-        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}) : '',
-        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}) : '',
+        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format('MM/DD/YYYY') : '',
+        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format('MM/DD/YYYY') : '',
         'Event Status': event.status,
       }));
       download(formattedJson);

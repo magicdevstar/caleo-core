@@ -302,6 +302,55 @@ export const GET_ALL_SHIFTS = gql`
   }
 `;
 
+export const GET_OFFICER_REPORT_SHIFTS = gql`
+  query GetOfficerReportShifts($input: ShiftSearchInput!) {
+    shifts(input: $input) {
+      items {
+        id
+        startTime
+        endTime
+        status
+        user {
+          id
+          firstName
+          lastName
+          member {
+            pNumber
+            contactInfo {
+              primaryPhone {
+                number
+              }
+            }
+          }
+        }
+        event {
+          id
+          referenceId
+          name
+          startTime
+          endTime
+          createdBy {
+            id
+            name
+            member {
+              pNumber
+            }
+          }
+          venue {
+            id
+            name
+          }
+        }
+        assignment {
+          id
+          name
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const DYNAMIC_SHIFT_SEARCH = gql`
   query GetAllShifts($input: ShiftSearchInput!) {
     shifts(input: $input) {
@@ -354,7 +403,7 @@ export const GET_GROUPED_SHIFTS = gql`
       endTime
       status
       locked
-      
+
       assignment {
         id
         name
@@ -365,7 +414,7 @@ export const GET_GROUPED_SHIFTS = gql`
         name
         status
       }
-      
+
       user {
         id
         name

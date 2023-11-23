@@ -75,7 +75,7 @@ export default function EventsByDate() {
     nextFetchPolicy: 'cache-first',
     variables: {
       input: {
-        // "admin": true,
+        admin: true,
         orderBy: 'createdAt',
         order: 'desc',
       },
@@ -106,7 +106,7 @@ export default function EventsByDate() {
             ...(values.createdBy.length > 0 && { createdById: values.createdBy }),
             range: {
               startTime: {
-                gte: values.dateRange[0].toDate().toISOString(), 
+                gte: values.dateRange[0].toDate().toISOString(),
               },
               endTime: {
                 lte: values.dateRange[1].toDate().toISOString(),
@@ -155,14 +155,14 @@ export default function EventsByDate() {
           }}
           gridTemplateColumns={{
             sm: 'repeat(1, 1fr)',
-            md: 'repeat(2, 1fr)',
-            xl: '1fr 1fr 25% 25%',
+            lg: '1fr 33.3% 33.3%',
           }}
         >
           <RHFDateRangePicker
             sx={{ width: '100%' }}
             name="dateRange"
-            label="Date Range"
+            label="Date Range *"
+            calendars={1}
             timezone={user?.member?.org?.timezone}
           />
 

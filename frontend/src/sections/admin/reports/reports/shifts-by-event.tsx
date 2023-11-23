@@ -9,6 +9,7 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingButton } from '@mui/lab';
 // Types
 import { Assignment, Event, Shift } from 'src/__generated__/resolvers-types';
@@ -23,8 +24,10 @@ import { client } from 'src/utils/apollo';
 import { convertDate } from 'src/hooks/use-datejs';
 
 const eventsByShiftSchema = Yup.object().shape({
-  event: Yup.object()
-    .required('You must specify and event'),
+  event: Yup.mixed<Event | string>()
+    .nullable()
+    .transform((value: Event) => value?.id)
+    .test('event-required','You must specify an Event', (value) => !!value),
 });
 
 export default function ShiftsByEvent() {
@@ -41,30 +44,39 @@ export default function ShiftsByEvent() {
     debouncedText,
   } = useDebounceText({ ms: 500 });
 
-  let key = 'query';
-  let value: string | number | undefined = debouncedText.trim() === '' ? undefined : debouncedText;
-  try {
-    const number = parseInt(debouncedText?.trim() || '', 10);
-    if (!Number.isNaN(number)) {
-      key = 'referenceId';
-      value = number;
+  const inputFields = useMemo(() => {
+    const trimmedValue = debouncedText.trim();
+    let key = 'query';
+    let value: string | number | undefined = trimmedValue === '' ? undefined : trimmedValue;
+    try {
+      const number = parseInt(value || '', 10);
+      const isNum = /^\d{6}$/.test(value || '');
+      if (isNum && !Number.isNaN(number)) {
+        key = 'referenceIds';
+        value = number;
+      }
+    } catch(error) {
+      console.error('Not a number');
     }
-  } catch(error) {
-    console.error('Not a number');
-  }
 
-  const { data } = useQuery(GET_ALL_EVENTS_SLIM, {
+    return {
+      key,
+      value
+    };
+  }, [debouncedText]);
+
+  const { data, loading: loadingEvents } = useQuery(GET_ALL_EVENTS_SLIM, {
     variables: {
       input: {
-        [key]: value,
+        [inputFields.key]: inputFields.key === 'query' ? inputFields.value : [inputFields.value],
         limit: 10,
       },
     },
   });
-  const options = data?.events?.items || [];
+  const options = useMemo(() => data?.events?.items || [], [data]);
 
   const defaultValues = useMemo(() => ({
-    eventId: undefined,
+    event: null,
   } as any), []);
 
   const methods = useForm({
@@ -79,7 +91,7 @@ export default function ShiftsByEvent() {
       const { data: res } = await client.query({
         query: GET_EVENT_FOR_REPORT,
         variables: {
-          id: values.event.id,
+          id: values.event,
         },
       });
       const { event } = res;
@@ -108,10 +120,10 @@ export default function ShiftsByEvent() {
         'Event Start Date': shift.event.startTime ? convertDate({date: event.startTime, user}).format('MM/DD/YYYY') : '',
         'Event End Date': shift.event.endTime ? convertDate({date: event.endTime, user}).format('MM/DD/YYYY') : '',
         'Assignment Name': shift.assignment.name,
-        'Shift Start Date': shift.startTime ? convertDate({date: event.startTime, user}).format('MM/DD/YYYY') : '',
-        'Shift Start Time': shift.startTime ? convertDate({date: event.startTime, user}).format('HH:mm') : '',
-        'Shift End Date': shift.endTime ? convertDate({date: event.endTime, user}).format('MM/DD/YYYY') : '',
-        'Shift End Time': shift.endTime ? convertDate({date: event.endTime, user}).format('HH:mm') : '',
+        'Shift Start Date': shift.startTime ? convertDate({date: shift.startTime, user}).format('MM/DD/YYYY') : '',
+        'Shift Start Time': shift.startTime ? convertDate({date: shift.startTime, user}).format('HH:mm') : '',
+        'Shift End Date': shift.endTime ? convertDate({date: shift.endTime, user}).format('MM/DD/YYYY') : '',
+        'Shift End Time': shift.endTime ? convertDate({date: shift.endTime, user}).format('HH:mm') : '',
         'Slot #': (shift as any).slotNumber,
         'Status': shift.status,
         'Assignee First Name': shift.user?.firstName || '',
@@ -149,18 +161,29 @@ export default function ShiftsByEvent() {
         >
 
           <RHFAutocomplete
-            disableCloseOnSelect
             openOnFocus
-            limitTags={4}
             name="event"
             label="Event Name or Ref. #"
             options={options}
             inputValue={text || ''}
-            getOptionLabel={(option: any) => `${option.name} (${option.referenceId})`}
+            filterOptions={(x: any) => x}
+            loading={loadingEvents}
+            loadingText={(
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
+            )}
+            getOptionLabel={(option: any) => (option as Event).name}
+            isOptionEqualToValue={(option: Event, v: Event) => option.id === v.id}
             onInputChange={(_event, newInputValue) => {
               setText(newInputValue);
             }}
-            isOptionEqualToValue={(option: Event, v: Event) => option.id === v.id}
+            renderOption={(props, option) => (
+              <li {...props} key={option.id}>
+                {`${option.name} (${option.referenceId})`}
+              </li>
+            )}
           />
         </Box>
         <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>

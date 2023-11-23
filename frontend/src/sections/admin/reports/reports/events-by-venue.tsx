@@ -107,7 +107,7 @@ export default function EventsByVenue() {
             ...(values.venueName.length > 0 && { venueIds: values.venueName }),
             range: {
               startTime: {
-                gte: values.dateRange[0].toDate().toISOString(), 
+                gte: values.dateRange[0].toDate().toISOString(),
               },
               endTime: {
                 lte: values.dateRange[1].toDate().toISOString(),
@@ -156,20 +156,20 @@ export default function EventsByVenue() {
           }}
           gridTemplateColumns={{
             sm: 'repeat(1, 1fr)',
-            md: 'repeat(2, 1fr)',
-            xl: '1fr 1fr 25% 25%',
+            lg: '1fr 33.3% 33.3%',
           }}
         >
           <RHFDateRangePicker
             name="dateRange"
             label="Date Range *"
+            calendars={1}
             timezone={user?.member?.org?.timezone}
           />
           <RHFAutocomplete
             multiple
             disableCloseOnSelect
             openOnFocus
-            limitTags={1}
+            limitTags={4}
             name="venueName"
             label="Venue Name *"
             options={venues}
@@ -187,7 +187,7 @@ export default function EventsByVenue() {
             multiple
             disableCloseOnSelect
             openOnFocus
-            limitTags={1}
+            limitTags={4}
             name="eventStatus"
             label="Event Status"
             options={eventStatusOptions}

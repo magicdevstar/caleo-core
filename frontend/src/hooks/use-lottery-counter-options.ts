@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { useQuery } from "@apollo/client";
-import unionBy from "lodash/unionBy";
+import { unionBy } from "lodash";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { LotteryCounter, Organization } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
-import { convertDate } from "./use-datejs";
+import { convertDate, dateTimeFormat } from "./use-datejs";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -84,9 +84,9 @@ export const useLotteryCounterOptions = ({
       opts.push({
         counter: countValue.counter,
         date: oldLotteryStart,
-        time: oldLotteryStart.format('ddd DD MMM YYYY HH:mm'),
+        time: oldLotteryStart.format(dateTimeFormat),
         endDate: oldLotteryEnd,
-        endTime: oldLotteryEnd.format('ddd DD MMM YYYY HH:mm'),
+        endTime: oldLotteryEnd.format(dateTimeFormat),
       });
     }
 
@@ -97,9 +97,9 @@ export const useLotteryCounterOptions = ({
       .map((_, i) => ({
         counter: startNumber + i,
         date: startOfLottery.add(i, 'week'),
-        time: startOfLottery.add(i, 'week').format('ddd DD MMM YYYY HH:mm'),
+        time: startOfLottery.add(i, 'week').format(dateTimeFormat),
         endDate: closeOfLottery.add(i, 'week'),
-        endTime: closeOfLottery.add(i, 'week').format('ddd DD MMM YYYY HH:mm'),
+        endTime: closeOfLottery.add(i, 'week').format(dateTimeFormat),
       }))
       .filter(({ date }) => !limit || limit.isAfter(date));
 

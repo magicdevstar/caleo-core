@@ -54,6 +54,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import Markdown from 'src/components/markdown';
 import { client } from 'src/utils/apollo';
 import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
+import { dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -588,7 +589,7 @@ export default function EditEvent({ currentEvent }: Props) {
                     PaperPropsSx={{ textTransform: 'capitalize' }}
                     helperText={`FCFS: ${lotteryCounterOptions
                       .find(({ counter }) => counter === values?.lotteryNumber)
-                      ?.endDate.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format('ddd DD MMM YYYY HH:mm')
+                      ?.endDate.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format(dateTimeFormat)
                     }`}
                   >
                     {lotteryCounterOptions.map((option) => (

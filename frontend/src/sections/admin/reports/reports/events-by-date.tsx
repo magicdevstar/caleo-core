@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
-import { LoadingButton } from '@mui/lab';
+import LoadingButton from '@mui/lab/LoadingButton';
 // Types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
@@ -21,7 +21,7 @@ import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
 import { GET_ALL_EVENTS } from 'src/api/event';
-import { convertDate } from 'src/hooks/use-datejs';
+import { convertDate, dateFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const eventStatusOptions = [
@@ -125,8 +125,8 @@ export default function EventsByDate() {
         'Event Ref. #': event.referenceId,
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
-        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format('MM/DD/YYYY') : '',
-        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format('MM/DD/YYYY') : '',
+        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format(dateFormat) : '',
+        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format(dateFormat) : '',
         'Event Status': event.status,
       }));
       download(formattedJson);

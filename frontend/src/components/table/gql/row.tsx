@@ -9,7 +9,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 // hooks
-import { useDateJS } from 'src/hooks/use-datejs';
+import { dateFormat, timeFormat, useDateJS } from 'src/hooks/use-datejs';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -39,8 +39,8 @@ const DateCell = ({value, width, href}: {width?: number | string; value: string;
   const { date } = useDateJS({
     date: value
   });
-  let output: any = value ? date.format('ddd DD MMM YYYY') : 'N/A';
-  let secondary: any = value ? date.format('HH:mm') : '';
+  let output: any = value ? date.format(dateFormat) : 'N/A';
+  let secondary: any = value ? date.format(timeFormat) : '';
   if (href) {
     secondary = (
       <Link

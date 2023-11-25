@@ -18,7 +18,7 @@ import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
 import Label from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
-import { convertDate } from "src/hooks/use-datejs";
+import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 
 const labelSx = {
@@ -216,11 +216,11 @@ export default function ShiftItem({
     startTime: convertDate({
       date: shift.startTime,
       user,
-    }).format('ddd DD MMM YYYY HH:mm'),
+    }).format(dateTimeFormat),
     endTime: convertDate({
       date: shift.endTime,
       user,
-    }).format('ddd DD MMM YYYY HH:mm'),
+    }).format(dateTimeFormat),
   };
 
   let selectRender = (<></>);

@@ -302,6 +302,46 @@ export const GET_ALL_SHIFTS = gql`
   }
 `;
 
+export const GET_SHIFT_LOTTERY_REQUESTS_REPORT = gql`
+  query GetShiftLotteryRequestsReport($input: ShiftLotteryRequestsSearchInput!) {
+    shiftLotteryRequests(input: $input) {
+      items {
+        id
+        shiftGroupId
+        order
+        status
+        user {
+          firstName
+          lastName
+          member {
+            pNumber
+          }
+        }
+        shift {
+          id
+          shiftId
+          startTime
+          endTime
+        }
+        event {
+          id
+          referenceId
+          name
+          lotteryCounter {
+            id
+            start
+            end
+          }
+        }
+        assignment {
+          id
+          name
+        }        
+      }
+    }
+  }
+`;
+
 export const GET_OFFICER_REPORT_SHIFTS = gql`
   query GetOfficerReportShifts($input: ShiftSearchInput!) {
     shifts(input: $input) {

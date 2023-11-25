@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
-import { LoadingButton } from '@mui/lab';
+import LoadingButton from '@mui/lab/LoadingButton';
 // Types
 import { Shift, ShiftStatus, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
@@ -21,7 +21,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
-import { convertDate } from 'src/hooks/use-datejs';
+import { convertDate, dateFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const shiftStatusOptions = [
@@ -153,23 +153,23 @@ export default function ShiftsByOfficer() {
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',
         'Event Start Date': shift.event?.startTime
-          ? convertDate({ date: shift.event.startTime, user }).format('MM/DD/YYYY')
+          ? convertDate({ date: shift.event.startTime, user }).format(dateFormat)
           : '',
         'Event End Date': shift.event?.endTime
-          ? convertDate({ date: shift.event.endTime, user }).format('MM/DD/YYYY')
+          ? convertDate({ date: shift.event.endTime, user }).format(dateFormat)
           : '',
         'Assignment Name': shift.assignment?.name,
         'Shift Start Date': shift.startTime
-          ? convertDate({ date: shift.startTime, user }).format('MM/DD/YYYY')
+          ? convertDate({ date: shift.startTime, user }).format(dateFormat)
           : '',
         'Shift Start Time': shift.startTime
-          ? convertDate({ date: shift.startTime, user }).format('HH:mm')
+          ? convertDate({ date: shift.startTime, user }).format(timeFormat)
           : '',
         'Shift End Date': shift.endTime
-          ? convertDate({ date: shift.endTime, user }).format('MM/DD/YYYY')
+          ? convertDate({ date: shift.endTime, user }).format(dateFormat)
           : '',
         'Shift End Time': shift.endTime
-          ? convertDate({ date: shift.endTime, user }).format('HH:mm')
+          ? convertDate({ date: shift.endTime, user }).format(timeFormat)
           : '',
         Status: shift.status,
       }));

@@ -18,7 +18,10 @@ export const lotteryCounter = {
       _parent: unknown,
       { input }: { input: SearchInput },
       { lotteryCounter }: Context,
-    ) => lotteryCounter.search(input),
+    ) => lotteryCounter.search({
+      ...input,
+      includeRemoved: true,
+    }),
   },
   Mutation: {},
   fields: {

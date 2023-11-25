@@ -11,7 +11,7 @@ import Stack from "@mui/material/Stack";
 import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
 import { ShiftBufferRequest, ShiftBufferRequestStatus } from "src/__generated__/resolvers-types";
-import { convertDate } from "src/hooks/use-datejs";
+import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import Iconify from "src/components/iconify";
 
@@ -45,22 +45,22 @@ export const ShiftBufferRequestConfirm = ({
       startTime: convertDate({
         date: shift.startTime,
         user,
-      }).format('ddd DD MMM YYYY HH:mm'),
+      }).format(dateTimeFormat),
       endTime: convertDate({
         date: shift.endTime,
         user,
-      }).format('ddd DD MMM YYYY HH:mm'),
+      }).format(dateTimeFormat),
     };
 
     const shiftBufferDates = {
       startTime: convertDate({
         date: shiftBuffer.startTime,
         user,
-      }).format('ddd DD MMM YYYY HH:mm'),
+      }).format(dateTimeFormat),
       endTime: convertDate({
         date: shiftBuffer.endTime,
         user,
-      }).format('ddd DD MMM YYYY HH:mm'),
+      }).format(dateTimeFormat),
     };
     return (
       <Box sx={{

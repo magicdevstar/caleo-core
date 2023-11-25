@@ -1,7 +1,7 @@
 // @mui
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import { DateRangePicker } from '@mui/x-date-pickers-pro';
+import { DateRangePicker, SingleInputDateRangeField } from '@mui/x-date-pickers-pro';
 import Grid from '@mui/material/Grid';
 // components
 import Iconify from 'src/components/iconify';
@@ -53,7 +53,9 @@ export default function TableToolbar({
         }
         if (filter.type === 'dateRange') {
           render = (
-            <DateRangePicker onChange={(event) => {
+            <DateRangePicker slots={{
+              field: SingleInputDateRangeField,
+            }} onChange={(event) => {
               if (event[0] && event[1]) {
                 onFilters(filter.id, event);
               }

@@ -196,6 +196,7 @@ export const event = {
       startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
+      lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => item.lotteryNumber ? lotteryCounter.countLoader.load(item.lotteryNumber) : null,
       status: (item: Event) => {
         if (item.removedAt) {
           return EventStatus.Removed;

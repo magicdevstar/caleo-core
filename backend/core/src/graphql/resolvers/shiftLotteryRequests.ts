@@ -1,29 +1,42 @@
+import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import {
   ShiftLotteryRequest,
   ShiftLotteryRequestStatus,
+  ShiftLotteryRequestsSearchInput,
   UpsertShiftLotteryRequest
 } from "../../__generated__/resolvers-types";
-import { adminOrOwnerOnly } from "../../utils/access";
+import { adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { GraphQLError } from "graphql";
-import { ObjectId } from "mongodb";
 import logger from "../../utils/logger";
 
 export const shiftLotteryRequests = {
   Query: {
     shiftLotteryRequests: async (
       _parent: unknown,
-      _args: unknown,
+      { input }: { input: ShiftLotteryRequestsSearchInput },
       { shiftLotteryRequests, user }: Context
     ): Promise<SearchResults<ShiftLotteryRequest>> => {
-      return shiftLotteryRequests.search({
+      let searchInput: any = {
         orgId: user?.member.orgId!,
         userId: user?.id,
         queryField: 'shiftGroupId',
         order: 'asc',
         orderBy: 'order',
-      });
+      };
+      if (input && userIsAdmin(user)) {
+        const { counters, ...rest } = input;
+        searchInput = {
+          ...searchInput,
+          ...rest,
+        } as any;
+        if (counters) {
+          searchInput.lotteryCounter = {
+            $in: counters,
+          };
+        }
+      }
+      return shiftLotteryRequests.search(searchInput);
     },
   },
   Mutation: {

@@ -249,6 +249,7 @@
     createdBy: User
     availableShifts: Int
     modifiedBy: User
+    lotteryCounter: LotteryCounter
   }
 
   type Assignment {
@@ -471,6 +472,8 @@
     id: ID!
     counter: Int!
     orgId: String!
+    start: String!
+    end: String!
     docType: DocType!
     createdAt: String!
     updatedAt: String!
@@ -854,6 +857,11 @@
     order: String
   }
 
+  type LotteryCounterSearchResult {
+    items: [LotteryCounter]
+    total: Int!
+  }
+
   input RankSearchInput {
     limit: Int
     skip: Int
@@ -986,6 +994,15 @@
     endTime: String
   }
 
+  input ShiftLotteryRequestsSearchInput {
+    limit: Int
+    skip: Int
+    orderBy: String
+    order: String
+    userId: String
+    counters: [Int]
+  }
+
   type ShiftBufferRequestsSearchResult {
     items: [ShiftBufferRequest]
     total: Int!
@@ -1065,9 +1082,10 @@ type Query {
   lotteryShifts: ShiftSearchResult
   shiftUsers(id: String!, name: String): UserSearchResult
   shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
-  shiftLotteryRequests: ShiftLotteryRequestsSearchResult
+  shiftLotteryRequests(input: ShiftLotteryRequestsSearchInput): ShiftLotteryRequestsSearchResult
 
-  lotteryCounter: LotteryCounter
+  lotteryCounter(counter: Int): LotteryCounter
+  lotteryCounters(input: SearchInput): LotteryCounterSearchResult
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult

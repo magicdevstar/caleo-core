@@ -50,9 +50,9 @@ export const createContext = async (): Promise<Context> => {
     db = await mongodb.db(process.env.MONGODB_NAME!);
   }
 
-  const lotteryCounter = new LotteryCounterModel(db);
-  const eventReferenceNumber = new EventReferenceNumber(db);
   const organizations = new OrganizationModel(db);
+  const lotteryCounter = new LotteryCounterModel(db, organizations);
+  const eventReferenceNumber = new EventReferenceNumber(db);
   const document = new DocumentModel();
   const notifications = new NotificationModel(db);
   const scheduler = new SchedulerModel();

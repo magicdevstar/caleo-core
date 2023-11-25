@@ -127,6 +127,7 @@ export type Event = {
   docType: DocType;
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  lotteryCounter?: Maybe<LotteryCounter>;
   lotteryNumber?: Maybe<Scalars['Int']['output']>;
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -153,14 +154,17 @@ export type EventAttachmentUpload = {
 
 export type EventSearchInput = {
   createdById?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-  endTime?: InputMaybe<EventTimeFilter>;
+  endTime?: InputMaybe<SearchTimeFilter>;
+  includeRemoved?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
-  range?: InputMaybe<EventTimeRange>;
+  range?: InputMaybe<SearchTimeRange>;
+  referenceIds?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Array<InputMaybe<EventStatus>>>;
+  venueIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 export type EventSearchResult = {
@@ -176,17 +180,6 @@ export enum EventStatus {
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Removed = 'REMOVED'
 }
-
-export type EventTimeFilter = {
-  gte?: InputMaybe<Scalars['String']['input']>;
-  lte?: InputMaybe<Scalars['String']['input']>;
-  value?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type EventTimeRange = {
-  endTime?: InputMaybe<EventTimeFilter>;
-  startTime?: InputMaybe<EventTimeFilter>;
-};
 
 export type InputAdminResetPassword = {
   password: Scalars['String']['input'];
@@ -218,12 +211,14 @@ export type LotteryCounter = {
   counter: Scalars['Int']['output'];
   createdAt: Scalars['String']['output'];
   docType: DocType;
+  end: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
+  start: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
 
@@ -722,6 +717,11 @@ export type QueryGroupedShiftsArgs = {
 };
 
 
+export type QueryLotteryCounterArgs = {
+  counter?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryMemberSkillsArgs = {
   input?: InputMaybe<MemberSkillSearchInput>;
 };
@@ -833,6 +833,17 @@ export type SearchInput = {
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SearchTimeFilter = {
+  gte?: InputMaybe<Scalars['String']['input']>;
+  lte?: InputMaybe<Scalars['String']['input']>;
+  value?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SearchTimeRange = {
+  endTime?: InputMaybe<SearchTimeFilter>;
+  startTime?: InputMaybe<SearchTimeFilter>;
 };
 
 export type Shift = {
@@ -993,13 +1004,23 @@ export enum ShiftReminderUnit {
 }
 
 export type ShiftSearchInput = {
+  assignedIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  createdById?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  daysOfWeek?: InputMaybe<Array<DayOfWeek>>;
   endTime?: InputMaybe<Scalars['String']['input']>;
+  eventIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   includeRemoved?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  queryField?: InputMaybe<Scalars['String']['input']>;
+  range?: InputMaybe<SearchTimeRange>;
+  rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Array<InputMaybe<ShiftStatus>>>;
   userId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1437,8 +1458,6 @@ export type ResolversTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
-  EventTimeFilter: EventTimeFilter;
-  EventTimeRange: EventTimeRange;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1477,6 +1496,8 @@ export type ResolversTypes = ResolversObject<{
   RankSearchInput: RankSearchInput;
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
   SearchInput: SearchInput;
+  SearchTimeFilter: SearchTimeFilter;
+  SearchTimeRange: SearchTimeRange;
   Shift: ResolverTypeWrapper<Shift>;
   ShiftAvailabilityTime: ResolverTypeWrapper<ShiftAvailabilityTime>;
   ShiftBuffer: ResolverTypeWrapper<ShiftBuffer>;
@@ -1545,8 +1566,6 @@ export type ResolversParentTypes = ResolversObject<{
   EventAttachmentUpload: EventAttachmentUpload;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
-  EventTimeFilter: EventTimeFilter;
-  EventTimeRange: EventTimeRange;
   ID: Scalars['ID']['output'];
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
@@ -1581,6 +1600,8 @@ export type ResolversParentTypes = ResolversObject<{
   RankSearchInput: RankSearchInput;
   RankSearchResult: RankSearchResult;
   SearchInput: SearchInput;
+  SearchTimeFilter: SearchTimeFilter;
+  SearchTimeRange: SearchTimeRange;
   Shift: Shift;
   ShiftAvailabilityTime: ShiftAvailabilityTime;
   ShiftBuffer: ShiftBuffer;
@@ -1703,6 +1724,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType>;
   lotteryNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1738,12 +1760,14 @@ export type LotteryCounterResolvers<ContextType = any, ParentType extends Resolv
   counter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  end?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1948,7 +1972,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType>;
+  lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   memberSkills?: Resolver<Maybe<ResolversTypes['MemberSkillSearchResult']>, ParentType, ContextType, Partial<QueryMemberSkillsArgs>>;

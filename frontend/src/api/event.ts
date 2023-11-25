@@ -64,6 +64,17 @@ export const GET_LOTTERY_COUNTER = gql`
   }
 `;
 
+export const GET_SELECTED_LOTTERY_COUNTER = gql`
+  query GetSelectedLotteryCounter($counter: Int!) {
+    lotteryCounter(counter: $counter) {
+      id
+      counter
+      start
+      end
+    }
+  }
+`;
+
 export const GET_EVENT_FOR_REPORT = gql`
 query GetEvent($id: String!) {
   event(id: $id) {
@@ -127,6 +138,13 @@ export const GET_EVENT = gql`
       startTime
       endTime
       createdById
+
+      lotteryCounter {
+        id
+        counter
+        start
+        end
+      }
 
       venue {
         id

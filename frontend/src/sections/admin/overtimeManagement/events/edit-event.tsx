@@ -28,6 +28,7 @@ import {
   Assignment,
   Event,
   EventStatus,
+  LotteryCounter,
   Shift,
   Venue,
   VenueStatus,
@@ -76,7 +77,7 @@ export default function EditEvent({ currentEvent }: Props) {
   const { user } = useAuthContext();
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
-    countValue: currentEvent?.lotteryNumber,
+    countValue: currentEvent?.lotteryCounter as LotteryCounter,
     dateLimit: currentEvent?.endTime || undefined,
   });
   const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any), [currentEvent?.status]);

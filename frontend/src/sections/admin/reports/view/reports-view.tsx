@@ -13,6 +13,7 @@ import EventsByDate from '../reports/events-by-date';
 import EventsByVenue from '../reports/events-by-venue';
 import ShiftsByEvent from '../reports/shifts-by-event';
 import ShiftsByOfficer from '../reports/shifts-by-officer';
+import ShiftsByDate from '../reports/shifts-by-date';
 
 enum ReportType {
   EVENTS_BY_DATE = 'EVENTS_BY_DATE',
@@ -49,6 +50,7 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
     case ReportType.SHIFTS_BY_OFFICER:
       return <ShiftsByOfficer />;
     case ReportType.SHIFTS_BY_DATE:
+      return <ShiftsByDate />;
     case ReportType.RANKED_SHIFTS_BY_OFFICER:
     case ReportType.RELINQUISHED_SHIFTS_BY_OFFICER:
     default:

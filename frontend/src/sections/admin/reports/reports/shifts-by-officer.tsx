@@ -84,7 +84,7 @@ export default function ShiftsByOfficer() {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
-    fileName: 'events-by-date',
+    fileName: 'shifts-by-officer',
     ext: 'csv',
   });
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
@@ -122,7 +122,6 @@ export default function ShiftsByOfficer() {
         query: GET_OFFICER_REPORT_SHIFTS,
         variables: {
           input: {
-            includeRemoved: true,
             userId: values.officer,
             ...(values.shiftStatus.length > 0 && { status: values.shiftStatus }),
             range: {
@@ -145,9 +144,9 @@ export default function ShiftsByOfficer() {
         return;
       }
       const formattedJson = shifts.map((shift: Shift) => ({
-        'Officer P#': shift.user?.member?.pNumber,
-        'Officer First Name': shift.user?.firstName,
-        'Officer Last Name': shift.user?.lastName,
+        'Officer P#': shift.user?.member?.pNumber || '',
+        'Officer First Name': shift.user?.firstName || '',
+        'Officer Last Name': shift.user?.lastName || '',
         'Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
         'Event Ref. #': shift?.event?.referenceId,
         'Event Created By P#': shift.event?.createdBy?.member?.pNumber || '',

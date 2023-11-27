@@ -350,6 +350,8 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
         startTime
         endTime
         status
+        removedAt
+        relinquishNote
         user {
           id
           firstName

@@ -13,6 +13,7 @@ import EventsByDate from '../reports/events-by-date';
 import EventsByVenue from '../reports/events-by-venue';
 import ShiftsByEvent from '../reports/shifts-by-event';
 import ShiftsByOfficer from '../reports/shifts-by-officer';
+import RelinquishedShiftsByOfficer from '../reports/relinquished-shifts-by-officer';
 import RankedShiftsByOfficer from '../reports/ranked-shifts-by-officer';
 import ShiftsByDate from '../reports/shifts-by-date';
 
@@ -55,6 +56,7 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
     case ReportType.RANKED_SHIFTS_BY_OFFICER:
       return <RankedShiftsByOfficer />
     case ReportType.RELINQUISHED_SHIFTS_BY_OFFICER:
+      return <RelinquishedShiftsByOfficer />;
     default:
       return null;
   }

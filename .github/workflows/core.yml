@@ -47,27 +47,27 @@ jobs:
         if: ${{ !startsWith(github.event.head_commit.message, env.RELEASE_PREFIX) }}
         run: yarn deploy --stage=${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }};
 
-      - uses: google-github-actions/release-please-action@v3
-        id: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          release-type: node
-          path: backend/core
-          monorepo-tags: true
-          package-name: core
-          commit-search-depth: 50
-          release-search-depth: 50
+      # - uses: google-github-actions/release-please-action@v3
+      #   id: release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      #   with:
+      #     release-type: node
+      #     path: backend/core
+      #     monorepo-tags: true
+      #     package-name: core
+      #     commit-search-depth: 50
+      #     release-search-depth: 50
 
-      - name: Configure Prod AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        if: ${{ steps.release.outputs.releases_created }}
-        with:
-          role-to-assume: arn:aws:iam::707495320920:role/GithubActionsDeploymentRole
-          aws-region: us-east-1
+      # - name: Configure Prod AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   if: ${{ steps.release.outputs.releases_created }}
+      #   with:
+      #     role-to-assume: arn:aws:iam::707495320920:role/GithubActionsDeploymentRole
+      #     aws-region: us-east-1
 
-      - name: Serverless deploy - Production
-        if: ${{ steps.release.outputs.releases_created }}
-        run: yarn deploy -s prod
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Serverless deploy - Production
+      #   if: ${{ steps.release.outputs.releases_created }}
+      #   run: yarn deploy -s prod
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -370,7 +370,7 @@ export class ShiftModel extends BaseModel<Shift> {
     }
 
     if (range) {
-      const { startTime, endTime } = range;
+      const { startTime, endTime, removedAt } = range;
       if (startTime && startTime.value) {
         (matchInput as any).startTime = new Date(startTime.value).getTime();
       } else if (startTime && (startTime.gte || startTime?.lte)) {
@@ -386,6 +386,15 @@ export class ShiftModel extends BaseModel<Shift> {
         (matchInput as any).endTime = {
           ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
           ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+        };
+      }
+
+      if (removedAt && removedAt.value) {
+        (matchInput as any).removedAt = new Date(removedAt.value).getTime();
+      } else if (removedAt && (removedAt.gte || removedAt?.lte)) {
+        (matchInput as any).removedAt = {
+          ...(removedAt.gte ? { $gte: new Date(removedAt.gte).getTime() } : {}),
+          ...(removedAt.lte ? { $lte: new Date(removedAt.lte).getTime() } : {}),
         };
       }
     } else if (startTime || endTime) {

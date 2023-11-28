@@ -77,11 +77,8 @@ export default function RelinquishedShiftsByOfficer() {
             userId: values.officer,
             ...(values.relinquishedDateRange && {
               range: {
-                // This searches start time of shift, we need removedAt filter
-                startTime: {
+                removedAt: {
                   gte: values.relinquishedDateRange[0].toDate().toISOString(),
-                },
-                endTime: {
                   lte: values.relinquishedDateRange[1].toDate().toISOString(),
                 },
               },

@@ -935,6 +935,7 @@
   input SearchTimeRange {
     startTime: SearchTimeFilter
     endTime: SearchTimeFilter
+    removedAt: SearchTimeFilter
   }
 
   input EventSearchInput {
@@ -964,6 +965,7 @@
     queryField: String
     userId: String
     range: SearchTimeRange
+    rangeField: String
     daysOfWeek: [DayOfWeek!]
     rankIds: [String]
     skillIds: [String]

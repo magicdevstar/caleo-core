@@ -13,6 +13,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // routes
@@ -323,7 +324,7 @@ export default function EditAssignment({
 
           <Stack spacing={3} sx={{ p: 3 }}>
             <RHFTextField disabled={allDisabled} name="name" label="Name" />
-            
+
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
               <RHFEditor simple name="description" />
@@ -337,9 +338,11 @@ export default function EditAssignment({
               disableCloseOnSelect
               helperText="Leave empty to not require any shifts"
               options={(skills || [])}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
               getOptionLabel={(skill: any) => skill?.name}
-              renderOption={(props, option) => (
+              renderOption={(props, option, { selected }) => (
                 <li {...props} key={option?.id}>
+                  <Checkbox style={{ marginRight: 8 }} checked={selected} />
                   {option?.name}
                 </li>
               )}
@@ -366,8 +369,10 @@ export default function EditAssignment({
               helperText="Enter the ranks that are allowed to work this assignment"
               options={(ranks || [])}
               getOptionLabel={(rank: any) => rank?.name}
-              renderOption={(props, option) => (
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderOption={(props, option, { selected }) => (
                 <li {...props} key={option?.id}>
+                  <Checkbox style={{ marginRight: 8 }} checked={selected} />
                   {option?.name}
                 </li>
               )}

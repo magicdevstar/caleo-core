@@ -63,8 +63,6 @@ export const shift = {
         orgId: user?.member.orgId!,
         order: 'desc',
         orderBy: '_id',
-        includeRemoved: true,
-        status: {$in: [ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked]},
       });
       return items;
     },

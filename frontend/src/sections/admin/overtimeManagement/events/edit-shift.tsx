@@ -27,7 +27,14 @@ import { useSnackbar } from 'src/components/snackbar';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
-import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_GROUPED_SHIFTS, NOTIFY_OF_SHIFT, REMOVE_SHIFT, UPSERT_SHIFTS } from 'src/api/shifts';
+import {
+  ASSIGN_SHIFT,
+  GET_ALL_SHIFTS,
+  GET_GROUPED_SHIFTS,
+  NOTIFY_OF_SHIFT,
+  REMOVE_SHIFT,
+  UPSERT_SHIFTS
+} from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';

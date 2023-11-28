@@ -433,6 +433,12 @@ export default function EditEvent({ currentEvent }: Props) {
         maxRender: 1
       },
       {
+        id: 'bwNeeded',
+        label: 'B&W',
+        width: '7.5%',
+        columnType: 'boolean',
+      },
+      {
         id: 'startTime',
         label: 'Start',
         columnType: 'date',
@@ -452,7 +458,7 @@ export default function EditEvent({ currentEvent }: Props) {
       },
       {
         id: 'shifts',
-        width: '15%',
+        width: '7.5%',
         label: 'Open Shifts',
         // TODO: Add calculation to backend resolvers
         columnType: 'string',

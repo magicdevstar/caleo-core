@@ -82,15 +82,14 @@ export default function EditEvent({ currentEvent }: Props) {
     dateLimit: currentEvent?.endTime || undefined,
   });
   const lotteryInfo = useMemo(() => {
-    if (currentEvent?.lotteryNumber && lotteryCounterOptions.length > 0) {
+    if (typeof currentEvent?.lotteryNumber === 'number' && lotteryCounterOptions.length > 0) {
       const foundCounterOption = lotteryCounterOptions.find(({ counter }) => counter === currentEvent?.lotteryNumber);
       if (foundCounterOption) {
-        return `${foundCounterOption.time}\n${foundCounterOption.endTime}`;
+        return `Lottery Start: ${foundCounterOption.time}\nLottery End: ${foundCounterOption.endTime}`;
       }
     }
     return '';
   }, [lotteryCounterOptions, currentEvent]);
-  console.log(lotteryCounterOptions, currentEvent?.lotteryNumber, lotteryInfo);
   const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any), [currentEvent?.status]);
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -572,22 +571,25 @@ export default function EditEvent({ currentEvent }: Props) {
                 </RHFSelect>
 
                 {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
-                  <DateTimePicker
-                    label="First come first serve start time"
-                    ampm={false}
-                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                    timezone={user.member.org?.timezone}
-                    value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
-                    onChange={(date) => {
-                      setValue('scheduledFirstComeFirstServe', date ? dayjs(date).toISOString() : '')
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        margin: 'normal',
-                      },
-                    }}
-                  />
+                  <Box>
+                    <DateTimePicker
+                      label="First come first serve start time"
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      timezone={user.member.org?.timezone}
+                      value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
+                      onChange={(date) => {
+                        setValue('scheduledFirstComeFirstServe', date ? dayjs(date).toISOString() : '')
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          margin: 'normal',
+                        },
+                      }}
+                    />
+                    <Typography color="grey" variant='caption' sx={{ whiteSpace: 'pre-line' }}>{ lotteryInfo }</Typography>
+                  </Box>
                 )}
 
                 {currentFormValues && currentFormValues.status === EventStatus.ReadyForLottery && (

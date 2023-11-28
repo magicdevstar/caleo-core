@@ -401,9 +401,10 @@ export class ShiftModel extends BaseModel<Shift> {
     }
 
     if (daysOfWeek) {
-      (matchInput as any).$or = daysOfWeek.map((day: DayOfWeek) => ({
-        [`availability.${day.toLowerCase()}`]: { $exists: true },
+      const $or = daysOfWeek.map((day: DayOfWeek) => ({
+        [`availability.${day.toLowerCase()}.startTime`]: { $exists: true },
       }));
+      (matchInput as any).$and = [{$or}];
     }
 
     if (!includeRemoved) {

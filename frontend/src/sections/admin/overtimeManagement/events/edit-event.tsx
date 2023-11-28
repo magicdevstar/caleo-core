@@ -427,7 +427,7 @@ export default function EditEvent({ currentEvent }: Props) {
       {
         id: 'requiredSkills',
         label: 'Skills',
-        width: '15%',
+        width: '10%',
         noSort: true,
         columnType: 'array',
         maxRender: 1
@@ -442,6 +442,12 @@ export default function EditEvent({ currentEvent }: Props) {
         id: 'endTime',
         label: 'End',
         columnType: 'date',
+        width: '10%',
+      },
+      {
+        id: 'bwNeeded',
+        label: 'B&W',
+        columnType: 'boolean',
         width: '10%',
       },
       {

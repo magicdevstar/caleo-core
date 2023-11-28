@@ -216,6 +216,7 @@ export const GET_EVENT = gql`
       assignments {
         id
         name
+        bwNeeded
         ranks {
           id
           name

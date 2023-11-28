@@ -163,6 +163,14 @@ export const UPSERT_MEMBER_SKILL = gql`
   }
 `;
 
+export const SEND_INVITATION = gql`
+  mutation InviteUser($user: InviteUser!) {
+    inviteUser(user: $user) {
+      id
+    }
+  }
+`;
+
 export const REMOVE_MEMBER_SKILL = gql`
   mutation RemoveMemberSkill($id: String!) {
     removeUserSkill(id: $id)
@@ -199,6 +207,11 @@ export const GET_USERS = gql`
         name
         member {
           pNumber
+          contactInfo {
+            primaryEmail {
+              address
+            }
+          }
           rank {
             id
             name

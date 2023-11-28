@@ -12,6 +12,7 @@ params:
     pinpointId: d169e35fcb7d4f06b26da89e5650905a
     fromEmail: support@dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
+    registerUrl: https://dev.caleopro.com/auth/register
   prod:
     dbName: caleo-prod
     poolName: lvmpd-oms-prod
@@ -20,6 +21,7 @@ params:
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: support@caleopro.com
     loginUrl: https://caleopro.com/auth/login
+    registerUrl: https://caleopro.com/auth/register
 
 provider:
   name: aws
@@ -54,6 +56,7 @@ provider:
     PINPOINT_ID: ${param:pinpointId}
     FROM_EMAIL: ${param:fromEmail}
     LOGIN_URL: ${param:loginUrl}
+    REGISTER_URL: ${param:registerUrl}
   iam:
     role:
       statements:

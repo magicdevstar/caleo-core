@@ -34,21 +34,12 @@ import { fData } from 'src/utils/format-number';
 import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
+import { roleNames, tierNames } from 'src/utils/mapped.enums';
 
 // ----------------------------------------------------------------------
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const tierNames = {
-  [MemberTier.Tier_1]: 'Tier 1',
-  [MemberTier.Tier_2]: 'Tier 2',
-}
-
-const roleNames = {
-  [MemberRole.Admin]: 'Admin',
-  [MemberRole.Member]: 'Member',
-}
 
 const statusNames = {
   [MemberStatus.Active]: 'Active',

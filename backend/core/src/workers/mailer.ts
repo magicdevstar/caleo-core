@@ -807,6 +807,20 @@ const sendEmail = async (input: MailerEvent) => {
         logger.warn('No users found', { input });
         return;
       }
+    } else if (input.template === MailerEvents.OfficerUserAccountInvitation) {
+      const { inviteEmail, user, organization } = input.data;
+
+      Addresses = {
+        [inviteEmail]: {
+          ChannelType: 'EMAIL',
+          Substitutions: {
+            "admin.first_name": [user.firstName],
+            "admin.last_name": [user.lastName],
+            "system.metro_name": [organization.name],
+            "system.registration_url": [`${process.env.REGISTER_URL || ''}?orgId=${organization.id}&email=${inviteEmail}`],
+          },
+        },
+      };
     }
 
     if (Object.keys(Addresses).length === 0) {

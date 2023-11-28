@@ -5,14 +5,16 @@ import Button from '@mui/material/Button';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { RouterLink } from 'src/routes/components';
-import { paths } from 'src/routes/paths';
 import Iconify from 'src/components/iconify';
+import { useBoolean } from 'src/hooks/use-boolean';
 import UserTable from '../users/user-table';
+import InviteUserModal from '../inviteUser/invite-user-modal';
 
 // ----------------------------------------------------------------------
 
 export default function ProductListView() {
   const settings = useSettingsContext();
+  const inviteUser = useBoolean();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -25,7 +27,7 @@ export default function ProductListView() {
           <Button
             component={RouterLink}
             /* TODO Change the path */
-            href={paths.dashboard.root}
+            onClick={inviteUser.onTrue}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
@@ -38,6 +40,7 @@ export default function ProductListView() {
       />
 
       <UserTable />
+      <InviteUserModal inviteUser={inviteUser} />
     </Container>
   );
 }

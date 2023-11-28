@@ -9,64 +9,128 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
   try {
     const services = await createContext();
 
-    const user = await services.users.collection.findOne({
+    let user = await services.users.collection.findOne({
       cognitoId: event.userName,
     });
     if (!user) {
-      await services.users.create({
-        firstName: event.request.userAttributes.given_name,
-        lastName: event.request.userAttributes.family_name,
-        name: `${event.request.userAttributes.given_name} ${event.request.userAttributes.family_name}`,
-        cognitoId: event.userName,
-        superAdmin: false,
-        member: {
-          orgId: event.request.userAttributes['custom:org_id'],
-          pNumber: event.request.userAttributes['custom:p_number'],
-          role: event.request.userAttributes.role || MemberRole.Member,
-          tier: MemberTier.Tier_1,
-          status: MemberStatus.Pending,
-          contactInfo: {
-            primaryPhone: {
-              number: event.request.userAttributes.phone_number,
-              receiveTexts: true,
+      user = await services.users.collection.findOne({
+        'member.contactInfo.primaryEmail.address': event.request.userAttributes.email,
+      });
+      if (!user) {
+        await services.users.create({
+          firstName: event.request.userAttributes.given_name,
+          lastName: event.request.userAttributes.family_name,
+          name: `${event.request.userAttributes.given_name} ${event.request.userAttributes.family_name}`,
+          cognitoId: event.userName,
+          superAdmin: false,
+          member: {
+            orgId: event.request.userAttributes['custom:org_id'],
+            pNumber: event.request.userAttributes['custom:p_number'],
+            role: event.request.userAttributes.role || MemberRole.Member,
+            tier: MemberTier.Tier_1,
+            status: MemberStatus.Pending,
+            contactInfo: {
+              primaryPhone: {
+                number: event.request.userAttributes.phone_number,
+                receiveTexts: true,
+              },
+              primaryEmail: {
+                address: event.request.userAttributes.email,
+                receiveEmails: true,
+              },
             },
-            primaryEmail: {
-              address: event.request.userAttributes.email,
-              receiveEmails: true,
+            availability: {
+              monday: {
+                available: false,
+                times: [],
+              },
+              tuesday: {
+                available: false,
+                times: [],
+              },
+              wednesday: {
+                available: false,
+                times: [],
+              },
+              thursday: {
+                available: false,
+                times: [],
+              },
+              friday: {
+                available: false,
+                times: [],
+              },
+              saturday: {
+                available: false,
+                times: [],
+              },
+              sunday: {
+                available: false,
+                times: [],
+              },
             },
-          },
-          availability: {
-            monday: {
-              available: false,
-              times: [],
+          }
+        } as any);
+      } else {
+        user = {
+          ...user,
+          id: user._id.toString(),
+          firstName: event.request.userAttributes.given_name,
+          lastName: event.request.userAttributes.family_name,
+          name: `${event.request.userAttributes.given_name} ${event.request.userAttributes.family_name}`,
+          cognitoId: event.userName,
+          superAdmin: false,
+          member: {
+            orgId: event.request.userAttributes['custom:org_id'],
+            pNumber: event.request.userAttributes['custom:p_number'],
+            role: event.request.userAttributes.role || MemberRole.Member,
+            tier: user.member.tier || MemberTier.Tier_1,
+            rankId: user.member.rankId,
+            status: MemberStatus.Active,
+            contactInfo: {
+              primaryPhone: {
+                number: event.request.userAttributes.phone_number,
+                receiveTexts: true,
+              },
+              primaryEmail: {
+                address: event.request.userAttributes.email,
+                receiveEmails: true,
+              },
             },
-            tuesday: {
-              available: false,
-              times: [],
+            availability: {
+              monday: {
+                available: false,
+                times: [],
+              },
+              tuesday: {
+                available: false,
+                times: [],
+              },
+              wednesday: {
+                available: false,
+                times: [],
+              },
+              thursday: {
+                available: false,
+                times: [],
+              },
+              friday: {
+                available: false,
+                times: [],
+              },
+              saturday: {
+                available: false,
+                times: [],
+              },
+              sunday: {
+                available: false,
+                times: [],
+              },
             },
-            wednesday: {
-              available: false,
-              times: [],
-            },
-            thursday: {
-              available: false,
-              times: [],
-            },
-            friday: {
-              available: false,
-              times: [],
-            },
-            saturday: {
-              available: false,
-              times: [],
-            },
-            sunday: {
-              available: false,
-              times: [],
-            },
-          },
-        }
-      } as any);
+          }
+        } as any;
+        await services.users.update(user as any, { skipMerge: true });
+      }
     }
 
     if (user && user.removedAt) {

@@ -35,6 +35,7 @@
   enum MemberStatus {
     ACTIVE
     INACTIVE
+    DEACTIVATED
     PENDING
     REMOVED
     DELETED
@@ -109,7 +110,7 @@
 
   type User {
     id: ID!
-    cognitoId: String!
+    cognitoId: String
     firstName: String!
     lastName: String!
     name: String!
@@ -160,6 +161,11 @@
     member: NewMember
   }
 
+  input InviteUser {
+    email: String!
+    member: InviteMember!
+  }
+
   input NewUser {
     cognitoId: String!
     firstName: String!
@@ -182,6 +188,12 @@
     primaryEmail: NewEmail!
     secondaryPhone: NewPhone
     secondaryEmail: NewEmail
+  }
+
+  input InviteMember {
+    tier: MemberTier
+    role: MemberRole
+    rankId: String
   }
 
   input NewMember {
@@ -1101,6 +1113,7 @@ type Mutation {
 
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User
+  inviteUser(user: InviteUser!): User
   removeUser(id: String!): ID!
   profilePhotoUploadUrl: ProfilePhotoAttachmentUpload
   adminEditPassword(input: InputAdminResetPassword!): Boolean

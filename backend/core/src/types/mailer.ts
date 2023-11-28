@@ -32,6 +32,7 @@ export enum MailerEvents {
   AdminUserAccountRemoved = 'AdminUserAccountRemoved',
   OfficerRemovedFromShift = 'OfficerRemovedFromShift',
   OfficerShiftStartingNotification = 'OfficerShiftStartingNotification',
+  OfficerUserAccountInvitation = 'OfficerUserAccountInvitation',
 };
 
 export enum SMSEvents {

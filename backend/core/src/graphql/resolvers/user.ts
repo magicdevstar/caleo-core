@@ -1,3 +1,6 @@
+import { GraphQLError } from "graphql";
+import { ObjectId } from "mongodb";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Context } from "../../utils/createContext";
 import {
   Member,
@@ -9,11 +12,14 @@ import {
   MemberTier,
   InputAdminResetPassword,
   MemberRole,
+  InviteUser,
+  MemberStatus,
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { GraphQLError } from "graphql";
-import { ObjectId } from "mongodb";
+import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+
+const lambda = new LambdaClient();
 
 export const user = {
   Query: {
@@ -62,6 +68,54 @@ export const user = {
     }),
   },
   Mutation: {
+    inviteUser: async (
+      _parent: unknown,
+      { user: inputUser }: { user: InviteUser },
+      { users, user, organization }: Context
+    ): Promise<User> => {
+      const createdUser = await users.create({
+        cognitoId: '',
+        firstName: '',
+        lastName: '',
+        name: '',
+        superAdmin: false,
+        member: {
+          orgId: user?.member.orgId!,
+          pNumber: '',
+          role: inputUser.member.role || MemberRole.Member,
+          status: MemberStatus.Pending,
+          contactInfo: {
+            primaryPhone: {
+              number: '',
+              receiveTexts: true,
+            },
+            primaryEmail: {
+              address: inputUser.email,
+              receiveEmails: true,
+            },
+          },
+          tier: inputUser.member.tier || MemberTier.Tier_1,
+          rankId: inputUser.member.rankId,
+          maxShifts: organization?.settings?.shiftsPerWeek,
+        },
+      } as any);
+
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerUserAccountInvitation,
+          data: {
+            inviteEmail: inputUser.email,
+            user,
+            organization,
+          }
+        } as MailerEvent),
+      }));
+
+      return createdUser;
+    },
     newUser: async (
       _parent: unknown,
       { user }: { user: NewUser },

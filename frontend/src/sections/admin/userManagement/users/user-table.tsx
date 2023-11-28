@@ -60,9 +60,27 @@ export default function UserTable() {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        getHref: (row) => `/dashboard/admin/users/${row.id}`
+        renderValue: (_val, _index, row: User) => {
+          console.log(row);
+          if (row.name) {
+            return row.name;
+          }
+          return `${row.member.contactInfo?.primaryEmail.address || '-'}`;
+        },
+        getHref: (row) => {
+          if (row.name) {
+            return `/dashboard/admin/users/${row.id}`;
+          }
+          return window.location.pathname;
+        }
       },
-      { id: 'member.pNumber', label: 'P#', width: 200, columnType: 'string' },
+      {
+        id: 'member.pNumber',
+        label: 'P#',
+        width: 200,
+        columnType: 'string',
+        renderValue: (val) => val || '-',
+      },
       { id: 'member.rank.name', label: 'Rank', width: 160, columnType: 'string' },
       {
         id: 'member.tier',

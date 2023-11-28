@@ -15,12 +15,13 @@ import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
+import { useEventSummary } from 'src/hooks/use-event-summary';
 
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
   const navigate = useNavigate();
-
+  const { generateEventDownload } = useEventSummary();
   const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
     refetchQueries: [GET_ALL_EVENTS],
   });
@@ -63,6 +64,13 @@ export default function EventsTable() {
         getIcon: () => 'solar:pen-bold',
         onClick: (row: Event) => {
           navigate(`/dashboard/admin/overtime/events/${row.id}`);
+        },
+      },
+      {
+        getName: () => 'Summary',
+        getIcon: () => 'solar:file-download-bold',
+        onClick: (row: Event) => {
+          generateEventDownload(row.id);
         },
       },
       {

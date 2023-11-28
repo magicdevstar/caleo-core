@@ -120,6 +120,63 @@ query GetEvent($id: String!) {
 }
 `;
 
+export const GET_EVENT_FOR_SUMMARY = gql`
+  query GetEvent($id: String!) {
+    event(id: $id) {
+      id
+      referenceId
+      name
+      startTime
+      endTime
+      createdBy {
+        member {
+          pNumber
+        }
+      }
+      venue {
+        id
+        name
+      }
+      assignments {
+        id
+        name
+        requiredSkills {
+          id
+          name
+        }
+
+        ranks {
+          id
+          name
+        }
+        shifts {
+          id
+          startTime
+          endTime
+          status
+          user {
+            id
+            firstName
+            lastName
+            member {
+              pNumber
+              contactInfo {
+                primaryPhone {
+                  number
+                }
+                primaryEmail {
+                  address
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+  }
+`;
+
 export const GET_EVENT = gql`
   query GetEvent($id: String!) {
     event(id: $id) {

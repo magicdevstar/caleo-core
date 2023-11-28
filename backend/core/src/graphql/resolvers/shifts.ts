@@ -491,6 +491,7 @@ export const shift = {
   fields: {
     Shift: {
       ...commonResolvers,
+      createdBy: (shift: Shift, _, { users }: Context) => shift.createdById ? users.loader.load(shift.createdById) : null,
       org: (shift: Shift, _, { organizations }: Context) => organizations.loader.load(shift.orgId),
       event: (shift: Shift, _, { events }: Context) => events.loader.load(shift.eventId),
       assignment: (shift: Shift, _, { assignments }: Context) => assignments.loader.load(shift.assignmentId),

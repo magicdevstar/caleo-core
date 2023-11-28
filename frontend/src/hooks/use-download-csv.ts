@@ -6,8 +6,8 @@ export const useDownloadCsv = ({
   fileName,
   ext = 'csv',
 }: {
-  fileName: string;
-  ext: string;
+  fileName?: string;
+  ext?: string;
 }) => {
   const { user } = useAuthContext();
 
@@ -20,12 +20,12 @@ export const useDownloadCsv = ({
     return array.join("\n");
   };
 
-  const download = useCallback((data: Record<string, any>[]) => {
+  const download = useCallback((data: Record<string, any>[], name?: string) => {
     const text = convertToCSV(data);
     const element = document.createElement('a');
     element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`);
     const now = getNow({ organization: user?.member?.org! });
-    element.setAttribute('download', `${fileName}_${now.format('YYYY-MM-DD')}.${ext}`);
+    element.setAttribute('download', `${name || fileName}_${now.format('YYYY-MM-DD')}.${ext}`);
   
     element.style.display = 'none';
     document.body.appendChild(element);

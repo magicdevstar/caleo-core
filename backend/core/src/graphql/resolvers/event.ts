@@ -190,6 +190,7 @@ export const event = {
   fields: {
     Event: {
       ...commonResolvers,
+      createdBy: (event: Event, _, { users }: Context) => event.createdById ? users.loader.load(event.createdById) : null,
       org: (event: Event, _, { organizations }: Context) => organizations.loader.load(event.orgId),
       venue: (event: Event, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId) : null,
       assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),

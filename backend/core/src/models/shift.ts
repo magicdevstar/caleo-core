@@ -420,6 +420,10 @@ export class ShiftModel extends BaseModel<Shift> {
       (matchInput as any).removedAt = { $exists: false };
     }
 
+    if (status) {
+      (matchInput as any).status = { $in: status };
+    }
+
     const pipeline: any = [
       {
         $match: matchInput,

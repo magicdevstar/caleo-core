@@ -51,10 +51,14 @@ export const event = {
         if (endTime.value) {
           timeFilters.endTime = new Date(endTime.value).getTime();
         } else if (endTime.gte || endTime?.lte) {
-          timeFilters.endTime = {
-            ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
-            ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
-          };
+          $or.push({
+            endTime: {
+              ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
+              ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+            }
+          }, {
+            endTime: { $exists: false },
+          });
         }
       }
       if (createdById) {

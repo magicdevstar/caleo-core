@@ -113,6 +113,7 @@ export const event = {
         ...timeFilters,
         ...($or.length > 0 ? { $or } : {}),
         ...input,
+        queryField: 'searchAttribute',
       })
     }
   },
@@ -175,6 +176,8 @@ export const event = {
         orgId: user?.member.orgId!,
         modifiedById: user!.id,
       };
+
+      inputEvent.searchAttribute = `${inputEvent.referenceId} ${inputEvent.name}`;
 
       logger.info('Upsert event', { event: inputEvent });
       let finalEvent: any;

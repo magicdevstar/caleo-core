@@ -224,6 +224,7 @@
     id: ID!
     referenceId: String!
     name: String!
+    searchAttribute: String!
     attachmentPaths: [String]
     startTime: String
     endTime: String

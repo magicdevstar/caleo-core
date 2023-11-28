@@ -21,6 +21,14 @@ const dayMap: Record<string, number> = {
   saturday: 6,
 };
 
+export interface ILotteryCounterOption {
+  counter: number;
+  date: dayjs.Dayjs;
+  time: string;
+  endDate: dayjs.Dayjs;
+  endTime: string;
+}
+
 export const useLotteryCounterOptions = ({
   org,
   dateLimit,
@@ -32,7 +40,7 @@ export const useLotteryCounterOptions = ({
 }) => {
   const { data } = useQuery(GET_LOTTERY_COUNTER);
 
-  const options = useMemo(() => {
+  const options: ILotteryCounterOption[] = useMemo(() => {
     if (!org?.settings?.lottery?.enabled && data?.lotteryCounter) {
       return [];
     }

@@ -81,6 +81,16 @@ export default function EditEvent({ currentEvent }: Props) {
     countValue: currentEvent?.lotteryCounter as LotteryCounter,
     dateLimit: currentEvent?.endTime || undefined,
   });
+  const lotteryInfo = useMemo(() => {
+    if (currentEvent?.lotteryNumber && lotteryCounterOptions.length > 0) {
+      const foundCounterOption = lotteryCounterOptions.find(({ counter }) => counter === currentEvent?.lotteryNumber);
+      if (foundCounterOption) {
+        return `${foundCounterOption.time}\n${foundCounterOption.endTime}`;
+      }
+    }
+    return '';
+  }, [lotteryCounterOptions, currentEvent]);
+  console.log(lotteryCounterOptions, currentEvent?.lotteryNumber, lotteryInfo);
   const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any), [currentEvent?.status]);
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution

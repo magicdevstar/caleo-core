@@ -451,12 +451,6 @@ export default function EditEvent({ currentEvent }: Props) {
         width: '10%',
       },
       {
-        id: 'bwNeeded',
-        label: 'B&W',
-        columnType: 'boolean',
-        width: '10%',
-      },
-      {
         id: 'shifts',
         width: '7.5%',
         label: 'Open Shifts',

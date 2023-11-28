@@ -1001,6 +1001,7 @@
     order: String
     userId: String
     counters: [Int]
+    includeRemoved: Boolean
   }
 
   type ShiftBufferRequestsSearchResult {

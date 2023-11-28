@@ -58,8 +58,6 @@ export default function RankedShiftsByOfficer() {
     value: item.counter,
   }));
 
-  console.log(runDateOptions);
-
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
@@ -98,6 +96,7 @@ export default function RankedShiftsByOfficer() {
             counters: values.lotteryCounters,
             orderBy: 'createdAt',
             order: 'desc',
+            includeRemoved: true,
           },
         },
       });
@@ -187,7 +186,7 @@ export default function RankedShiftsByOfficer() {
             disableCloseOnSelect
             openOnFocus
             name="lotteryCounters"
-            label="Created By"
+            label="Lottery Date"
             limitTags={1}
             options={runDateOptions}
             loading={loadingLotteryRunDates}

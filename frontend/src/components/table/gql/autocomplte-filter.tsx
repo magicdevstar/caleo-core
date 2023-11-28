@@ -44,13 +44,7 @@ const AutoCompleteFilter = memo(({
       options={options}
       fullWidth
       value={filter.value}
-      onInputChange={(event, newInputValue) => {
-        console.log(newInputValue);
-      }}
       getOptionLabel={(option: any) => option.label}
-      onChange={(_, value) => {
-        // onFilters(filter.id, value);
-      }}
       renderInput={(params) => (
         <TextField
           {...params}

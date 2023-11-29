@@ -9,6 +9,7 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import Checkbox from '@mui/material/Checkbox';
 import LoadingButton from '@mui/lab/LoadingButton';
 // Types
 import { LotteryCounter, ShiftLotteryRequest, User } from 'src/__generated__/resolvers-types';
@@ -30,7 +31,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
     .test('officer-required', 'An Officer is required', (value) => !!value),
   lotteryCounters: Yup.array()
     .notRequired()
-    .transform((item: { label: string, value: number }[]) => item.map((v) => v.value)),
+    .transform((item: { label: string; value: number }[]) => item.map((v) => v.value)),
 });
 
 export default function RankedShiftsByOfficer() {
@@ -50,13 +51,18 @@ export default function RankedShiftsByOfficer() {
         order: 'desc',
         limit: 100,
       },
-    }
+    },
   });
 
-  const runDateOptions = (lotteryRunDates?.lotteryCounters?.items || []).map((item: LotteryCounter) => ({
-    label: `${convertDate({ date: item.start, user }).format(dateTimeFormat)} - ${convertDate({ date: item.end, user }).format(dateTimeFormat)}`,
-    value: item.counter,
-  }));
+  const runDateOptions = (lotteryRunDates?.lotteryCounters?.items || []).map(
+    (item: LotteryCounter) => ({
+      label: `${convertDate({ date: item.start, user }).format(dateTimeFormat)} - ${convertDate({
+        date: item.end,
+        user,
+      }).format(dateTimeFormat)}`,
+      value: item.counter,
+    })
+  );
 
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
     fetchPolicy: 'network-only',
@@ -75,7 +81,7 @@ export default function RankedShiftsByOfficer() {
     () =>
       ({
         officer: null,
-        lotteryCounters: undefined,
+        lotteryCounters: [],
       }) as any,
     []
   );
@@ -89,11 +95,11 @@ export default function RankedShiftsByOfficer() {
   const onSubmit = methods.handleSubmit(async (values) => {
     try {
       const { data: res } = await client.query({
-        query: GET_SHIFT_LOTTERY_REQUESTS_REPORT, // TODO: Need query to get all ranked shifts by user id
+        query: GET_SHIFT_LOTTERY_REQUESTS_REPORT,
         variables: {
           input: {
             userId: values.officer,
-            counters: values.lotteryCounters,
+            ...(values.lotteryCounters.length && { counters: values.lotteryCounters }),
             orderBy: 'createdAt',
             order: 'desc',
             includeRemoved: true,
@@ -112,7 +118,10 @@ export default function RankedShiftsByOfficer() {
         'Officer First Name': request.user?.firstName,
         'Officer Last Name': request.user?.lastName,
         'Officer P#': request.user?.member?.pNumber,
-        'Lottery Date': convertDate({ date: request.event?.lotteryCounter?.start || new Date(), user }).format(dateFormat),
+        'Lottery Date': convertDate({
+          date: request.event?.lotteryCounter?.start || new Date(),
+          user,
+        }).format(dateFormat),
         'Event Ref. #': request?.event?.referenceId,
         'Event Name': request?.event?.name || '',
         'Assignment Name': request.assignment?.name,
@@ -191,14 +200,14 @@ export default function RankedShiftsByOfficer() {
             options={runDateOptions}
             loading={loadingLotteryRunDates}
             filterOptions={(options, state) =>
-              options.filter(
-                (option: any) =>
-                  option.label.toLowerCase().includes(state.inputValue.toLowerCase())
+              options.filter((option: any) =>
+                option.label.toLowerCase().includes(state.inputValue.toLowerCase())
               )
             }
             isOptionEqualToValue={(option: any, item: any) => option.value === item.value}
             renderOption={(props, option, { selected }) => (
               <li {...props} key={option.value}>
+                <Checkbox style={{ marginRight: 8 }} checked={selected} />
                 {option.label}
               </li>
             )}

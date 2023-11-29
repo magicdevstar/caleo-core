@@ -422,6 +422,13 @@ export class ShiftModel extends BaseModel<Shift> {
 
     if (status) {
       (matchInput as any).status = { $in: status };
+      if (
+        status.includes(ShiftStatus.Relinquished) ||
+        status.includes(ShiftStatus.Removed) ||
+        status.includes(ShiftStatus.Unassigned)
+      ) {
+        delete (matchInput as any).removedAt;
+      }
     }
 
     const pipeline: any = [

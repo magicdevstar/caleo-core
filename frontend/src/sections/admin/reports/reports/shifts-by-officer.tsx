@@ -30,14 +30,6 @@ const shiftStatusOptions = [
     value: ShiftStatus.Assigned,
   },
   {
-    label: 'Available',
-    value: ShiftStatus.Available,
-  },
-  {
-    label: 'Locked',
-    value: ShiftStatus.Locked,
-  },
-  {
     label: 'Relinquished',
     value: ShiftStatus.Relinquished,
   },

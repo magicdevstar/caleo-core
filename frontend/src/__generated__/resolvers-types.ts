@@ -139,6 +139,7 @@ export type Event = {
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
+  searchAttribute: Scalars['String']['output'];
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
   updatedAt: Scalars['String']['output'];
@@ -206,6 +207,17 @@ export type InputUserAvailability = {
   wednesday: InputDayAvailability;
 };
 
+export type InviteMember = {
+  rankId?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<MemberRole>;
+  tier?: InputMaybe<MemberTier>;
+};
+
+export type InviteUser = {
+  email: Scalars['String']['input'];
+  member: InviteMember;
+};
+
 export type LotteryCounter = {
   __typename?: 'LotteryCounter';
   counter: Scalars['Int']['output'];
@@ -220,6 +232,12 @@ export type LotteryCounter = {
   removedAt?: Maybe<Scalars['String']['output']>;
   start: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+export type LotteryCounterSearchResult = {
+  __typename?: 'LotteryCounterSearchResult';
+  items?: Maybe<Array<Maybe<LotteryCounter>>>;
+  total: Scalars['Int']['output'];
 };
 
 export type LotteryDate = {
@@ -315,8 +333,8 @@ export type MemberSkillSearchResult = {
 
 export enum MemberStatus {
   Active = 'ACTIVE',
-  Deleted = 'DELETED',
   Inactive = 'INACTIVE',
+  Invited = 'INVITED',
   Pending = 'PENDING',
   Removed = 'REMOVED'
 }
@@ -332,6 +350,7 @@ export type Mutation = {
   assignment?: Maybe<Assignment>;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
+  inviteUser?: Maybe<User>;
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
   notifyUsersOfShift?: Maybe<Scalars['Boolean']['output']>;
@@ -376,6 +395,11 @@ export type MutationAssignmentArgs = {
 
 export type MutationEventArgs = {
   event: UpsertEvent;
+};
+
+
+export type MutationInviteUserArgs = {
+  user: InviteUser;
 };
 
 
@@ -660,6 +684,7 @@ export type Query = {
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
   lotteryCounter?: Maybe<LotteryCounter>;
+  lotteryCounters?: Maybe<LotteryCounterSearchResult>;
   lotteryShifts?: Maybe<ShiftSearchResult>;
   me?: Maybe<User>;
   memberSkills?: Maybe<MemberSkillSearchResult>;
@@ -722,6 +747,11 @@ export type QueryLotteryCounterArgs = {
 };
 
 
+export type QueryLotteryCountersArgs = {
+  input?: InputMaybe<SearchInput>;
+};
+
+
 export type QueryMemberSkillsArgs = {
   input?: InputMaybe<MemberSkillSearchInput>;
 };
@@ -754,6 +784,11 @@ export type QueryShiftArgs = {
 
 export type QueryShiftBufferRequestsArgs = {
   input?: InputMaybe<ShiftBufferRequestsSearchInput>;
+};
+
+
+export type QueryShiftLotteryRequestsArgs = {
+  input?: InputMaybe<ShiftLotteryRequestsSearchInput>;
 };
 
 
@@ -843,6 +878,7 @@ export type SearchTimeFilter = {
 
 export type SearchTimeRange = {
   endTime?: InputMaybe<SearchTimeFilter>;
+  removedAt?: InputMaybe<SearchTimeFilter>;
   startTime?: InputMaybe<SearchTimeFilter>;
 };
 
@@ -984,6 +1020,16 @@ export enum ShiftLotteryRequestStatus {
   Rejected = 'REJECTED'
 }
 
+export type ShiftLotteryRequestsSearchInput = {
+  counters?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  includeRemoved?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  userId?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ShiftLotteryRequestsSearchResult = {
   __typename?: 'ShiftLotteryRequestsSearchResult';
   items?: Maybe<Array<Maybe<ShiftLotteryRequest>>>;
@@ -1016,6 +1062,7 @@ export type ShiftSearchInput = {
   query?: InputMaybe<Scalars['String']['input']>;
   queryField?: InputMaybe<Scalars['String']['input']>;
   range?: InputMaybe<SearchTimeRange>;
+  rangeField?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   skip?: InputMaybe<Scalars['Int']['input']>;
@@ -1033,13 +1080,10 @@ export type ShiftSearchResult = {
 export enum ShiftStatus {
   Assigned = 'ASSIGNED',
   Available = 'AVAILABLE',
-  InProgress = 'IN_PROGRESS',
   Locked = 'LOCKED',
   Relinquished = 'RELINQUISHED',
   Removed = 'REMOVED',
-  Secured = 'SECURED',
-  Unassigned = 'UNASSIGNED',
-  Unfulfilled = 'UNFULFILLED'
+  Unassigned = 'UNASSIGNED'
 }
 
 export type Skill = {
@@ -1259,7 +1303,7 @@ export type UpsertVenueContact = {
 
 export type User = {
   __typename?: 'User';
-  cognitoId: Scalars['String']['output'];
+  cognitoId?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
   firstName: Scalars['String']['output'];
@@ -1464,7 +1508,10 @@ export type ResolversTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  InviteMember: InviteMember;
+  InviteUser: InviteUser;
   LotteryCounter: ResolverTypeWrapper<LotteryCounter>;
+  LotteryCounterSearchResult: ResolverTypeWrapper<LotteryCounterSearchResult>;
   LotteryDate: ResolverTypeWrapper<LotteryDate>;
   LotterySettings: ResolverTypeWrapper<LotterySettings>;
   Member: ResolverTypeWrapper<Member>;
@@ -1508,6 +1555,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
   ShiftLotteryRequest: ResolverTypeWrapper<ShiftLotteryRequest>;
   ShiftLotteryRequestStatus: ShiftLotteryRequestStatus;
+  ShiftLotteryRequestsSearchInput: ShiftLotteryRequestsSearchInput;
   ShiftLotteryRequestsSearchResult: ResolverTypeWrapper<ShiftLotteryRequestsSearchResult>;
   ShiftReminder: ResolverTypeWrapper<ShiftReminder>;
   ShiftReminderUnit: ShiftReminderUnit;
@@ -1572,7 +1620,10 @@ export type ResolversParentTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
+  InviteMember: InviteMember;
+  InviteUser: InviteUser;
   LotteryCounter: LotteryCounter;
+  LotteryCounterSearchResult: LotteryCounterSearchResult;
   LotteryDate: LotteryDate;
   LotterySettings: LotterySettings;
   Member: Member;
@@ -1610,6 +1661,7 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftBufferRequestsSearchResult: ShiftBufferRequestsSearchResult;
   ShiftDayTime: ShiftDayTime;
   ShiftLotteryRequest: ShiftLotteryRequest;
+  ShiftLotteryRequestsSearchInput: ShiftLotteryRequestsSearchInput;
   ShiftLotteryRequestsSearchResult: ShiftLotteryRequestsSearchResult;
   ShiftReminder: ShiftReminder;
   ShiftSearchInput: ShiftSearchInput;
@@ -1736,6 +1788,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  searchAttribute?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1769,6 +1822,12 @@ export type LotteryCounterResolvers<ContextType = any, ParentType extends Resolv
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   start?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type LotteryCounterSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotteryCounterSearchResult'] = ResolversParentTypes['LotteryCounterSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['LotteryCounter']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1855,6 +1914,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
+  inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
   notifyUsersOfShift?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>>;
@@ -1973,6 +2033,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
+  lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   memberSkills?: Resolver<Maybe<ResolversTypes['MemberSkillSearchResult']>, ParentType, ContextType, Partial<QueryMemberSkillsArgs>>;
@@ -1983,7 +2044,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<QueryShiftArgs, 'id'>>;
   shiftBufferRequests?: Resolver<Maybe<ResolversTypes['ShiftBufferRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftBufferRequestsArgs>>;
-  shiftLotteryRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType>;
+  shiftLotteryRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftLotteryRequestsArgs>>;
   shiftUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftUsersArgs, 'id'>>;
   shifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryShiftsArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
@@ -2174,7 +2235,7 @@ export type SkillSearchResultResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
-  cognitoId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  cognitoId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2265,6 +2326,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   LotteryCounter?: LotteryCounterResolvers<ContextType>;
+  LotteryCounterSearchResult?: LotteryCounterSearchResultResolvers<ContextType>;
   LotteryDate?: LotteryDateResolvers<ContextType>;
   LotterySettings?: LotterySettingsResolvers<ContextType>;
   Member?: MemberResolvers<ContextType>;

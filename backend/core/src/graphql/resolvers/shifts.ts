@@ -373,9 +373,10 @@ export const shift = {
       if (removingShiftUser) {
         // Create removed shift
         const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
-        const status = user!.id !== existingUserId && userIsAdmin(user) ?
-          ShiftStatus.Unassigned :
-          ShiftStatus.Relinquished;
+        let status = ShiftStatus.Relinquished;
+        if (existingUserId !== user!.id && userIsAdmin(user)) {
+          status = ShiftStatus.Unassigned;
+        }
         removedShift = await shifts.create({
           ...createShift,
           relinquishNote: note,
@@ -392,7 +393,7 @@ export const shift = {
 
       if (userId) {
         // Deny all open requests
-        // TODO: Move shift buffer request to another shift slot if one is available
+        // TODO: Maybe move shift buffer request to another shift slot if one is available
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
           shiftId: shift.id,
           modifiedById: user?.id!,
@@ -467,7 +468,7 @@ export const shift = {
             modifiedById: user?.id!,
           },
         });
-        
+
         await scheduler.updateScheduledEvent({
           event: ScheduleEvent.USER_TIER_RETURN,
           orgId: user?.member.orgId!,
@@ -496,47 +497,6 @@ export const shift = {
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
       user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
-      status: (shift: Shift, _, { organization }: Context) => {
-        if (shift.locked) {
-          return ShiftStatus.Locked;
-        }
-        // If the shift was removed
-        if (shift.removedAt) {
-          // The database will contain the unassigned or relinquished reason
-          if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned].includes(shift.status)) {
-            return shift.status;
-          }
-          return ShiftStatus.Removed;
-        }
-
-        const startTime = new Date(shift.startTime).getTime();
-        const endTime = new Date(shift.endTime).getTime();
-        
-        // If the shift is currently in progress
-        if (startTime < Date.now() && endTime > Date.now() && shift.userId) {
-          return ShiftStatus.InProgress;
-        }
-        // If the shift was assigned and is complete
-        if (endTime < Date.now() && shift.userId) {
-          return ShiftStatus.Secured;
-        }
-        // If the shift was not assigned and the shift has already started
-        if (startTime < Date.now() && !shift.userId) {
-          return ShiftStatus.Unfulfilled;
-        }
-
-        // If the shift has not started yet and is assigned
-        if (startTime > Date.now() && shift.userId) {
-          return ShiftStatus.Assigned;
-        }
-        // If the shift has not started yet and is not assigned
-        if (startTime > Date.now() && !shift.userId) {
-          return ShiftStatus.Available;
-        }
-
-        // Fallback to DB status 🤷‍♂️
-        return shift.status;
-      },
       lotteryRequest: (shift: Shift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
           userId: user?.id!,

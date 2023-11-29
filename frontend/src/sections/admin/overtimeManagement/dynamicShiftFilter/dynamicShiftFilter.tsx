@@ -110,10 +110,6 @@ export default function DynamicShiftFilter() {
               value: ShiftStatus.Available,
             },
             {
-              label: 'In Progress',
-              value: ShiftStatus.InProgress,
-            },
-            {
               label: 'Locked',
               value: ShiftStatus.Locked,
             },
@@ -126,16 +122,8 @@ export default function DynamicShiftFilter() {
               value: ShiftStatus.Removed,
             },
             {
-              label: 'Secured',
-              value: ShiftStatus.Secured,
-            },
-            {
               label: 'Unassigned',
               value: ShiftStatus.Unassigned,
-            },
-            {
-              label: 'Unfulfilled',
-              value: ShiftStatus.Unfulfilled,
             },
           ];
           // eslint-disable-next-line react/no-this-in-sfc

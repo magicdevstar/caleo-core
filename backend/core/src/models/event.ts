@@ -12,7 +12,6 @@ import { BaseModel } from './base';
 import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
-import { AssignmentModel } from './assignment';
 
 const lambda = new LambdaClient({});
 
@@ -44,6 +43,7 @@ export class EventModel extends BaseModel<Event> {
   }) {
     await this.remove(event.id, {
       modifiedById,
+      status: EventStatus.Removed,
     });
 
     await lambda.send(new InvokeCommand({

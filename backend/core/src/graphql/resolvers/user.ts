@@ -18,6 +18,8 @@ import {
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+import { ScheduleEvent } from "../../models/scheduler";
+import { format } from "date-fns";
 
 const lambda = new LambdaClient();
 
@@ -83,7 +85,7 @@ export const user = {
           orgId: user?.member.orgId!,
           pNumber: '',
           role: inputUser.member.role || MemberRole.Member,
-          status: MemberStatus.Pending,
+          status: MemberStatus.Invited,
           contactInfo: {
             primaryPhone: {
               number: '',
@@ -157,7 +159,12 @@ export const user = {
     user: async (
       _parent: unknown,
       { user }: { user: UpdateUser },
-      { organizations, users, user: reqUser }: Context
+      {
+        organization,
+        users,
+        user: reqUser,
+        scheduler,
+      }: Context
     ): Promise<User> => {
       const existingUser = await users.get(user.id);
 
@@ -166,9 +173,24 @@ export const user = {
       }
 
       let tierUpdates: any = {};
+      let tierSchedule: Promise<any> = Promise.resolve();
       if (user.member?.tier) {
         if (user.member.tier === MemberTier.Tier_2 && user.member.tierUntil) {
-          tierUpdates = { tierUntil: new Date(user.member.tierUntil).getTime() };
+          const tierReturnDate = new Date(user.member.tierUntil);
+          tierUpdates = { tierUntil: tierReturnDate.getTime() };
+          tierSchedule = scheduler.updateScheduledEvent({
+            event: ScheduleEvent.USER_TIER_RETURN,
+            orgId: organization!.id,
+            eventTime: `at(${format(tierReturnDate, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
+            eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+            customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user.id}`,
+            eventInput: JSON.stringify({
+              action: ScheduleEvent.USER_TIER_RETURN,
+              orgId: organization!.id,
+              userId: user.id,
+              tier: MemberTier.Tier_1,
+            }),
+          });
         } else {
           tierUpdates = { tierUntil: null };
         }
@@ -189,7 +211,9 @@ export const user = {
         modifiedById: reqUser!.id,
       };
 
-      return users.update(updateUser as any, { skipMerge: true });
+      const res = await users.update(updateUser as any, { skipMerge: true });
+      await tierSchedule;
+      return res;
     },
     profilePhotoUploadUrl: async (
       _parent: unknown,

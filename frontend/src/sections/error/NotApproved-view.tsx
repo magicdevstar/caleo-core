@@ -19,7 +19,7 @@ export default function NotApprovedView() {
   const { user, logout } = useAuthContext();
 
   useEffect(() => {
-    if (user && ![MemberStatus.Pending, MemberStatus.Deleted, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
+    if (user && ![MemberStatus.Pending, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
       router.replace('/');
     }
   }, [user, router]);

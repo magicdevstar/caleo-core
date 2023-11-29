@@ -15,6 +15,7 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
     if (!user) {
       user = await services.users.collection.findOne({
         'member.contactInfo.primaryEmail.address': event.request.userAttributes.email,
+        'member.status': MemberStatus.Invited,
       });
       if (!user) {
         await services.users.create({

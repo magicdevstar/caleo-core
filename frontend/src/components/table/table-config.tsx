@@ -107,10 +107,10 @@ export const getBooleanFilters = () => Promise.resolve([
 
 export const getStatusFilter = () => Promise.resolve([
   { value: MemberStatus.Active, label: 'Active' },
-  { value: MemberStatus.Inactive, label: 'InActive' },
+  { value: MemberStatus.Inactive, label: 'In Active' },
   { value: MemberStatus.Pending, label: 'Pending' },
+  { value: MemberStatus.Invited, label: 'Invited' },
   { value: MemberStatus.Removed, label: 'Removed' },
-  { value: MemberStatus.Deleted, label: 'Deleted' },
 ]);
 
 export const getTierFilter = () => Promise.resolve([

@@ -36,7 +36,7 @@ export default function AuthGuard({ children }: Props) {
       const href = `${loginPath}?${searchParams}`;
 
       router.replace(href);
-    } else if ([MemberStatus.Pending, MemberStatus.Deleted, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
+    } else if ([MemberStatus.Pending, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
       router.replace(paths.notApproved);
     } else {
       setChecked(true);

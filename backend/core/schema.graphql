@@ -35,10 +35,9 @@
   enum MemberStatus {
     ACTIVE
     INACTIVE
-    DEACTIVATED
     PENDING
+    INVITED
     REMOVED
-    DELETED
   }
 
   enum MemberRole {
@@ -295,19 +294,11 @@
     AVAILABLE
     # Assigned shifts that are not started
     ASSIGNED
-    # Shifts that are marked as removed and have status as RELINQUISHED
+    # Shifts that were unassigned via assigned user
     RELINQUISHED
-    # Shifts that are marked as removed and have status as UNASSIGNED
+    # Shifts that were unassigned via admin
     UNASSIGNED
-
-    # The rest fo these status are calculated
-    # Assigned shifts that are past the start date but not the end date
-    SECURED
-    # Assigned shifts that are past the start date but not the end date
-    IN_PROGRESS
-    # Unassigned shifts that are past the start date but not the end date
-    UNFULFILLED
-    # Shifts that were removed
+    # Shifts that were removed from an assignment
     REMOVED
     # Shifts that are marked as locked
     LOCKED

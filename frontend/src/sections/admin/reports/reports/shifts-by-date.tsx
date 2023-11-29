@@ -34,10 +34,6 @@ const shiftStatusOptions = [
     value: ShiftStatus.Available,
   },
   {
-    label: 'In Progress',
-    value: ShiftStatus.InProgress,
-  },
-  {
     label: 'Locked',
     value: ShiftStatus.Locked,
   },
@@ -50,16 +46,8 @@ const shiftStatusOptions = [
     value: ShiftStatus.Removed,
   },
   {
-    label: 'Secured',
-    value: ShiftStatus.Secured,
-  },
-  {
     label: 'Unassigned',
     value: ShiftStatus.Unassigned,
-  },
-  {
-    label: 'Unfulfilled',
-    value: ShiftStatus.Unfulfilled,
   },
 ];
 

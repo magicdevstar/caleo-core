@@ -60,11 +60,11 @@ const shiftsByOfficerSchema = Yup.object().shape({
       return !!hasMin && !!hasMax;
     }),
   shiftStatus: Yup.array()
-    .nullable()
     .of(Yup.mixed<(typeof shiftStatusOptions)[0] | string>())
     .transform((value: typeof shiftStatusOptions) => value.map((v) => v.value)),
   createdBy: Yup.array()
-    .nullable(),
+    .of(Yup.mixed<User | string>())
+    .transform((value: User[]) => value.map((v) => v.id)),
 });
 
 export default function ShiftsByDate() {
@@ -92,7 +92,7 @@ export default function ShiftsByDate() {
     () =>
       ({
         dateRange: undefined,
-        officer: null,
+        createdBy: [],
         shiftStatus: [],
       }) as any,
     []
@@ -110,7 +110,8 @@ export default function ShiftsByDate() {
         query: GET_OFFICER_REPORT_SHIFTS,
         variables: {
           input: {
-            userId: values.officer,
+            includeRemoved: true,
+            ...(values.createdBy.length > 0 && { createdById: values.createdBy }),
             ...(values.shiftStatus.length > 0 && { status: values.shiftStatus }),
             range: {
               startTime: {

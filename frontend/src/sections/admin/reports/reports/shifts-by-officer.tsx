@@ -102,6 +102,7 @@ export default function ShiftsByOfficer() {
         query: GET_OFFICER_REPORT_SHIFTS,
         variables: {
           input: {
+            includeRemoved: true,
             userId: values.officer,
             ...(values.shiftStatus.length > 0 && { status: values.shiftStatus }),
             range: {

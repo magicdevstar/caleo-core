@@ -221,10 +221,14 @@
     READY_FOR_LOTTERY
     # Event where shifts are available to sign up for whenever
     FIRST_COME_FIRST_SERVE
-    # Event is past the end date
-    COMPLETE
     # Event has removedAt set
     REMOVED
+
+    # Computed statuses
+    # Event is past the end date
+    COMPLETE
+    # Event is past the end date
+    PRE_FCFS
   }
 
   type EventAttachmentUpload {

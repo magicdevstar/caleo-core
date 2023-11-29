@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { useQuery } from "@apollo/client";
-import { unionBy } from "lodash";
+import { uniqBy } from "lodash";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { LotteryCounter, Organization } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
-import { convertDate, dateTimeFormat } from "./use-datejs";
+import { dateTimeFormat } from "./use-datejs";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -81,14 +81,8 @@ export const useLotteryCounterOptions = ({
     // If the lottery was in the past calculate the date it was run
     const opts: any[] = [];
     if (countValue) {
-      const oldLotteryStart = convertDate({
-        date: countValue.start,
-        user: { member: { org } },
-      });
-      const oldLotteryEnd = convertDate({
-        date: countValue.end,
-        user: { member: { org } },
-      });
+      const oldLotteryStart = dayjs.utc(countValue.start);
+      const oldLotteryEnd =  dayjs.utc(countValue.end);
       opts.push({
         counter: countValue.counter,
         date: oldLotteryStart,
@@ -111,7 +105,7 @@ export const useLotteryCounterOptions = ({
       }))
       .filter(({ date }) => !limit || limit.isAfter(date));
 
-    return unionBy([...opts, ...list], 'counter');
+    return uniqBy([...opts, ...list], 'counter');
   }, [data, org, dateLimit, countValue]);
 
   return {

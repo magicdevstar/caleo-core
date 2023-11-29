@@ -21,7 +21,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
-import { convertDate, dateFormat, timeFormat } from 'src/hooks/use-datejs';
+import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const shiftStatusOptions = [
@@ -141,10 +141,10 @@ export default function ShiftsByDate() {
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',
         'Event Start Date': shift.event?.startTime
-          ? convertDate({ date: shift.event.startTime, user }).format(dateFormat)
+          ? convertDate({ date: shift.event.startTime, user }).format(dateTimeFormat)
           : '',
         'Event End Date': shift.event?.endTime
-          ? convertDate({ date: shift.event.endTime, user }).format(dateFormat)
+          ? convertDate({ date: shift.event.endTime, user }).format(dateTimeFormat)
           : '',
         'Assignment Name': shift.assignment?.name,
         'Shift Start Date': shift.startTime

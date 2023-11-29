@@ -21,7 +21,7 @@ import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
 import { GET_ALL_EVENTS } from 'src/api/event';
-import { convertDate, dateFormat } from 'src/hooks/use-datejs';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const eventStatusOptions = [
@@ -126,8 +126,8 @@ export default function EventsByVenue() {
         'Event Name': event.name,
         'Event Ref. #': event.referenceId,
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
-        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format(dateFormat) : '',
-        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format(dateFormat) : '',
+        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format(dateTimeFormat) : '',
+        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format(dateTimeFormat) : '',
         'Event Status': event.status,
       }));
       download(formattedJson);

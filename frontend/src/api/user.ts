@@ -119,6 +119,7 @@ const userDetailProperties = `
     status
     tier
     tierUntil
+    tierResetOnNextLottery
     adminNote
     maxShifts
   }

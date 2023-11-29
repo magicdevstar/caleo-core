@@ -192,7 +192,10 @@ export const user = {
             }),
           });
         } else {
-          tierUpdates = { tierUntil: null };
+          tierUpdates = {
+            tierUntil: null,
+            tierResetOnNextLottery: false,
+          };
         }
       }
 

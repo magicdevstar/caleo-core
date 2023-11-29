@@ -272,6 +272,7 @@ export type Member = {
   role?: Maybe<MemberRole>;
   status?: Maybe<MemberStatus>;
   tier?: Maybe<MemberTier>;
+  tierResetOnNextLottery?: Maybe<Scalars['Boolean']['output']>;
   tierUntil?: Maybe<Scalars['String']['output']>;
 };
 
@@ -1862,6 +1863,7 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   role?: Resolver<Maybe<ResolversTypes['MemberRole']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['MemberStatus']>, ParentType, ContextType>;
   tier?: Resolver<Maybe<ResolversTypes['MemberTier']>, ParentType, ContextType>;
+  tierResetOnNextLottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   tierUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

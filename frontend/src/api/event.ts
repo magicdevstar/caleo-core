@@ -60,6 +60,8 @@ export const GET_LOTTERY_COUNTER = gql`
     lotteryCounter {
       id
       counter
+      start
+      end
     }
   }
 `;

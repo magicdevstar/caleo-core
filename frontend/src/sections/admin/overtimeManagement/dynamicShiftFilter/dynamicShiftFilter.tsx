@@ -52,12 +52,14 @@ export default function DynamicShiftFilter() {
         label: 'Event Name',
         columnType: 'string',
         width: 300,
+        noSort: true,
       },
       {
         id: 'assignment.name',
         label: 'Shift Name',
         columnType: 'string',
         width: 300,
+        noSort: true,
       },
       {
         id: 'status',
@@ -69,6 +71,7 @@ export default function DynamicShiftFilter() {
         id: 'user.name',
         label: 'Assigned To',
         columnType: 'string',
+        noSort: true,
         renderValue(_value, _index, row) {
           if (row.user) {
             let phoneNumber = row.user?.member?.contactInfo?.primaryPhone?.number;

@@ -69,7 +69,7 @@ export class UserModel extends BaseModel<User> {
   }: InputAdminResetPassword) {
     try {
       const user = await this.get(userId);
-      if (!user) {
+      if (!user || !user.cognitoId) {
         throw new GraphQLError('User not found');
       }
       const { cognitoId } = user;
@@ -503,6 +503,46 @@ export class UserModel extends BaseModel<User> {
       logger.error('Failed to reset user tier', { error });
     }
   }
+
+  async setTiersPostLottery({
+    tier1Assignments,
+    orgId,
+  }: {
+    tier1Assignments: string[];
+    orgId: string;
+  }) {
+    try {
+      const setTier1Res = await this.collection.updateMany({
+        'member.orgId': orgId,
+        tier: MemberTier.Tier_2,
+        tierResetOnNextLottery: true,
+      }, {
+        $set: {
+          tier: MemberTier.Tier_1,
+          tierUntil: null,
+        },
+      });
+      logger.info('Set tier 1 res', { setTier1Res });
+      if (tier1Assignments.length === 0) {
+        const setTier2Res = await this.collection.updateMany({
+          tier: MemberTier.Tier_1,
+          'member.orgId': orgId,
+          _id: {
+            $in: tier1Assignments.map((id) => new ObjectId(id)),
+          }
+        }, {
+          $set: {
+            tier: MemberTier.Tier_2,
+            tierUntil: null,
+            tierRestOnNextLottery: true,
+          },
+        });
+        logger.info('Set tier 2 res', { setTier2Res });
+      }
+    } catch(error) {
+      logger.error('Failed to set tiers post lottery', { error });
+    }
+  };
 
   async getDownloadUrl(attachmentPath: string) {
     return this.document.getDownloadUrl(attachmentPath);

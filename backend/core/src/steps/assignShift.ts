@@ -3,7 +3,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
 
 import logger from '../utils/logger';
-import { DocType, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
+import { DocType, MemberTier, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
 
 interface InputEvent {
@@ -28,6 +28,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
     requests,
   });
 
+  const tier1Assignments = new Set<string>();
   const shiftAssignments: any[] = [];
   const acceptedRequestIds: ObjectId[] = [];
   // Loop through requests, check if user can sign up for shift and assign the shift if so
@@ -58,6 +59,10 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
           },
         });
         acceptedRequestIds.push(new ObjectId(request._id));
+
+        if (request.user?.member?.tier === MemberTier.Tier_1) {
+          tier1Assignments.add(request.user.id);
+        }
       }
     }
     // If we don't have any more shifts to assign break here
@@ -96,6 +101,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
 
   return {
     orgId: organization?.id,
+    tier1Assignments: [...tier1Assignments],
   };
 };
 

@@ -90,6 +90,7 @@
     contactInfo: ContactInfo
     tier: MemberTier
     tierUntil: String
+    tierResetOnNextLottery: Boolean
     rankId: String
     memberSkillIds: [String]
     adminNote: String

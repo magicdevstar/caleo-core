@@ -135,6 +135,9 @@ functions:
   finalizeLottery:
     handler: src/steps/finalizeLottery.handler
     timeout: 300
+  postFCFSShifts:
+    handler: src/steps/postFCFSShifts.handler
+    timeout: 300
   
   shiftNotificationScheduler:
     handler: src/workers/shiftNotificationScheduler.handler
@@ -203,10 +206,18 @@ stepFunctions:
                     Fn::GetAtt: [assignShift, Arn]
                   End: true
             Next: FinalizeLottery
-          # Change this to set all lotto shifts as FCFS now :)
           FinalizeLottery:
             Type: Task
             Resource:
               Fn::GetAtt: [finalizeLottery, Arn]
+            Next: FCFSDelay
+          FCFSDelay:
+            Type: Wait
+            TimestampPath: $.fcfsDelay
+            Next: PostFCFSShifts
+          PostFCFSShifts:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [postFCFSShifts, Arn]
             End: true
   validate: true

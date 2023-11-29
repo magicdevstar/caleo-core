@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -35,6 +35,8 @@ import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/re
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames, tierNames } from 'src/utils/mapped.enums';
+import { GET_LOTTERY_COUNTER } from 'src/api/event';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -51,11 +53,13 @@ const statusNames = {
 // eslint-disable-next-line prefer-arrow-callback
 const DatePicker = memo(function PickMeComponent({
   tz,
+  helperText,
   disabled,
   tierUntil,
   setTierUntil,
 }: {
   tz: string;
+  helperText?: string;
   disabled?: boolean;
   tierUntil: Date | null;
   setTierUntil: any;
@@ -81,6 +85,7 @@ const DatePicker = memo(function PickMeComponent({
         textField: {
           fullWidth: true,
           margin: 'normal',
+          helperText,
         },
       }}
     />
@@ -94,6 +99,7 @@ export default function AccountGeneral({
   user: FrontendUser;
   adminViewer: boolean;
 }) {
+  const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
 
@@ -107,6 +113,14 @@ export default function AccountGeneral({
     },
   });
   const { ranks: { items: ranks } } = data || { ranks: { items: [] } };
+
+  const tierUntilHelpText = useMemo(() => {
+    if (user.member.tier === MemberTier.Tier_1) {
+      return '';
+    }
+    const lotteryEnd = convertDate({ date: lotteryData?.lotteryCounter?.endDate, user });
+    return `Tier will expire on ${lotteryEnd.format(dateTimeFormat)}`;
+  }, [user, lotteryData?.lotteryCounter]);
 
   const UpdateUserSchema = Yup.object().shape({
     firstName: Yup.string().required('First name is required'),
@@ -434,6 +448,7 @@ export default function AccountGeneral({
                 disabled={!adminViewer}
                 tz={user?.member?.org?.timezone!}
                 tierUntil={tierUntil}
+                helperText={tierUntilHelpText}
                 setTierUntil={(value: any) => setValue('tierUntil', value)}
               />
             </Box>

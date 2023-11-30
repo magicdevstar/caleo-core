@@ -1,6 +1,7 @@
 import get from 'lodash/get';
 import { Link as RouterLink } from "react-router-dom";
 // @mui
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
@@ -126,32 +127,34 @@ const StringCell = ({value, labelColor, href, onClick, width, clickable} : { wid
 const ArrayCell = ({value, emptyArrayLabel, width, maxRender} : {width?: number | string; emptyArrayLabel?: string; value: string[]; maxRender: number;}) => {
   const arr = !value ? [] : (value || []).filter(Boolean);
   return (
-    <TableCell width={width}>
-      {arr.length === 0 ? (
-        <Label variant="soft" color="info">
-          {emptyArrayLabel || 'All'}
-        </Label>
-      ) :
-        (
-          <>
-            {
-              arr.slice(0, maxRender).map((rank: any) => (
-                <Label key={rank.id} sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
-                  {rank.name}
-                </Label>
-              ))
-            }
-            {
-              arr.length > maxRender && (
-                <Label sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
-                  + {(arr.length - maxRender)}
-                </Label>
-              )
-            }
-          </>
-        )
-      }
-    </TableCell>
+    <Tooltip title={arr.length > maxRender ? arr.map((thing: any) => thing.name).join(', ') : ''} placement='left'>
+      <TableCell width={width}>
+        {arr.length === 0 ? (
+          <Label variant="soft" color="info">
+            {emptyArrayLabel || 'All'}
+          </Label>
+        ) :
+          (
+            <>
+              {
+                arr.slice(0, maxRender).map((rank: any) => (
+                  <Label key={rank.id} sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
+                    {rank.name}
+                  </Label>
+                ))
+              }
+              {
+                arr.length > maxRender && (
+                  <Label sx={{ mb: 1, mr: 1 }} variant="soft" color="info">
+                    + {(arr.length - maxRender)}
+                  </Label>
+                )
+              }
+            </>
+          )
+        }
+      </TableCell>
+    </Tooltip>
   )
 };
 

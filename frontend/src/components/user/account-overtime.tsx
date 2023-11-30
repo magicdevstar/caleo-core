@@ -199,7 +199,7 @@ export default function AccountOvertime({
                     }
                     dayOfWeekValue.times!.push({
                       startTime: new Date(0).toISOString(),
-                      endTime: new Date(0).toISOString(),
+                      endTime: new Date(0).toISOString().replace('T00:00', 'T23:59'),
                     });
                     return {
                       ...current,

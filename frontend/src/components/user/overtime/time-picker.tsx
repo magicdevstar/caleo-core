@@ -5,6 +5,8 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import Stack from '@mui/material/Stack';
 import Button from "@mui/material/Button";
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Tooltip from '@mui/material/Tooltip';
 // components
 import Iconify from 'src/components/iconify/iconify';
 // types
@@ -51,6 +53,25 @@ export default function AccountTimePicker({
                 textField: {
                   fullWidth: true,
                   margin: 'normal',
+                  InputProps: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Tooltip title="Set to beginning of day" placement='left'>
+                          <Iconify
+                            sx={{ cursor: 'pointer' }}
+                            icon="mdi:refresh"
+                            onClick={() => {
+                              setTime({
+                                key: 'startTime',
+                                value: dayjs.utc(time.startTime).startOf('day').toDate(),
+                                index,
+                              });
+                            }}
+                          />
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  },
                 },
               }}
             />
@@ -70,6 +91,25 @@ export default function AccountTimePicker({
                 textField: {
                   fullWidth: true,
                   margin: 'normal',
+                  InputProps: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Tooltip title="Set to end of day" placement='left'>
+                          <Iconify
+                            sx={{ cursor: 'pointer' }}
+                            icon="mdi:refresh"
+                            onClick={() => {
+                              setTime({
+                                key: 'endTime',
+                                value: dayjs.utc(time.endTime).set('hours', 23).set('minutes', 59).toDate(),
+                                index,
+                              });
+                            }}
+                          />
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  },
                 },
               }}
             />

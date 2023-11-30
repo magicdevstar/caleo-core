@@ -39,7 +39,7 @@ export default function DynamicShiftFilter() {
         id: 'refNumber',
         label: 'Shift Ref #',
         columnType: 'string',
-        width: 10,
+        width: 150,
       },
       {
         id: 'startTime',
@@ -68,6 +68,23 @@ export default function DynamicShiftFilter() {
         noSort: true,
       },
       {
+        id: 'assignment.ranks',
+        label: 'Ranks',
+        emptyArrayLabel: 'None',
+        width: 100,
+        noSort: true,
+        columnType: 'array',
+        maxRender: 1
+      },
+      {
+        id: 'assignment.requiredSkills',
+        label: 'Skills',
+        width: 100,
+        noSort: true,
+        columnType: 'array',
+        maxRender: 1
+      },
+      {
         id: 'status',
         label: 'Status',
         columnType: 'string',
@@ -77,6 +94,7 @@ export default function DynamicShiftFilter() {
         id: 'user.name',
         label: 'Assigned To',
         columnType: 'string',
+        width: 100,
         noSort: true,
         renderValue(_value, _index, row) {
           if (row.user) {
@@ -90,6 +108,13 @@ export default function DynamicShiftFilter() {
           }
           return 'Not Assigned';
         },
+      },
+      {
+        id: 'createdBy.member.pNumber',
+        label: 'Created By',
+        width: 100,
+        columnType: 'string',
+        noSort: true,
       }
     ],
     filters: [

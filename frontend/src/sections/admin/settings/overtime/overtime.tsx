@@ -215,6 +215,7 @@ export default function Overtime({
                     label="Open"
                     timezone='UTC'
                     ampm={false}
+                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.open.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.open.time', newValue);
@@ -251,6 +252,7 @@ export default function Overtime({
                     label="Close"
                     timezone='UTC'
                     ampm={false}
+                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.close.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.close.time', newValue);

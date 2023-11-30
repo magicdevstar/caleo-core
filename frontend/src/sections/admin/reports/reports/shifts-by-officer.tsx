@@ -152,7 +152,10 @@ export default function ShiftsByOfficer() {
         'Shift End Time': shift.endTime
           ? convertDate({ date: shift.endTime, user }).format(timeFormat)
           : '',
-        Status: shift.status,
+        Status:
+          Object.keys(ShiftStatus).find(
+            (status) => ShiftStatus[status as keyof typeof ShiftStatus] === shift.status
+          ) || shift.status,
       }));
       download(formattedJson);
     } catch (error) {

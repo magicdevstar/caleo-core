@@ -12,7 +12,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import LoadingButton from '@mui/lab/LoadingButton';
 // Types
-import { Assignment, Event, Shift } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, Shift, ShiftStatus } from 'src/__generated__/resolvers-types';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // components
@@ -27,7 +27,7 @@ const eventsByShiftSchema = Yup.object().shape({
   event: Yup.mixed<Event | string>()
     .nullable()
     .transform((value: Event) => value?.id)
-    .test('event-required','You must specify an Event', (value) => !!value),
+    .test('event-required', 'You must specify an Event', (value) => !!value),
 });
 
 export default function ShiftsByEvent() {
@@ -38,11 +38,7 @@ export default function ShiftsByEvent() {
     ext: 'csv',
   });
 
-  const {
-    text,
-    setText,
-    debouncedText,
-  } = useDebounceText({ ms: 500 });
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
 
   const inputFields = useMemo(() => {
     const trimmedValue = debouncedText.trim();
@@ -55,13 +51,13 @@ export default function ShiftsByEvent() {
         key = 'referenceIds';
         value = number;
       }
-    } catch(error) {
+    } catch (error) {
       console.error('Not a number');
     }
 
     return {
       key,
-      value
+      value,
     };
   }, [debouncedText]);
 
@@ -75,9 +71,13 @@ export default function ShiftsByEvent() {
   });
   const options = useMemo(() => data?.events?.items || [], [data]);
 
-  const defaultValues = useMemo(() => ({
-    event: null,
-  } as any), []);
+  const defaultValues = useMemo(
+    () =>
+      ({
+        event: null,
+      }) as any,
+    []
+  );
 
   const methods = useForm({
     mode: 'onTouched',
@@ -99,39 +99,55 @@ export default function ShiftsByEvent() {
         throw new Error('Event not found');
       }
 
-      const shifts: Shift[] = (event.assignments || []).reduce((a: any[], assignment: Assignment) => {
-        const aShifts = (assignment.shifts || []).map((shift, index) => ({
-          ...shift,
-          assignment,
-          event,
-        }));
-        return [
-          ...a,
-          ...aShifts,
-        ];
-      }, []);
+      const shifts: Shift[] = (event.assignments || []).reduce(
+        (a: any[], assignment: Assignment) => {
+          const aShifts = (assignment.shifts || []).map((shift, index) => ({
+            ...shift,
+            assignment,
+            event,
+          }));
+          return [...a, ...aShifts];
+        },
+        []
+      );
 
       const formattedJson = shifts.map((shift: Shift) => ({
         'Event Name': shift.event.name,
         'Event Ref. #': shift.event.referenceId,
         'Venue Name': shift.event.venue?.name || '',
         'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
-        'Event Start Date': shift.event.startTime ? convertDate({date: event.startTime, user}).format(dateTimeFormat) : '',
-        'Event End Date': shift.event.endTime ? convertDate({date: event.endTime, user}).format(dateTimeFormat) : '',
+        'Event Start Date': shift.event.startTime
+          ? convertDate({ date: event.startTime, user }).format(dateTimeFormat)
+          : '',
+        'Event End Date': shift.event.endTime
+          ? convertDate({ date: event.endTime, user }).format(dateTimeFormat)
+          : '',
         'Assignment Name': shift.assignment.name,
-        'Shift Start Date': shift.startTime ? convertDate({date: shift.startTime, user}).format(dateFormat) : '',
-        'Shift Start Time': shift.startTime ? convertDate({date: shift.startTime, user}).format(timeFormat) : '',
-        'Shift End Date': shift.endTime ? convertDate({date: shift.endTime, user}).format(dateFormat) : '',
-        'Shift End Time': shift.endTime ? convertDate({date: shift.endTime, user}).format(timeFormat) : '',
+        'Shift Start Date': shift.startTime
+          ? convertDate({ date: shift.startTime, user }).format(dateFormat)
+          : '',
+        'Shift Start Time': shift.startTime
+          ? convertDate({ date: shift.startTime, user }).format(timeFormat)
+          : '',
+        'Shift End Date': shift.endTime
+          ? convertDate({ date: shift.endTime, user }).format(dateFormat)
+          : '',
+        'Shift End Time': shift.endTime
+          ? convertDate({ date: shift.endTime, user }).format(timeFormat)
+          : '',
         'Slot #': shift.refNumber,
-        'Status': shift.status,
+        Status:
+          Object.keys(ShiftStatus).find(
+            (status) => ShiftStatus[status as keyof typeof ShiftStatus] === shift.status
+          ) || shift.status,
         'Assignee First Name': shift.user?.firstName || '',
         'Assignee Last Name': shift.user?.lastName || '',
         'Assignee P#': shift.user?.member?.pNumber || '',
-        'Assignee Primary Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
+        'Assignee Primary Phone Number':
+          shift.user?.member?.contactInfo?.primaryPhone?.number || '',
       }));
       download(formattedJson);
-    } catch(error) {
+    } catch (error) {
       enqueueSnackbar('Error creating report', { variant: 'error', autoHideDuration: 3000 });
       console.error(error);
     }
@@ -158,7 +174,6 @@ export default function ShiftsByEvent() {
             sm: '1fr',
           }}
         >
-
           <RHFAutocomplete
             openOnFocus
             name="event"
@@ -167,12 +182,12 @@ export default function ShiftsByEvent() {
             inputValue={text || ''}
             filterOptions={(x: any) => x}
             loading={loadingEvents}
-            loadingText={(
+            loadingText={
               <>
                 Loading...
                 <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
               </>
-            )}
+            }
             getOptionLabel={(option: any) => (option as Event).name}
             isOptionEqualToValue={(option: Event, v: Event) => option.id === v.id}
             onInputChange={(_event, newInputValue) => {

@@ -50,7 +50,7 @@ const eventStatusOptions = [
 const eventsByDateSchema = Yup.object().shape({
   dateRange: Yup.array()
     .required('You must specify a date range')
-    .test('has-dates', 'Must select min and max date', (value, context) =>{
+    .test('has-dates', 'Must select min and max date', (value) => {
       const hasMin = value[0];
       const hasMax = value[1];
       return !!hasMin && !!hasMax;
@@ -83,11 +83,15 @@ export default function EventsByDate() {
   });
   const users: User[] = useMemo(() => data?.users?.items || [], [data]);
 
-  const defaultValues = useMemo(() => ({
-    dateRange: undefined,
-    eventStatus: [],
-    createdBy: [],
-  } as any), []);
+  const defaultValues = useMemo(
+    () =>
+      ({
+        dateRange: undefined,
+        eventStatus: [],
+        createdBy: [],
+      }) as any,
+    []
+  );
 
   const methods = useForm({
     mode: 'onTouched',
@@ -117,7 +121,10 @@ export default function EventsByDate() {
       });
       const events = res.events.items;
       if (events.length === 0) {
-        enqueueSnackbar('No data. Please try a different set of filters.', { variant: 'info', autoHideDuration: 3000 });
+        enqueueSnackbar('No data. Please try a different set of filters.', {
+          variant: 'info',
+          autoHideDuration: 3000,
+        });
         return;
       }
       const formattedJson = events.map((event: Event) => ({
@@ -125,12 +132,17 @@ export default function EventsByDate() {
         'Event Ref. #': event.referenceId,
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
-        'Event Start Date': event.startTime ? convertDate({date: event.startTime, user}).format(dateTimeFormat) : '',
-        'Event End Date': event.endTime ? convertDate({date: event.endTime, user}).format(dateTimeFormat) : '',
-        'Event Status': event.status,
+        'Event Start Date': event.startTime
+          ? convertDate({ date: event.startTime, user }).format(dateTimeFormat)
+          : '',
+        'Event End Date': event.endTime
+          ? convertDate({ date: event.endTime, user }).format(dateTimeFormat)
+          : '',
+        'Event Status':
+          eventStatusOptions.find((status) => status.value === event.status)?.label || event.status,
       }));
       download(formattedJson);
-    } catch(error) {
+    } catch (error) {
       enqueueSnackbar('Error creating report', { variant: 'error', autoHideDuration: 3000 });
       console.error(error);
     }

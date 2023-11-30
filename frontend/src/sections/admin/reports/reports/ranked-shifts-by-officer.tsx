@@ -12,7 +12,12 @@ import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import LoadingButton from '@mui/lab/LoadingButton';
 // Types
-import { LotteryCounter, ShiftLotteryRequest, User } from 'src/__generated__/resolvers-types';
+import {
+  LotteryCounter,
+  ShiftLotteryRequest,
+  ShiftLotteryRequestStatus,
+  User,
+} from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
 import { GET_SHIFT_LOTTERY_REQUESTS_REPORT } from 'src/api/shifts';
 // hooks
@@ -138,7 +143,12 @@ export default function RankedShiftsByOfficer() {
           ? convertDate({ date: request.shift?.endTime, user }).format(timeFormat)
           : '',
         'Shift Request Ranked': (request.order || 0) + 1,
-        'Shift Request Status': request.status,
+        'Shift Request Status':
+          Object.keys(ShiftLotteryRequestStatus).find(
+            (status) =>
+              ShiftLotteryRequestStatus[status as keyof typeof ShiftLotteryRequestStatus] ===
+              request.status
+          ) || request.status,
       }));
       download(formattedJson);
     } catch (error) {

@@ -160,7 +160,8 @@ export default function ShiftsByDate() {
         'Shift End Time': shift.endTime
           ? convertDate({ date: shift.endTime, user }).format(timeFormat)
           : '',
-        Status: shift.status,
+        Status:
+          shiftStatusOptions.find((status) => status.value === shift.status)?.label || shift.status,
       }));
       download(formattedJson);
     } catch (error) {

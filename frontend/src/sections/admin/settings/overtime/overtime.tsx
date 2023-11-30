@@ -109,7 +109,7 @@ export default function Overtime({
     setValue,
   } = methods;
 
-  
+
   const values = getValues();
 
   const onSubmit = handleSubmit(async (formData) => {
@@ -214,6 +214,7 @@ export default function Overtime({
                   <TimePicker
                     label="Open"
                     timezone='UTC'
+                    ampm={false}
                     value={dayjs.utc(values.settings.lottery.open.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.open.time', newValue);
@@ -249,6 +250,7 @@ export default function Overtime({
                   <TimePicker
                     label="Close"
                     timezone='UTC'
+                    ampm={false}
                     value={dayjs.utc(values.settings.lottery.close.time)}
                     onChange={(newValue: any) => {
                       setValue('settings.lottery.close.time', newValue);
@@ -324,7 +326,7 @@ export default function Overtime({
                 helperText="The number of hours before a shift starts that a user can relinquish a shift"
               />
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                After a user removes a shift
+                After a user relinquishes a shift
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '25px', pl: 1 }}>
                 <RHFSelect

@@ -390,6 +390,7 @@
   type Shift {
     id: ID!
     shiftId: String!
+    refNumber: Int!
     startTime: String!
     endTime: String!
     status: ShiftStatus!
@@ -465,6 +466,7 @@
   input UpsertShift {
     id: String
     shiftId: String!
+    refNumber: Int
     startTime: String!
     endTime: String!
     status: ShiftStatus
@@ -973,6 +975,7 @@
     queryField: String
     userId: String
     range: SearchTimeRange
+    refNumber: String
     rangeField: String
     daysOfWeek: [DayOfWeek!]
     rankIds: [String]

@@ -61,8 +61,8 @@ export const shift = {
       const { items } = await shifts.search({
         shiftId,
         orgId: user?.member.orgId!,
-        order: 'desc',
-        orderBy: '_id',
+        order: 'asc',
+        orderBy: 'refNumber',
       });
       return items;
     },
@@ -242,7 +242,9 @@ export const shift = {
         throw new GraphQLError("Event not found");
       }
 
-      const updatedShifts = shifts.map((shift) => {
+      let highestRefNumber = await shiftsModel.highestRefNumber(shifts[0].shiftId);
+
+      const updatedShifts = shifts.map((shift, index) => {
         const { startTime, endTime, ...rest } = shift;
         let status = rest.status;
         let createdById = rest.createdById;
@@ -252,6 +254,9 @@ export const shift = {
         }
         if (rest.locked) {
           status = ShiftStatus.Locked;
+        }
+        if (!shift.refNumber) {
+          rest.refNumber = typeof highestRefNumber === 'number' ? ++highestRefNumber : (index + 1);
         }
         return {
           ...rest,

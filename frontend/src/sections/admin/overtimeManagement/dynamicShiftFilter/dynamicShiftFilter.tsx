@@ -36,6 +36,12 @@ export default function DynamicShiftFilter() {
     rowActions: [],
     columns: [
       {
+        id: 'refNumber',
+        label: 'Shift Ref #',
+        columnType: 'string',
+        width: 10,
+      },
+      {
         id: 'startTime',
         label: 'Start',
         columnType: 'date',
@@ -97,6 +103,11 @@ export default function DynamicShiftFilter() {
         id: 'range',
         type: 'dateRange',
         dateRangeType: 'start',
+      },
+      {
+        id: 'refNumber',
+        type: 'number',
+        label: 'Shift Ref #',
       },
       {
         id: 'status',

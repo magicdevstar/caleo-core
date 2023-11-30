@@ -281,10 +281,10 @@ export default function EditShift({
         width: '10%',
       },
       {
-        id: 'number',
-        label: 'Title',
+        id: 'refNumber',
+        label: 'Slot Ref',
         columnType: 'string',
-        renderValue: (row, index) => `# ${index + 1}`,
+        renderValue: (row) => `# ${row}`,
         width: '10%',
       },
       { id: 'user.name', width: '25%', label: 'Name', columnType: 'string' },
@@ -392,6 +392,7 @@ export default function EditShift({
                     variables: {
                       input: currentShifts.map((shift) => ({
                         id: shift.id,
+                        refNumber: shift.refNumber,
                         shiftId: shift.shiftId,
                         eventId: shift.event.id,
                         status: shift.status,
@@ -424,6 +425,7 @@ export default function EditShift({
                     variables: {
                       input: currentShifts.map((shift) => ({
                         id: shift.id,
+                        refNumber: shift.refNumber,
                         shiftId: shift.shiftId,
                         eventId: shift.event.id,
                         status: shift.status,
@@ -486,6 +488,7 @@ export default function EditShift({
                 input: [
                   {
                     id: lockShift?.id,
+                    refNumber: lockShift?.refNumber,
                     startTime: lockShift?.startTime,
                     endTime: lockShift?.endTime,
                     assignmentId,

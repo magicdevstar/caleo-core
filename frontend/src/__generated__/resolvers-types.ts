@@ -178,6 +178,7 @@ export enum EventStatus {
   Complete = 'COMPLETE',
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
+  PreFcfs = 'PRE_FCFS',
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Removed = 'REMOVED'
 }
@@ -905,6 +906,7 @@ export type Shift = {
   org: Organization;
   orgId: Scalars['String']['output'];
   otherShiftSlots?: Maybe<Array<Maybe<Shift>>>;
+  refNumber: Scalars['Int']['output'];
   relinquishNote?: Maybe<Scalars['String']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   shiftBufferShift?: Maybe<Shift>;
@@ -1241,6 +1243,7 @@ export type UpsertShift = {
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
   locked?: InputMaybe<Scalars['Boolean']['input']>;
+  refNumber?: InputMaybe<Scalars['Int']['input']>;
   shiftId: Scalars['String']['input'];
   startTime: Scalars['String']['input'];
   status?: InputMaybe<ShiftStatus>;
@@ -2099,6 +2102,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   otherShiftSlots?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
+  refNumber?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   relinquishNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;

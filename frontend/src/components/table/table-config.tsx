@@ -74,7 +74,7 @@ export interface TableConfig<T> {
 
 export interface Filter {
   id: string;
-  type: 'select' | 'autocomplete' | 'dateRange' | 'text' | 'boolean' | 'hidden' | 'hiddenValue';
+  type: 'select' | 'autocomplete' | 'dateRange' | 'text' | 'boolean' | 'hidden' | 'hiddenValue' | 'number';
   dateRangeType?: 'start' | 'end';
   label?: string;
   defaultValue?: any;

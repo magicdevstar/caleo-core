@@ -114,6 +114,20 @@ export class ShiftModel extends BaseModel<Shift> {
     this.eventsCollection = db.collection('events');
   }
 
+  async highestRefNumber(shiftId: string) {
+    try {
+      const res = await this.collection
+        .find({ shiftId })
+        .sort({ refNumber: -1 })
+        .limit(1)
+        .toArray();
+      return res[0]?.refNumber || null;
+    } catch(error) {
+      logger.warn('Could not find highest shift ref number', { shiftId });
+      return null;
+    }
+  }
+
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
     const emptyShifts = await this.collection.find({
       shiftId,
@@ -346,6 +360,7 @@ export class ShiftModel extends BaseModel<Shift> {
       rankIds,
       skillIds,
       status,
+      refNumber,
       ...matchInput
     } = input;
 
@@ -355,6 +370,14 @@ export class ShiftModel extends BaseModel<Shift> {
 
     if (eventIds) {
       (matchInput as any).eventId = { $in: eventIds };
+    }
+
+    if (refNumber) {
+      try {
+        (matchInput as any).refNumber = parseInt(refNumber, 10);
+      } catch(error) {
+        (matchInput as any).refNumber = -1;
+      }
     }
 
     // const realStatuses = (status || []).filter((s) => [ShiftStatus.Assigned].includes(s || ''));

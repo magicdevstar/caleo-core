@@ -398,6 +398,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
     shifts(input: $input) {
       items {
         id
+        refNumber
         startTime
         endTime
         status
@@ -440,6 +441,7 @@ export const GET_GROUPED_SHIFTS = gql`
   query GetGroupedShift($shiftId: String!) {
     groupedShifts(shiftId: $shiftId) {
       id
+      refNumber
       shiftId
       startTime
       endTime

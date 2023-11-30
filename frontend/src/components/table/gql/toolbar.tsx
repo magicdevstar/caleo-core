@@ -28,6 +28,7 @@ export default function TableToolbar({
       {filters.map((filter) => {
         let render = (<TextField
           fullWidth
+          type={filter.type || 'text'}
           value={filter.value}
           onChange={(event) => onFilters(filter.id, event.target.value)}
           placeholder={`${filter.label}...`}

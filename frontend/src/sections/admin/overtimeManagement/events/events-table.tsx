@@ -16,6 +16,7 @@ import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
+import { GET_VENUES_SLIM } from 'src/api/venues';
 
 // ----------------------------------------------------------------------
 
@@ -51,11 +52,6 @@ export default function EventsTable() {
           total,
           items,
         };
-      }
-    },
-    table: {
-      toolbar: {
-        lg: 6,
       }
     },
     rowActions: [
@@ -120,6 +116,10 @@ export default function EventsTable() {
         label: 'Search',
         defaultValue: '',
         value: '',
+        sizing: {
+          md: 6,
+          lg: 6,
+        },
       },
       {
         id: 'endTime',
@@ -132,11 +132,19 @@ export default function EventsTable() {
         id: 'range',
         type: 'dateRange',
         dateRangeType: 'start',
+        sizing: {
+          md: 6,
+          lg: 6,
+        },
       },
       {
         id: 'status',
         type: 'select',
         label: 'Status',
+        sizing: {
+          md: 4,
+          lg: 4,
+        },
         async fetchOptions () {
           const formattedOptions = [
             {
@@ -169,6 +177,10 @@ export default function EventsTable() {
         id: 'createdById',
         type: 'select',
         label: 'Created by',
+        sizing: {
+          md: 4,
+          lg: 4,
+        },
         async fetchOptions () {
           const { data } = await client.query({
             query: GET_USERS_SLIM,
@@ -184,6 +196,34 @@ export default function EventsTable() {
           // eslint-disable-next-line react/no-this-in-sfc
           this.calculatedOptions = formattedAdmins;
           return formattedAdmins;
+        },
+      },
+      {
+        id: 'venueIds',
+        type: 'autocomplete',
+        label: 'Venue Name',
+        autoComplete: {
+          multiSelect: true,
+          inputLabel: 'Venue Name',
+          inputPlaceholder: 'Search...',
+        },
+        sizing: {
+          md: 4,
+          lg: 4,
+        },
+        async fetchOptions (query?: string) {
+          const { data } = await client.query({
+            query: GET_VENUES_SLIM,
+            variables: {
+              input: {
+                query,
+                limit: 10,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.venues?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          return formattedOptions;
         },
       },
     ]

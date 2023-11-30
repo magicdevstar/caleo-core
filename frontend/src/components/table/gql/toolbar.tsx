@@ -64,7 +64,14 @@ export default function TableToolbar({
           );
         }
         return (
-          <Grid item key={filter.id} xs={toolbarConfig?.xs || 12} sm={toolbarConfig?.sm || 12} md={toolbarConfig?.md || 6} lg={toolbarConfig?.lg || 4}>
+          <Grid
+            item
+            key={filter.id}
+            xs={toolbarConfig?.xs || filter?.sizing?.xs || 12}
+            sm={toolbarConfig?.sm || filter?.sizing?.sm || 12}
+            md={toolbarConfig?.md || filter?.sizing?.md || 6}
+            lg={toolbarConfig?.lg || filter?.sizing?.lg || 4}
+          >
             {render}
           </Grid>
         );

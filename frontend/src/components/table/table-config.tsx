@@ -78,6 +78,7 @@ export interface Filter {
   dateRangeType?: 'start' | 'end';
   label?: string;
   defaultValue?: any;
+  sizing?: ToolbarConfig;
   autoComplete?: {
     multiSelect?: boolean;
     inputLabel?: string;

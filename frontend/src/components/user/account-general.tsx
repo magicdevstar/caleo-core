@@ -118,9 +118,9 @@ export default function AccountGeneral({
     if (user.member.tier === MemberTier.Tier_1 || !user.member.tierResetOnNextLottery) {
       return '';
     }
-    const lotteryEnd = convertDate({ date: lotteryData?.lotteryCounter?.endDate, user });
+    const lotteryEnd = dayjs.utc(lotteryData?.lotteryCounter?.end || 0);
     return `Tier will expire on ${lotteryEnd.format(dateTimeFormat)}`;
-  }, [user, lotteryData?.lotteryCounter]);
+  }, [user, lotteryData]);
 
   const UpdateUserSchema = Yup.object().shape({
     firstName: Yup.string().required('First name is required'),

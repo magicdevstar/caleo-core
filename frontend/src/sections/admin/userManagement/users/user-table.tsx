@@ -61,7 +61,6 @@ export default function UserTable() {
         label: 'Name',
         columnType: 'string',
         renderValue: (_val, _index, row: User) => {
-          console.log(row);
           if (row.name) {
             return row.name;
           }

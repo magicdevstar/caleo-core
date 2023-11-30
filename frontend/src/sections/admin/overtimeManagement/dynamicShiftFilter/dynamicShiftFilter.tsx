@@ -311,23 +311,11 @@ export default function DynamicShiftFilter() {
           inputPlaceholder: 'Search...',
         },
         async fetchOptions (query?: string) {
-          let key = 'query';
-          let value: string | number | undefined = query?.trim() === '' ? undefined : query?.trim();
-          try {
-            const number = parseInt(query?.trim() || '', 10);
-            if (!Number.isNaN(number)) {
-              key = 'referenceId';
-              value = number;
-            }
-          } catch(error) {
-            console.error('Not a number');
-          }
-
           const { data } = await client.query({
             query: GET_ALL_EVENTS_SLIM,
             variables: {
               input: {
-                [key]: value,
+                query,
                 limit: 10,
                 skip: 0,
               },

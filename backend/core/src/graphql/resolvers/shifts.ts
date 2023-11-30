@@ -252,6 +252,9 @@ export const shift = {
           createdById = user?.id!;
           status = ShiftStatus.Available;
         }
+        if (!rest.createdById) {
+          createdById = user?.id!;
+        }
         if (rest.locked) {
           status = ShiftStatus.Locked;
         }

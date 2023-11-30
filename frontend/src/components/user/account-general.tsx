@@ -36,7 +36,7 @@ import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames, tierNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 

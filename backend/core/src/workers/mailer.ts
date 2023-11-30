@@ -1,6 +1,6 @@
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { AddressConfiguration, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
+import { AddressConfiguration, MessageType, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
 import { utcToZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
 import logger from "../utils/logger";
@@ -21,6 +21,7 @@ const convertDate = (unixDate: number, organization: Organization) => {
 // TODO: Group events together when it makes sense.
 const sendEmail = async (input: MailerEvent) => {
   try {
+    let includeSMS = false;
     const context = await createContext();
     let Addresses: Record<string, AddressConfiguration> = {};
     if (input.template === MailerEvents.OfficerEventRemoved) {
@@ -81,11 +82,22 @@ const sendEmail = async (input: MailerEvent) => {
       let shift: Shift | null;
       do {
         shift = await allShifts.next() as any;
-        if (shift && shift.user) {
+        if (shift && shift.user && shift.user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[shift.user!.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
               'user.first_name': [shift.user!.firstName],
+              'shift.name': [shift.assignment.name],
+              'event.name': [event.name],
+              'system.metro_name': [organization.name],
+            },
+          };
+        }
+        if (shift && shift.user && shift.user.member.contactInfo?.primaryPhone.receiveTexts) {
+          includeSMS = true;
+          Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
+            ChannelType: 'SMS',
+            Substitutions: {
               'shift.name': [shift.assignment.name],
               'event.name': [event.name],
               'system.metro_name': [organization.name],
@@ -108,16 +120,31 @@ const sendEmail = async (input: MailerEvent) => {
     ) {
       const { user, skill, organization } = input.data;
 
-      Addresses = {
-        [user.member.contactInfo!.primaryEmail.address]: {
-          ChannelType: 'EMAIL',
-          Substitutions: {
-            'user.first_name': [user.firstName],
-            'skill.name': [skill.name],
-            'system.metro_name': [organization.name],
+      if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+        Addresses = {
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              'user.first_name': [user.firstName],
+              'skill.name': [skill.name],
+              'system.metro_name': [organization.name],
+            },
           },
-        },
-      };
+        };
+      }
+
+      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+        Addresses = {
+          [user.member.contactInfo!.primaryPhone.receiveTexts]: {
+            ChannelType: 'SMS',
+            Substitutions: {
+              'user.first_name': [user.firstName],
+              'skill.name': [skill.name],
+              'system.metro_name': [organization.name],
+            },
+          },
+        };
+      }
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
       const { shift, createdShiftBuffer, shiftBufferShift, user, organization } = input.data;
       
@@ -164,41 +191,43 @@ const sendEmail = async (input: MailerEvent) => {
       const bufferShiftEnd = convertDate(shiftBufferShift.endTime as any, organization);
 
       // TODO: Look up conflicting shift
-      Addresses = (allAdmins || []).reduce((obj, admin) => {
-        const Substitutions: Record<string, string[]> = {
-          "user.first_name": [user.firstName],
-          "user.last_name":  [user.lastName],
-          "admin.first_name": [admin.firstName],
-          "event.reference_number_request": [event.referenceId],
-          "event.name_request": [event.name],
-          "shift.name_request": [assignment.name],
-          "venue.name_request": [venue.name],
-          "event.start_date_request": [shiftStart.date],
-          "event.start_time_request": [shiftStart.time],
-          "event.end_date_request": [shiftEnd.date],
-          "event.end_time_request": [shiftEnd.time],
-          "event.reference_number_conflict": [bufferEvent.referenceId],
-          "event.name_conflict": [bufferEvent.name],
-          "shift.name_conflict": [bufferAssignment.name],
-          "venue.name_conflict": [bufferVenue.name],
-          "event.start_date_conflict": [bufferShiftStart.date],
-          "event.start_time_conflict": [bufferShiftStart.time],
-          "event.end_date_conflict": [bufferShiftEnd.date],
-          "event.end_time_conflict": [bufferShiftEnd.time],
-          "shift.buffer_override_reason": [createdShiftBuffer.note || ''],
-          "system.login_url": [process.env.LOGIN_URL || ''],
-          "system.metro_name": [organization.name],
-        };
-        const email = admin.member.contactInfo!.primaryEmail.address || '';
+      Addresses = (allAdmins || [])
+        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .reduce((obj, admin) => {
+          const Substitutions: Record<string, string[]> = {
+            "user.first_name": [user.firstName],
+            "user.last_name":  [user.lastName],
+            "admin.first_name": [admin.firstName],
+            "event.reference_number_request": [event.referenceId],
+            "event.name_request": [event.name],
+            "shift.name_request": [assignment.name],
+            "venue.name_request": [venue.name],
+            "event.start_date_request": [shiftStart.date],
+            "event.start_time_request": [shiftStart.time],
+            "event.end_date_request": [shiftEnd.date],
+            "event.end_time_request": [shiftEnd.time],
+            "event.reference_number_conflict": [bufferEvent.referenceId],
+            "event.name_conflict": [bufferEvent.name],
+            "shift.name_conflict": [bufferAssignment.name],
+            "venue.name_conflict": [bufferVenue.name],
+            "event.start_date_conflict": [bufferShiftStart.date],
+            "event.start_time_conflict": [bufferShiftStart.time],
+            "event.end_date_conflict": [bufferShiftEnd.date],
+            "event.end_time_conflict": [bufferShiftEnd.time],
+            "shift.buffer_override_reason": [createdShiftBuffer.note || ''],
+            "system.login_url": [process.env.LOGIN_URL || ''],
+            "system.metro_name": [organization.name],
+          };
+          const email = admin.member.contactInfo!.primaryEmail.address || '';
 
-        return {
-          ...obj,
-          [email]: {
-            ChannelType: 'EMAIL',
-            Substitutions,
-          } as AddressConfiguration,
-        };
-      }, {} as Record<string, AddressConfiguration>);
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
     } else if (
       input.template === MailerEvents.OfficerPendingShiftApproved ||
       input.template === MailerEvents.OfficerPendingShiftDenied
@@ -211,6 +240,11 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
+      const venue = await context.venues.get(event.venueId);
+      if (!venue) {
+        logger.error('Venue not found', { input, venue });
+      }
+
       const assignment = await context.assignments.get(shift.assignmentId);
       if (!assignment) {
         logger.error('Assignment not found', { input, assignment });
@@ -220,22 +254,37 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
-      Addresses = {
-        [user.member.contactInfo!.primaryEmail.address]: {
-          ChannelType: 'EMAIL',
-          Substitutions: {
-            "shift.name": [assignment.name],
-            "event.name": [event.name],
-            "user.first_name": [user.firstName],
-            "event.reference_number": [event.referenceId],
-            "shift.start_date": [shiftStart.date],
-            "shift.start_time": [shiftStart.time],
-            "shift.end_date": [shiftEnd.date],
-            "shift.end_time": [shiftEnd.time],
-            "system.metro_name": [organization.name],
+      if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+        Addresses = {
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              "shift.name": [assignment.name],
+              "event.name": [event.name],
+              "user.first_name": [user.firstName],
+              "event.reference_number": [event.referenceId],
+              "shift.start_date": [shiftStart.date],
+              "shift.start_time": [shiftStart.time],
+              "shift.end_date": [shiftEnd.date],
+              "shift.end_time": [shiftEnd.time],
+              "system.metro_name": [organization.name],
+            },
           },
-        },
-      };
+        };
+      }
+      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+        includeSMS = true;
+        Addresses = {
+          [user.member.contactInfo!.primaryPhone.number]: {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "shift.name": [assignment.name],
+              "event.name": [event.name],
+              "venue.name": [venue?.name || ''],
+            },
+          },
+        };
+      }
     } else if (input.template === MailerEvents.OfficerAdminAssignedShift) {
       const { adminAssignedShift, shift, organization } = input.data;
       const event = await context.events.get(shift.eventId);
@@ -271,33 +320,60 @@ const sendEmail = async (input: MailerEvent) => {
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
-          const EventAddresses = (allAdmins || []).reduce((obj, admin) => {
-            const Substitutions: Record<string, string[]> = {
-              "event.name": [event.name],
-              "event.start_date": [eventStart.date],
-              "admin.first_name": [admin.firstName],
-              "event.reference_number": [event.referenceId],
-              "venue.name": [venue.name],
-              "event.start_time": [eventStart.time],
-              "event.end_date": [eventEnd.date],
-              "event.end_time": [eventEnd.time],
-              "system.metro_name": [organization.name],
-            };
-            const email = admin.member.contactInfo!.primaryEmail.address || '';
+          const SMSAddresses = (allAdmins || [])
+            .filter((admin: User) =>
+              admin.member.contactInfo!.primaryPhone.receiveTexts ||
+              admin.member.contactInfo!.primaryPhone.number
+            )
+            .reduce((obj, admin: User) => {
+              includeSMS = true;
+              const Substitutions: Record<string, string[]> = {
+                "event.name": [event.name],
+                "event.reference_number": [event.referenceId],
+                "venue.name": [venue.name],
+              };
+              const num = admin.member.contactInfo!.primaryPhone.number;
 
-            return {
-              ...obj,
-              [email]: {
-                ChannelType: 'EMAIL',
-                Substitutions,
-              } as AddressConfiguration,
-            };
-          }, {} as Record<string, AddressConfiguration>);
+              return {
+                ...obj,
+                [num]: {
+                  ChannelType: 'SMS',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
+          const EmailAddresses = (allAdmins || [])
+            .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+            .reduce((obj, admin) => {
+              const Substitutions: Record<string, string[]> = {
+                "event.name": [event.name],
+                "event.start_date": [eventStart.date],
+                "admin.first_name": [admin.firstName],
+                "event.reference_number": [event.referenceId],
+                "venue.name": [venue.name],
+                "event.start_time": [eventStart.time],
+                "event.end_date": [eventEnd.date],
+                "event.end_time": [eventEnd.time],
+                "system.metro_name": [organization.name],
+              };
+              const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+              return {
+                ...obj,
+                [email]: {
+                  ChannelType: 'EMAIL',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
 
           const all = await pinpoint.send(new SendMessagesCommand({
             ApplicationId: process.env.PINPOINT_ID,
             MessageRequest: {
-              Addresses: EventAddresses as any,
+              Addresses: {
+                ...EmailAddresses,
+                ...SMSAddresses,
+              } as any,
               MessageConfiguration: {
                 EmailMessage: {
                   FromAddress: process.env.FROM_EMAIL,
@@ -333,34 +409,61 @@ const sendEmail = async (input: MailerEvent) => {
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
-          const EventAddresses = (allAdmins || []).reduce((obj, admin) => {
-            const Substitutions: Record<string, string[]> = {
-              "shift.name": [assignment.name],
-              "event.name": [event.name],
-              "admin.first_name": [admin.firstName],
-              "event.reference_number": [event.referenceId],
-              "venue.name": [venue.name],
-              "event.start_date": [eventStart.date],
-              "event.start_time": [eventStart.time],
-              "event.end_date": [eventEnd.date],
-              "event.end_time": [eventEnd.time],
-              "system.metro_name": [organization.name],
-            };
-            const email = admin.member.contactInfo!.primaryEmail.address || '';
+          const SMSAddresses = (allAdmins || [])
+            .filter((admin: User) =>
+              admin.member.contactInfo!.primaryPhone.receiveTexts ||
+              admin.member.contactInfo!.primaryPhone.number
+            )
+            .reduce((obj, admin: User) => {
+              includeSMS = true;
+              const Substitutions: Record<string, string[]> = {
+                "shift.name": [assignment.name],
+                "event.name": [event.name],
+                "venue.name": [venue.name],
+              };
+              const num = admin.member.contactInfo!.primaryPhone.number;
 
-            return {
-              ...obj,
-              [email]: {
-                ChannelType: 'EMAIL',
-                Substitutions,
-              } as AddressConfiguration,
-            };
-          }, {} as Record<string, AddressConfiguration>);
+              return {
+                ...obj,
+                [num]: {
+                  ChannelType: 'SMS',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
+          const EmailAddresses = (allAdmins || [])
+            .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+            .reduce((obj, admin) => {
+              const Substitutions: Record<string, string[]> = {
+                "shift.name": [assignment.name],
+                "event.name": [event.name],
+                "admin.first_name": [admin.firstName],
+                "event.reference_number": [event.referenceId],
+                "venue.name": [venue.name],
+                "event.start_date": [eventStart.date],
+                "event.start_time": [eventStart.time],
+                "event.end_date": [eventEnd.date],
+                "event.end_time": [eventEnd.time],
+                "system.metro_name": [organization.name],
+              };
+              const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+              return {
+                ...obj,
+                [email]: {
+                  ChannelType: 'EMAIL',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
 
           const all = await pinpoint.send(new SendMessagesCommand({
             ApplicationId: process.env.PINPOINT_ID,
             MessageRequest: {
-              Addresses: EventAddresses as any,
+              Addresses: {
+                ...EmailAddresses,
+                ...SMSAddresses,
+              } as any,
               MessageConfiguration: {
                 EmailMessage: {
                   FromAddress: process.env.FROM_EMAIL,
@@ -388,22 +491,36 @@ const sendEmail = async (input: MailerEvent) => {
         const shiftStart = convertDate(shift.startTime as any, organization);
         const shiftEnd = convertDate(shift.endTime as any, organization);
 
-        Addresses = {
-          [user.member.contactInfo!.primaryEmail.address]: {
-            ChannelType: 'EMAIL',
-            Substitutions: {
-              "system.metro_name": [organization.name],
-              "user.first_name": [user.firstName],
-              "event.name": [event.name],
-              "shift.name": [assignment.name],
-              "shift.start_date": [shiftStart.date],
-              "shift.start_time": [shiftStart.time],
-              "shift.end_date": [shiftEnd.date],
-              "shift.end_time": [shiftEnd.time],
-              "system.login_url": [process.env.LOGIN_URL || ''],
+        if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+          Addresses = {
+            [user.member.contactInfo!.primaryEmail.address]: {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "system.metro_name": [organization.name],
+                "user.first_name": [user.firstName],
+                "event.name": [event.name],
+                "shift.name": [assignment.name],
+                "shift.start_date": [shiftStart.date],
+                "shift.start_time": [shiftStart.time],
+                "shift.end_date": [shiftEnd.date],
+                "shift.end_time": [shiftEnd.time],
+                "system.login_url": [process.env.LOGIN_URL || ''],
+              },
             },
-          },
-        };
+          };
+        }
+        if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+          includeSMS = true;
+          Addresses = {
+            [user.member.contactInfo!.primaryPhone.number]: {
+              ChannelType: 'SMS',
+              Substitutions: {
+                "system.metro_name": [organization.name],
+                "system.login_url": [process.env.LOGIN_URL || ''],
+              },
+            },
+          };
+        }
       }
     } else if (input.template === MailerEvents.OfficerRemovedFromShift) {
       const { shift, existingUserId, organization } = input.data;
@@ -476,32 +593,34 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: event.orgId,
       }) as any[];
 
-      Addresses = (allAdmins || []).reduce((obj, admin) => {
-        const Substitutions: Record<string, string[]> = {
-          "user.first_name": [user.firstName],
-          "user.last_name": [user.lastName],
-          "shift.name": [assignment.name],
-          "event.name": [event.name],
-          "admin.first_name": [admin.firstName],
-          "event.reference_number": [event.referenceId],
-          "shift.start_date": [shiftStart.date],
-          "shift.start_time": [shiftStart.time],
-          "shift.end_date": [shiftEnd.date],
-          "shift.end_time": [shiftEnd.time],
-          "relinquish_reason": [shift.relinquishNote || ''],
-          "system.metro_name": [organization.name],
-          "shift.reference_number": [`${shiftReferenceNumber || shift.id}`],
-        };
-        const email = admin.member.contactInfo!.primaryEmail.address || '';
+      Addresses = (allAdmins || [])
+        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .reduce((obj, admin) => {
+          const Substitutions: Record<string, string[]> = {
+            "user.first_name": [user.firstName],
+            "user.last_name": [user.lastName],
+            "shift.name": [assignment.name],
+            "event.name": [event.name],
+            "admin.first_name": [admin.firstName],
+            "event.reference_number": [event.referenceId],
+            "shift.start_date": [shiftStart.date],
+            "shift.start_time": [shiftStart.time],
+            "shift.end_date": [shiftEnd.date],
+            "shift.end_time": [shiftEnd.time],
+            "relinquish_reason": [shift.relinquishNote || ''],
+            "system.metro_name": [organization.name],
+            "shift.reference_number": [`${shiftReferenceNumber || shift.id}`],
+          };
+          const email = admin.member.contactInfo!.primaryEmail.address || '';
 
-        return {
-          ...obj,
-          [email]: {
-            ChannelType: 'EMAIL',
-            Substitutions,
-          } as AddressConfiguration,
-        };
-      }, {} as Record<string, AddressConfiguration>);
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
     } else if (input.template === MailerEvents.OfficerAssignmentRemoved) {
       const { assignment, organization, modifiedById } = input.data;
 
@@ -554,7 +673,7 @@ const sendEmail = async (input: MailerEvent) => {
       let shift: Shift | null;
       do {
         shift = await allShifts.next() as any;
-        if (shift) {
+        if (shift && shift.user?.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[shift.user!.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -563,6 +682,17 @@ const sendEmail = async (input: MailerEvent) => {
               "system.metro_name": [organization.name],
               "user.first_name": [shift.user!.firstName],
               "assignment.name": [assignment.name],
+            },
+          };
+        }
+        if (shift && shift.user?.member.contactInfo?.primaryPhone.receiveTexts) {
+          includeSMS = true;
+          Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "shift.name": [assignment.name],
+              "event.name": [event.name],
+              "system.metro_name": [organization.name],
             },
           };
         }
@@ -641,13 +771,23 @@ const sendEmail = async (input: MailerEvent) => {
       let user: User | null;
       do {
         user = await allUsers.next() as any;
-        if (user) {
+        if (user && user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[user.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
               "user.first_name": [user.firstName],
               "num": [`${organization.settings?.lottery.notifyUsersBeforeClose || 24}`],
               "system.login_url": [process.env.LOGIN_URL || ''],
+              "system.metro_name": [organization.name],
+            },
+          };
+        }
+        if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
+          includeSMS = true;
+          Addresses[user.member.contactInfo!.primaryPhone.number] = {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "num": [`${organization.settings?.lottery.notifyUsersBeforeClose || 24}`],
               "system.metro_name": [organization.name],
             },
           };
@@ -719,12 +859,22 @@ const sendEmail = async (input: MailerEvent) => {
       let user: User | null;
       do {
         user = await allUsers.next() as any;
-        if (user) {
+        if (user && user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[user.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
               "system.metro_name": [organization.name],
               "user.first_name": [user.firstName],
+              "system.login_url": [process.env.LOGIN_URL || ''],
+            },
+          };
+        }
+        if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
+          includeSMS = true;
+          Addresses[user.member.contactInfo!.primaryPhone.number] = {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "system.metro_name": [organization.name],
               "system.login_url": [process.env.LOGIN_URL || ''],
             },
           };
@@ -786,21 +936,34 @@ const sendEmail = async (input: MailerEvent) => {
           if (total === 0) {
             continue;
           }
-          Addresses[user.member.contactInfo!.primaryEmail.address] = {
-            ChannelType: 'EMAIL',
-            Substitutions: {
-              "shift.name": [assignment.name],
-              "event.name": [event.name],
-              "user.first_name": [user.firstName],
-              "system.metro_name": [organization.name],
-              "shift.start_date": [shiftStart.date],
-              "shift.start_time": [shiftStart.time],
-              "shift.end_date": [shiftEnd.date],
-              "shift.end_time": [shiftEnd.time],
-              "event.reference_number": [event.referenceId],
-              "system.login_url": [process.env.LOGIN_URL || ''],
-            },
-          };
+          if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+            Addresses[user.member.contactInfo!.primaryEmail.address] = {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "shift.name": [assignment.name],
+                "event.name": [event.name],
+                "user.first_name": [user.firstName],
+                "system.metro_name": [organization.name],
+                "shift.start_date": [shiftStart.date],
+                "shift.start_time": [shiftStart.time],
+                "shift.end_date": [shiftEnd.date],
+                "shift.end_time": [shiftEnd.time],
+                "event.reference_number": [event.referenceId],
+                "system.login_url": [process.env.LOGIN_URL || ''],
+              },
+            };
+          }
+          if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+            includeSMS = true;
+            Addresses[user.member.contactInfo!.primaryPhone.number] = {
+              ChannelType: 'SMS',
+              Substitutions: {
+                "shift.name": [assignment.name],
+                "event.name": [event.name],
+                "system.metro_name": [organization.name],
+              },
+            };
+          }
         }
       } while(user);
       if (Object.keys(Addresses).length === 0) {
@@ -821,6 +984,65 @@ const sendEmail = async (input: MailerEvent) => {
           },
         },
       };
+    } else if (input.template === MailerEvents.AdminUserAccountRequested) {
+      const { user, orgId } = input.data;
+
+     const organization = await context.organizations.get(orgId);
+
+     if (!organization) {
+        logger.error('Organization not found', { input, organization });
+        return;
+     }
+
+      const allAdmins = await context.users.getAllAdmins({
+        orgId,
+      }) as any[];
+
+      const EmailAddresses = (allAdmins || [])
+        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .reduce((obj, admin) => {
+          const Substitutions: Record<string, string[]> = {
+            "user.first_name": [user.firstName],
+            "user.last_name": [user.lastName],
+            "admin.first_name": [admin.firstName],
+            "system.metro_name": [organization.name],
+            "system.login_url": [process.env.LOGIN_URL || ''],
+          };
+          const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      const SMSAddresses = (allAdmins || [])
+        .filter((admin: User) => admin.member.contactInfo?.primaryPhone.receiveTexts)
+        .reduce((obj, admin: User) => {
+          includeSMS = true;
+          const Substitutions: Record<string, string[]> = {
+            "user.first_name": [user.firstName],
+            "user.last_name": [user.lastName],
+            "system.metro_name": [organization.name],
+          };
+          const num = admin.member.contactInfo!.primaryPhone.number || '';
+
+          return {
+            ...obj,
+            [num]: {
+              ChannelType: 'SMS',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      Addresses = {
+        ...EmailAddresses,
+        ...SMSAddresses,
+      };
     }
 
     if (Object.keys(Addresses).length === 0) {
@@ -836,11 +1058,22 @@ const sendEmail = async (input: MailerEvent) => {
       MessageRequest: {
         Addresses: Addresses as any,
         MessageConfiguration: {
+          ...(includeSMS && {
+            SMSMessage: {
+              MessageType: MessageType.TRANSACTIONAL,
+            }
+          }),
           EmailMessage: {
             FromAddress: process.env.FROM_EMAIL,
           },
         },
         TemplateConfiguration: {
+          ...(includeSMS && {
+            SMSTemplate: {
+              Name: input.template,
+              Version: '1',
+            },
+          }),
           EmailTemplate: {
             Name: input.template,
             Version: '1',

@@ -1,9 +1,13 @@
 import middy from "@middy/core";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { PreSignUpEmailTriggerEvent } from "aws-lambda";
 import logger from "../utils/logger";
 import { createContext } from "../utils/createContext";
 import { MemberRole, MemberStatus, MemberTier } from "../__generated__/resolvers-types";
+import { Action, MailerEvent, MailerEvents } from "../types/mailer";
+
+const lambda = new LambdaClient();
 
 const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
   try {
@@ -18,7 +22,7 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
         'member.status': MemberStatus.Invited,
       });
       if (!user) {
-        await services.users.create({
+        const createdUser = await services.users.create({
           firstName: event.request.userAttributes.given_name,
           lastName: event.request.userAttributes.family_name,
           name: `${event.request.userAttributes.given_name} ${event.request.userAttributes.family_name}`,
@@ -72,6 +76,18 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
             },
           }
         } as any);
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.MAILER_LAMBDA!,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            action: Action.Email,
+            template: MailerEvents.AdminUserAccountRequested,
+            data: {
+              user: createdUser,
+              orgId: event.request.userAttributes['custom:org_id'],
+            },
+          } as MailerEvent),
+        }));
       } else {
         user = {
           ...user,

@@ -405,6 +405,12 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         startTime
         endTime
         status
+        createdBy {
+          id
+          member {
+            pNumber
+          }
+        }
         user {
           id
           name

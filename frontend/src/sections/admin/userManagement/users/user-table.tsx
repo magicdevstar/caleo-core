@@ -81,7 +81,7 @@ export default function UserTable() {
         columnType: 'string',
         renderValue: (val) => val || '-',
       },
-      { id: 'member.rank.name', label: 'Rank', width: 160, columnType: 'string' },
+      { id: 'member.rank.name', label: 'Rank', width: 160, columnType: 'string', noSort: true },
       {
         id: 'member.tier',
         label: 'Tier',

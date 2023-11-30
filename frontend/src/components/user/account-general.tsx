@@ -115,7 +115,7 @@ export default function AccountGeneral({
   const { ranks: { items: ranks } } = data || { ranks: { items: [] } };
 
   const tierUntilHelpText = useMemo(() => {
-    if (user.member.tier === MemberTier.Tier_1) {
+    if (user.member.tier === MemberTier.Tier_1 || !user.member.tierResetOnNextLottery) {
       return '';
     }
     const lotteryEnd = convertDate({ date: lotteryData?.lotteryCounter?.endDate, user });

@@ -243,11 +243,16 @@ export const shift = {
       }
 
       let highestRefNumber = await shiftsModel.highestRefNumber(shifts[0].shiftId);
+      const existingShifts = await shiftsModel.search({
+        shiftId: shifts[0].shiftId,
+        orgId: user?.member.orgId!,
+      });
 
       const updatedShifts = shifts.map((shift, index) => {
         const { startTime, endTime, ...rest } = shift;
         let status = rest.status;
         let createdById = rest.createdById;
+        const foundShift = existingShifts.items.find(({ id }) => id === rest.id);
         if (!shift.id) {
           createdById = user?.id!;
           status = ShiftStatus.Available;
@@ -257,6 +262,8 @@ export const shift = {
         }
         if (rest.locked) {
           status = ShiftStatus.Locked;
+        } else if (!rest.locked && rest.status === ShiftStatus.Locked) {
+          status = foundShift && foundShift.userId ? ShiftStatus.Assigned : ShiftStatus.Available;
         }
         if (!shift.refNumber) {
           rest.refNumber = typeof highestRefNumber === 'number' ? ++highestRefNumber : (index + 1);

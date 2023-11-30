@@ -102,7 +102,6 @@ export default function ShiftsByEvent() {
       const shifts: Shift[] = (event.assignments || []).reduce((a: any[], assignment: Assignment) => {
         const aShifts = (assignment.shifts || []).map((shift, index) => ({
           ...shift,
-          slotNumber: index + 1,
           assignment,
           event,
         }));
@@ -124,7 +123,7 @@ export default function ShiftsByEvent() {
         'Shift Start Time': shift.startTime ? convertDate({date: shift.startTime, user}).format(timeFormat) : '',
         'Shift End Date': shift.endTime ? convertDate({date: shift.endTime, user}).format(dateFormat) : '',
         'Shift End Time': shift.endTime ? convertDate({date: shift.endTime, user}).format(timeFormat) : '',
-        'Slot #': (shift as any).slotNumber,
+        'Slot #': shift.refNumber,
         'Status': shift.status,
         'Assignee First Name': shift.user?.firstName || '',
         'Assignee Last Name': shift.user?.lastName || '',

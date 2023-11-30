@@ -55,6 +55,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         id
         startTime
         endTime
+        refNumber
         event {
           id
           referenceId
@@ -248,6 +249,7 @@ export const GET_ALL_SHIFTS = gql`
         startTime
         endTime
         status
+        refNumber
         event {
           id
           referenceId
@@ -352,6 +354,7 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
         status
         removedAt
         relinquishNote
+        refNumber
         user {
           id
           firstName
@@ -481,6 +484,7 @@ query GetShiftDetails($id: String!) {
     id
     startTime
     endTime
+    refNumber
     event {
       id
       referenceId

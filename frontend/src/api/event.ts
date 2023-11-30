@@ -102,6 +102,7 @@ query GetEvent($id: String!) {
         startTime
         endTime
         status
+        refNumber
         user {
           id
           firstName

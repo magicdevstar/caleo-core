@@ -177,7 +177,10 @@ export const user = {
       if (user.member?.tier) {
         if (user.member.tier === MemberTier.Tier_2 && user.member.tierUntil) {
           const tierReturnDate = new Date(user.member.tierUntil);
-          tierUpdates = { tierUntil: tierReturnDate.getTime() };
+          tierUpdates = {
+            tierUntil: tierReturnDate.getTime(),
+            tierResetOnNextLottery: false,
+          };
           tierSchedule = scheduler.updateScheduledEvent({
             event: ScheduleEvent.USER_TIER_RETURN,
             orgId: organization!.id,

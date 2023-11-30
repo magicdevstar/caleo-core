@@ -367,27 +367,30 @@ const sendEmail = async (input: MailerEvent) => {
               };
             }, {} as Record<string, AddressConfiguration>);
 
-          const all = await pinpoint.send(new SendMessagesCommand({
-            ApplicationId: process.env.PINPOINT_ID,
-            MessageRequest: {
-              Addresses: {
-                ...EmailAddresses,
-                ...SMSAddresses,
-              } as any,
-              MessageConfiguration: {
-                EmailMessage: {
-                  FromAddress: process.env.FROM_EMAIL,
+          const finalAddresses = {
+            ...EmailAddresses,
+            ...SMSAddresses,
+          } as any;
+          if (Object.keys(finalAddresses).length > 0) {
+            const all = await pinpoint.send(new SendMessagesCommand({
+              ApplicationId: process.env.PINPOINT_ID,
+              MessageRequest: {
+                Addresses: finalAddresses,
+                MessageConfiguration: {
+                  EmailMessage: {
+                    FromAddress: process.env.FROM_EMAIL,
+                  },
                 },
-              },
-              TemplateConfiguration: {
-                EmailTemplate: {
-                  Name: MailerEvents.AdminEventFullyStaffed,
-                  Version: '1',
+                TemplateConfiguration: {
+                  EmailTemplate: {
+                    Name: MailerEvents.AdminEventFullyStaffed,
+                    Version: '1',
+                  },
                 },
-              },
-            }
-          }));
-          logger.info('Event staffed response', { all });
+              }
+            }));
+            logger.info('Event staffed response', { all });
+          }
         }
       }
 
@@ -457,27 +460,30 @@ const sendEmail = async (input: MailerEvent) => {
               };
             }, {} as Record<string, AddressConfiguration>);
 
-          const all = await pinpoint.send(new SendMessagesCommand({
-            ApplicationId: process.env.PINPOINT_ID,
-            MessageRequest: {
-              Addresses: {
-                ...EmailAddresses,
-                ...SMSAddresses,
-              } as any,
-              MessageConfiguration: {
-                EmailMessage: {
-                  FromAddress: process.env.FROM_EMAIL,
+          const finalAddresses = {
+            ...EmailAddresses,
+            ...SMSAddresses,
+          } as any;
+          if (Object.keys(finalAddresses).length > 0) {
+            const all = await pinpoint.send(new SendMessagesCommand({
+              ApplicationId: process.env.PINPOINT_ID,
+              MessageRequest: {
+                Addresses: finalAddresses,
+                MessageConfiguration: {
+                  EmailMessage: {
+                    FromAddress: process.env.FROM_EMAIL,
+                  },
                 },
-              },
-              TemplateConfiguration: {
-                EmailTemplate: {
-                  Name: MailerEvents.AdminEventShiftsFilled,
-                  Version: '1',
+                TemplateConfiguration: {
+                  EmailTemplate: {
+                    Name: MailerEvents.AdminEventShiftsFilled,
+                    Version: '1',
+                  },
                 },
-              },
-            }
-          }));
-          logger.info('Assignment staffed response', { all });
+              }
+            }));
+            logger.info('Assignment staffed response', { all });
+          }
         }
       }
 
@@ -544,22 +550,25 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
-      Addresses = {
-        [user.member.contactInfo!.primaryEmail.address]: {
-          ChannelType: 'EMAIL',
-          Substitutions: {
-            "shift.name": [assignment.name],
-            "event.name": [event.name],
-            "shift.start_date": [shiftStart.date],
-            "user.first_name": [user.firstName],
-            "event.reference_number": [event.referenceId],
-            "shift.start_time": [shiftStart.time],
-            "shift.end_date": [shiftEnd.date],
-            "shift.end_time": [shiftEnd.time],
-            "system.metro_name": [organization.name],
+      if (user.member.contactInfo!.primaryEmail.receiveEmails) {
+        Addresses = {
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              "shift.name": [assignment.name],
+              "event.name": [event.name],
+              "shift.start_date": [shiftStart.date],
+              "user.first_name": [user.firstName],
+              "event.reference_number": [event.referenceId],
+              "shift.start_time": [shiftStart.time],
+              "shift.end_date": [shiftEnd.date],
+              "shift.end_time": [shiftEnd.time],
+              "system.metro_name": [organization.name],
+            },
           },
-        },
-      };
+        };
+      }
+
     } else if (input.template === MailerEvents.AdminShiftRelinquished) {
       const { existingUserId, shift, organization } = input.data;
 
@@ -730,22 +739,24 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
-      Addresses = {
-        [user.member.contactInfo!.primaryEmail.address]: {
-          ChannelType: 'EMAIL',
-          Substitutions: {
-            "shift.name": [assignment.name],
-            "event.name": [event.name],
-            "user.first_name": [user.firstName],
-            "shift.start_time": [shiftStart.time],
-            "shift.end_date": [shiftEnd.date],
-            "shift.end_time": [shiftEnd.time],
-            "system.metro_name": [organization.name],
-            "system.login_url": [process.env.LOGIN_URL || ''],
-            "shift.start_date": [shiftStart.date],
+      if (user.member.contactInfo!.primaryEmail.receiveEmails) {
+        Addresses = {
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              "shift.name": [assignment.name],
+              "event.name": [event.name],
+              "user.first_name": [user.firstName],
+              "shift.start_time": [shiftStart.time],
+              "shift.end_date": [shiftEnd.date],
+              "shift.end_time": [shiftEnd.time],
+              "system.metro_name": [organization.name],
+              "system.login_url": [process.env.LOGIN_URL || ''],
+              "shift.start_date": [shiftStart.date],
+            },
           },
-        },
-      };
+        };
+      }
     } else if (input.template === MailerEvents.LotteryWindowClosing) {
       const { orgId } = input.data;
 

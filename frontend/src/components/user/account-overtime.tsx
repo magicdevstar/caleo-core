@@ -129,6 +129,7 @@ export default function AccountOvertime({
           <Grid xs={12} md={8}>
             <Stack spacing={1} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.neutral' }}>
               <FormControlLabel
+                sx={{ width: 'fit-content' }}
                 control={
                   <Switch
                     checked={(modifiedAvailability[overtime.dayOfWeek as keyof UserAvailability] as DayAvailability).available}

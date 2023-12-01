@@ -469,7 +469,12 @@ export const shift = {
           } as MailerEvent),
         }));
       }
-      if (!userId && existingUserId && organization?.settings?.userRelinquishShift.enabled && !userIsAdmin(user)) {
+      if (
+        !userId &&
+        existingUserId &&
+        user!.id === existingUserId &&
+        organization?.settings?.userRelinquishShift.enabled
+      ) {
         const tier = organization?.settings?.userRelinquishShift?.afterShiftRemove?.tier;
         const days = organization?.settings?.userRelinquishShift?.afterShiftRemove?.days;
         const zonedDate = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);

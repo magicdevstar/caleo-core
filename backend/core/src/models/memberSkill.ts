@@ -76,7 +76,7 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
           template,
           data: {
             user,
-            skill,
+            skill: res,
             organization,
           }
         } as MailerEvent),

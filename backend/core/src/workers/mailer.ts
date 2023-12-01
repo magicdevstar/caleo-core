@@ -128,6 +128,7 @@ const sendEmail = async (input: MailerEvent) => {
               'user.first_name': [user.firstName],
               'skill.name': [skill.name],
               'system.metro_name': [organization.name],
+              ...(input.template === MailerEvents.OfficerAdminDeniedSkill && { 'skill.denial_reason': [skill.statusReason || ''] }),
             },
           },
         };
@@ -138,7 +139,7 @@ const sendEmail = async (input: MailerEvent) => {
           [user.member.contactInfo!.primaryPhone.receiveTexts]: {
             ChannelType: 'SMS',
             Substitutions: {
-              'user.first_name': [user.firstName],
+              "system.login_url": [process.env.LOGIN_URL || ''],
               'skill.name': [skill.name],
               'system.metro_name': [organization.name],
             },

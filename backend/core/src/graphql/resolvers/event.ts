@@ -241,18 +241,6 @@ export const event = {
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
       lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => item.lotteryNumber ? lotteryCounter.countLoader.load(item.lotteryNumber) : null,
-      status: (item: Event) => {
-        if (item.removedAt) {
-          return EventStatus.Removed;
-        }
-        if (item.status === EventStatus.Draft) {
-          return item.status;
-        }
-        if (item.endTime && isAfter(new Date(), new Date(item.endTime))) {
-          return EventStatus.Complete;
-        }
-        return item.status;
-      },
       attachments: async (item: Event, _arg: unknown, { events }: Context) => {
         if (!item.attachmentPaths) {
           return [];

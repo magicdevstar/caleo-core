@@ -26,20 +26,28 @@ import { useDownloadCsv } from 'src/hooks/use-download-csv';
 
 const eventStatusOptions = [
   {
-    label: 'Complete',
-    value: EventStatus.Complete,
-  },
-  {
     label: 'Draft',
     value: EventStatus.Draft,
   },
   {
-    label: 'First come first serve',
+    label: 'Pre First Come First Serve',
+    value: EventStatus.PreFirstComeFirstServe,
+  },
+  {
+    label: 'First Come First Serve',
     value: EventStatus.FirstComeFirstServe,
+  },
+  {
+    label: 'Pre Lottery',
+    value: EventStatus.PreLottery,
   },
   {
     label: 'Lottery',
     value: EventStatus.ReadyForLottery,
+  },
+  {
+    label: 'Complete',
+    value: EventStatus.Complete,
   },
   {
     label: 'Removed',

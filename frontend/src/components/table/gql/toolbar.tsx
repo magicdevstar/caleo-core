@@ -67,10 +67,10 @@ export default function TableToolbar({
           <Grid
             item
             key={filter.id}
-            xs={toolbarConfig?.xs || filter?.sizing?.xs || 12}
-            sm={toolbarConfig?.sm || filter?.sizing?.sm || 12}
-            md={toolbarConfig?.md || filter?.sizing?.md || 6}
-            lg={toolbarConfig?.lg || filter?.sizing?.lg || 4}
+            xs={filter?.sizing?.xs || toolbarConfig?.xs || 12}
+            sm={filter?.sizing?.sm || toolbarConfig?.sm || 12}
+            md={filter?.sizing?.md || toolbarConfig?.md || 6}
+            lg={filter?.sizing?.lg || toolbarConfig?.lg || 4}
           >
             {render}
           </Grid>

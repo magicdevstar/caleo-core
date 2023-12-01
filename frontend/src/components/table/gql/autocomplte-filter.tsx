@@ -39,6 +39,7 @@ const AutoCompleteFilter = memo(
         value={filter.value}
         getOptionLabel={(option: any) => option.label}
         inputValue={text}
+        limitTags={filter.autoComplete?.limitTags}
         loading={loadingOptions}
         loadingText={
           <>
@@ -83,6 +84,7 @@ const AutoCompleteFilter = memo(
           multiple
           disableCloseOnSelect
           fullWidth
+          limitTags={filter.autoComplete?.limitTags}
           open={open && dirtyInput.current}
           onOpen={() => {
             setOpen(true);

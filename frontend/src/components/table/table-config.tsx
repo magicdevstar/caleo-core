@@ -85,6 +85,7 @@ export interface Filter {
     multiSelect?: boolean;
     inputLabel?: string;
     inputPlaceholder?: string;
+    limitTags?: number;
   };
   value?: any;
   // This will be used to store the options once they are queried

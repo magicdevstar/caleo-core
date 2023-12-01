@@ -12,6 +12,8 @@ import { TableConfig, getBooleanFilters, getStatusFilter, getTierFilter } from "
 import { GET_USERS, REMOVE_USER } from "src/api/user";
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { useBoolean } from "src/hooks/use-boolean";
+import { client } from "src/utils/apollo";
+import { GET_RANKS } from "src/api/rank";
 
 export default function UserTable() {
   const { enqueueSnackbar } = useSnackbar();
@@ -161,6 +163,31 @@ export default function UserTable() {
         value: [],
         fetchOptions: getBooleanFilters,
         resolveAsBoolean: true,
+      },
+      {
+        id: 'rankIds',
+        type: 'autocomplete',
+        label: 'Rank',
+        autoComplete: {
+          multiSelect: true,
+          inputLabel: 'Rank',
+          inputPlaceholder: 'Search...',
+          limitTags: 1,
+        },
+        async fetchOptions (query?: string) {
+          const { data } = await client.query({
+            query: GET_RANKS,
+            variables: {
+              input: {
+                query,
+                limit: 10,
+                skip: 0,
+              },
+            },
+          });
+          const formattedOptions = data?.ranks?.items?.map(({ id, name }: any) => ({ value: id, label: name })) || [];
+          return formattedOptions;
+        },
       },
     ]
   };

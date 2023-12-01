@@ -12,7 +12,6 @@ import {
 } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
-import logger from "../../utils/logger";
 
 export const skill = {
   Query: {

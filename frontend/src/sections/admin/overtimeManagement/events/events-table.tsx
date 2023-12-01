@@ -152,8 +152,16 @@ export default function EventsTable() {
               value: EventStatus.Draft,
             },
             {
+              label: 'Pre First Come First Serve',
+              value: EventStatus.PreFirstComeFirstServe,
+            },
+            {
               label: 'First Come First Serve',
               value: EventStatus.FirstComeFirstServe,
+            },
+            {
+              label: 'Pre Lottery',
+              value: EventStatus.PreLottery,
             },
             {
               label: 'Lottery',

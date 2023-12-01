@@ -16,7 +16,7 @@ export const event = {
     events: async (
       _parent: unknown,
       { input: { range, endTime, createdById, status, referenceIds, venueIds, ...input } }: { input: EventSearchInput },
-      { events, user }: Context
+      { events, lotteryCounter, organization, user }: Context
     ): Promise<SearchResults<Event>> => {
       let timeFilters: any = {};
       const $or: any[] = [];
@@ -27,6 +27,8 @@ export const event = {
       if (venueIds) {
         (input as any).venueId = { $in: venueIds };
       }
+
+      const includeComplete = (status || []).includes(EventStatus.Complete);
 
       if (range) {
         const { startTime, endTime } = range;
@@ -47,7 +49,7 @@ export const event = {
             ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
           };
         }
-      } else if (endTime) {
+      } else if (endTime && !includeComplete) {
         if (endTime.value) {
           timeFilters.endTime = new Date(endTime.value).getTime();
         } else if (endTime.gte || endTime?.lte) {
@@ -66,23 +68,52 @@ export const event = {
       }
       // Kill me :) Maybe I should consider just calculating the status with event bridge instead of this mess
       if (status) {
+        const includeLottery = status.includes(EventStatus.ReadyForLottery);
+        const includePreLottery = status.includes(EventStatus.PreLottery);
+        const includePreFCFS = status.includes(EventStatus.PreFirstComeFirstServe);
         const includeRemoved = status.includes(EventStatus.Removed);
-        const includeComplete = status.includes(EventStatus.Complete);
-        const filteredStatus = status.filter((s) => s !== EventStatus.Removed && s !== EventStatus.Complete);
+        const filteredStatus = status.filter((s: any) => ![
+          EventStatus.Complete,
+          EventStatus.ReadyForLottery,
+          EventStatus.PreLottery,
+          EventStatus.PreFirstComeFirstServe,
+        ].includes(s));
 
-        if (includeRemoved) {
-          (input as any).includeRemoved = true;
-          if (filteredStatus.length > 0) {
+        if (includeLottery && includePreLottery) {
+          filteredStatus.push(EventStatus.ReadyForLottery);
+        } else if (includeLottery) {
+          const { counter } = await lotteryCounter.get(organization!.id);
+          if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
             $or.push({
-              removedAt: { $exists: true },
-            }, {
-              status: { $in: filteredStatus },
+              lotteryNumber: counter,
             });
           } else {
-            (input as any).removedAt = { $exists: true };
+            (input as any).lotteryNumber = counter;
           }
+        } else if (includePreLottery) {
+          const { counter } = await lotteryCounter.get(organization!.id);
+          if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
+            $or.push({
+              lotteryNumber: { $gt: counter },
+            });
+          } else {
+            (input as any).lotteryNumber = { $gt: counter };
+          }
+        }
+        if (includePreFCFS) {
+          if (filteredStatus.length > 0 || includeComplete || includeLottery || includePreLottery) {
+            $or.push({
+              scheduledFirstComeFirstServe: { $gt: Date.now() },
+            });
+          } else {
+            (input as any).scheduledFirstComeFirstServe = { $gt: Date.now() };
+          }
+          filteredStatus.push(EventStatus.FirstComeFirstServe);
+        }
+        if (includeRemoved) {
+          (input as any).includeRemoved = true;
         } 
-        if (filteredStatus.length > 0 && (includeRemoved || includeComplete)) {
+        if (filteredStatus.length > 0 && includeComplete) {
           $or.push({
             status: { $in: filteredStatus },
           });
@@ -152,7 +183,7 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, eventReferenceNumber, user }: Context
+      { events, eventReferenceNumber, lotteryCounter, user }: Context
     ): Promise<Event> => {
       adminOnly(user);
 
@@ -182,6 +213,11 @@ export const event = {
       };
 
       inputEvent.searchAttribute = `${inputEvent.referenceId} ${inputEvent.name}`;
+
+      const { counter } = await lotteryCounter.get(user!.member.orgId!);
+      if (inputEvent.lotteryNumber === counter && inputEvent.status !== EventStatus.ReadyForLottery) {
+        inputEvent.lotteryNumber = null;
+      } 
 
       logger.info('Upsert event', { event: inputEvent });
       let finalEvent: any;

@@ -82,7 +82,10 @@ export default function EditEvent({ currentEvent }: Props) {
     dateLimit: currentEvent?.endTime || undefined,
   });
   const lotteryInfo = useMemo(() => {
-    if (typeof currentEvent?.lotteryNumber === 'number' && lotteryCounterOptions.length > 0) {
+    if (
+      typeof currentEvent?.lotteryNumber === 'number' &&
+      lotteryCounterOptions.length > 0
+    ) {
       const foundCounterOption = lotteryCounterOptions.find(({ counter }) => counter === currentEvent?.lotteryNumber);
       if (foundCounterOption) {
         return `Lottery Start: ${foundCounterOption.time}\nLottery End: ${foundCounterOption.endTime}`;
@@ -594,7 +597,6 @@ export default function EditEvent({ currentEvent }: Props) {
                         },
                       }}
                     />
-                    <Typography color="grey" variant='caption' sx={{ whiteSpace: 'pre-line' }}>{ lotteryInfo }</Typography>
                   </Box>
                 )}
 

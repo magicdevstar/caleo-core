@@ -179,6 +179,8 @@ export enum EventStatus {
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
   PreFcfs = 'PRE_FCFS',
+  PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
+  PreLottery = 'PRE_LOTTERY',
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Removed = 'REMOVED'
 }
@@ -1067,6 +1069,7 @@ export type ShiftSearchInput = {
   range?: InputMaybe<SearchTimeRange>;
   rangeField?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  refNumber?: InputMaybe<Scalars['String']['input']>;
   skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;

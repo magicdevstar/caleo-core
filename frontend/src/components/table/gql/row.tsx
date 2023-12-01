@@ -1,3 +1,4 @@
+import React from 'react';
 import get from 'lodash/get';
 import { Link as RouterLink } from "react-router-dom";
 // @mui
@@ -9,6 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+import Divider from '@mui/material/Divider';
 // hooks
 import { dateFormat, timeFormat, useDateJS } from 'src/hooks/use-datejs';
 // components
@@ -179,9 +181,9 @@ export default function GQLTableRow({
                 return (<DateCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} />);
               case 'string':
                 return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} clickable={!!column?.clickable?.(row)} onClick={() => column.onClick?.(row)} labelColor={column.getLabelColor?.(row)} />);
-              case 'array': 
+              case 'array':
                 return (<ArrayCell width={column.width} emptyArrayLabel={column.emptyArrayLabel} key={column.id} value={value} maxRender={column.maxRender || 1} />);
-              case 'action': 
+              case 'action':
               default:
                 if (column.renderValue) {
                   return (
@@ -209,17 +211,21 @@ export default function GQLTableRow({
         sx={{ width: 140 }}
       >
         {config.rowActions.map((action) => (
-          <MenuItem
-            key={action.getName(row)}
-            disabled={action.getDisabled?.(row) || false}
-            onClick={() => {
-              action.onClick(row);
-              popover.onClose();
-            }}
-          >
-            <Iconify icon={action.getIcon(row)} {...(action.getColor ? { sx: { color: action.getColor(row) } } : {})} />
-            {action.getName(row)}
-          </MenuItem>
+          !(action.getHidden?.(row) || false) &&
+          <React.Fragment key={action.getName(row)}>
+            {(action.includeDivider && (!action.getHidden?.(row) || false)) && <Divider sx={{ borderStyle: 'dashed' }} />}
+            <MenuItem
+              hidden={action.getHidden?.(row) || false}
+              disabled={action.getDisabled?.(row) || false}
+              onClick={() => {
+                action.onClick(row);
+                popover.onClose();
+              }}
+            >
+              <Iconify icon={action.getIcon(row)} {...(action.getColor ? { sx: { color: action.getColor(row) } } : {})} />
+              {action.getName(row)}
+            </MenuItem>
+          </React.Fragment>
         ))}
       </CustomPopover>
     </>

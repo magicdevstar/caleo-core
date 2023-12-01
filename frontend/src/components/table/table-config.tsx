@@ -49,7 +49,9 @@ export interface TableConfig<T> {
     };
   }
   rowActions: {
+    includeDivider?: boolean; // adds a divider to the top of this option
     getDisabled?: (row: T) => boolean;
+    getHidden?: (row: T) => boolean;
     getName: (row: T) => any;
     getIcon: (row: T) => any;
     onClick: (row: T) => any;

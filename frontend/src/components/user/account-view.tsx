@@ -48,7 +48,6 @@ export default function MainAccountView({
   adminViewer: boolean;
   excludePassword?: boolean;
 }) {
-  
   const [currentTab, setCurrentTab] = useState('general');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
@@ -73,7 +72,7 @@ export default function MainAccountView({
 
       {currentTab === 'overtime' && <AccountOvertime user={user} />}
 
-      {currentTab === 'skills' && <AccountSkills user={user} />}
+      {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} />}
 
       {currentTab === 'security' && <AccountChangePassword />}
     </>

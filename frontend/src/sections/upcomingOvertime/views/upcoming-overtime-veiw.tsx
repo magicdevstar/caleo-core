@@ -43,7 +43,7 @@ export default function UpcomingOvertimeView() {
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
       <Box sx={{mb: { xs: 3, md: 5 }}}>
         <Typography variant="h4" gutterBottom>
-          Available Overtime
+          Upcoming Overtime
         </Typography>
       </Box>
 

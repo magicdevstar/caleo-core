@@ -8,7 +8,7 @@ export default function NewPasswordPage() {
   return (
     <>
       <Helmet>
-        <title> Amplify: New Password</title>
+        <title> Caleo: New Password</title>
       </Helmet>
 
       <AmplifyNewPasswordView />

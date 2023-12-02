@@ -8,7 +8,7 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <Helmet>
-        <title> Amplify: Forgot Password</title>
+        <title> Caleo: Forgot Password</title>
       </Helmet>
 
       <AmplifyForgotPasswordView />

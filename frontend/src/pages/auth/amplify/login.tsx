@@ -8,7 +8,7 @@ export default function LoginPage() {
   return (
     <>
       <Helmet>
-        <title> Amplify: Amplify Login</title>
+        <title> Caleo: Login</title>
       </Helmet>
 
       <AmplifyLoginView />

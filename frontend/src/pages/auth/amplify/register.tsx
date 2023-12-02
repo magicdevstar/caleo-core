@@ -8,7 +8,7 @@ export default function RegisterPage() {
   return (
     <>
       <Helmet>
-        <title> Amplify: Register</title>
+        <title> Caleo: Register</title>
       </Helmet>
 
       <AmplifyRegisterView />

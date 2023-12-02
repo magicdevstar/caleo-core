@@ -90,6 +90,7 @@ export const event = {
           } else {
             (input as any).lotteryNumber = counter;
           }
+          filteredStatus.push(EventStatus.ReadyForLottery);
         } else if (includePreLottery) {
           const { counter } = await lotteryCounter.get(organization!.id);
           if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
@@ -99,6 +100,7 @@ export const event = {
           } else {
             (input as any).lotteryNumber = { $gt: counter };
           }
+          filteredStatus.push(EventStatus.ReadyForLottery);
         }
         if (includePreFCFS) {
           if (filteredStatus.length > 0 || includeComplete || includeLottery || includePreLottery) {

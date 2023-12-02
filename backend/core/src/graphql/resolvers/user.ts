@@ -96,6 +96,36 @@ export const user = {
               receiveEmails: true,
             },
           },
+          availability: {
+            monday: {
+              available: false,
+              times: [],
+            },
+            tuesday: {
+              available: false,
+              times: [],
+            },
+            wednesday: {
+              available: false,
+              times: [],
+            },
+            thursday: {
+              available: false,
+              times: [],
+            },
+            friday: {
+              available: false,
+              times: [],
+            },
+            saturday: {
+              available: false,
+              times: [],
+            },
+            sunday: {
+              available: false,
+              times: [],
+            },
+          },
           tier: inputUser.member.tier || MemberTier.Tier_1,
           rankId: inputUser.member.rankId,
           maxShifts: organization?.settings?.shiftsPerWeek,

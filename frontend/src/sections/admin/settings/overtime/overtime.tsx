@@ -170,7 +170,7 @@ export default function Overtime({
           <Card>
             {!mdUp && <CardHeader title="Lottery" />}
             <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFSwitch name="settings.lottery.enabled" label="Enable lottery" />
+              <RHFSwitch name="settings.lottery.enabled" disabled label="Enable lottery" />
               <RHFTextField
                 type="number"
                 name="settings.lottery.notifyUsersBeforeClose"

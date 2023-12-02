@@ -9,7 +9,11 @@ export class RankModel extends BaseModel<Rank> {
     super(db, DocType.Rank, 'ranks');
     this.validator = {
       create: async (doc) => {
-        const found = await this.findOne({ name: doc.name, removedAt: { $exists: false } });
+        const found = await this.findOne({
+          name: doc.name,
+          orgId: doc.orgId,
+          removedAt: { $exists: false },
+        });
   
         if (found) {
           throw new GraphQLError('Rank name must be unique', {

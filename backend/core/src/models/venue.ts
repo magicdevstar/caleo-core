@@ -9,7 +9,11 @@ export class VenueModel extends BaseModel<Venue> {
     super(db, DocType.Venue, 'venues');
     this.validator = {
       create: async (doc) => {
-        const found = await this.findOne({ name: doc.name, removedAt: { $exists: false } });
+        const found = await this.findOne({
+          name: doc.name,
+          orgId: doc.orgId,
+          removedAt: { $exists: false }
+        });
   
         if (found) {
           throw new GraphQLError('Venue name must be unique', {

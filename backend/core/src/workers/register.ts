@@ -15,11 +15,13 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
 
     let user = await services.users.collection.findOne({
       cognitoId: event.userName,
+      'member.orgId': event.request.userAttributes['custom:org_id'],
     });
     if (!user) {
       user = await services.users.collection.findOne({
         'member.contactInfo.primaryEmail.address': event.request.userAttributes.email,
         'member.status': MemberStatus.Invited,
+        'member.orgId': event.request.userAttributes['custom:org_id'],
       });
       if (!user) {
         const createdUser = await services.users.create({

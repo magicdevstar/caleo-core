@@ -183,7 +183,7 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, eventReferenceNumber, lotteryCounter, user }: Context
+      { events, eventReferenceNumber, lotteryCounter, user, organization }: Context
     ): Promise<Event> => {
       adminOnly(user);
 
@@ -196,7 +196,7 @@ export const event = {
       } else {
         (event as any).createdById = user!.id;
         (event as any).status = EventStatus.Draft;
-        (event as any).referenceId = await eventReferenceNumber.get();
+        (event as any).referenceId = await eventReferenceNumber.get(organization!.id);
       }
 
       const inputEvent = {

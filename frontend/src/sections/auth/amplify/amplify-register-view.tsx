@@ -27,6 +27,15 @@ import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 
 const incomingSearchParams = new URLSearchParams(window.location.search)
 
+const paramEmail = incomingSearchParams.get('email') ?
+  window.location.search.split('&').reduce((email, param) => {
+    if (/email=/.test(param)) {
+      return param.split('=')[1];
+    }
+    return email;
+  }, ''):
+  '';
+
 export default function AmplifyRegisterView() {
   const { register } = useAuthContext();
 
@@ -57,7 +66,7 @@ export default function AmplifyRegisterView() {
     lastName: '',
     pNumber: '',
     phoneNumber: '',
-    email: '',
+    email: paramEmail || '',
     password: '',
     orgId: incomingSearchParams.get('orgId') || '',
   };
@@ -141,7 +150,7 @@ export default function AmplifyRegisterView() {
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <RHFTextField name="pNumber" label="P#" />
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" disabled={!!incomingSearchParams.get('email')} label="Email address" />
       </Stack>
 
       <RHFPhoneField

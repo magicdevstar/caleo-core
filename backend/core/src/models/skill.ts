@@ -9,7 +9,11 @@ export class SkillModel extends BaseModel<Skill> {
     super(db, DocType.Skill, 'skills');
     this.validator = {
       create: async (doc) => {
-        const found = await this.findOne({ name: doc.name, removedAt: { $exists: false } });
+        const found = await this.findOne({
+          name: doc.name,
+          orgId: doc.orgId,
+          removedAt: { $exists: false },
+        });
   
         if (found) {
           throw new GraphQLError('Skill name must be unique', {

@@ -216,8 +216,7 @@ export const event = {
 
       inputEvent.searchAttribute = `${inputEvent.referenceId} ${inputEvent.name}`;
 
-      const { counter } = await lotteryCounter.get(user!.member.orgId!);
-      if (inputEvent.lotteryNumber === counter && inputEvent.status !== EventStatus.ReadyForLottery) {
+      if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status !== EventStatus.ReadyForLottery) {
         inputEvent.lotteryNumber = null;
       } 
 

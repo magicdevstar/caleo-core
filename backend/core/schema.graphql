@@ -993,6 +993,15 @@
     includeRemoved: Boolean
   }
 
+  input AvailableShiftsSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
+    upcoming: Boolean
+  }
+
   type ShiftSearchResult {
     items: [Shift]
     total: Int!
@@ -1092,7 +1101,7 @@ type Query {
   assignment(id: String!): Assignment
   assignments(input: SearchInput): AssignmentSearchResult
 
-  availableShifts(input: SearchInput): ShiftSearchResult
+  availableShifts(input: AvailableShiftsSearchInput): ShiftSearchResult
   shift(id: String!): Shift
   groupedShifts(shiftId: String!): [Shift]
   shifts(input: ShiftSearchInput): ShiftSearchResult

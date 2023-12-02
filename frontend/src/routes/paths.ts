@@ -24,6 +24,7 @@ export const paths = {
   dashboard: {
     root: ROOTS.DASHBOARD,
     availableOvertime: `${ROOTS.DASHBOARD}/available/overtime`,
+    upcomingOvertime: `${ROOTS.DASHBOARD}/upcoming/overtime`,
     rankOvertime: `${ROOTS.DASHBOARD}/rank/overtime`,
     user: {
       root: `${ROOTS.DASHBOARD}/user`,

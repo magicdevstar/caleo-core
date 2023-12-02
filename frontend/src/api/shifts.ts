@@ -49,7 +49,7 @@ export const CREATE_SHIFT_LOTTERY_REQUEST = gql`
 `;
 
 export const GET_AVAILABLE_SHIFTS = gql`
-  query GetAvailableShifts($input: SearchInput!) {
+  query GetAvailableShifts($input: AvailableShiftsSearchInput!) {
     availableShifts(input: $input) {
       items {
         id

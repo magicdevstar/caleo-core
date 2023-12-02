@@ -99,16 +99,18 @@ export class UserModel extends BaseModel<User> {
     orgId,
     organization,
     defaultEventIds,
-    eventType = EventStatus.FirstComeFirstServe,
+    upcoming,
+    eventTypes = [EventStatus.FirstComeFirstServe],
   }: {
     user: User;
     organization: Organization;
     shiftId?: string;
     shiftGroupId?: string;
+    upcoming?: boolean;
     limit: number;
     skip: number;
     orgId: string;
-    eventType?: EventStatus;
+    eventTypes?: EventStatus[];
     defaultEventIds?: string[];
   }) {
     let skillIds: string[] = [];
@@ -140,12 +142,29 @@ export class UserModel extends BaseModel<User> {
         }
       ]
     };
-    if (eventType === EventStatus.ReadyForLottery) {
+    if (eventTypes && eventTypes.length === 1 && eventTypes[0] === EventStatus.ReadyForLottery) {
       const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
       eventQuery = {
         orgId,
         status: EventStatus.ReadyForLottery,
         lotteryNumber: lotteryCounterDoc.counter,
+      };
+    } else if (eventTypes && upcoming) {
+      const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
+      eventQuery = {
+        orgId,
+        $or: [
+          {
+            status: EventStatus.FirstComeFirstServe,
+            scheduledFirstComeFirstServe: {
+              $gte: Date.now(),
+            },
+          },
+          {
+            status: EventStatus.ReadyForLottery,
+            lotteryNumber: lotteryCounterDoc.counter,
+          },
+        ],
       };
     }
 

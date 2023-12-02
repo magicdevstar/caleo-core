@@ -10,6 +10,7 @@ import {
 import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
+  AvailableShiftsSearchInput,
   EventStatus,
   MemberRole,
   MemberTier,
@@ -38,15 +39,16 @@ export const shift = {
   Query: {
     availableShifts: async (
       _parent: unknown,
-      { input: {limit, skip} }: { input: { limit: number; skip: number; } },
+      { input: {limit, skip, upcoming } }: {input: AvailableShiftsSearchInput},
       { users, user, organization }: Context
     ): Promise<SearchResults<Shift>> =>
       users.findOpenShifts({
         user: user!,
         organization: organization!,
         orgId: user?.member.orgId!,
-        limit,
-        skip,
+        limit: limit || 10,
+        skip: skip || 0,
+        upcoming: !!upcoming,
       }),
     shift: async (
       _parent: unknown,
@@ -76,7 +78,7 @@ export const shift = {
       orgId: user?.member.orgId!,
       limit: 100000,
       skip: 0,
-      eventType: EventStatus.ReadyForLottery,
+      eventTypes: [EventStatus.ReadyForLottery],
     }),
     shifts: async (
       _parent: unknown,

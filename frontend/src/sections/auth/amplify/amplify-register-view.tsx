@@ -57,7 +57,7 @@ export default function AmplifyRegisterView() {
     lastName: '',
     pNumber: '',
     phoneNumber: '',
-    email: '',
+    email: incomingSearchParams.get('email') || '',
     password: '',
     orgId: incomingSearchParams.get('orgId') || '',
   };
@@ -141,7 +141,7 @@ export default function AmplifyRegisterView() {
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <RHFTextField name="pNumber" label="P#" />
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" disabled={!!incomingSearchParams.get('email')} label="Email address" />
       </Stack>
 
       <RHFPhoneField

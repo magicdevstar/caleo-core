@@ -2,6 +2,7 @@ import { Collection } from "mongodb";
 
 export interface IEventReferenceNumber {
   _id: string;
+  orgId: string;
   type: 'eventReferenceNumber';
   referenceNumber: number;
 }
@@ -13,9 +14,9 @@ export class EventReferenceNumber {
     this.collection = db.collection('eventReferenceNumber');
   }
 
-  async get(): Promise<number> {
+  async get(orgId: string): Promise<number> {
     const res = await this.collection.findOneAndUpdate({
-      _id: 'eventReferenceNumber' as any,
+      orgId,
     }, {
       $inc: { referenceNumber: 1 },
     }, {

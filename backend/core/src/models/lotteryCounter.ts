@@ -37,14 +37,18 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     const res = await this.findOne({ orgId, removedAt: { $exists: false } });
 
     if (!res) {
-      return {
+      const dates = await this.getNextLotteryDates(orgId);
+      const out = {
         id: orgId,
         orgId,
         counter: 0,
         docType: DocType.LotteryCounter,
+        start: dates.start.getTime() as any,
+        end: dates.end.getTime() as any,
       } as LotteryCounter;
+      logger.info('Lottery counter', { orgId, counter: out, dates });
+      return out;
     }
-
     return res;
   }
 
@@ -76,6 +80,13 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
       }
     });
 
+    logger.info('Lottery dates', {
+      zonedDate,
+      startDay,
+      startHour,
+      startMinutes,
+      org,
+    });
     let lottoStart = setMinutes(setHours(setDay(zonedDate, startDay), startHour), startMinutes);
     let lottoEnd = setMinutes(setHours(setDay(zonedDate, endDay), endHour), endMinutes);
     if (endDay < startDay) {

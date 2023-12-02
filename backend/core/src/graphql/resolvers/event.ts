@@ -185,7 +185,13 @@ export const event = {
     event: async (
       _parent: unknown,
       { event }: { event: UpsertEvent },
-      { events, eventReferenceNumber, lotteryCounter, user, organization }: Context
+      {
+        events,
+        shiftLotteryRequests,
+        eventReferenceNumber,
+        user,
+        organization,
+      }: Context
     ): Promise<Event> => {
       adminOnly(user);
 
@@ -218,7 +224,11 @@ export const event = {
 
       if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status !== EventStatus.ReadyForLottery) {
         inputEvent.lotteryNumber = null;
-      } 
+      }
+
+      if (currentEvent.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {
+        await shiftLotteryRequests.removeByEventId(currentEvent.id, user!.id);
+      }
 
       logger.info('Upsert event', { event: inputEvent });
       let finalEvent: any;

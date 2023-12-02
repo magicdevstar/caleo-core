@@ -1,6 +1,6 @@
 import { Db, ObjectId } from 'mongodb';
 import DataLoader from 'dataloader';
-import { ShiftLotteryRequest, DocType, MemberTier } from '../__generated__/resolvers-types';
+import { ShiftLotteryRequest, DocType, MemberTier, ShiftLotteryRequestStatus } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { LotteryCounterModel } from './lotteryCounter';
 
@@ -29,6 +29,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     await this.removeMany({
       shiftGroupId,
     }, {
+      status: ShiftLotteryRequestStatus.Removed,
       modifiedById,
     });
   }
@@ -37,6 +38,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     await this.removeMany({
       assignmentId,
     }, {
+      status: ShiftLotteryRequestStatus.Removed,
       modifiedById,
     });
   }
@@ -45,6 +47,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     await this.removeMany({
       eventId,
     }, {
+      status: ShiftLotteryRequestStatus.Removed,
       modifiedById,
     });
   }
@@ -137,5 +140,13 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     ];
 
     return this.collection.aggregate(JSON.parse(JSON.stringify(pipeline))).toArray() as any;
+  }
+
+  async highestOrderNumber(lotteryCounter: number, userId: string) {
+    const res = await this.collection.find({
+      lotteryCounter,
+      userId,
+    }).sort({ order: -1 }).limit(1).toArray();
+    return res[0]?.order || 0;
   }
 };

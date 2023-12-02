@@ -364,6 +364,7 @@
     APPROVED
     REJECTED
     PENDING
+    REMOVED
   }
 
   type ShiftLotteryRequest {

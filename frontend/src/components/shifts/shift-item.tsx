@@ -223,22 +223,8 @@ export default function ShiftItem({
     }).format(dateTimeFormat),
   };
 
-  let selectRender = (<></>);
-  if (selectable && selectLoading) {
-    selectRender = (<CircularProgress color="info" size={22} thickness={5} />);
-  } else if (selectable) {
-    selectRender = (
-      <Checkbox
-        checked={!!shift.lotteryRequest}
-        onClick={(e) => e.stopPropagation()}
-        onChange={(event) => onSelect(shift, event, index)}
-        inputProps={{ 'aria-label': 'controlled' }}
-      />
-    );
-  }
-
   return (
-    <Grid sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
+    <Grid item sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
       <Stack
         onClick={() => {
           setDetailHeight((c) => c === '0px' ? '100%' : '0px');
@@ -290,7 +276,14 @@ export default function ShiftItem({
                 </IconButton>
               )
             }
-            {selectRender}
+            {selectable && (selectLoading ? <CircularProgress color="info" size={22} thickness={5} /> :
+              <Checkbox
+                checked={!!shift.lotteryRequest}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(event) => onSelect(shift, event, index)}
+                inputProps={{ 'aria-label': 'controlled' }}
+              />
+            )}
           </Stack>
 
           <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>

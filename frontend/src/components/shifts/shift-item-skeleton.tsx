@@ -10,7 +10,7 @@ import Label from "src/components/label";
 
 export default function ShiftItemSkeleton() {
   return (
-    <Grid xs={12} md={12} sx={{ padding: 1 }}>
+    <Grid item xs={12} md={12} sx={{ padding: 1 }}>
       <Stack component={Card} direction="row" sx={{ width: '100%', height: '100%' }}>
         <Stack
           sx={{
@@ -54,7 +54,7 @@ export default function ShiftItemSkeleton() {
               <Label variant="soft" color="default">
                 <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
               </Label>
-              
+
               <Label variant="soft" color='default'>
               <Skeleton variant="text" sx={{ width: '100%', minWidth: '200px', fontSize: '1rem' }} />
               </Label>

@@ -77,7 +77,7 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
 
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
-  const [currentTab, setCurrentTab] = useState('upcoming');
+  const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
     defaultOrder: 'asc',
@@ -158,7 +158,7 @@ export default function MyOvertimeView() {
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       setCurrentTab(newValue);
-      if (newValue === 'upcoming') {
+      if (newValue === 'assigned') {
         setFilters((c: any) => {
           delete c.endTime;
           c.startTime = new Date().toISOString();
@@ -254,7 +254,7 @@ export default function MyOvertimeView() {
         onChange={handleTabChange}
         sx={{mb: { xs: 3, md: 5 }}}
       >
-        {['upcoming', 'past'].map((tab) => (
+        {['assigned', 'past'].map((tab) => (
           <Tab
             key={tab}
             iconPosition="end"

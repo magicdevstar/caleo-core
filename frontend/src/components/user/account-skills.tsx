@@ -122,7 +122,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
         onClick: (skill: MemberSkill) => {
           setEditSkill({
             memberSkill: skill,
-            status: SkillStatus.Approved
+            status: SkillStatus.Approved,
           });
           upsertApprovalSkill.onTrue();
         },
@@ -135,7 +135,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
         onClick: (skill: MemberSkill) => {
           setEditSkill({
             memberSkill: skill,
-            status: SkillStatus.Denied
+            status: SkillStatus.Denied,
           });
           upsertApprovalSkill.onTrue();
         },
@@ -143,7 +143,25 @@ export default function AccountSkills({ user, adminViewer }: Props) {
     ],
     columns: [
       { id: 'skill.name', label: 'Name', columnType: 'string' },
-      { id: 'status', label: 'Status', width: 110, columnType: 'string' },
+      {
+        id: 'status',
+        label: 'Status',
+        width: 110,
+        columnType: 'string',
+        renderValue: (status) => capitalize(status),
+        getLabelColor: (row) => {
+          switch (row.status) {
+            case SkillStatus.Approved:
+              return 'success';
+            case SkillStatus.Denied:
+              return 'error';
+            case SkillStatus.Pending:
+              return 'warning';
+            default:
+              return 'default';
+          }
+        },
+      },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },
     ],
@@ -200,7 +218,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
           </>)}
         action={
           <LoadingButton disabled={(editSkill?.status === SkillStatus.Denied && (editSkill?.reason?.trim() === '' || !editSkill?.reason))} loading={updateSkillLoading} variant="contained" color={editSkill?.status === SkillStatus.Approved ? "primary" : "error"} onClick={handleApprovalUpsert}>
-            {capitalize(editSkill?.status)}
+            {editSkill?.status === SkillStatus.Approved ? 'Approve' : 'Deny'}
           </LoadingButton>
         }
       />

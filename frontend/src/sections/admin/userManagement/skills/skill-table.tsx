@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { capitalize } from "lodash";
 // @apollo/client
 import { useMutation } from "@apollo/client";
 
@@ -152,7 +151,7 @@ export default function SkillTable() {
           </>)}
         action={
           <LoadingButton disabled={(editSkill?.status === SkillStatus.Denied && (editSkill?.reason?.trim() === '' || !editSkill?.reason))} loading={updateSkillLoading} variant="contained" color={editSkill?.status === SkillStatus.Approved ? "primary" : "error"} onClick={handleUpsert}>
-            {capitalize(editSkill?.status)}
+            {editSkill?.status === SkillStatus.Approved ? 'Approve' : 'Deny'}
           </LoadingButton>
         }
       />

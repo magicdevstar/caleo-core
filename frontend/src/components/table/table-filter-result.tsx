@@ -6,8 +6,6 @@ import Button from '@mui/material/Button';
 import Stack, { StackProps } from '@mui/material/Stack';
 // components
 import Iconify from 'src/components/iconify';
-// types
-import { IProductTableFilterValue, ISkillTableFilters } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 

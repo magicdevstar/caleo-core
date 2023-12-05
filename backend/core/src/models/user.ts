@@ -10,6 +10,7 @@ import {
   EventStatus,
   InputAdminResetPassword,
   MemberRole,
+  MemberStatus,
   MemberTier,
   Organization,
   ProfilePhotoAttachmentUpload,
@@ -516,6 +517,28 @@ export class UserModel extends BaseModel<User> {
         $set: {
           'member.tier': tier,
           'member.tierUntil': null,
+        },
+      });
+    } catch(error) {
+      logger.error('Failed to reset user tier', { error });
+    }
+  }
+
+  async setStatus({
+    userId,
+    status,
+  }: {
+    userId: string;
+    status: MemberStatus;
+  }) {
+    try {
+      await this.collection.updateOne({
+        _id: new ObjectId(userId),
+      }, {
+        $set: {
+          'member.status': status,
+          'member.inactivateUntil': null,
+          'member.inactivationNote': null,
         },
       });
     } catch(error) {

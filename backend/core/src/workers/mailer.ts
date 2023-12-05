@@ -122,6 +122,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryEmail.address]: {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -136,6 +137,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if (user.member.contactInfo?.primaryPhone.receiveTexts) {
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryPhone.receiveTexts]: {
             ChannelType: 'SMS',
             Substitutions: {
@@ -257,6 +259,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryEmail.address]: {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -276,6 +279,7 @@ const sendEmail = async (input: MailerEvent) => {
       if (user.member.contactInfo?.primaryPhone.receiveTexts) {
         includeSMS = true;
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryPhone.number]: {
             ChannelType: 'SMS',
             Substitutions: {
@@ -500,6 +504,7 @@ const sendEmail = async (input: MailerEvent) => {
 
         if (user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses = {
+            ...Addresses,
             [user.member.contactInfo!.primaryEmail.address]: {
               ChannelType: 'EMAIL',
               Substitutions: {
@@ -519,6 +524,7 @@ const sendEmail = async (input: MailerEvent) => {
         if (user.member.contactInfo?.primaryPhone.receiveTexts) {
           includeSMS = true;
           Addresses = {
+            ...Addresses,
             [user.member.contactInfo!.primaryPhone.number]: {
               ChannelType: 'SMS',
               Substitutions: {
@@ -553,6 +559,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryEmail.address]: {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -742,6 +749,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
         Addresses = {
+          ...Addresses,
           [user.member.contactInfo!.primaryEmail.address]: {
             ChannelType: 'EMAIL',
             Substitutions: {
@@ -979,6 +987,7 @@ const sendEmail = async (input: MailerEvent) => {
       const { inviteEmail, user, organization } = input.data;
 
       Addresses = {
+        ...Addresses,
         [inviteEmail]: {
           ChannelType: 'EMAIL',
           Substitutions: {
@@ -1048,6 +1057,100 @@ const sendEmail = async (input: MailerEvent) => {
         ...EmailAddresses,
         ...SMSAddresses,
       };
+    } else if (input.template === MailerEvents.OfficerUserAccountDeactivated) {
+      const {
+        user: inputUser,
+        organization,
+        inactivateUntil,
+        inactivationNote,
+      } = input.data;
+
+      const user = await context.users.get(inputUser.id);
+      if (!user) {
+        logger.warn('User not found', { input });
+        return;
+      }
+      
+      let inactiveDate = '';
+      if (inactivateUntil) {
+        try {
+          inactiveDate = format(new Date(inactivateUntil), 'MM/dd/yyyy');
+        } catch(error) {
+          logger.error('Failed to format date', { error, inactivateUntil });
+        }
+      }
+      if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+        Addresses = {
+          ...Addresses,
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              "deactivated_until": [inactiveDate || ''],
+              "deactivation_reason": [inactivationNote],
+              "user.first_name": [user.firstName],
+              "system.metro_name": [organization.name],
+            },
+          },
+        };
+      }
+      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+        includeSMS = true;
+        Addresses = {
+          ...Addresses,
+          [user.member.contactInfo!.primaryPhone.number]: {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "system.metro_name": [organization.name],
+            },
+          },
+        };
+      }
+    } else if (input.template === MailerEvents.OfficerUserAccountReactivated) {
+      let {
+        user: inputUser,
+        organization,
+        orgId,
+      } = input.data;
+
+      const user = await context.users.get(inputUser.id);
+      if (!user) {
+        logger.warn('User not found', { input });
+        return;
+      }
+
+      if (!organization) {
+        organization = await context.organizations.get(orgId);
+        if (!organization) {
+          logger.error('Organization not found', { input, organization });
+          return;
+        }
+      }
+      if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+        Addresses = {
+          ...Addresses,
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              "user.first_name": [user.firstName],
+              "system.metro_name": [organization.name],
+              "system.login_url": [process.env.LOGIN_URL || ''],
+            },
+          },
+        };
+      }
+      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+        includeSMS = true;
+        Addresses = {
+          ...Addresses,
+          [user.member.contactInfo!.primaryPhone.number]: {
+            ChannelType: 'SMS',
+            Substitutions: {
+              "system.metro_name": [organization.name],
+              "system.login_url": [process.env.LOGIN_URL || ''],
+            },
+          },
+        };
+      }
     }
 
     if (Object.keys(Addresses).length === 0) {

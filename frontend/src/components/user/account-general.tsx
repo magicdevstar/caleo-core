@@ -36,7 +36,7 @@ import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames, tierNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
-import { dateTimeFormat } from 'src/hooks/use-datejs';
+import { dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -102,6 +102,21 @@ export default function AccountGeneral({
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
+
+  const statusHelperText = useMemo(() => {
+    const res = [];
+    if (user.member.status === MemberStatus.Inactive) {
+      if (user?.member?.inactivateUntil) {
+        const inactivateUntil = dayjs.utc(new Date(user.member.inactivateUntil));
+        res.push(`Inactive until: ${inactivateUntil.format(dateFormat)}`);
+      }
+      if (user?.member?.inactivationNote) {
+        res.push(`Reason: ${user?.member?.inactivationNote}`);
+      }
+    }
+    return res.join('\n');
+  }, [user]);
+  console.log(statusHelperText);
 
   const [createUploadLink] = useMutation(CREATE_PROFILE_PHOTO_UPLOAD_URL);
   const [updateUser] = useMutation(UPDATE_USER);
@@ -411,6 +426,12 @@ export default function AccountGeneral({
                 fullWidth
                 name="status"
                 label="Status"
+                helperText={statusHelperText}
+                sx={{
+                  '& .MuiFormHelperText-root': {
+                    whiteSpace: 'pre-line',
+                  },
+                }}
                 disabled={!adminViewer}
                 InputLabelProps={{ shrink: true }}
                 PaperPropsSx={{ textTransform: 'capitalize' }}

@@ -4,6 +4,7 @@ import { useSnackbar } from "notistack";
 import { useNavigate } from "react-router";
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
+import red from "@mui/material/colors/red";
 // Types
 import { MemberStatus, MemberTier, User } from "src/__generated__/resolvers-types";
 import GQLTable from "src/components/table/gql/table"
@@ -14,12 +15,18 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 import { useBoolean } from "src/hooks/use-boolean";
 import { client } from "src/utils/apollo";
 import { GET_RANKS } from "src/api/rank";
+import StatusConfirmDialog from "./deactivate-confirm-dialog";
 
 export default function UserTable() {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const [removeUser, setRemoveUser] = useState<User | null>(null);
+  const [status, setStatus] = useState<{
+    user: User;
+    status: MemberStatus.Active | MemberStatus.Inactive;
+  } | null>(null);
   const deleteConfirm = useBoolean();
+  const statusConfirm = useBoolean();
   const [removeUserMutation, { loading }] = useMutation(REMOVE_USER, {
     refetchQueries: [GET_USERS],
   });
@@ -49,8 +56,34 @@ export default function UserTable() {
         },
       },
       {
+        getName: () => 'Deactivate',
+        getIcon: () => 'solar:close-circle-bold',
+        getColor: () => red[500],
+        getHidden: (row: User) => row.member.status === MemberStatus.Inactive,
+        onClick: (row: User) => {
+          setStatus({
+            user: row,
+            status: MemberStatus.Inactive,
+          });
+          statusConfirm.onTrue();
+        },
+      },
+      {
+        getName: () => 'Reactivate',
+        getIcon: () => 'solar:check-circle-bold',
+        getHidden: (row: User) => row.member.status !== MemberStatus.Inactive,
+        onClick: (row: User) => {
+          setStatus({
+            user: row,
+            status: MemberStatus.Active,
+          });
+          statusConfirm.onTrue();
+        },
+      },
+      {
         getName: () => 'Delete',
         getIcon: () => 'solar:trash-bin-trash-bold',
+        getColor: () => red[500],
         onClick: (user: User) => {
           setRemoveUser(user);
           deleteConfirm.onTrue();
@@ -224,6 +257,11 @@ export default function UserTable() {
     <>
       <GQLTable config={config} />
 
+      <StatusConfirmDialog
+        statusConfirm={statusConfirm}
+        user={status?.user}
+        status={status?.status}
+      />
       <ConfirmDialog
           open={deleteConfirm.value}
           onClose={deleteConfirm.onFalse}

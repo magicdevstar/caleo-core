@@ -10,6 +10,8 @@ const userDetailProperties = `
   image
   member {
     orgId
+    inactivateUntil
+    inactivationNote
     org {
       id
       timezone
@@ -206,8 +208,14 @@ export const GET_USERS = gql`
       items {
         id
         name
+        firstName
+        lastName
+        cognitoId
         member {
           pNumber
+          orgId
+          inactivateUntil
+          inactivationNote
           contactInfo {
             primaryEmail {
               address

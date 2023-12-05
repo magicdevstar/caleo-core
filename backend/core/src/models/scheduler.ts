@@ -24,6 +24,7 @@ export enum ScheduleEvent {
   SHIFT_REMINDER = 'shift_reminder',
   EVENT_COMPLETE = 'event_complete',
   USER_TIER_RETURN = 'user_tier_return',
+  USER_INACTIVE_RETURN = 'user_inactive_return',
 }
 
 export enum Timezone {
@@ -70,16 +71,24 @@ export class SchedulerModel {
     event,
     orgId,
     customEventName,
+    ignoreError = false,
   }: {
     event?: ScheduleEvent;
     orgId?: string;
     customEventName?: string;
+    ignoreError?: boolean;
   }) {
-    const command = new DeleteScheduleCommand({
-      Name: customEventName || `${orgId}-${event}`,
-    });
-
-    await scheduler.send(command);
+    try {
+      const command = new DeleteScheduleCommand({
+        Name: customEventName || `${orgId}-${event}`,
+      });
+  
+      await scheduler.send(command);
+    } catch(error) {
+      if (!ignoreError) {
+        throw error;
+      }
+    }
   }
 
   async updateScheduledEvent({

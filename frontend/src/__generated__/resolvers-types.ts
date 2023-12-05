@@ -60,6 +60,15 @@ export type AvailabilityTime = {
   startTime: Scalars['String']['output'];
 };
 
+export type AvailableShiftsSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  upcoming?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type ContactInfo = {
   __typename?: 'ContactInfo';
   primaryEmail: Email;
@@ -178,7 +187,6 @@ export enum EventStatus {
   Complete = 'COMPLETE',
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
-  PreFcfs = 'PRE_FCFS',
   PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
   PreLottery = 'PRE_LOTTERY',
   ReadyForLottery = 'READY_FOR_LOTTERY',
@@ -264,6 +272,8 @@ export type Member = {
   availability: UserAvailability;
   contactInfo?: Maybe<ContactInfo>;
   deactivationNote?: Maybe<Scalars['String']['output']>;
+  inactivateUntil?: Maybe<Scalars['String']['output']>;
+  inactivationNote?: Maybe<Scalars['String']['output']>;
   maxShifts?: Maybe<Scalars['Int']['output']>;
   memberSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   memberSkills?: Maybe<Array<Maybe<MemberSkill>>>;
@@ -562,6 +572,8 @@ export type NewMember = {
   availability?: InputMaybe<InputUserAvailability>;
   contactInfo?: InputMaybe<NewContactInfo>;
   deactivationNote?: InputMaybe<Scalars['String']['input']>;
+  inactivateUntil?: InputMaybe<Scalars['String']['input']>;
+  inactivationNote?: InputMaybe<Scalars['String']['input']>;
   maxShifts?: InputMaybe<Scalars['Int']['input']>;
   memberSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   orgId: Scalars['String']['input'];
@@ -727,7 +739,7 @@ export type QueryAssignmentsArgs = {
 
 
 export type QueryAvailableShiftsArgs = {
-  input?: InputMaybe<SearchInput>;
+  input?: InputMaybe<AvailableShiftsSearchInput>;
 };
 
 
@@ -1022,7 +1034,8 @@ export type ShiftLotteryRequest = {
 export enum ShiftLotteryRequestStatus {
   Approved = 'APPROVED',
   Pending = 'PENDING',
-  Rejected = 'REJECTED'
+  Rejected = 'REJECTED',
+  Removed = 'REMOVED'
 }
 
 export type ShiftLotteryRequestsSearchInput = {
@@ -1497,6 +1510,7 @@ export type ResolversTypes = ResolversObject<{
   Assignment: ResolverTypeWrapper<Assignment>;
   AssignmentSearchResult: ResolverTypeWrapper<AssignmentSearchResult>;
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
+  AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
@@ -1612,6 +1626,7 @@ export type ResolversParentTypes = ResolversObject<{
   Assignment: Assignment;
   AssignmentSearchResult: AssignmentSearchResult;
   AvailabilityTime: AvailabilityTime;
+  AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: Scalars['Boolean']['output'];
   ContactInfo: ContactInfo;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
@@ -1858,6 +1873,8 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
   contactInfo?: Resolver<Maybe<ResolversTypes['ContactInfo']>, ParentType, ContextType>;
   deactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inactivateUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   maxShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   memberSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['MemberSkill']>>>, ParentType, ContextType>;

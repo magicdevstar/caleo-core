@@ -91,6 +91,8 @@
     tier: MemberTier
     tierUntil: String
     tierResetOnNextLottery: Boolean
+    inactivateUntil: String
+    inactivationNote: String
     rankId: String
     memberSkillIds: [String]
     adminNote: String
@@ -202,6 +204,8 @@
     role: MemberRole
     tier: MemberTier
     tierUntil: String
+    inactivateUntil: String
+    inactivationNote: String
     rankId: String
     memberSkillIds: [String]
     adminNote: String

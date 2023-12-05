@@ -202,6 +202,65 @@ export const user = {
         throw new GraphQLError('User not found');
       }
 
+      // If we are updating the users status
+      let inactivateSchedule: Promise<any> = Promise.resolve();
+      if (user.member?.status) {
+        if (user.member.status === MemberStatus.Inactive) {
+          if (user.member?.inactivateUntil) {
+            const inactivateUntil = new Date(user.member?.inactivateUntil);
+            user.member.inactivateUntil = inactivateUntil as any;
+            inactivateSchedule = scheduler.updateScheduledEvent({
+              event: ScheduleEvent.USER_INACTIVE_RETURN,
+              orgId: organization!.id,
+              eventTime: `at(${format(inactivateUntil, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
+              eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+              customEventName: `${ScheduleEvent.USER_INACTIVE_RETURN}-${user.id}`,
+              eventInput: JSON.stringify({
+                action: ScheduleEvent.USER_INACTIVE_RETURN,
+                orgId: organization!.id,
+                userId: user.id,
+                status: MemberStatus.Active,
+              }),
+            });
+          }
+          await lambda.send(new InvokeCommand({
+            FunctionName: process.env.MAILER_LAMBDA!,
+            InvocationType: 'Event',
+            Payload: JSON.stringify({
+              action: Action.Email,
+              template: MailerEvents.OfficerUserAccountDeactivated,
+              data: {
+                user: existingUser,
+                organization,
+                inactivateUntil: user.member?.inactivateUntil,
+                inactivationNote: user.member?.inactivationNote,
+              },
+            } as MailerEvent),
+          }));
+        } else if (existingUser.member.status === MemberStatus.Inactive) {
+          user.member.inactivateUntil = null;
+          user.member.inactivationNote = null;
+          await scheduler.removeSchedule({
+            event: ScheduleEvent.USER_INACTIVE_RETURN,
+            orgId: organization!.id,
+            customEventName: `${ScheduleEvent.USER_INACTIVE_RETURN}-${user.id}`,
+            ignoreError: true,
+          });
+          await lambda.send(new InvokeCommand({
+            FunctionName: process.env.MAILER_LAMBDA!,
+            InvocationType: 'Event',
+            Payload: JSON.stringify({
+              action: Action.Email,
+              template: MailerEvents.OfficerUserAccountReactivated,
+              data: {
+                user: existingUser,
+                organization,
+              },
+            } as MailerEvent),
+          }));
+        }
+      }
+
       let tierUpdates: any = {};
       let tierSchedule: Promise<any> = Promise.resolve();
       if (user.member?.tier) {
@@ -249,6 +308,7 @@ export const user = {
 
       const res = await users.update(updateUser as any, { skipMerge: true });
       await tierSchedule;
+      await inactivateSchedule;
       return res;
     },
     profilePhotoUploadUrl: async (
@@ -295,6 +355,7 @@ export const user = {
         return [];
       },
       tierUntil: (member: Member) => member.tierUntil ? new Date(member.tierUntil).toISOString() : null,
+      inactivateUntil: (member: Member) => member.inactivateUntil ? new Date(member.inactivateUntil).toISOString() : null,
       org: (member: Member, _, { organizations }: Context) => organizations.loader.load(member.orgId),
     },
   },

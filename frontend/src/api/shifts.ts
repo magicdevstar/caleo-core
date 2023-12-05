@@ -183,8 +183,8 @@ export const GET_LOTTERY_SHIFTS = gql`
 `;
 
 export const GET_LOTTERY_SHIFT_REQUESTS = gql`
-  query GetShiftLotteryRequests {
-    shiftLotteryRequests {
+  query GetShiftLotteryRequests($input: ShiftLotteryRequestsSearchInput) {
+    shiftLotteryRequests(input: $input) {
       items {
         id
         shiftGroupId

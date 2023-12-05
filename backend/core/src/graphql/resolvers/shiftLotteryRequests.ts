@@ -15,7 +15,10 @@ export const shiftLotteryRequests = {
     shiftLotteryRequests: async (
       _parent: unknown,
       { input }: { input: ShiftLotteryRequestsSearchInput },
-      { shiftLotteryRequests, user }: Context
+      {
+        shiftLotteryRequests,
+        user,
+      }: Context
     ): Promise<SearchResults<ShiftLotteryRequest>> => {
       let searchInput: any = {
         orgId: user?.member.orgId!,

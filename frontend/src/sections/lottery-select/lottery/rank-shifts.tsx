@@ -11,13 +11,23 @@ import EmptyContent from "src/components/empty-content";
 import ShiftItem from "src/components/shifts/shift-item";
 import ShiftItemSkeleton from "src/components/shifts/shift-item-skeleton";
 import { client } from "src/utils/apollo";
+import { GET_LOTTERY_COUNTER } from "src/api/event";
 
 export default function RankShifts() {
   const [updating, setUpdating] = useState<boolean>(false);
-  const { data, loading } = useQuery(GET_LOTTERY_SHIFT_REQUESTS, {
+  const { data: counterData, loading: counterLoading } = useQuery(GET_LOTTERY_COUNTER);
+
+  const { data, loading: requestLoading } = useQuery(GET_LOTTERY_SHIFT_REQUESTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        counters: [counterData?.lotteryCounter?.counter],
+      },
+    },
+    skip: counterLoading,
   });
+  const loading = requestLoading || counterLoading;
 
   const { shiftLotteryRequests: { items } } = JSON.parse(JSON.stringify(data || { shiftLotteryRequests: { items: [], total: 0 } }));
 

@@ -213,7 +213,7 @@ export default function Overtime({
                   </RHFSelect>
                   <TimePicker
                     label="Open"
-                    timezone='UTC'
+                    timezone={organization?.timezone}
                     ampm={false}
                     timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.open.time)}
@@ -250,7 +250,7 @@ export default function Overtime({
                   </RHFSelect>
                   <TimePicker
                     label="Close"
-                    timezone='UTC'
+                    timezone={organization?.timezone}
                     ampm={false}
                     timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.close.time)}

@@ -105,7 +105,7 @@ export default function AccountGeneral({
 
   const statusHelperText = useMemo(() => {
     const res = [];
-    if (user.member.status === MemberStatus.Inactive) {
+    if (user && user?.member?.status === MemberStatus.Inactive) {
       if (user?.member?.inactivateUntil) {
         const inactivateUntil = dayjs.utc(new Date(user.member.inactivateUntil));
         res.push(`Inactive until: ${inactivateUntil.format(dateFormat)}`);
@@ -116,7 +116,6 @@ export default function AccountGeneral({
     }
     return res.join('\n');
   }, [user]);
-  console.log(statusHelperText);
 
   const [createUploadLink] = useMutation(CREATE_PROFILE_PHOTO_UPLOAD_URL);
   const [updateUser] = useMutation(UPDATE_USER);

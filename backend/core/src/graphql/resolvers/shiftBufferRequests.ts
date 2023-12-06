@@ -75,12 +75,12 @@ export const shiftBufferRequests = {
       }
 
       // Check that the shift exists and is available
-      let shift;
+      const shift = await shifts.get(request.shiftId);
+      if (!shift) {
+        throw new GraphQLError('The shift for this request was not found.');
+      }
+
       if (status === ShiftBufferRequestStatus.Approved) {
-        shift = await shifts.get(request.shiftId);
-        if (!shift) {
-          throw new GraphQLError('The shift for this request was not found.');
-        }
         if (shift.userId) {
           throw new GraphQLError('The shift for this request was already assigned.');
         }

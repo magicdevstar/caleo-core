@@ -95,10 +95,10 @@ export const event = {
           const { counter } = await lotteryCounter.get(organization!.id);
           if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
             $or.push({
-              lotteryNumber: { $eq: counter },
+              lotteryNumber: { $gt: counter },
             });
           } else {
-            (input as any).lotteryNumber = { $eq: counter };
+            (input as any).lotteryNumber = { $gt: counter };
           }
           filteredStatus.push(EventStatus.ReadyForLottery);
         }

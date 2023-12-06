@@ -33,7 +33,7 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
   const acceptedRequestIds: ObjectId[] = [];
   // Loop through requests, check if user can sign up for shift and assign the shift if so
   for(const request of requests) {
-    const { total } = await users.findOpenShifts({
+    const { items } = await users.findOpenShifts({
       user: request.user as any,
       organization: organization!,
       orgId: organization!.id,
@@ -42,6 +42,8 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
       shiftGroupId,
       defaultEventIds: [shifts[0].eventId],
     });
+    // Remove any shifts that fall under the shift buffer
+    const total = items.filter(({ shiftBufferShift }) => !shiftBufferShift).length;
     logger.info('Available for request', {
       total,
       request,

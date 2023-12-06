@@ -218,7 +218,7 @@ const sendEmail = async (input: MailerEvent) => {
             "event.end_date_conflict": [bufferShiftEnd.date],
             "event.end_time_conflict": [bufferShiftEnd.time],
             "shift.buffer_override_reason": [createdShiftBuffer.note || ''],
-            "system.login_url": [process.env.LOGIN_URL || ''],
+            "system.login_url": [`${process.env.APP_URL || ''}/dashboard/admin/users/request/buffer`],
             "system.metro_name": [organization.name],
           };
           const email = admin.member.contactInfo!.primaryEmail.address || '';
@@ -973,7 +973,7 @@ const sendEmail = async (input: MailerEvent) => {
                 "shift.end_date": [shiftEnd.date],
                 "shift.end_time": [shiftEnd.time],
                 "event.reference_number": [event.referenceId],
-                "system.login_url": [process.env.LOGIN_URL || ''],
+                "system.login_url": [`${process.env.APP_URL || ''}/dashboard/available/overtime`],
               },
             };
           }
@@ -1031,7 +1031,7 @@ const sendEmail = async (input: MailerEvent) => {
             "user.last_name": [user.lastName],
             "admin.first_name": [admin.firstName],
             "system.metro_name": [organization.name],
-            "system.login_url": [process.env.LOGIN_URL || ''],
+            "system.login_url": [`${process.env.APP_URL || ''}/dashboard/admin/users/request/account`],
           };
           const email = admin.member.contactInfo!.primaryEmail.address || '';
 

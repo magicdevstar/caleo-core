@@ -11,6 +11,7 @@ params:
     domainName: dev-api.caleopro.com
     pinpointId: d169e35fcb7d4f06b26da89e5650905a
     fromEmail: support@dev.caleopro.com
+    appUrl: https://dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
   prod:
@@ -20,8 +21,9 @@ params:
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: support@caleopro.com
-    loginUrl: https://caleopro.com/auth/login
-    registerUrl: https://caleopro.com/auth/register
+    appUrl: https://app.caleopro.com
+    loginUrl: https://app.caleopro.com/auth/login
+    registerUrl: https://app.caleopro.com/auth/register
 
 provider:
   name: aws
@@ -57,6 +59,7 @@ provider:
     FROM_EMAIL: ${param:fromEmail}
     LOGIN_URL: ${param:loginUrl}
     REGISTER_URL: ${param:registerUrl}
+    APP_URL: ${param:appUrl}
   iam:
     role:
       statements:

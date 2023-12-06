@@ -263,6 +263,195 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
+      if (input.template === MailerEvents.OfficerPendingShiftApproved) {
+        const venue = await context.venues.get(event.venueId);
+        if (venue) {
+          // Check if event is fully staffed
+          if (event.notifyWhenFullyStaffed) {
+            const totalUnassignedShifts = await context.shifts.collection.countDocuments({
+              eventId: event.id,
+              removedAt: { $exists: false },
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+            });
+            if (totalUnassignedShifts === 0) {
+              const allAdmins = await context.users.getAllAdmins({
+                orgId: event.orgId,
+              }) as any[];
+    
+              const eventStart = convertDate(event.startTime as any, organization);
+              const eventEnd = convertDate(event.endTime as any, organization);
+              const SMSAddresses = (allAdmins || [])
+                .filter((admin: User) =>
+                  admin.member.contactInfo!.primaryPhone.receiveTexts ||
+                  admin.member.contactInfo!.primaryPhone.number
+                )
+                .reduce((obj, admin: User) => {
+                  includeSMS = true;
+                  const Substitutions: Record<string, string[]> = {
+                    "event.name": [event.name],
+                    "event.reference_number": [event.referenceId],
+                    "venue.name": [venue.name],
+                  };
+                  const num = admin.member.contactInfo!.primaryPhone.number;
+    
+                  return {
+                    ...obj,
+                    [num]: {
+                      ChannelType: 'SMS',
+                      Substitutions,
+                    } as AddressConfiguration,
+                  };
+                }, {} as Record<string, AddressConfiguration>);
+              const EmailAddresses = (allAdmins || [])
+                .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+                .reduce((obj, admin) => {
+                  const Substitutions: Record<string, string[]> = {
+                    "event.name": [event.name],
+                    "event.start_date": [eventStart.date],
+                    "admin.first_name": [admin.firstName],
+                    "event.reference_number": [event.referenceId],
+                    "venue.name": [venue.name],
+                    "event.start_time": [eventStart.time],
+                    "event.end_date": [eventEnd.date],
+                    "event.end_time": [eventEnd.time],
+                    "system.metro_name": [organization.name],
+                  };
+                  const email = admin.member.contactInfo!.primaryEmail.address || '';
+    
+                  return {
+                    ...obj,
+                    [email]: {
+                      ChannelType: 'EMAIL',
+                      Substitutions,
+                    } as AddressConfiguration,
+                  };
+                }, {} as Record<string, AddressConfiguration>);
+    
+              const finalAddresses = {
+                ...EmailAddresses,
+                ...SMSAddresses,
+              } as any;
+              if (Object.keys(finalAddresses).length > 0) {
+                const all = await pinpoint.send(new SendMessagesCommand({
+                  ApplicationId: process.env.PINPOINT_ID,
+                  MessageRequest: {
+                    Addresses: finalAddresses,
+                    MessageConfiguration: {
+                      EmailMessage: {
+                        FromAddress: process.env.FROM_EMAIL,
+                      },
+                    },
+                    TemplateConfiguration: {
+                      EmailTemplate: {
+                        Name: MailerEvents.AdminEventFullyStaffed,
+                        Version: '1',
+                      },
+                    },
+                  }
+                }));
+                logger.info('Event staffed response', { all });
+              }
+            }
+          }
+    
+          // Check if assignment is fully staffed
+          if (assignment.notifyWhenFullyStaffed) {
+            const totalUnassignedShifts = await context.shifts.collection.countDocuments({
+              eventId: event.id,
+              assignmentId: assignment.id,
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+              removedAt: { $exists: false },
+            });
+            if (totalUnassignedShifts === 0) {
+              const allAdmins = await context.users.getAllAdmins({
+                orgId: event.orgId,
+              }) as any[];
+    
+              const eventStart = convertDate(event.startTime as any, organization);
+              const eventEnd = convertDate(event.endTime as any, organization);
+              const SMSAddresses = (allAdmins || [])
+                .filter((admin: User) =>
+                  admin.member.contactInfo!.primaryPhone.receiveTexts ||
+                  admin.member.contactInfo!.primaryPhone.number
+                )
+                .reduce((obj, admin: User) => {
+                  includeSMS = true;
+                  const Substitutions: Record<string, string[]> = {
+                    "shift.name": [assignment.name],
+                    "event.name": [event.name],
+                    "venue.name": [venue.name],
+                  };
+                  const num = admin.member.contactInfo!.primaryPhone.number;
+    
+                  return {
+                    ...obj,
+                    [num]: {
+                      ChannelType: 'SMS',
+                      Substitutions,
+                    } as AddressConfiguration,
+                  };
+                }, {} as Record<string, AddressConfiguration>);
+              const EmailAddresses = (allAdmins || [])
+                .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+                .reduce((obj, admin) => {
+                  const Substitutions: Record<string, string[]> = {
+                    "shift.name": [assignment.name],
+                    "event.name": [event.name],
+                    "admin.first_name": [admin.firstName],
+                    "event.reference_number": [event.referenceId],
+                    "venue.name": [venue.name],
+                    "event.start_date": [eventStart.date],
+                    "event.start_time": [eventStart.time],
+                    "event.end_date": [eventEnd.date],
+                    "event.end_time": [eventEnd.time],
+                    "system.metro_name": [organization.name],
+                  };
+                  const email = admin.member.contactInfo!.primaryEmail.address || '';
+    
+                  return {
+                    ...obj,
+                    [email]: {
+                      ChannelType: 'EMAIL',
+                      Substitutions,
+                    } as AddressConfiguration,
+                  };
+                }, {} as Record<string, AddressConfiguration>);
+    
+              const finalAddresses = {
+                ...EmailAddresses,
+                ...SMSAddresses,
+              } as any;
+              if (Object.keys(finalAddresses).length > 0) {
+                const all = await pinpoint.send(new SendMessagesCommand({
+                  ApplicationId: process.env.PINPOINT_ID,
+                  MessageRequest: {
+                    Addresses: finalAddresses,
+                    MessageConfiguration: {
+                      EmailMessage: {
+                        FromAddress: process.env.FROM_EMAIL,
+                      },
+                    },
+                    TemplateConfiguration: {
+                      EmailTemplate: {
+                        Name: MailerEvents.AdminEventShiftsFilled,
+                        Version: '1',
+                      },
+                    },
+                  }
+                }));
+                logger.info('Assignment staffed response', { all });
+              }
+            }
+          }
+        }
+      }
+
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
           ...Addresses,
@@ -312,190 +501,6 @@ const sendEmail = async (input: MailerEvent) => {
       if (!assignment) {
         logger.error('Assignment not found', { input, assignment });
         return;
-      }
-
-      // Check if event is fully staffed
-      if (event.notifyWhenFullyStaffed) {
-        const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-          eventId: event.id,
-          removedAt: { $exists: false },
-          $or: [
-            { userId: null },
-            { userId: { $exists: false } },
-          ],
-        });
-        if (totalUnassignedShifts === 0) {
-          const allAdmins = await context.users.getAllAdmins({
-            orgId: event.orgId,
-          }) as any[];
-
-          const eventStart = convertDate(event.startTime as any, organization);
-          const eventEnd = convertDate(event.endTime as any, organization);
-          const SMSAddresses = (allAdmins || [])
-            .filter((admin: User) =>
-              admin.member.contactInfo!.primaryPhone.receiveTexts ||
-              admin.member.contactInfo!.primaryPhone.number
-            )
-            .reduce((obj, admin: User) => {
-              includeSMS = true;
-              const Substitutions: Record<string, string[]> = {
-                "event.name": [event.name],
-                "event.reference_number": [event.referenceId],
-                "venue.name": [venue.name],
-              };
-              const num = admin.member.contactInfo!.primaryPhone.number;
-
-              return {
-                ...obj,
-                [num]: {
-                  ChannelType: 'SMS',
-                  Substitutions,
-                } as AddressConfiguration,
-              };
-            }, {} as Record<string, AddressConfiguration>);
-          const EmailAddresses = (allAdmins || [])
-            .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
-            .reduce((obj, admin) => {
-              const Substitutions: Record<string, string[]> = {
-                "event.name": [event.name],
-                "event.start_date": [eventStart.date],
-                "admin.first_name": [admin.firstName],
-                "event.reference_number": [event.referenceId],
-                "venue.name": [venue.name],
-                "event.start_time": [eventStart.time],
-                "event.end_date": [eventEnd.date],
-                "event.end_time": [eventEnd.time],
-                "system.metro_name": [organization.name],
-              };
-              const email = admin.member.contactInfo!.primaryEmail.address || '';
-
-              return {
-                ...obj,
-                [email]: {
-                  ChannelType: 'EMAIL',
-                  Substitutions,
-                } as AddressConfiguration,
-              };
-            }, {} as Record<string, AddressConfiguration>);
-
-          const finalAddresses = {
-            ...EmailAddresses,
-            ...SMSAddresses,
-          } as any;
-          if (Object.keys(finalAddresses).length > 0) {
-            const all = await pinpoint.send(new SendMessagesCommand({
-              ApplicationId: process.env.PINPOINT_ID,
-              MessageRequest: {
-                Addresses: finalAddresses,
-                MessageConfiguration: {
-                  EmailMessage: {
-                    FromAddress: process.env.FROM_EMAIL,
-                  },
-                },
-                TemplateConfiguration: {
-                  EmailTemplate: {
-                    Name: MailerEvents.AdminEventFullyStaffed,
-                    Version: '1',
-                  },
-                },
-              }
-            }));
-            logger.info('Event staffed response', { all });
-          }
-        }
-      }
-
-      // Check if assignment is fully staffed
-      if (assignment.notifyWhenFullyStaffed) {
-        const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-          eventId: event.id,
-          assignmentId: assignment.id,
-          $or: [
-            { userId: null },
-            { userId: { $exists: false } },
-          ],
-          removedAt: { $exists: false },
-        });
-        if (totalUnassignedShifts === 0) {
-          const allAdmins = await context.users.getAllAdmins({
-            orgId: event.orgId,
-          }) as any[];
-
-          const eventStart = convertDate(event.startTime as any, organization);
-          const eventEnd = convertDate(event.endTime as any, organization);
-          const SMSAddresses = (allAdmins || [])
-            .filter((admin: User) =>
-              admin.member.contactInfo!.primaryPhone.receiveTexts ||
-              admin.member.contactInfo!.primaryPhone.number
-            )
-            .reduce((obj, admin: User) => {
-              includeSMS = true;
-              const Substitutions: Record<string, string[]> = {
-                "shift.name": [assignment.name],
-                "event.name": [event.name],
-                "venue.name": [venue.name],
-              };
-              const num = admin.member.contactInfo!.primaryPhone.number;
-
-              return {
-                ...obj,
-                [num]: {
-                  ChannelType: 'SMS',
-                  Substitutions,
-                } as AddressConfiguration,
-              };
-            }, {} as Record<string, AddressConfiguration>);
-          const EmailAddresses = (allAdmins || [])
-            .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
-            .reduce((obj, admin) => {
-              const Substitutions: Record<string, string[]> = {
-                "shift.name": [assignment.name],
-                "event.name": [event.name],
-                "admin.first_name": [admin.firstName],
-                "event.reference_number": [event.referenceId],
-                "venue.name": [venue.name],
-                "event.start_date": [eventStart.date],
-                "event.start_time": [eventStart.time],
-                "event.end_date": [eventEnd.date],
-                "event.end_time": [eventEnd.time],
-                "system.metro_name": [organization.name],
-              };
-              const email = admin.member.contactInfo!.primaryEmail.address || '';
-
-              return {
-                ...obj,
-                [email]: {
-                  ChannelType: 'EMAIL',
-                  Substitutions,
-                } as AddressConfiguration,
-              };
-            }, {} as Record<string, AddressConfiguration>);
-
-          const finalAddresses = {
-            ...EmailAddresses,
-            ...SMSAddresses,
-          } as any;
-          if (Object.keys(finalAddresses).length > 0) {
-            const all = await pinpoint.send(new SendMessagesCommand({
-              ApplicationId: process.env.PINPOINT_ID,
-              MessageRequest: {
-                Addresses: finalAddresses,
-                MessageConfiguration: {
-                  EmailMessage: {
-                    FromAddress: process.env.FROM_EMAIL,
-                  },
-                },
-                TemplateConfiguration: {
-                  EmailTemplate: {
-                    Name: MailerEvents.AdminEventShiftsFilled,
-                    Version: '1',
-                  },
-                },
-              }
-            }));
-            logger.info('Assignment staffed response', { all });
-          }
-        }
       }
 
       if (adminAssignedShift) {

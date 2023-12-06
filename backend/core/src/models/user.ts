@@ -309,6 +309,7 @@ export class UserModel extends BaseModel<User> {
           assignmentId: {
             $in: assignmentIds,
           },
+          removedAt: { $exists: false },
           // Handles shift ranges and user availability
           ...($and.length > 0 ? { $and } : {}),
         },

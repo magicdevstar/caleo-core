@@ -51,7 +51,9 @@ export default function AmplifyRegisterView() {
     pNumber: Yup.string().required('P# required'),
     phoneNumber: Yup.string().required('Phone number required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
-    password: Yup.string().required('Password is required'),
+    password: Yup
+      .string()
+      .required('Password is required'),
     orgId: Yup.string(),
   });
 
@@ -78,8 +80,43 @@ export default function AmplifyRegisterView() {
 
   const {
     handleSubmit,
+    watch,
+    getFieldState,
     formState: { isSubmitting },
   } = methods;
+
+  const passwordState = getFieldState('password');
+  console.log(passwordState);
+  const currentPassword = watch('password');
+  const passwordValidation = [
+    {
+      key: 'eightCharacters',
+      isValid: currentPassword?.length >= 8,
+      message: '8 characters',
+    },
+    {
+      key: 'oneNumber',
+      isValid: /\d/.test(currentPassword),
+      message: '1 number',
+    },
+    {
+      key: 'oneLowerCase',
+      isValid: /[a-z]/.test(currentPassword),
+      message: '1 lowercase letter',
+    },
+    {
+      key: 'oneUpperCase',
+      isValid: /[A-Z]/.test(currentPassword),
+      message: '1 uppercase letter',
+    },
+    {
+      key: 'oneSpecialChar',
+      // eslint-disable-next-line no-useless-escape
+      isValid: /[\^\$\*\.\[\]\{\}\(\)\?\-"\!@#%&\/\\,><':;|_~`\+=]/.test(currentPassword),
+      message: '1 special character',
+    },
+  ]
+  const passwordIsValid = passwordValidation.filter((item) => item.isValid).length === passwordValidation.length;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -161,23 +198,36 @@ export default function AmplifyRegisterView() {
         countryCodeEditable={false}
       />
 
-      <RHFTextField
-        name="password"
-        label="Password"
-        type={password.value ? 'text' : 'password'}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={password.onToggle} edge="end">
-                <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
+      <Stack direction="column">
+        <RHFTextField
+          name="password"
+          label="Password"
+          type={password.value ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={password.onToggle} edge="end">
+                  <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Stack sx={{ mt: 1 }}>
+          {passwordValidation.map((item) => (
+            <Stack direction="row" key={item.key}>
+              <Iconify icon={item.isValid ? 'carbon:checkmark' : 'carbon:close'} color={(!passwordState.isDirty && !passwordState.isTouched) || item.isValid ? 'text.disabled' : 'error.main'} />
+              <Typography variant="caption" sx={{ color: (!passwordState.isDirty && !passwordState.isTouched) || item.isValid ? 'text.disabled' : 'error.main' }}>
+                {item.message}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Stack>
 
       <LoadingButton
         fullWidth
+        disabled={!passwordIsValid}
         color="inherit"
         size="large"
         type="submit"

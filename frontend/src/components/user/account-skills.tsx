@@ -101,6 +101,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
       {
         getName: () => 'Edit',
         getIcon: () => 'solar:pen-bold',
+        getHidden: (skill: MemberSkill) => skill.status !== SkillStatus.Pending,
         onClick: (row: MemberSkill) => {
           setEditSkill({ memberSkill: row });
           upsertMemberSkill.onTrue();

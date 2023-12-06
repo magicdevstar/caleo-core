@@ -74,11 +74,11 @@ export const skill = {
       { id }: { id: string },
       { memberSkills, users, user }: Context
     ): Promise<string> => {
-      adminOrOwnerOnly(id, user);
       const memberSkill = await memberSkills.get(id);
       if (!memberSkill) {
         throw new GraphQLError('Could not find member skill');
       }
+      adminOrOwnerOnly(memberSkill.userId, user);
       await memberSkills.removeDoc(id, user!.id);
       const skillUser = await users.get(memberSkill.userId);
 

@@ -9,6 +9,9 @@ import { useSettingsContext } from 'src/components/settings';
 import { useTable } from 'src/components/table';
 import { GET_AVAILABLE_SHIFTS } from 'src/api/shifts';
 import ShiftItems from 'src/components/shifts/shift-items';
+import { EventStatus, Shift } from 'src/__generated__/resolvers-types';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -26,6 +29,7 @@ export default function UpcomingOvertimeView() {
     upcoming: true,
   });
   const settings = useSettingsContext();
+  const { user } = useAuthContext();
 
   const { data, loading } = useQuery(GET_AVAILABLE_SHIFTS, {
     fetchPolicy: 'no-cache', // Used for first execution
@@ -60,6 +64,51 @@ export default function UpcomingOvertimeView() {
         }}
         currentPage={table.page + 1}
         shifts={items}
+        shiftLabels={[
+          {
+            key: 'shift-post-date',
+            variant: 'soft',
+            sx: {
+              border: 'none',
+              background: 'none',
+            },
+            getHidden: (shift: Shift) => ![EventStatus.ReadyForLottery, EventStatus.FirstComeFirstServe].includes(shift?.event?.status),
+            getLabel: (shift: Shift) => {
+              if (shift?.event?.status === EventStatus.ReadyForLottery) {
+                const lotteryDate = convertDate({ date: shift?.event?.lotteryCounter?.start || '', user });
+                return `${lotteryDate.format(dateTimeFormat)}`
+              }
+              if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
+                const fcfsDate = convertDate({ date: shift?.event?.scheduledFirstComeFirstServe || '', user });
+                return `${fcfsDate.format(dateTimeFormat)}`
+              }
+              return '';
+            }
+          },
+          {
+            key: 'shift-event-status',
+            variant: 'soft',
+            getHidden: (shift: Shift) => ![EventStatus.ReadyForLottery, EventStatus.FirstComeFirstServe].includes(shift?.event?.status),
+            getColor: (shift: Shift) => {
+              if (shift?.event?.status === EventStatus.ReadyForLottery) {
+                return 'success';
+              }
+              if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
+                return 'primary';
+              }
+              return 'default';
+            },
+            getLabel: (shift: Shift) => {
+              if (shift?.event?.status === EventStatus.ReadyForLottery) {
+                return 'Pre-Lottery';
+              }
+              if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
+                return 'Pre-First Come First Serve';
+              }
+              return '';
+            }
+          }
+        ]}
         shiftActions={[]}
         loading={loading}
       />

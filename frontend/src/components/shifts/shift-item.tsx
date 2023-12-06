@@ -11,12 +11,13 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
+import { SxProps } from "@mui/material";
 // types
 import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
-import Label from "src/components/label";
+import Label, { LabelColor, LabelVariant } from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
@@ -35,6 +36,7 @@ export default function ShiftItem({
   selectLoading = false,
   onSelect = () => {},
   cursor = 'pointer',
+  shiftLabels,
   shiftActions,
 }: {
   shift: Shift | ShiftBufferRequest | ShiftLotteryRequest;
@@ -43,6 +45,14 @@ export default function ShiftItem({
   selectLoading?: boolean;
   cursor?: string;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  shiftLabels?: {
+    key: string;
+    sx?: SxProps;
+    variant?: LabelVariant;
+    getHidden?: (shift: any) => boolean;
+    getColor?: (shift: any) => LabelColor;
+    getLabel: (shift: any) => string;
+  }[];
   shiftActions: {
     key: string;
     color?: string;
@@ -75,7 +85,7 @@ export default function ShiftItem({
 
   const requiredSkillRender = useMemo(() => {
     let value: any = (
-      <Label sx={{ pl: 1 }} variant="soft" color='info'>
+      <Label sx={{ pl: 1 }} variant="soft">
         N/A
       </Label>
     );
@@ -118,7 +128,7 @@ export default function ShiftItem({
     const attachmentCount = (shift as Shift).event.attachments?.length || 0;
     if (attachmentCount <= 0) {
       return (
-        <Label variant="soft" color='info' sx={{...labelSx, width: 'fit-content'}}>
+        <Label variant="soft" sx={{...labelSx, width: 'fit-content'}}>
           N/A
         </Label>
       );
@@ -136,7 +146,7 @@ export default function ShiftItem({
 
   const contactInfo = useMemo(() => {
     let value: any = (
-      <Label variant="soft" color='info'>
+      <Label variant="soft">
         N/A
       </Label>
     );
@@ -249,7 +259,24 @@ export default function ShiftItem({
             }}>
               {shift.event.name} - {shift.assignment.name} {labelComponent}
             </Typography>
-
+            {
+              shiftLabels?.length && (
+                <Stack direction={{ xs: 'column-reverse', md: 'row' }} spacing={1} alignItems="center" justifyContent="space-between">
+                  {
+                    shiftLabels.map((shiftLabel) => !shiftLabel.getHidden?.(inputShift) && (
+                      <Label
+                        sx={shiftLabel.sx}
+                        key={shiftLabel.key}
+                        variant={shiftLabel.variant}
+                        color={shiftLabel.getColor?.(inputShift)}
+                      >
+                        {shiftLabel.getLabel(inputShift)}
+                      </Label>
+                    ))
+                  }
+                </Stack>
+              )
+            }
             {
               shiftActions.length === 1 && (
                 <Button

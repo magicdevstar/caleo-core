@@ -62,6 +62,11 @@ export const GET_AVAILABLE_SHIFTS = gql`
           name
           attachments
           notes
+          status
+          scheduledFirstComeFirstServe
+          lotteryCounter {
+            start
+          }
           venue {
             id
             name
@@ -338,7 +343,7 @@ export const GET_SHIFT_LOTTERY_REQUESTS_REPORT = gql`
         assignment {
           id
           name
-        }        
+        }
       }
     }
   }

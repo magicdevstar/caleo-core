@@ -235,7 +235,13 @@ const sendEmail = async (input: MailerEvent) => {
       input.template === MailerEvents.OfficerPendingShiftApproved ||
       input.template === MailerEvents.OfficerPendingShiftDenied
     ) {
-      const { shift, user, organization } = input.data;
+      const { shift, request, organization } = input.data;
+
+      const user = await context.users.get(request.userId);
+      if (!user) {
+        logger.error('User not found', { input, user });
+        return;
+      }
 
       const event = await context.events.get(shift.eventId);
       if (!event) {

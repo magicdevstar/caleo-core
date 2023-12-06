@@ -48,6 +48,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
           data: {
             shift,
             user,
+            request,
             organization,
           },
         } as MailerEvent),

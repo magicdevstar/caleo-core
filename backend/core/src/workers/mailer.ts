@@ -1082,7 +1082,7 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
       
-      let inactiveDate = '';
+      let inactiveDate = 'further notice';
       if (inactivateUntil) {
         try {
           inactiveDate = format(new Date(inactivateUntil), 'MM/dd/yyyy');
@@ -1096,7 +1096,7 @@ const sendEmail = async (input: MailerEvent) => {
           [user.member.contactInfo!.primaryEmail.address]: {
             ChannelType: 'EMAIL',
             Substitutions: {
-              "deactivated_until": [inactiveDate || ''],
+              "deactivated_until": [inactiveDate],
               "deactivation_reason": [inactivationNote],
               "user.first_name": [user.firstName],
               "system.metro_name": [organization.name],

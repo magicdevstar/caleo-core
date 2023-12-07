@@ -467,6 +467,9 @@ const sendEmail = async (input: MailerEvent) => {
               "shift.end_date": [shiftEnd.date],
               "shift.end_time": [shiftEnd.time],
               "system.metro_name": [organization.name],
+              ...(input.template === MailerEvents.OfficerPendingShiftDenied && request.reason ? {
+                'request.reason': [request.reason],
+              } : {}),
             },
           },
         };

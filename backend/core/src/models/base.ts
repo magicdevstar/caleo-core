@@ -267,7 +267,10 @@ export class BaseModel<T> {
       id: _id.toString(),
     } as T));
 
-    const total = await this.collection.countDocuments(rest);
+    const total = await this.collection.countDocuments({
+      ...rest,
+      ...textQuery,
+    });
 
     return {
       items,

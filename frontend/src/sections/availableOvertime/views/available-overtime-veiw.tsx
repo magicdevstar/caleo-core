@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { useSnackbar } from 'notistack';
-import dayjs from 'dayjs';
 // @mui
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -29,7 +28,7 @@ export default function AvailableOvertimeView() {
   const { enqueueSnackbar } = useSnackbar();
   const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT);
   const [createShiftBuffer, { loading: createShiftBufferLoading }] = useMutation(CREATE_SHIFT_BUFFER);
-  
+
   const [note, setNote] = useState<string>('');
   const [editShift, setEditShift] = useState<Shift | null>(null);
   const assignConfirm = useBoolean();
@@ -166,7 +165,14 @@ export default function AvailableOvertimeView() {
         title="Sign Up for Overtime"
         content={
           editShift?.shiftBufferShift ? (<>
-            <Typography variant='body1'>This shift overlaps with<br/><br/>Event: {editShift?.shiftBufferShift?.event?.name}<br/>Assignment: {editShift?.shiftBufferShift?.assignment?.name}<br/>Start Time: {editShift?.shiftBufferShift?.startTime ? dayjs(editShift?.shiftBufferShift?.startTime).format('MM/DD/YYYY hh:mm a') : 'N/A'}<br/>End Time: {editShift?.shiftBufferShift?.endTime ? dayjs(editShift?.shiftBufferShift?.endTime).format('MM/DD/YYYY hh:mm a') : 'N/A'}<br/><br/>You must submit a reason you are able to work this shift.</Typography>
+            <Typography variant='body1'>
+              This shift overlaps with<br/><br/>
+              Event: {editShift?.shiftBufferShift?.event?.name}<br/>
+              Assignment: {editShift?.shiftBufferShift?.assignment?.name}<br/>
+              Start Time: {editShift?.shiftBufferShift?.startTime ? convertDate({ date: editShift?.shiftBufferShift?.startTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/>
+              End Time: {editShift?.shiftBufferShift?.endTime ? convertDate({ date: editShift?.shiftBufferShift?.endTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/><br/>
+              You must submit a reason you are able to work this shift.
+            </Typography>
             <TextField
               fullWidth
               multiline

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { useSnackbar } from 'notistack';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
@@ -13,16 +14,21 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
-import { GET_ALL_EVENTS, REMOVE_EVENT } from 'src/api/event';
+import { GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
+import { convertDate } from 'src/hooks/use-datejs';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
+  const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
+  const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
   const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
     refetchQueries: [GET_ALL_EVENTS],
   });
@@ -67,6 +73,29 @@ export default function EventsTable() {
         getIcon: () => 'solar:file-download-bold',
         onClick: (row: Event) => {
           generateEventDownload(row.id);
+        },
+      },
+      {
+        getName: () => 'Notify',
+        getHidden: (row: Event) => {
+          let isScheduledInFuture = false;
+          if (row.scheduledFirstComeFirstServe) {
+            isScheduledInFuture = convertDate({ date: row.scheduledFirstComeFirstServe, user }).isAfter(new Date());
+          }
+          return row.status !== EventStatus.FirstComeFirstServe || row.availableShifts === 0 || isScheduledInFuture;
+        },
+        getIcon: () => 'solar:bell-bing-bold',
+        onClick: async (row: Event) => {
+          try {
+            await notifyOfEvent({
+              variables: {
+                eventId: row.id,
+              }
+            });
+            enqueueSnackbar('Successfully sent notification.', { variant: 'success', autoHideDuration: 3000 });
+          } catch(error) {
+            enqueueSnackbar('Failed to send notification. Please try again later.', { variant: 'error', autoHideDuration: 3000 });
+          }
         },
       },
       {

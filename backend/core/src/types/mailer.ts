@@ -21,6 +21,7 @@ export enum MailerEvents {
   OfficerEventEdited = 'OfficerEventEdited',
   OfficerEventRemoved = 'OfficerEventRemoved',
   OfficerFcfsShiftAvailable = 'OfficerFcfsShiftAvailable',
+  OfficerFcfsEventAvailable = 'OfficerFcfsEventAvailable',
   OfficerNewShiftAssigned = 'OfficerNewShiftAssigned',
   OfficerNewShiftAssignedLottery = 'OfficerNewShiftAssignedLottery',
   OfficerPasswordResetSuccess = 'OfficerPasswordResetSuccess',

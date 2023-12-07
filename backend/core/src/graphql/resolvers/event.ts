@@ -1,10 +1,18 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { EventSearchInput, Event, UpsertEvent, EventStatus, EventAttachmentUpload } from "../../__generated__/resolvers-types";
+import {
+  EventSearchInput,
+  Event,
+  UpsertEvent,
+  EventStatus,
+  EventAttachmentUpload
+} from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
-import { isAfter, setMinutes, setSeconds } from "date-fns";
+import { format, setMilliseconds, addMinutes, setSeconds, isAfter } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
+import { ScheduleEvent, Timezone } from "../../models/scheduler";
 
 export const event = {
   Query: {
@@ -155,6 +163,19 @@ export const event = {
     }
   },
   Mutation: {
+    notifyUsersOfEvent: async (
+      _parent: unknown,
+      { eventId }: { eventId: string },
+      {
+        shifts,
+        user,
+        organization,
+      }: Context
+    ): Promise<boolean> => {
+      adminOnly(user);
+      await shifts.notifyUsersOfEventAvailability(eventId, organization!);
+      return true;
+    },
     eventAttachmentUploadUrl: async (
       _parent: unknown,
       _args: unknown,
@@ -184,9 +205,17 @@ export const event = {
     },
     event: async (
       _parent: unknown,
-      { event }: { event: UpsertEvent },
+      {
+        event: {
+          notifyOnFirstComeFirstServe,
+          scheduledFirstComeFirstServe: scheduledFCFS,
+          ...event
+        }
+      }: { event: UpsertEvent },
       {
         events,
+        shifts,
+        scheduler,
         shiftLotteryRequests,
         eventReferenceNumber,
         user,
@@ -198,6 +227,9 @@ export const event = {
       let currentEvent: any = {};
       if (event.id) {
         currentEvent = await events.get(event.id);
+        // Remove this so it will be set as long as we pass in a first come first serve event
+        delete currentEvent.notifyOnFirstComeFirstServe;
+        delete currentEvent.scheduledFirstComeFirstServe;
         if (!currentEvent) {
           throw new GraphQLError('Could not find event');
         }
@@ -207,13 +239,23 @@ export const event = {
         (event as any).referenceId = await eventReferenceNumber.get(organization!.id);
       }
 
+      let scheduledFirstComeFirstServe;
+      if (event.status === EventStatus.FirstComeFirstServe && scheduledFCFS) {
+        scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(scheduledFCFS), 0), 0);
+      } else if (event.status === EventStatus.FirstComeFirstServe && !scheduledFCFS) {
+        scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(), 0), 0);
+      }
       const inputEvent = {
         ...currentEvent,
         ...event,
         ...(
-          event.scheduledFirstComeFirstServe ? {
-            scheduledFirstComeFirstServe: setMinutes(setSeconds(new Date(event.scheduledFirstComeFirstServe), 0), 0).getTime(),
-          } : {}
+          event.status === EventStatus.FirstComeFirstServe ? {
+            scheduledFirstComeFirstServe: scheduledFirstComeFirstServe.getTime(),
+            notifyOnFirstComeFirstServe,
+          } : {
+            scheduledFirstComeFirstServe: null,
+            notifyOnFirstComeFirstServe: false
+          }
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
         orgId: user?.member.orgId!,
@@ -228,14 +270,55 @@ export const event = {
 
       if (currentEvent.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {
         await shiftLotteryRequests.removeByEventId(currentEvent.id, user!.id);
+      } else if (
+        (
+          (currentEvent.status !== EventStatus.FirstComeFirstServe && inputEvent.status === EventStatus.FirstComeFirstServe) ||
+          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent.scheduledFirstComeFirstServe !== inputEvent.scheduledFirstComeFirstServe) ||
+          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent.notifyOnFirstComeFirstServe !== inputEvent.notifyOnFirstComeFirstServe)
+        ) &&
+        notifyOnFirstComeFirstServe
+      ) {
+        // If the event is going to FCFS within 2 minutes notify users now
+        if (isAfter(new Date(), addMinutes(scheduledFirstComeFirstServe, -1))) {
+          await scheduler.removeSchedule({
+            event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
+            orgId: user?.member.orgId!,
+            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+            ignoreError: true,
+          });
+          await shifts.notifyUsersOfEventAvailability(currentEvent.id, organization!);
+        } else {
+          await scheduler.updateScheduledEvent({
+            event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
+            orgId: user?.member.orgId!,
+            eventTime: `at(${format(scheduledFirstComeFirstServe, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
+            eventTimeZone: Timezone.UTC,
+            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+            eventInput: JSON.stringify({
+              action: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
+              orgId: user?.member.orgId!,
+              eventId: currentEvent.id,
+            }),
+          });
+        }
       }
 
-      logger.info('Upsert event', { event: inputEvent });
+      // Clean up scheduled event if we are not going to FCFS
+      if (inputEvent.status !== EventStatus.FirstComeFirstServe) {
+        await scheduler.removeSchedule({
+          event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
+          orgId: user?.member.orgId!,
+          customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+          ignoreError: true,
+        });
+      }
+
+      logger.info('Upsert event', { inputEvent, event, currentEvent });
       let finalEvent: any;
       if (!inputEvent.id) {
         finalEvent = await events.create(inputEvent);
       } else {
-        finalEvent = await events.update(inputEvent as any, { skipMerge: true });
+        finalEvent = await events.update(inputEvent as any);
       }
 
       return finalEvent;

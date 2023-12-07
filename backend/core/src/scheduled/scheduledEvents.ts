@@ -31,6 +31,12 @@ interface InactiveResetEvent {
   status: MemberStatus;
 }
 
+interface EventFirstComeFirstServeGoLive {
+  action: ScheduleEvent;
+  orgId: string;
+  eventId: string;
+}
+
 interface ShiftReminderEvent {
   action: ScheduleEvent;
   orgId: string;
@@ -101,6 +107,9 @@ const scheduledEvents = async (event) => {
         },
       } as MailerEvent),
     }));
+  } else if (action === ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE) {
+    const organization = await context.organizations.get(orgId);
+    await context.shifts.notifyUsersOfEventAvailability((eventParams as EventFirstComeFirstServeGoLive).eventId, organization!);
   }
   return {
     statusCode: 200,

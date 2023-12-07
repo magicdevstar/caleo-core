@@ -255,6 +255,7 @@
     status: EventStatus!
     lotteryNumber: Int
     scheduledFirstComeFirstServe: String
+    notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean
     docType: DocType!
     venueId: String!
@@ -437,6 +438,7 @@
     status: EventStatus
     lotteryNumber: Int
     scheduledFirstComeFirstServe: String
+    notifyOnFirstComeFirstServe: Boolean
     notes: String
     venueId: String!
     notifyWhenFullyStaffed: Boolean
@@ -1148,6 +1150,7 @@ type Mutation {
   event(event: UpsertEvent!): Event
   eventAttachmentUploadUrl: EventAttachmentUpload
   removeEvent(id: String!): ID!
+  notifyUsersOfEvent(eventId: String!): Boolean
 
   assignment(assignment: UpsertAssignment!): Assignment
   removeAssignment(id: String!): ID!

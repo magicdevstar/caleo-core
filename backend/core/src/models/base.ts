@@ -188,6 +188,19 @@ export class BaseModel<T> {
     return updateDoc;
   }
 
+  async replace<T extends UpdateModel>(item: T): Promise<T> {
+    const now = Date.now();
+
+    let updateDoc: T = item;
+    const { id, ...upDoc } = updateDoc;
+
+    logger.info('Replace document', { updateDoc: upDoc });
+    const updateRes = await this.collection.replaceOne({ _id: new ObjectId(id) }, upDoc);
+    logger.info('Replace document result', { updateRes });
+
+    return updateDoc;
+  }
+
   async upsert<T extends UpsertModel>(item: T): Promise<T> {
     if (!item.id) {
       (item as any).createdById = (item as any).modifiedById;

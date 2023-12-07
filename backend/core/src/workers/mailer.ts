@@ -998,6 +998,73 @@ const sendEmail = async (input: MailerEvent) => {
         logger.warn('No users found', { input });
         return;
       }
+    } else if (input.template === MailerEvents.OfficerFcfsEventAvailable) {
+      const { eventId, organization } = input.data;
+
+      const event = await context.events.get(eventId);
+      if (!event) {
+        logger.error('Event not found', { input, event });
+        return;
+      }
+
+      const eventStart = convertDate(event.startTime as any, organization);
+      const eventEnd = convertDate(event.endTime as any, organization);
+
+      const allUsers = await context.users.collection.find({
+        'member.orgId': organization.id,
+        'member.status': MemberStatus.Active,
+        removedAt: { $exists: false },
+      });
+
+      let user: User | null;
+      do {
+        user = await allUsers.next() as any;
+        if (user) {
+          const { total } = await context.users.findOpenShifts({
+            user: {
+              ...user,
+              id: (user as any)._id.toString(),
+            },
+            organization: organization!,
+            orgId: organization.id,
+            defaultEventIds: [eventId],
+            limit: 1,
+            skip: 0,
+          });
+          logger.info('Checking if user can sign up for shift', { user, event, total });
+          if (total === 0) {
+            continue;
+          }
+          if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+            Addresses[user.member.contactInfo!.primaryEmail.address] = {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "event.name": [event.name],
+                "user.first_name": [user.firstName],
+                "system.metro_name": [organization.name],
+                "event.start_date": [eventStart.date],
+                "event.end_date": [eventEnd.date],
+                "event.reference_number": [event.referenceId],
+                "system.login_url": [`${process.env.APP_URL || ''}/dashboard/available/overtime`],
+              },
+            };
+          }
+          if (user.member.contactInfo?.primaryPhone.receiveTexts) {
+            includeSMS = true;
+            Addresses[user.member.contactInfo!.primaryPhone.number] = {
+              ChannelType: 'SMS',
+              Substitutions: {
+                "event.name": [event.name],
+                "system.metro_name": [organization.name],
+              },
+            };
+          }
+        }
+      } while(user);
+      if (Object.keys(Addresses).length === 0) {
+        logger.warn('No users found', { input });
+        return;
+      }
     } else if (input.template === MailerEvents.OfficerUserAccountInvitation) {
       const { inviteEmail, user, organization } = input.data;
 

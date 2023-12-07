@@ -23,11 +23,13 @@ export enum ScheduleEvent {
   LOTTO_NOTIFY = 'lotto_notify',
   SHIFT_REMINDER = 'shift_reminder',
   EVENT_COMPLETE = 'event_complete',
+  EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE = 'event_fcfs_live',
   USER_TIER_RETURN = 'user_tier_return',
   USER_INACTIVE_RETURN = 'user_inactive_return',
 }
 
 export enum Timezone {
+  UTC = 'UTC',
   PST = 'America/Los_Angeles',
   EST = 'America/New_York',
   CST = 'America/Chicago',
@@ -108,32 +110,36 @@ export class SchedulerModel {
     eventInput: any;
     enabled?: ScheduleState;
   }) {
-    const foundSchedule = await this.getSchedule({
-      orgId,
-      event,
-      customEventName,
-    });
-    const input: CreateScheduleCommandInput | UpdateScheduleCommandInput = {
-      Name: customEventName || `${orgId}-${event}`,
-      ScheduleExpression: eventTime,
-      FlexibleTimeWindow: {
-        Mode: FlexibleTimeWindowMode.FLEXIBLE,
-        MaximumWindowInMinutes: 1,
-      },
-      ActionAfterCompletion: ActionAfterCompletion.DELETE,
-      ScheduleExpressionTimezone: eventTimeZone,
-      Target: {
-        Arn: process.env.SCHEDULED_LAMBDA_ARN,
-        RoleArn: process.env.SCHEDULED_ROLE_ARN,
-        Input: JSON.stringify(eventInput),
-      } as Target,
-      State: enabled,
-    };
-
-    logger.info('Updating schedule', { input });
-
-    const command = foundSchedule ? new UpdateScheduleCommand(input) : new CreateScheduleCommand(input);
-    const res = await scheduler.send(command);
-    return res;
+    try {
+      const foundSchedule = await this.getSchedule({
+        orgId,
+        event,
+        customEventName,
+      });
+      const input: CreateScheduleCommandInput | UpdateScheduleCommandInput = {
+        Name: customEventName || `${orgId}-${event}`,
+        ScheduleExpression: eventTime,
+        FlexibleTimeWindow: {
+          Mode: FlexibleTimeWindowMode.FLEXIBLE,
+          MaximumWindowInMinutes: 1,
+        },
+        ActionAfterCompletion: ActionAfterCompletion.DELETE,
+        ScheduleExpressionTimezone: eventTimeZone,
+        Target: {
+          Arn: process.env.SCHEDULED_LAMBDA_ARN,
+          RoleArn: process.env.SCHEDULED_ROLE_ARN,
+          Input: JSON.stringify(eventInput),
+        } as Target,
+        State: enabled,
+      };
+  
+      logger.info('Updating schedule', { input });
+  
+      const command = foundSchedule ? new UpdateScheduleCommand(input) : new CreateScheduleCommand(input);
+      const res = await scheduler.send(command);
+      return res;
+    } catch(error) {
+      logger.error('Failed to update schedule', { error });
+    }
   }
 }

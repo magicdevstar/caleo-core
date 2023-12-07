@@ -129,6 +129,32 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   }
 
+  async notifyUsersOfEventAvailability(eventId: string, organization: Organization) {
+    const emptyShifts = await this.collection.find({
+      eventId,
+      removedAt: { $exists: false },
+      $or: [
+        { userId: null },
+        { userId: { $exists: false } },
+      ],
+    }).toArray();
+    
+    if (emptyShifts.length > 0) {
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerFcfsEventAvailable,
+          data: {
+            eventId,
+            organization,
+          },
+        } as MailerEvent),
+      }));
+    }
+  }
+
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
     const emptyShifts = await this.collection.find({
       shiftId,

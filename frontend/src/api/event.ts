@@ -15,6 +15,12 @@ export const EVENT_UPLOAD_URL = gql`
   }
 `;
 
+export const NOTIFY_OF_EVENT = gql`
+  mutation NotifyOfEvent($eventId: String!) {
+    notifyUsersOfEvent(eventId: $eventId)
+  }
+`;
+
 export const GET_ALL_EVENTS_SLIM = gql`
   query GetAllEvents($input: EventSearchInput!) {
     events(input: $input) {
@@ -38,6 +44,7 @@ export const GET_ALL_EVENTS = gql`
         startTime
         endTime
         availableShifts
+        scheduledFirstComeFirstServe
         status
         createdBy {
           member {
@@ -195,6 +202,7 @@ export const GET_EVENT = gql`
       lotteryNumber
       notifyWhenFullyStaffed
       scheduledFirstComeFirstServe
+      notifyOnFirstComeFirstServe
       startTime
       endTime
       createdById

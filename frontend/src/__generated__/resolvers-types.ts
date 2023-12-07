@@ -142,6 +142,7 @@ export type Event = {
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
+  notifyOnFirstComeFirstServe?: Maybe<Scalars['Boolean']['output']>;
   notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
@@ -367,6 +368,7 @@ export type Mutation = {
   inviteUser?: Maybe<User>;
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
+  notifyUsersOfEvent?: Maybe<Scalars['Boolean']['output']>;
   notifyUsersOfShift?: Maybe<Scalars['Boolean']['output']>;
   organization?: Maybe<Organization>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
@@ -424,6 +426,11 @@ export type MutationNewUserArgs = {
 
 export type MutationNotificationArgs = {
   notification: UpsertNotification;
+};
+
+
+export type MutationNotifyUsersOfEventArgs = {
+  eventId: Scalars['String']['input'];
 };
 
 
@@ -1182,6 +1189,7 @@ export type UpsertEvent = {
   lotteryNumber?: InputMaybe<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
+  notifyOnFirstComeFirstServe?: InputMaybe<Scalars['Boolean']['input']>;
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
@@ -1804,6 +1812,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  notifyOnFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1942,6 +1951,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
+  notifyUsersOfEvent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfEventArgs, 'eventId'>>;
   notifyUsersOfShift?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;

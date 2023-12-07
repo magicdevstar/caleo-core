@@ -120,6 +120,7 @@ export default function EditEvent({ currentEvent }: Props) {
     scheduledFirstComeFirstServe: Yup.string(),
     createdById: Yup.string(),
     assignments: Yup.array(),
+    notifyOnFirstComeFirstServe: Yup.boolean(),
   });
 
   const defaultValues = useMemo(
@@ -131,6 +132,7 @@ export default function EditEvent({ currentEvent }: Props) {
       attachments: [],
       venueId: currentEvent?.venueId || '',
       lotteryNumber: currentEvent?.lotteryNumber,
+      notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       assignments: currentEvent?.assignments || [],
@@ -254,6 +256,7 @@ export default function EditEvent({ currentEvent }: Props) {
             status: formData?.status,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
+            notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
             attachmentPaths: [
               ...existingAttachments,
@@ -585,6 +588,8 @@ export default function EditEvent({ currentEvent }: Props) {
                         },
                       }}
                     />
+
+                    <RHFSwitch name="notifyOnFirstComeFirstServe" label="Notify when first come first serve is available" />
                   </Box>
                 )}
 

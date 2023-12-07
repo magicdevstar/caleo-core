@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import TextField from '@mui/material/TextField';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { client } from 'src/utils/apollo';
@@ -70,6 +71,7 @@ export default function EditShift({
   const unassignConfirm = useBoolean();
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
+  const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
   const canNotify = useMemo(() =>
     currentShifts?.[0]?.event?.status === EventStatus.FirstComeFirstServe &&
@@ -167,9 +169,11 @@ export default function EditShift({
         variables: {
           id: editShiftId,
           userId,
+          note: unassignReason,
         },
       });
       setEditShiftId(null);
+      setUnassignReason('');
       unassignConfirm.onFalse();
       assignConfirm.onFalse();
     } catch(error) {
@@ -187,7 +191,16 @@ export default function EditShift({
         enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
       }
     }
-  }, [unassignConfirm, assignConfirm, editShiftId, setEditShiftId, assignShift, enqueueSnackbar]);
+  }, [
+    unassignConfirm,
+    assignConfirm,
+    editShiftId,
+    unassignReason,
+    setUnassignReason,
+    setEditShiftId,
+    assignShift,
+    enqueueSnackbar
+  ]);
 
   const config: TableConfig<Shift> = {
     header: {
@@ -468,7 +481,19 @@ export default function EditShift({
         open={unassignConfirm.value}
         onClose={unassignConfirm.onFalse}
         title="Unassign shift slot"
-        content="Are you sure want to unassign this shift slot?"
+        content={(
+          <Stack direction="column" spacing={2}>
+            <Typography variant='body1'>Are you sure want to unassign this shift slot?</Typography>
+            <TextField
+              label="Reason"
+              multiline
+              rows={4}
+              variant="outlined"
+              value={unassignReason}
+              onChange={(e) => setUnassignReason(e.target.value)}
+            />
+          </Stack>
+        )}
         action={
           <LoadingButton variant="contained" color="error" onClick={() => handleShiftAssignment()} loading={isAssigningShift}>
             Unassign

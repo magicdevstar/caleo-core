@@ -35,7 +35,7 @@ export default function GQLTable({
   config: TableConfig<any>;
 }) {
   const [currentTab, setCurrentTab] = useState(config?.tabs?.default || 'all');
-  const table = useTable({
+  const { onResetPage, ...table } = useTable({
     defaultRowsPerPage: config.search?.defaultTableConfig?.defaultRowsPerPage,
     defaultOrderBy: config.search?.defaultTableConfig?.defaultOrderBy || 'createdAt',
     defaultOrder: config.search?.defaultTableConfig?.defaultOrder || 'desc',
@@ -67,7 +67,7 @@ export default function GQLTable({
   const total = useMemo(() => apiTotal, [apiTotal]);
   const isEmpty = total === 0;
 
-  const denseHeight = 60;
+  const denseHeight = 57;
 
   const canReset = filters
     .filter(({ type, value }) =>
@@ -79,7 +79,7 @@ export default function GQLTable({
 
   const handleFilters = useCallback(
     (id: string, value: any) => {
-      table.onResetPage();
+      onResetPage();
       setFilters((prevState) => prevState.map((filter) => {
         if (filter.id === id) {
           return {
@@ -90,12 +90,12 @@ export default function GQLTable({
         return filter;
       }));
     },
-    [table]
+    [onResetPage]
   );
 
   const setAllFilters = useCallback(
     (values: {id: string, value: any}[]) => {
-      table.onResetPage();
+      onResetPage();
       setFilters((prevState) => {
         const valueToAdd = values.filter((v) => !prevState.find((f) => f.id === v.id));
         const res = [
@@ -120,7 +120,7 @@ export default function GQLTable({
         return res;
       });
     },
-    [table]
+    [onResetPage]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -156,7 +156,7 @@ export default function GQLTable({
             startIcon={<Iconify icon={config.header.button.icon}/>}
             onClick={config.header.button.onClick}
           >{config.header.button.text}</LoadingButton>}
-          {config.header.buttons && 
+          {config.header.buttons &&
             config.header.buttons.map((buttonConfig) => (
               <LoadingButton
                 key={buttonConfig.key}
@@ -193,6 +193,7 @@ export default function GQLTable({
         toolbarConfig={config?.table?.toolbar}
         filters={uiFilters}
         onFilters={handleFilters}
+        localSearch={!!config?.search?.data}
       />
 
       {canReset && (
@@ -252,7 +253,7 @@ export default function GQLTable({
 
       {!config.search.data && <TablePaginationCustom
         count={total}
-        page={table.page}
+        page={total ? table.page : 0}
         rowsPerPage={table.rowsPerPage}
         onPageChange={table.onChangePage}
         onRowsPerPageChange={table.onChangeRowsPerPage}

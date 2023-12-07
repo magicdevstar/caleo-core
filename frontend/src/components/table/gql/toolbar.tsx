@@ -1,14 +1,11 @@
 // @mui
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import { DateRangePicker, SingleInputDateRangeField } from '@mui/x-date-pickers-pro';
 import Grid from '@mui/material/Grid';
-// components
-import Iconify from 'src/components/iconify';
 // types
 import { Filter, ToolbarConfig } from '../table-config';
 import SelectFilter from './select-filter';
 import AutoCompleteFilter from './autocomplte-filter';
+import TextFilter from './text-filter';
 
 // ----------------------------------------------------------------------
 
@@ -16,36 +13,19 @@ type Props = {
   toolbarConfig?: ToolbarConfig;
   filters: Filter[];
   onFilters: (id: string, value: any) => any;
+  localSearch: boolean;
 };
 
 export default function TableToolbar({
   toolbarConfig,
   filters,
   onFilters,
+  localSearch,
 }: Props) {
   return (
     <Grid container spacing={2} sx={{ width: '100%', margin: 0, paddingRight: '15px', marginBottom: '15px' }}>
       {filters.map((filter) => {
-        let render = (<TextField
-          fullWidth
-          type={filter.type || 'text'}
-          value={filter.value}
-          onChange={(event) => onFilters(filter.id, event.target.value)}
-          placeholder={`${filter.label}...`}
-          sx={{
-            minWidth: {
-              xs: '100%',
-              md: 300,
-            }
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-          }}
-        />);
+        let render = (<TextFilter filter={filter} onFilters={onFilters} localSearch={localSearch} />);
         if (filter.type === 'select') {
           render = (<SelectFilter filter={filter} onFilters={onFilters} />);
         }

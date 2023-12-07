@@ -566,7 +566,7 @@ export class UserModel extends BaseModel<User> {
         },
       });
       logger.info('Set tier 1 res', { setTier1Res });
-      if (tier1Assignments.length === 0) {
+      if (tier1Assignments.length > 0) {
         const setTier2Res = await this.collection.updateMany({
           tier: MemberTier.Tier_1,
           'member.orgId': orgId,

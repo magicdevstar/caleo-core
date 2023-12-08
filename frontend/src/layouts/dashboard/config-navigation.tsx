@@ -76,8 +76,8 @@ export function useNavData() {
               path: paths.dashboard.admin.overtime.root,
               icon: ICONS.menuItem,
               children: [
-                { title: 'Events', path: paths.dashboard.admin.overtime.events },
-                { title: 'Venues', path: paths.dashboard.admin.overtime.venues },
+                { title: 'Events', path: paths.dashboard.admin.overtime.events, internalChildRoutes: true },
+                { title: 'Venues', path: paths.dashboard.admin.overtime.venues, internalChildRoutes: true },
                 { title: 'Dynamic Shift Filter', path: paths.dashboard.admin.overtime.dynamicShiftFilter },
               ],
             },
@@ -86,7 +86,7 @@ export function useNavData() {
               path: paths.dashboard.admin.users.root,
               icon: ICONS.user,
               children: [
-                { title: 'Search Users', path: paths.dashboard.admin.users.root },
+                { title: 'Search Users', path: paths.dashboard.admin.users.root, internalChildRoutes: true, internalChildRoutesExclude: '/request' },
                 { title: 'Account Requests', path: paths.dashboard.admin.users.requests.account },
                 { title: 'Skill Requests', path: paths.dashboard.admin.users.requests.skills },
                 { title: 'Shift Buffer Requests', path: paths.dashboard.admin.users.requests.buffer },

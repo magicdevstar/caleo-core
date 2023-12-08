@@ -20,7 +20,10 @@ type NavListRootProps = {
 export default function NavList({ data, depth, hasChild, config }: NavListRootProps) {
   const pathname = usePathname();
 
-  const active = useActiveLink(data.path, hasChild);
+  const excludedChildPath = data.internalChildRoutesExclude && pathname.includes(data.internalChildRoutesExclude);
+  const hasInternalChild = Boolean(data.internalChildRoutes && !excludedChildPath);
+
+  const active = useActiveLink(data.path, hasChild || hasInternalChild);
 
   const externalLink = data.path.includes('http');
 

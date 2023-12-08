@@ -30,6 +30,8 @@ export type NavListProps = {
   caption?: string;
   disabled?: boolean;
   roles?: string[];
+  internalChildRoutes?: boolean;
+  internalChildRoutesExclude?: string;
   children?: any;
 };
 

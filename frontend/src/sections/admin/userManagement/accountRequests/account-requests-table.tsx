@@ -1,7 +1,7 @@
 import { useState } from "react";
 import copy from 'copy-to-clipboard';
 import { useSnackbar } from 'notistack';
-
+import { capitalize } from "lodash";
 // @mui
 import red from "@mui/material/colors/red";
 // Types
@@ -80,15 +80,28 @@ export default function AccountRequestsTable() {
         getHref: (row) => `/dashboard/admin/users/${row.id}`
       },
       { id: 'member.contactInfo.primaryEmail.address', label: 'Email', columnType: 'string' },
-      { id: 'member.status', label: 'Status', width: 110, columnType: 'string', getLabelColor: (row) => {
-        switch(row.member.status) {
-          case MemberStatus.Inactive:
-            return 'default';
-          case MemberStatus.Active:
-          default:
-            return 'info';
+      {
+        id: 'member.status',
+        label: 'Status',
+        width: 110,
+        columnType: 'string',
+        renderValue: (memberStatus) => capitalize(memberStatus),
+        getLabelColor: (row) => {
+          switch(row.member.status) {
+            case MemberStatus.Active:
+              return 'success';
+            case MemberStatus.Invited:
+              return 'info'
+            case MemberStatus.Pending:
+              return 'warning';
+            case MemberStatus.Removed:
+              return 'error';
+            case MemberStatus.Inactive:
+            default:
+              return 'default';
+          }
         }
-      }},
+      },
       { id: '', width: 88, columnType: 'action', label: '' },
     ],
     filters: [

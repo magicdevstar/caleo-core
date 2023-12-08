@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { capitalize } from "lodash";
 // @mui
 import Button from '@mui/material/Button';
 // @apollo/client
@@ -157,13 +158,16 @@ export default function VenuesTable() {
         label: 'Status',
         width: 110,
         columnType: 'string',
-        renderValue: (status) => {
-          switch (status) {
+        renderValue: (status) => capitalize(status),
+        getLabelColor: (row: Venue) => {
+          switch (row.status) {
             case VenueStatus.Active:
-              return 'Active';
+              return 'success';
+            case VenueStatus.Removed:
+              return 'error';
             case VenueStatus.Inactive:
             default:
-              return 'Inactive';
+              return 'default';
           }
         }
       },

@@ -1,3 +1,4 @@
+import { capitalize } from 'lodash';
 import PhoneNumberFormatter from 'phone-number-formats';
 import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENTS_SLIM } from "src/api/event";
@@ -88,7 +89,24 @@ export default function DynamicShiftFilter() {
         id: 'status',
         label: 'Status',
         columnType: 'string',
-        getLabelColor: () => 'info',
+        renderValue: (shiftStatus) => capitalize(shiftStatus),
+        getLabelColor: (row) => {
+          switch(row.status) {
+            case ShiftStatus.Assigned:
+              return 'success';
+            case ShiftStatus.Available:
+              return 'primary';
+            case ShiftStatus.Relinquished:
+              return 'error';
+            case ShiftStatus.Unassigned:
+              return 'warning';
+            case ShiftStatus.Locked:
+              return 'secondary';
+            case ShiftStatus.Removed:
+            default:
+              return 'default';
+          }
+        },
       },
       {
         id: 'user.name',
@@ -327,6 +345,6 @@ export default function DynamicShiftFilter() {
       },
     ]
   };
-  
+
   return <GQLTable config={config} />
 }

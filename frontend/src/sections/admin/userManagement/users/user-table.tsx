@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "react-router";
+import { capitalize } from "lodash";
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
 import red from "@mui/material/colors/red";
@@ -131,15 +132,28 @@ export default function UserTable() {
           }
         }
       },
-      { id: 'member.status', label: 'Status', width: 110, columnType: 'string', getLabelColor: (row) => {
-        switch(row.member.status) {
-          case MemberStatus.Inactive:
-            return 'default';
-          case MemberStatus.Active:
-          default:
-            return 'info';
-        }
-      }},
+      {
+        id: 'member.status',
+        label: 'Status',
+        width: 110,
+        columnType: 'string',
+        renderValue: (memberStatus) => capitalize(memberStatus),
+        getLabelColor: (row) => {
+          switch(row.member.status) {
+            case MemberStatus.Active:
+              return 'success';
+            case MemberStatus.Invited:
+              return 'primary'
+            case MemberStatus.Pending:
+              return 'warning';
+            case MemberStatus.Removed:
+              return 'error';
+            case MemberStatus.Inactive:
+            default:
+              return 'default';
+          }
+        },
+      },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },
     ],

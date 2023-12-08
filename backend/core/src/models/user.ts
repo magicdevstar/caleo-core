@@ -169,7 +169,6 @@ export class UserModel extends BaseModel<User> {
       };
     }
 
-
     // Find first come first serve events
     const {
       items: eventList,

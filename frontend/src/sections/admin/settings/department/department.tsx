@@ -148,7 +148,7 @@ export default function Department({ organization }: Props) {
                 ].map((option) => (
                   <MenuItem key={option} value={option}>
                     {option}
-                  </MenuItem>  
+                  </MenuItem>
                ))}
               </RHFSelect>
 

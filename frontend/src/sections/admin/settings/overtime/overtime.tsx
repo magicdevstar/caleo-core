@@ -12,7 +12,7 @@ import { capitalize } from 'lodash';
 import CardHeader from "@mui/material/CardHeader";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
@@ -131,7 +131,7 @@ export default function Overtime({
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3} sx={{ mt: 2, width: '100%', marginLeft: 0 }}>
+      <Grid container spacing={3}>
         {mdUp && (
           <Grid md={4}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>

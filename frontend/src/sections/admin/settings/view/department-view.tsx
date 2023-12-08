@@ -21,7 +21,7 @@ export default function DepartmentView() {
   const settings = useSettingsContext();
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      <Typography variant="h4" sx={{ mb: 2 }}> Overtime </Typography>
+      <Typography variant="h4" sx={{ mb: 2 }}> Department </Typography>
 
       {
         loading ? (

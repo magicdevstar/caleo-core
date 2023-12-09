@@ -406,6 +406,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
     shifts(input: $input) {
       items {
         id
+        shiftId
         refNumber
         startTime
         endTime
@@ -432,10 +433,12 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
           id
           referenceId
           name
+          removedAt
         }
         assignment {
           id
           name
+          removedAt
           requiredSkills {
             id
             name

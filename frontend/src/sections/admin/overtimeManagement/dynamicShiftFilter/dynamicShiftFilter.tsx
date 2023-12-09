@@ -9,9 +9,13 @@ import { GET_USERS_SLIM } from "src/api/user";
 import GQLTable from "src/components/table/gql/table";
 import { TableConfig } from "src/components/table/table-config";
 import { client } from "src/utils/apollo";
+import { paths } from 'src/routes/paths';
 
 
 export default function DynamicShiftFilter() {
+  const shiftHasBeenRemoved = (shift: Shift) =>
+    shift.event?.removedAt || shift.assignment?.removedAt || shift.status === ShiftStatus.Removed;
+
   const config: TableConfig<Shift> = {
     header: {
       title: 'Dynamic Shift Filter',
@@ -41,18 +45,39 @@ export default function DynamicShiftFilter() {
         label: 'Shift Ref #',
         columnType: 'string',
         width: 150,
+        getHref: (row) =>
+          shiftHasBeenRemoved(row)
+            ? ''
+            : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                .replace(':eventId', row.event?.id || '')
+                .replace(':assignmentId', row.assignment?.id || '')
+                .replace(':shiftId', row.shiftId || ''),
       },
       {
         id: 'startTime',
         label: 'Start',
         columnType: 'date',
         width: 10,
+        getHref: (row) =>
+          shiftHasBeenRemoved(row)
+            ? ''
+            : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                .replace(':eventId', row.event?.id || '')
+                .replace(':assignmentId', row.assignment?.id || '')
+                .replace(':shiftId', row.shiftId || ''),
       },
       {
         id: 'endTime',
         label: 'End',
         columnType: 'date',
         width: 10,
+        getHref: (row) =>
+          shiftHasBeenRemoved(row)
+            ? ''
+            : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                .replace(':eventId', row.event?.id || '')
+                .replace(':assignmentId', row.assignment?.id || '')
+                .replace(':shiftId', row.shiftId || ''),
       },
       {
         id: 'event.name',

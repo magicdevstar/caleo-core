@@ -52,6 +52,7 @@ export const skills = async (collection: Collection, db: Db) => {
           createdAt: new Date(skill.created_at).getTime() as any,
           updatedAt: new Date(skill.modified_at).getTime() as any,
           docType: DocType.Skill,
+          migrationId: skill.id,
           orgId: '64cd5e262c436093a2b7e680',
         };
         bulk.push(item);
@@ -59,7 +60,7 @@ export const skills = async (collection: Collection, db: Db) => {
     }
     if (bulk.length > 0) {
       const res = await collection.insertMany(bulk);
-      console.log('Rank bulk write: ', JSON.stringify(res, null, 2));
+      console.log('Skill bulk write: ', JSON.stringify(res, null, 2));
     }
   } catch(error) {
     console.error('Failed to migrate venues: ', error);

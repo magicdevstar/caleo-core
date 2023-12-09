@@ -4,6 +4,7 @@ import { mysql } from "./utils/mysql";
 import { venues } from "./venues"
 import { ranks } from "./ranks"
 import { skills } from "./skills";
+import { users } from "./users";
 
 (async () => {
   let connection: MongoClient | undefined;
@@ -13,6 +14,7 @@ import { skills } from "./skills";
     await venues(mongoClient.collection('venues'));
     await ranks(mongoClient.collection('ranks'));
     await skills(mongoClient.collection('skills'), mongoClient);
+    await users(mongoClient.collection('users'), mongoClient);
   } catch(error) {
     console.error('Failed to migrate: ', error);
   } finally {

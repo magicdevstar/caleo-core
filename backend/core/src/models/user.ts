@@ -556,27 +556,27 @@ export class UserModel extends BaseModel<User> {
     try {
       const setTier1Res = await this.collection.updateMany({
         'member.orgId': orgId,
-        tier: MemberTier.Tier_2,
-        tierResetOnNextLottery: true,
+        'member.tier': MemberTier.Tier_2,
+        'member.tierResetOnNextLottery': true,
       }, {
         $set: {
-          tier: MemberTier.Tier_1,
-          tierUntil: null,
+          'member.tier': MemberTier.Tier_1,
+          'member.tierUntil': null,
         },
       });
       logger.info('Set tier 1 res', { setTier1Res });
       if (tier1Assignments.length > 0) {
         const setTier2Res = await this.collection.updateMany({
-          tier: MemberTier.Tier_1,
+          'member.tier': MemberTier.Tier_1,
           'member.orgId': orgId,
           _id: {
             $in: tier1Assignments.map((id) => new ObjectId(id)),
           }
         }, {
           $set: {
-            tier: MemberTier.Tier_2,
-            tierUntil: null,
-            tierRestOnNextLottery: true,
+            'member.tier': MemberTier.Tier_2,
+            'member.tierUntil': null,
+            'member.tierResetOnNextLottery': true,
           },
         });
         logger.info('Set tier 2 res', { setTier2Res });

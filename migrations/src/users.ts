@@ -67,15 +67,14 @@ export const users = async (collection: Collection, db: Db) => {
       .toArray())
       .map(({ migrationId }) => migrationId);
 
-
-    const skillMap = (await db
-      .collection('skills')
-      .find({})
-      .project({ migrationId: 1, _id: 1 })
-      .toArray()).reduce((acc, { migrationId, _id }) => {
-        acc[migrationId] = _id.toString();
-        return acc;
-      }, {});
+    // const skillMap = (await db
+    //   .collection('skills')
+    //   .find({})
+    //   .project({ migrationId: 1, _id: 1 })
+    //   .toArray()).reduce((acc, { migrationId, _id }) => {
+    //     acc[migrationId] = _id.toString();
+    //     return acc;
+    //   }, {});
     const ranks = await db
       .collection('ranks')
       .find({})
@@ -91,10 +90,10 @@ export const users = async (collection: Collection, db: Db) => {
       const foundMongo = migrationIds.includes(user.id);
 
       if (!foundMongo) {
-        const qualifications = await mysql('qualification').where({ user_id: user.id });
-        const skillIds = qualifications
-          .filter(({ skill_id }) => skillMap[skill_id])
-          .map(({ skill_id }) => skillMap[skill_id]);
+        // const qualifications = await mysql('qualification').where({ user_id: user.id });
+        // const skillIds = qualifications
+        //   .filter(({ skill_id }) => skillMap[skill_id])
+        //   .map(({ skill_id }) => skillMap[skill_id]);
 
         const legacyOvertimeAvailability = await mysql('overtime_availability').where({ user_id: user.id });
 
@@ -183,7 +182,7 @@ export const users = async (collection: Collection, db: Db) => {
             inactivateUntil: user.deactivate_until_date && isAfter(new Date(), new Date(user.deactivate_until_date)) ? new Date(user.deactivate_until_date).getTime() : null,
             inactivationNote: user.status_reason,
             rankId: rankIdMap[user.rank_id] || officerRank,
-            memberSkillIds: skillIds,
+            memberSkillIds: [],
             adminNote: user.note,
             maxShifts: user.overtime_limit,
             availability: {

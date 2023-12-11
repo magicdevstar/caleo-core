@@ -17,6 +17,7 @@ import GQLTable from 'src/components/table/gql/table';
 import { TableConfig } from 'src/components/table/table-config';
 import UpsertMemberSkill from 'src/components/user/skills/upsert-skill-dialoge';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import EmptyContent from '../empty-content';
 //
 
 // ----------------------------------------------------------------------
@@ -168,6 +169,16 @@ export default function AccountSkills({ user, adminViewer }: Props) {
     ],
     filters: [],
   };
+
+  if (!user.member?.rank?.id) {
+    return (
+      <EmptyContent
+        filled
+        title='User Rank not Found'
+        description='A Rank is required to view Skills. Please assign a Rank to this User.'
+      />
+    );
+  }
 
   return (
     <Box width="100%">

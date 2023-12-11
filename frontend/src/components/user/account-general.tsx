@@ -36,7 +36,7 @@ import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames, tierNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
-import { dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -132,7 +132,10 @@ export default function AccountGeneral({
     if (user?.member?.tier === MemberTier.Tier_1 || !user?.member?.tierResetOnNextLottery) {
       return '';
     }
-    const lotteryEnd = dayjs.utc(lotteryData?.lotteryCounter?.end || 0);
+    const lotteryEnd = convertDate({
+      date: lotteryData?.lotteryCounter?.end || 0,
+      user,
+    });
     return `Tier will expire on ${lotteryEnd.format(dateTimeFormat)}`;
   }, [user, lotteryData]);
 

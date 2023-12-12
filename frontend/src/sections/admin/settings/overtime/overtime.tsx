@@ -119,7 +119,20 @@ export default function Overtime({
           organization: {
             id: formData.id,
             name: formData.name,
-            settings: formData.settings,
+            settings: {
+              ...formData.settings,
+              lottery: {
+                ...formData.settings.lottery,
+                open: {
+                  ...formData.settings.lottery.open,
+                  time: dayjs(formData.settings.lottery.open.time).toDate().toISOString(),
+                },
+                close: {
+                  ...formData.settings.lottery.close,
+                  time: dayjs(formData.settings.lottery.close.time).toDate().toISOString(),
+                },
+              },
+            },
           },
         },
       });

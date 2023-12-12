@@ -109,7 +109,6 @@ export const ShiftBufferRequestConfirm = ({
 
   return (
     <ConfirmDialog
-      hasCancel={false}
       open={editRequestModal.value}
       onClose={editRequestModal.onFalse}
       title="Buffer request details"
@@ -141,7 +140,7 @@ export const ShiftBufferRequestConfirm = ({
             color="error"
             onClick={() => handleUpsert(ShiftBufferRequestStatus.Rejected)}
           >
-            Denied
+            Deny
           </LoadingButton>
           <LoadingButton
             loading={updateRequestLoading}
@@ -149,7 +148,7 @@ export const ShiftBufferRequestConfirm = ({
             color="primary"
             onClick={() => handleUpsert(ShiftBufferRequestStatus.Approved)}
           >
-            Approved
+            Approve
           </LoadingButton>
         </Stack>
       }

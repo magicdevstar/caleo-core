@@ -13,12 +13,12 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { FrontendUser, GET_USER, REMOVE_MEMBER_SKILL, UPSERT_MEMBER_SKILL } from 'src/api/user';
 import { GET_SKILLS } from 'src/api/skill';
 import { MemberSkill, SkillStatus } from 'src/__generated__/resolvers-types';
-import GQLTable from 'src/components/table/gql/table';
 import { TableConfig } from 'src/components/table/table-config';
+// components
+import GQLTable from 'src/components/table/gql/table';
 import UpsertMemberSkill from 'src/components/user/skills/upsert-skill-dialoge';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import EmptyContent from '../empty-content';
-//
 
 // ----------------------------------------------------------------------
 

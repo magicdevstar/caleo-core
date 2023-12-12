@@ -46,19 +46,19 @@ export const useLotteryCounterOptions = ({
     }
 
     const openDay = org!.settings!.lottery.open.dayOfWeek.toLowerCase();
-    const openTime = dayjs.utc(org!.settings!.lottery.open.time);
+    const openTime = dayjs(org!.settings!.lottery.open.time).tz(org!.timezone || 'America/Los_Angeles');
 
     const closeDay = org!.settings!.lottery.close.dayOfWeek.toLowerCase();
-    const closeTime = dayjs.utc(org!.settings!.lottery.close.time);
+    const closeTime = dayjs(org!.settings!.lottery.close.time).tz(org!.timezone || 'America/Los_Angeles');
 
-    let startOfLottery = dayjs.utc()
+    let startOfLottery = dayjs().tz(org!.timezone || 'America/Los_Angeles')
       .day(dayMap[openDay])
       .hour(openTime.hour())
       .minute(openTime.minute())
       .second(0)
       .millisecond(0);
 
-    let closeOfLottery = dayjs.utc()
+    let closeOfLottery = dayjs().tz(org!.timezone || 'America/Los_Angeles')
       .day(dayMap[closeDay])
       .hour(closeTime.hour())
       .minute(closeTime.minute())
@@ -68,21 +68,21 @@ export const useLotteryCounterOptions = ({
     let startNumber = data?.lotteryCounter.counter;
 
     // Set the lottery start date to the next 
-    if (dayjs.utc().isAfter(startOfLottery)) {
+    if (dayjs().tz(org!.timezone || 'America/Los_Angeles').isAfter(startOfLottery)) {
       startNumber += 1;
       startOfLottery = startOfLottery.add(1, 'week');
       closeOfLottery = closeOfLottery.add(1, 'week');
     }
     // Off set the end date if the lottery is open across weeks
-    if (dayjs.utc().isAfter(closeOfLottery)) {
+    if (dayjs().tz(org!.timezone || 'America/Los_Angeles').isAfter(closeOfLottery)) {
       closeOfLottery = closeOfLottery.add(1, 'week');
     }
 
     // If the lottery was in the past calculate the date it was run
     const opts: any[] = [];
     if (countValue) {
-      const oldLotteryStart = dayjs.utc(countValue.start);
-      const oldLotteryEnd =  dayjs.utc(countValue.end);
+      const oldLotteryStart = dayjs(countValue.start).tz(org!.timezone || 'America/Los_Angeles');
+      const oldLotteryEnd = dayjs(countValue.end).tz(org!.timezone || 'America/Los_Angeles');
       opts.push({
         counter: countValue.counter,
         date: oldLotteryStart,
@@ -92,7 +92,7 @@ export const useLotteryCounterOptions = ({
       });
     }
 
-    const limit = dateLimit && dayjs.utc(dateLimit);
+    const limit = dateLimit && dayjs(dateLimit).tz(org!.timezone || 'America/Los_Angeles');
 
     const list = new Array(5)
       .fill(0)

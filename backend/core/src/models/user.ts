@@ -128,20 +128,15 @@ export class UserModel extends BaseModel<User> {
 
     let eventQuery: any = {
       orgId,
+      status: EventStatus.FirstComeFirstServe,
+      startTime: {
+        $gte: Date.now(),
+      },
       $or: [
-        {
-          $and: [
-            { status: EventStatus.FirstComeFirstServe },
-            { scheduledFirstComeFirstServe: { $exists: false }},
-          ],
-        },
-        {
-          $and: [
-            { status: EventStatus.FirstComeFirstServe },
-            { scheduledFirstComeFirstServe: { $lte: Date.now() }},
-          ],
-        }
-      ]
+        { scheduledFirstComeFirstServe: null},
+        { scheduledFirstComeFirstServe: { $exists: false }},
+        { scheduledFirstComeFirstServe: { $lte: Date.now() }},
+      ],
     };
     if (eventTypes && eventTypes.length === 1 && eventTypes[0] === EventStatus.ReadyForLottery) {
       const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
@@ -157,9 +152,21 @@ export class UserModel extends BaseModel<User> {
         $or: [
           {
             status: EventStatus.FirstComeFirstServe,
-            scheduledFirstComeFirstServe: {
-              $gte: Date.now(),
-            },
+            $or: [
+              {
+                scheduledFirstComeFirstServe: {
+                  $gte: Date.now(),
+                },
+              },
+              {
+                scheduledFirstComeFirstServe: {
+                  $exists: false,
+                },
+              },
+              {
+                scheduledFirstComeFirstServe: null,
+              },
+            ]
           },
           {
             status: EventStatus.ReadyForLottery,
@@ -174,6 +181,7 @@ export class UserModel extends BaseModel<User> {
       items: eventList,
     } = await this.events.search(eventQuery);
     const eventIds = defaultEventIds || eventList.map(({ id }) => id);
+    logger.info('Event ids', { eventIds, eventQuery });
 
     // Find assignments that are attached to those events
     const assignmentSearch = {

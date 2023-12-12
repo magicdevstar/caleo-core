@@ -11,11 +11,13 @@ import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import LoadingButton from '@mui/lab/LoadingButton';
+import CircularProgress from '@mui/material/CircularProgress';
 // Types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
@@ -78,14 +80,19 @@ export default function EventsByDate() {
     fileName: 'events-by-date',
     ext: 'csv',
   });
+
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
+
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
     variables: {
       input: {
         admin: true,
+        limit: 10,
         orderBy: 'createdAt',
         order: 'desc',
+        query: debouncedText || undefined,
       },
     },
   });
@@ -210,9 +217,20 @@ export default function EventsByDate() {
             name="createdBy"
             label="Created By"
             options={users}
+            inputValue={text || ''}
+            filterOptions={(x: any) => x}
             loading={usersLoading}
+            loadingText={
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
+            }
             getOptionLabel={(option) => (option as User).name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
+            onInputChange={(_event, newInputValue) => {
+              setText(newInputValue);
+            }}
             renderOption={(props, option, { selected }) => (
               <li {...props} key={option.id}>
                 <Checkbox style={{ marginRight: 8 }} checked={selected} />

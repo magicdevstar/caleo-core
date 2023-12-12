@@ -11,12 +11,14 @@ import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import LoadingButton from '@mui/lab/LoadingButton';
+import CircularProgress from '@mui/material/CircularProgress';
 // Types
 import { Shift, ShiftStatus, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
 import { GET_OFFICER_REPORT_SHIFTS } from 'src/api/shifts';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
@@ -67,6 +69,28 @@ export default function ShiftsByOfficer() {
     fileName: 'shifts-by-officer',
     ext: 'csv',
   });
+
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
+
+  const inputFields = useMemo(() => {
+    const trimmedValue = debouncedText.trim();
+    let key = 'query';
+    const value: string | undefined = trimmedValue || undefined;
+    try {
+      const isPNumber = /^\d+$/.test(value || '');
+      if (isPNumber) {
+        key = 'pNumber';
+      }
+    } catch (error) {
+      console.error('Not a number');
+    }
+
+    return {
+      key,
+      value,
+    };
+  }, [debouncedText]);
+
   const { data, loading: usersLoading } = useQuery(GET_USERS, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
@@ -74,7 +98,8 @@ export default function ShiftsByOfficer() {
       input: {
         orderBy: 'createdAt',
         order: 'desc',
-        limit: 100,
+        limit: 10,
+        [inputFields.key]: inputFields.value,
       },
     },
   });
@@ -198,17 +223,21 @@ export default function ShiftsByOfficer() {
             name="officer"
             label="Officer Name or P# *"
             options={users}
+            inputValue={text || ''}
             loading={usersLoading}
-            getOptionLabel={(option) => (option as User).name}
-            filterOptions={(options, state) =>
-              options.filter(
-                (option: User) =>
-                  option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                  option.member?.pNumber?.includes(state.inputValue)
-              )
+            loadingText={
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
             }
+            getOptionLabel={(option) => (option as User).name}
+            filterOptions={(x: any) => x}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option, { selected }) => (
+            onInputChange={(_event, newInputValue) => {
+              setText(newInputValue);
+            }}
+            renderOption={(props, option) => (
               <li {...props} key={option.id}>
                 {`${option.name} (#${option.member?.pNumber})`}
               </li>

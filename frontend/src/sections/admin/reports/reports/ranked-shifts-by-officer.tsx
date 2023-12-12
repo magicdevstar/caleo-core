@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import LoadingButton from '@mui/lab/LoadingButton';
+import CircularProgress from '@mui/material/CircularProgress';
 // Types
 import {
   LotteryCounter,
@@ -22,6 +23,7 @@ import { GET_USERS } from 'src/api/user';
 import { GET_SHIFT_LOTTERY_REQUESTS_REPORT } from 'src/api/shifts';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import { client } from 'src/utils/apollo';
@@ -46,6 +48,27 @@ export default function RankedShiftsByOfficer() {
     fileName: 'ranked-shifts-by-officer',
     ext: 'csv',
   });
+
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
+
+  const inputFields = useMemo(() => {
+    const trimmedValue = debouncedText.trim();
+    let key = 'query';
+    const value: string | undefined = trimmedValue || undefined;
+    try {
+      const isPNumber = /^\d+$/.test(value || '');
+      if (isPNumber) {
+        key = 'pNumber';
+      }
+    } catch (error) {
+      console.error('Not a number');
+    }
+
+    return {
+      key,
+      value,
+    };
+  }, [debouncedText]);
 
   const { data: lotteryRunDates, loading: loadingLotteryRunDates } = useQuery(GET_LOTTERY_DATES, {
     fetchPolicy: 'network-only',
@@ -77,6 +100,7 @@ export default function RankedShiftsByOfficer() {
         orderBy: 'createdAt',
         order: 'desc',
         limit: 100,
+        [inputFields.key]: inputFields.value,
       },
     },
   });
@@ -184,17 +208,21 @@ export default function RankedShiftsByOfficer() {
             name="officer"
             label="Officer Name or P# *"
             options={users}
+            inputValue={text || ''}
             loading={usersLoading}
-            getOptionLabel={(option) => (option as User).name}
-            filterOptions={(options, state) =>
-              options.filter(
-                (option: User) =>
-                  option.name.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                  option.member?.pNumber?.includes(state.inputValue)
-              )
+            loadingText={
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
             }
+            getOptionLabel={(option) => (option as User).name}
+            filterOptions={(x: any) => x}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option, { selected }) => (
+            onInputChange={(_event, newInputValue) => {
+              setText(newInputValue);
+            }}
+            renderOption={(props, option) => (
               <li {...props} key={option.id}>
                 {`${option.name} (#${option.member?.pNumber})`}
               </li>

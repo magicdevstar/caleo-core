@@ -11,11 +11,13 @@ import Stack from '@mui/material/Stack';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import LoadingButton from '@mui/lab/LoadingButton';
+import CircularProgress from '@mui/material/CircularProgress';
 // Types
 import { Event, EventStatus, Venue, VenueStatus } from 'src/__generated__/resolvers-types';
 import { GET_VENUE_LIST } from 'src/api/venues';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
@@ -79,14 +81,19 @@ export default function EventsByVenue() {
     fileName: 'events-by-venue',
     ext: 'csv',
   });
+
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
+
   const { data, loading: venuesLoading } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
     variables: {
       input: {
+        limit: 10,
         orderBy: 'createdAt',
         order: 'desc',
         status: [VenueStatus.Active, VenueStatus.Inactive],
+        query: debouncedText || undefined,
       },
     },
   });
@@ -193,9 +200,20 @@ export default function EventsByVenue() {
             name="venueName"
             label="Venue Name *"
             options={venues}
+            inputValue={text || ''}
+            filterOptions={(x: any) => x}
             loading={venuesLoading}
+            loadingText={
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
+            }
             getOptionLabel={(option) => (option as Venue).name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
+            onInputChange={(_event, newInputValue) => {
+              setText(newInputValue);
+            }}
             renderOption={(props, option, { selected }) => (
               <li {...props} key={option.id}>
                 <Checkbox style={{ marginRight: 8 }} checked={selected} />

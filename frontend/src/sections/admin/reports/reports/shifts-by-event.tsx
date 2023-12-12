@@ -15,11 +15,11 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { Assignment, Event, Shift, ShiftStatus } from 'src/__generated__/resolvers-types';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import { GET_ALL_EVENTS_SLIM, GET_EVENT_FOR_REPORT } from 'src/api/event';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
-import useDebounceText from 'src/hooks/use-debounce-text';
 import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 
@@ -62,6 +62,8 @@ export default function ShiftsByEvent() {
   }, [debouncedText]);
 
   const { data, loading: loadingEvents } = useQuery(GET_ALL_EVENTS_SLIM, {
+    fetchPolicy: 'network-only',
+    nextFetchPolicy: 'cache-first',
     variables: {
       input: {
         [inputFields.key]: inputFields.key === 'query' ? inputFields.value : [inputFields.value],

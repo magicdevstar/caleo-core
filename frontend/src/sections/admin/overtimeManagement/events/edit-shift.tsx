@@ -188,7 +188,7 @@ export default function EditShift({
           include: [GET_GROUPED_SHIFTS]
         });
       } else {
-        enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
+        enqueueSnackbar('Something went wrong assigning this shift. Please try again.', { variant: 'error' });
       }
     }
   }, [

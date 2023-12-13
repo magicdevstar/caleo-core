@@ -124,6 +124,12 @@ export default function AvailableOvertimeView() {
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
           });
+        } else if (/The user has reached their maximum shifts for that weekt/.test(error.message)) {
+          enqueueSnackbar('You have reached your maximum number of shifts for that week.', { variant: 'error' });
+          closeAssign();
+          await client.refetchQueries({
+            include: [GET_AVAILABLE_SHIFTS]
+          });
         } else {
           enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
         }

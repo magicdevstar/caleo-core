@@ -377,6 +377,9 @@ export const shift = {
         ) {
           throw new GraphQLError("This shift requires a shift buffer request");
         }
+        if (await users.hasMaxShifts({ user: assignUser, shift, organization: organization! })) {
+          throw new GraphQLError("The user has reached their maximum shifts for that week");
+        }
       }
 
       shift.userId = userId ? userId : null;

@@ -25,16 +25,19 @@ import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
 import {
+  endOfWeek,
   getHours,
   getMinutes,
   setHours,
   setMilliseconds,
   setMinutes,
   setSeconds,
+  startOfWeek,
 } from 'date-fns';
 import { DocumentModel } from './document';
 import { ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
+import { utcToZonedTime } from 'date-fns-tz';
 
 const cognito = new CognitoIdentityProviderClient({});
 
@@ -394,6 +397,33 @@ export class UserModel extends BaseModel<User> {
       total: totalRes?.[0]?.total || 0,
       items: firstShifts.sort((a, b) => a.startTime - b.startTime)
     };
+  }
+
+  async hasMaxShifts({
+    user,
+    shift,
+    organization,
+  }: {
+    user: User;
+    shift: Shift;
+    organization: Organization
+  }) {
+    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), organization.timezone || 'America/Los_Angeles' as any);
+    const startOfShiftWeek = startOfWeek(shiftStartTime)
+    const endOfShiftWeek = endOfWeek(shiftStartTime);
+    const numOfShifts = (await this.shifts.collection.countDocuments({
+      userId: user.id,
+      orgId: organization.id,
+      startTime: {
+        $gte: startOfShiftWeek,
+        $lte: endOfShiftWeek,
+      }
+    }));
+
+    return (
+      numOfShifts >= (user.member?.maxShifts || Number.POSITIVE_INFINITY) ||
+      numOfShifts >= (organization.settings?.shiftsPerWeek || Number.POSITIVE_INFINITY)
+    );
   }
 
   async canSignUpForShift({

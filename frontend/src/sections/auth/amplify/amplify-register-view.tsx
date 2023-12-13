@@ -86,7 +86,6 @@ export default function AmplifyRegisterView() {
   } = methods;
 
   const passwordState = getFieldState('password');
-  console.log(passwordState);
   const currentPassword = watch('password');
   const passwordValidation = [
     {

@@ -104,6 +104,19 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     };
   }
 
+  async updateLotteryDates(organization: Organization) {
+    const { start, end } = await this.getNextLotteryDates(organization.id, organization);
+    await this.collection.updateOne({
+      orgId: organization.id,
+      removedAt: { $exists: false },
+    }, {
+      $set: {
+        start: start.getTime(),
+        end: end.getTime(),
+      },
+    });
+  }
+
   async increment(orgId: string): Promise<LotteryCounter> {
     const counter = await this.get(orgId);
     if (!counter) {

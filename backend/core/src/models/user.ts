@@ -151,6 +151,10 @@ export class UserModel extends BaseModel<User> {
       };
     } else if (eventTypes && upcoming) {
       const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
+      let key = '$gte';
+      if ((lotteryCounterDoc.start as any) < Date.now()) {
+        key = '$gt';
+      }
       eventQuery = {
         orgId,
         $or: [

@@ -3,8 +3,9 @@ import { Context } from "../../utils/createContext";
 import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { commonResolvers } from "../../utils/common.resolvers";
-import { ScheduleEvent, Timezone } from "../../models/scheduler";
+import { ScheduleEvent } from "../../models/scheduler";
 import { dayMap } from "../../utils/dayMap";
+import { utcToZonedTime } from "date-fns-tz";
 
 export const organization = {
   Query: {
@@ -18,7 +19,7 @@ export const organization = {
     organization: async (
       _parent: unknown,
       { organization: org }: { organization: UpsertOrganization },
-      { organizations, scheduler, users, user }: Context
+      { organizations, scheduler, users, lotteryCounter, user }: Context
     ): Promise<Organization> => {
       adminOnly(user);
 
@@ -86,16 +87,18 @@ export const organization = {
         },
       });
 
-      const startTime = new Date(mergedOrg.settings?.lottery?.open?.time || 0);
+      await lotteryCounter.updateLotteryDates(res);
+
+      const startTime = utcToZonedTime(new Date(mergedOrg.settings?.lottery?.open?.time || 0), mergedOrg?.timezone || 'America/Los_Angeles' as any);
       const startDay = mergedOrg.settings?.lottery?.open?.dayOfWeek || DayOfWeek.Friday;
-      const endTime = new Date(mergedOrg.settings?.lottery?.close?.time || 0);
+      const endTime = utcToZonedTime(new Date(mergedOrg.settings?.lottery?.close?.time || 0), mergedOrg?.timezone || 'America/Los_Angeles' as any);
       const endDay = mergedOrg.settings?.lottery?.close?.dayOfWeek || DayOfWeek.Monday;
       // Upsert lottery start and end events
       await scheduler.updateScheduledEvent({
         event: ScheduleEvent.LOTTO_START,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(startTime, 'm')} ${format(startTime, 'h')} ? * ${startDay} *)`,
-        eventTimeZone: Timezone.UTC,
+        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_START,
           orgId: user?.member.orgId!,
@@ -105,7 +108,7 @@ export const organization = {
         event: ScheduleEvent.LOTTO_END,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(endTime, 'm')} ${format(endTime, 'h')} ? * ${endDay} *)`,
-        eventTimeZone: Timezone.UTC,
+        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_END,
           orgId: user?.member.orgId!,
@@ -120,7 +123,7 @@ export const organization = {
         event: ScheduleEvent.LOTTO_NOTIFY,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(endTime, 'm')} ${hour} ? * ${day} *)`,
-        eventTimeZone: Timezone.UTC,
+        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_NOTIFY,
           orgId: user?.member.orgId!,

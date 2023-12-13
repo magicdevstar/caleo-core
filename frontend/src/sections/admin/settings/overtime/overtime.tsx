@@ -207,7 +207,7 @@ export default function Overtime({
                 <Stack sx={{ width: '100%' }} spacing={2}>
                   <RHFSelect
                     name="settings.lottery.open.dayOfWeek"
-                    disabled
+                    disabled={window.location.hostname !== 'localhost'}
                     label="Lottery Open"
                     helperText="The day of the week the lottery opens"
                   >
@@ -228,7 +228,7 @@ export default function Overtime({
                   <TimePicker
                     label="Open"
                     timezone={organization?.timezone}
-                    disabled
+                    disabled={window.location.hostname !== 'localhost'}
                     ampm={false}
                     timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.open.time)}
@@ -247,7 +247,7 @@ export default function Overtime({
                   <RHFSelect
                     name="settings.lottery.close.dayOfWeek"
                     label="Lottery Close"
-                    disabled
+                    disabled={window.location.hostname !== 'localhost'}
                     helperText="The day of the week the lottery closes"
                   >
                     {[
@@ -267,7 +267,7 @@ export default function Overtime({
                   <TimePicker
                     label="Close"
                     timezone={organization?.timezone}
-                    disabled
+                    disabled={window.location.hostname !== 'localhost'}
                     ampm={false}
                     timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                     value={dayjs.utc(values.settings.lottery.close.time)}

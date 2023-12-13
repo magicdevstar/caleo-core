@@ -433,7 +433,7 @@ export const shift = {
             action: Action.Email,
             template: MailerEvents.OfficerAdminAssignedShift,
             data: {
-              adminAssignedShift: user?.member.role === MemberRole.Admin,
+              adminAssignedShift: user?.member.role === MemberRole.Admin && userId !== user?.id,
               shift: updatedShift!,
               organization,
             }

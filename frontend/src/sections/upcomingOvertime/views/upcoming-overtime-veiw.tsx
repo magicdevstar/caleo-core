@@ -12,6 +12,7 @@ import ShiftItems from 'src/components/shifts/shift-items';
 import { EventStatus, Shift } from 'src/__generated__/resolvers-types';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
+import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +31,10 @@ export default function UpcomingOvertimeView() {
   });
   const settings = useSettingsContext();
   const { user } = useAuthContext();
-
+  
+  const { options: lotteryCounterOptions } = useLotteryCounterOptions({
+    org: user.member.org!,
+  });
   const { data, loading } = useQuery(GET_AVAILABLE_SHIFTS, {
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -75,8 +79,11 @@ export default function UpcomingOvertimeView() {
             getHidden: (shift: Shift) => ![EventStatus.ReadyForLottery, EventStatus.FirstComeFirstServe].includes(shift?.event?.status),
             getLabel: (shift: Shift) => {
               if (shift?.event?.status === EventStatus.ReadyForLottery) {
-                const lotteryDate = convertDate({ date: shift?.event?.lotteryCounter?.start || '', user });
-                return `${lotteryDate.format(dateTimeFormat)}`
+                const foundCounter = lotteryCounterOptions.find((c) => c.counter === shift?.event?.lotteryNumber);
+                if (!foundCounter) {
+                  return '';
+                }
+                return foundCounter?.endTime;
               }
               if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
                 const fcfsDate = convertDate({ date: shift?.event?.scheduledFirstComeFirstServe || '', user });

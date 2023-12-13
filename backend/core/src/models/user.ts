@@ -149,7 +149,7 @@ export class UserModel extends BaseModel<User> {
         status: EventStatus.ReadyForLottery,
         lotteryNumber: lotteryCounterDoc.counter,
       };
-    } else if (eventTypes && upcoming) {
+    } else if (upcoming) {
       const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
       let key = '$gte';
       if ((lotteryCounterDoc.start as any) < Date.now()) {
@@ -166,19 +166,13 @@ export class UserModel extends BaseModel<User> {
                   $gte: Date.now(),
                 },
               },
-              {
-                scheduledFirstComeFirstServe: {
-                  $exists: false,
-                },
-              },
-              {
-                scheduledFirstComeFirstServe: null,
-              },
             ]
           },
           {
             status: EventStatus.ReadyForLottery,
-            lotteryNumber: lotteryCounterDoc.counter,
+            lotteryNumber: {
+              $gte: lotteryCounterDoc.counter
+            },
           },
         ],
       };

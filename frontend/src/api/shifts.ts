@@ -64,6 +64,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           notes
           status
           scheduledFirstComeFirstServe
+          lotteryNumber
           lotteryCounter {
             start
           }

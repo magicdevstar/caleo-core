@@ -3,7 +3,7 @@ import { Context } from "../../utils/createContext";
 import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { commonResolvers } from "../../utils/common.resolvers";
-import { ScheduleEvent } from "../../models/scheduler";
+import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { dayMap } from "../../utils/dayMap";
 
 export const organization = {
@@ -95,7 +95,7 @@ export const organization = {
         event: ScheduleEvent.LOTTO_START,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(startTime, 'm')} ${format(startTime, 'h')} ? * ${startDay} *)`,
-        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
+        eventTimeZone: Timezone.UTC,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_START,
           orgId: user?.member.orgId!,
@@ -105,13 +105,12 @@ export const organization = {
         event: ScheduleEvent.LOTTO_END,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(endTime, 'm')} ${format(endTime, 'h')} ? * ${endDay} *)`,
-        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
+        eventTimeZone: Timezone.UTC,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_END,
           orgId: user?.member.orgId!,
         }),
       });
-      // TODO: Upsert notification - This might not be right 🤔🤔🤔 Is this going to be UTC or LA time?
       const hoursBefore = mergedOrg.settings?.lottery?.notifyUsersBeforeClose || 24;
       const daysToSubtract = Math.floor(hoursBefore / 24);
       const day = (dayMap[endDay] - daysToSubtract) % 7;
@@ -121,7 +120,7 @@ export const organization = {
         event: ScheduleEvent.LOTTO_NOTIFY,
         orgId: user?.member.orgId!,
         eventTime: `cron(${format(endTime, 'm')} ${hour} ? * ${day} *)`,
-        eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
+        eventTimeZone: Timezone.UTC,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_NOTIFY,
           orgId: user?.member.orgId!,

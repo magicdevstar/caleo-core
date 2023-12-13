@@ -88,7 +88,13 @@ export const memberSkills = async (collection: Collection, db: Db) => {
       const userBulkUpdates: any = Object.keys(userSkills).map((userId) => ({
         updateOne: {
           filter: { _id: new ObjectId(userId) },
-          update: { $push: { memberSkillIds: userSkills[userId] } },
+          update: {
+            $push: {
+              'member.memberSkillIds': {
+                $each: userSkills[userId].map((thing: ObjectId) => thing.toString())
+              }
+            }
+          },
         },
       }));
 

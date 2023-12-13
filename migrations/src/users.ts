@@ -1,7 +1,12 @@
+import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { isAfter } from "date-fns";
 import { Collection, Db } from "mongodb";
 import { mysql } from "./utils/mysql";
-import { DocType, MemberRole, MemberStatus, MemberTier, Rank, User } from "./utils/resolvers-types";
+import { DocType, MemberRole, MemberStatus, MemberTier, User } from "./utils/resolvers-types";
+
+const client = new CognitoIdentityProviderClient({
+  region: 'us-west-2',
+});
 
 export interface OldUser {
   id: number
@@ -58,6 +63,22 @@ const availabilityDayMap: Record<string, string> = {
   'Sun': 'sunday',
 }
 
+const getUserByEmail = async (email: string) => {
+  try {
+    const input = {
+      UserPoolId: process.env.POOL_ID,
+      Limit: 1,
+      Filter: `email="${email}"`,
+    };
+    const command = new ListUsersCommand(input);
+    const response = await client.send(command);
+
+    return response.Users?.[0].Username;
+  } catch(error) {
+    return null;
+  }
+};
+
 export const users = async (collection: Collection, db: Db) => {
   try {
     const bulk: any = [];
@@ -67,14 +88,6 @@ export const users = async (collection: Collection, db: Db) => {
       .toArray())
       .map(({ migrationId }) => migrationId);
 
-    // const skillMap = (await db
-    //   .collection('skills')
-    //   .find({})
-    //   .project({ migrationId: 1, _id: 1 })
-    //   .toArray()).reduce((acc, { migrationId, _id }) => {
-    //     acc[migrationId] = _id.toString();
-    //     return acc;
-    //   }, {});
     const ranks = await db
       .collection('ranks')
       .find({})
@@ -90,11 +103,6 @@ export const users = async (collection: Collection, db: Db) => {
       const foundMongo = migrationIds.includes(user.id);
 
       if (!foundMongo) {
-        // const qualifications = await mysql('qualification').where({ user_id: user.id });
-        // const skillIds = qualifications
-        //   .filter(({ skill_id }) => skillMap[skill_id])
-        //   .map(({ skill_id }) => skillMap[skill_id]);
-
         const legacyOvertimeAvailability = await mysql('overtime_availability').where({ user_id: user.id });
 
         const unavailableDaysMap = legacyOvertimeAvailability
@@ -124,12 +132,9 @@ export const users = async (collection: Collection, db: Db) => {
             if (to_time === '24:00') {
               to_time = '23:59';
             }
-            const startTime = new Date(`1970-01-01T${from_time}:00.000Z`);
-            const endTime = new Date(`1970-01-01T${to_time}:00.000Z`);
-
             acc[realDay].push({
-              startTime,
-              endTime,
+              startTime: `1970-01-01T${from_time}:00.000Z`,
+              endTime: `1970-01-01T${to_time}:00.000Z`,
             });
             return acc;
           }, {
@@ -167,14 +172,18 @@ export const users = async (collection: Collection, db: Db) => {
                 address: user.email,
                 receiveEmails: true,
               },
-              secondaryPhone: {
-                number: user.alt_phone_number,
-                receiveTexts: false,
-              },
-              secondaryEmail: {
-                address: user.alt_email,
-                receiveEmails: false,
-              },
+              ...(user.alt_phone_number && {
+                secondaryPhone: {
+                  number: user.alt_phone_number,
+                  receiveTexts: false,
+                }
+              }),
+              ...(user.alt_email && {
+                secondaryEmail: {
+                  address: user.alt_email,
+                  receiveEmails: false,
+                },
+              }),
             },
             tier: user.tier_id === 1 ? MemberTier.Tier_1 : MemberTier.Tier_2,
             tierUntil: user.tier_until && isAfter(new Date(), new Date(user.tier_until)) ? new Date(user.tier_until).getTime() : null,
@@ -187,31 +196,31 @@ export const users = async (collection: Collection, db: Db) => {
             maxShifts: user.overtime_limit,
             availability: {
               monday: {
-                available: availabilityMap.monday,
+                available: !!availabilityMap.monday,
                 times: timeBuckets.monday,
               },
               tuesday: {
-                available: availabilityMap.tuesday,
+                available: !!availabilityMap.tuesday,
                 times: timeBuckets.tuesday,
               },
               wednesday: {
-                available: availabilityMap.wednesday,
+                available: !!availabilityMap.wednesday,
                 times: timeBuckets.wednesday,
               },
               thursday: {
-                available: availabilityMap.thursday,
+                available: !!availabilityMap.thursday,
                 times: timeBuckets.thursday,
               },
               friday: {
-                available: availabilityMap.friday,
+                available: !!availabilityMap.friday,
                 times: timeBuckets.friday,
               },
               saturday: {
-                available: availabilityMap.saturday,
+                available: !!availabilityMap.saturday,
                 times: timeBuckets.saturday,
               },
               sunday: {
-                available: availabilityMap.sunday,
+                available: !!availabilityMap.sunday,
                 times: timeBuckets.sunday,
               },
             }
@@ -224,6 +233,20 @@ export const users = async (collection: Collection, db: Db) => {
     if (bulk.length > 0) {
       const res = await collection.insertMany(bulk);
       console.log('User bulk write: ', JSON.stringify(res, null, 2));
+      const ids = Object.values(res.insertedIds);
+      const updates: any = [];
+      for await (const user of collection.find({ _id: { $in: ids } })) {
+        const username = await getUserByEmail(user.member.contactInfo.primaryEmail.address);
+        if (username && user.cognitoId !== username) {
+          updates.push({
+            updateOne: {
+              filter: { _id: user._id },
+              update: { $set: {cognitoId: username} },
+            },
+          });
+        }
+      }
+      await collection.bulkWrite(updates);
     }
   } catch(error) {
     console.error('Failed to migrate venues: ', error);

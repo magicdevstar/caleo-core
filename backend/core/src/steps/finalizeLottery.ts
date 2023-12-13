@@ -3,7 +3,8 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
 import logger from '../utils/logger';
 import { createContext } from '../utils/createContext';
-import { addHours, addSeconds } from 'date-fns';
+import { addHours, addSeconds, setMilliseconds, setSeconds } from 'date-fns';
+import { EventStatus } from '../__generated__/resolvers-types';
 
 interface InputEvent {
   orgId: string;
@@ -26,7 +27,7 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
       fcfsDelay: formatDate(addSeconds(new Date(), 15)),
     };
   }
-  const { users, organizations, lotteryCounter } = await createContext();
+  const { users, organizations, lotteryCounter, events } = await createContext();
   const organization = await organizations.get(orgId);
   if (!organization) {
     throw new Error(`Organization ${orgId} not found`);
@@ -38,7 +39,31 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
   const tier1Assignments = input.map(({ tier1Assignments }) => tier1Assignments).flat();
   await users.setTiersPostLottery({ tier1Assignments, orgId });
 
-  const fcfsDelay = formatDate(addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1));
+  const fcfsScheduledTime = setMilliseconds(
+    setSeconds(
+      addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1),
+      0
+    ),
+    0
+  );
+  const fcfsDelay = formatDate(fcfsScheduledTime);
+
+  // Set all events as FCFS and schedule them
+  const fcfsResponse = await events.collection.updateMany({
+    orgId,
+    status: EventStatus.ReadyForLottery,
+    lotteryNumber: counter - 1,
+  }, {
+    $set: {
+      status: EventStatus.FirstComeFirstServe,
+      scheduledFirstComeFirstServe: fcfsScheduledTime.getTime(),
+    },
+  });
+
+  logger.info('Set events to FCFS', { 
+    fcfsResponse,
+    fcfsScheduledTime,
+  });
 
   return {
     orgId,

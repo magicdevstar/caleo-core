@@ -38,6 +38,7 @@ import { DocumentModel } from './document';
 import { ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
 import { utcToZonedTime } from 'date-fns-tz';
+import { dayMap } from '../utils/dayMap';
 
 const cognito = new CognitoIdentityProviderClient({});
 
@@ -408,9 +409,10 @@ export class UserModel extends BaseModel<User> {
     shift: Shift;
     organization: Organization
   }) {
+    const weekStartsOn: any = dayMap[organization.weekBegins] - 1;
     const shiftStartTime = utcToZonedTime(new Date(shift.startTime), organization.timezone || 'America/Los_Angeles' as any);
-    const startOfShiftWeek = startOfWeek(shiftStartTime)
-    const endOfShiftWeek = endOfWeek(shiftStartTime);
+    const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });
+    const endOfShiftWeek = endOfWeek(shiftStartTime, { weekStartsOn });
     const numOfShifts = (await this.shifts.collection.countDocuments({
       userId: user.id,
       orgId: organization.id,

@@ -3,7 +3,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
 
 import logger from '../utils/logger';
-import { DocType, MemberTier, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
+import { DocType, MemberTier, Organization, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
 
 interface InputEvent {
@@ -22,6 +22,9 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
   
   // Fetch requests
   const organization = await organizations.get(shifts[0].orgId);
+  if (!organization) {
+    throw new Error('Organization not found');
+  }
   const requests = await lottery.requestsStagedForAssignment(shiftGroupId);
 
   logger.info('Lottery requests', {
@@ -50,6 +53,19 @@ const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) =>
     });
     // This means we can assign this shift to this user
     if (total !== 0) {
+      const user = await users.get(request.user.id);
+      if (!user) {
+        continue;
+      }
+      const shift = shifts[0];
+      const hasMaxShifts = await users.hasMaxShifts({
+        user,
+        shift,
+        organization,
+      });
+      if (hasMaxShifts) {
+        continue;
+      }
       // Remove shift from list
       const pendingShift: any = shifts.pop();
       if (pendingShift) {

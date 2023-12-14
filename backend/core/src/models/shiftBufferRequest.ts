@@ -135,6 +135,7 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
       eventId,
     }, {
       modifiedById,
+      status: ShiftBufferRequestStatus.Rejected,
     });
   }
   

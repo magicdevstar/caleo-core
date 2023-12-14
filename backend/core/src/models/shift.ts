@@ -232,8 +232,10 @@ export class ShiftModel extends BaseModel<Shift> {
     const shiftRes = await this.removeMany({
       orgId,
       eventId,
+      status: { $in: [ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked] }
     }, {
       modifiedById,
+      status: ShiftStatus.Removed,
     });
 
     if (shiftRes.modifiedCount === 0) {

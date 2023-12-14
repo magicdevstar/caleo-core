@@ -28,6 +28,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
   async removeByShiftGroupId(shiftGroupId: string, modifiedById: string) {
     await this.removeMany({
       shiftGroupId,
+      status: ShiftLotteryRequestStatus.Pending,
     }, {
       status: ShiftLotteryRequestStatus.Removed,
       modifiedById,
@@ -37,6 +38,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
   async removeByAssignmentId(assignmentId: string, modifiedById: string) {
     await this.removeMany({
       assignmentId,
+      status: ShiftLotteryRequestStatus.Pending,
     }, {
       status: ShiftLotteryRequestStatus.Removed,
       modifiedById,
@@ -46,6 +48,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
   async removeByEventId(eventId: string, modifiedById: string) {
     await this.removeMany({
       eventId,
+      status: ShiftLotteryRequestStatus.Pending,
     }, {
       status: ShiftLotteryRequestStatus.Removed,
       modifiedById,

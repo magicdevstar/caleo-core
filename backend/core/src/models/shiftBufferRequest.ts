@@ -109,30 +109,37 @@ export class ShiftBufferRequestModel extends BaseModel<ShiftBufferRequest> {
   async removeByShiftId(shiftId: string, modifiedById: string) {
     await this.removeMany({
       shiftId,
+      status: ShiftBufferRequestStatus.Pending,
     }, {
       modifiedById,
+      status: ShiftBufferRequestStatus.Rejected,
     });
   }
 
   async removeByShiftGroupId(shiftGroupId: string, modifiedById: string) {
     await this.removeMany({
       shiftGroupId,
+      status: ShiftBufferRequestStatus.Pending,
     }, {
       modifiedById,
+      status: ShiftBufferRequestStatus.Rejected,
     });
   }
 
   async removeByAssignmentId(assignmentId: string, modifiedById: string) {
     await this.removeMany({
       assignmentId,
+      status: ShiftBufferRequestStatus.Pending,
     }, {
-      modifiedById
+      modifiedById,
+      status: ShiftBufferRequestStatus.Rejected,
     });
   }
 
   async removeByEventId(eventId: string, modifiedById: string) {
     await this.removeMany({
       eventId,
+      status: ShiftBufferRequestStatus.Pending,
     }, {
       modifiedById,
       status: ShiftBufferRequestStatus.Rejected,

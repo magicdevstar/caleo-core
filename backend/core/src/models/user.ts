@@ -171,7 +171,7 @@ export class UserModel extends BaseModel<User> {
           {
             status: EventStatus.ReadyForLottery,
             lotteryNumber: {
-              $gte: lotteryCounterDoc.counter
+              [key]: lotteryCounterDoc.counter
             },
           },
         ],

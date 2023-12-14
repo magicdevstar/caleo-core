@@ -48,7 +48,7 @@ export const skills = async (collection: Collection, db: Db) => {
           active: skill.is_active === 1,
           requiresAdminApproval: skill.requires_admin_approval === 1,
           requiresCert: skill.requires_cert === 1,
-          rankRestrictions: rankRestrictions,
+          rankOnlyIds: rankRestrictions,
           createdAt: new Date(skill.created_at).getTime() as any,
           updatedAt: new Date(skill.modified_at).getTime() as any,
           docType: DocType.Skill,
@@ -61,6 +61,7 @@ export const skills = async (collection: Collection, db: Db) => {
     if (bulk.length > 0) {
       const res = await collection.insertMany(bulk);
       console.log('Skill bulk write: ', JSON.stringify(res, null, 2));
+      // Set rank only ids
     }
   } catch(error) {
     console.error('Failed to migrate venues: ', error);

@@ -97,7 +97,7 @@ export const organization = {
       await scheduler.updateScheduledEvent({
         event: ScheduleEvent.LOTTO_START,
         orgId: user?.member.orgId!,
-        eventTime: `cron(${format(startTime, 'm')} ${format(startTime, 'h')} ? * ${startDay} *)`,
+        eventTime: `cron(${format(startTime, 'm')} ${format(startTime, 'H')} ? * ${startDay} *)`,
         eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_START,
@@ -107,7 +107,7 @@ export const organization = {
       await scheduler.updateScheduledEvent({
         event: ScheduleEvent.LOTTO_END,
         orgId: user?.member.orgId!,
-        eventTime: `cron(${format(endTime, 'm')} ${format(endTime, 'h')} ? * ${endDay} *)`,
+        eventTime: `cron(${format(endTime, 'm')} ${format(endTime, 'H')} ? * ${endDay} *)`,
         eventTimeZone: mergedOrg?.timezone || 'America/Los_Angeles' as any,
         eventInput: JSON.stringify({
           action: ScheduleEvent.LOTTO_END,
@@ -118,7 +118,7 @@ export const organization = {
       const daysToSubtract = Math.floor(hoursBefore / 24);
       const day = (dayMap[endDay] - daysToSubtract) % 7;
       const remainingHours = hoursBefore % 24;
-      const hour = Math.max(0, (parseInt(format(endTime, 'h')) - remainingHours));
+      const hour = Math.max(0, (parseInt(format(endTime, 'H')) - remainingHours));
       await scheduler.updateScheduledEvent({
         event: ScheduleEvent.LOTTO_NOTIFY,
         orgId: user?.member.orgId!,

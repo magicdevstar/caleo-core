@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "build:userMap": "ts-node src/utils/userId-map.ts"
   },
   "devDependencies": {
     "@rmp135/sql-ts": "^1.18.1",

@@ -141,7 +141,7 @@ export const shifts = async (collection: Collection, db: Db) => {
         return acc;
       }, {});
     const organization = await db.collection('organizations').findOne({
-      _id: new ObjectId('64cd5e262c436093a2b7e680'),
+      _id: new ObjectId(process.env.ORG_ID!),
     });
 
     const idMap: any = {};
@@ -185,7 +185,7 @@ export const shifts = async (collection: Collection, db: Db) => {
           endTime: shift.shiftEnd.getTime(),
           status,
           docType: DocType.Shift,
-          orgId: "64cd5e262c436093a2b7e680",
+          orgId: process.env.ORG_ID!,
           locked: status === ShiftStatus.Locked,
           relinquishNote: shift.userRelinquishReason,
           eventId: eventMap[shift.eventId],

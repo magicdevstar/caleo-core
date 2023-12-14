@@ -84,7 +84,7 @@ export const assignments = async (collection: Collection, db: Db) => {
           migrationId: assignment.id,
           description: assignment.note,
           eventId: eventMap[assignment.event_id],
-          orgId: "64cd5e262c436093a2b7e680",
+          orgId: process.env.ORG_ID!,
           notifyWhenFullyStaffed: assignment.notify_on_assignment === 1,
           docType: DocType.Assignment,
           requiredSkillIds: skillIds,

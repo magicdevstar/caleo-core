@@ -6,7 +6,7 @@ const client = new CognitoIdentityProviderClient({
   region: 'us-west-2',
 });
 
-const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (email: string) => {
   try {
     const input = { // ListUsersRequest
       UserPoolId: process.env.POOL_ID,
@@ -23,33 +23,33 @@ const getUserByEmail = async (email: string) => {
   }
 };
 
-(async () => {
-  let connection: MongoClient | undefined;
-  try {
-    connection = await mongo.connect();
-    const users = connection.db('caleo-prod').collection('users');
+// (async () => {
+//   let connection: MongoClient | undefined;
+//   try {
+//     connection = await mongo.connect();
+//     const users = connection.db('caleo-prod').collection('users');
 
-    const updates: any = [];
+//     const updates: any = [];
 
-    for await (const user of users.find({})) {
-      const username = await getUserByEmail(user.member.contactInfo.primaryEmail.address);
-      if (username && user.cognitoId !== username) {
-        updates.push({
-          updateOne: {
-            filter: { _id: user._id },
-            update: { $set: {cognitoId: username} },
-          },
-        });
-        // console.log(`Updating: ${user.cognitoId} -> ${username}`);
-        // await users.updateOne({ _id: user._id }, { $set: {cognitoId: username} });
-      }
-    }
-    users.bulkWrite(updates);
-  } catch(error) {
-    console.error(error);
-  } finally {
-    if (connection) {
-      await (connection).close();
-    }
-  }
-})();
+//     for await (const user of users.find({})) {
+//       const username = await getUserByEmail(user.member.contactInfo.primaryEmail.address);
+//       if (username && user.cognitoId !== username) {
+//         updates.push({
+//           updateOne: {
+//             filter: { _id: user._id },
+//             update: { $set: {cognitoId: username} },
+//           },
+//         });
+//         // console.log(`Updating: ${user.cognitoId} -> ${username}`);
+//         // await users.updateOne({ _id: user._id }, { $set: {cognitoId: username} });
+//       }
+//     }
+//     users.bulkWrite(updates);
+//   } catch(error) {
+//     console.error(error);
+//   } finally {
+//     if (connection) {
+//       await (connection).close();
+//     }
+//   }
+// })();

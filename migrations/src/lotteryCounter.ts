@@ -50,7 +50,7 @@ export const lotteryCounter = async (collection: Collection) => {
     const bulk = Object.keys(lotteryBuckets).reverse().map((key, index) => {
       const [start, end] = key.split('^^^');
       const counter: MongoLotteryCounter = {
-        orgId: "64cd5e262c436093a2b7e680",
+        orgId: process.env.ORG_ID!,
         counter: (index + 1) * -1,
         docType: DocType.LotteryCounter,
         end: new Date(end).getTime() as any,

@@ -1,12 +1,9 @@
-import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { readFileSync, writeFileSync } from "fs";
 import { isAfter } from "date-fns";
 import { Collection, Db } from "mongodb";
 import { mysql } from "./utils/mysql";
 import { DocType, MemberRole, MemberStatus, MemberTier, User } from "./utils/resolvers-types";
-
-const client = new CognitoIdentityProviderClient({
-  region: 'us-west-2',
-});
+import { getUserByEmail } from "./utils/cognito-user-lookup";
 
 export interface OldUser {
   id: number
@@ -62,22 +59,6 @@ const availabilityDayMap: Record<string, string> = {
   'Sat': 'saturday',
   'Sun': 'sunday',
 }
-
-const getUserByEmail = async (email: string) => {
-  try {
-    const input = {
-      UserPoolId: process.env.POOL_ID,
-      Limit: 1,
-      Filter: `email="${email}"`,
-    };
-    const command = new ListUsersCommand(input);
-    const response = await client.send(command);
-
-    return response.Users?.[0].Username;
-  } catch(error) {
-    return null;
-  }
-};
 
 export const users = async (collection: Collection, db: Db) => {
   try {
@@ -159,7 +140,7 @@ export const users = async (collection: Collection, db: Db) => {
           updatedAt: user.created_at,
           docType: DocType.User,
           member: {
-            orgId: '64cd5e262c436093a2b7e680',
+            orgId: process.env.ORG_ID!,
             pNumber: `${user.p_number}`,
             role: (MemberRoleMap as any)[user.role] || MemberRole.Member,
             status: MemberStatusMap[user.status] || MemberStatus.Removed,
@@ -235,18 +216,29 @@ export const users = async (collection: Collection, db: Db) => {
       console.log('User bulk write: ', JSON.stringify(res, null, 2));
       const ids = Object.values(res.insertedIds);
       const updates: any = [];
+      const userMap = JSON.parse(readFileSync(`${__dirname}/data/user-map.json`, 'utf8'));
       for await (const user of collection.find({ _id: { $in: ids } })) {
-        const username = await getUserByEmail(user.member.contactInfo.primaryEmail.address);
-        if (username && user.cognitoId !== username) {
+        const email = user.member.contactInfo.primaryEmail.address;
+        let expectedId = userMap[email];
+        if (!expectedId) {
+          const username = await getUserByEmail(email);
+          if (!username) {
+            continue;
+          }
+          expectedId = username;
+        }
+        if (user.cognitoId !== expectedId) {
           updates.push({
             updateOne: {
               filter: { _id: user._id },
-              update: { $set: {cognitoId: username} },
+              update: { $set: {cognitoId: expectedId} },
             },
           });
+          userMap[email] = expectedId;
         }
       }
       await collection.bulkWrite(updates);
+      writeFileSync(`${__dirname}/data/user-map.json`, JSON.stringify(userMap, null, 2));
     }
   } catch(error) {
     console.error('Failed to migrate venues: ', error);

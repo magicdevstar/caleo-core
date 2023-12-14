@@ -59,7 +59,7 @@ export const memberSkills = async (collection: Collection, db: Db) => {
           status: MemberStatusMap[qualification.status],
           skillId: skillMap[qualification.skill_id],
           userId: userMap[qualification.user_id],
-          orgId: "64cd5e262c436093a2b7e680",
+          orgId: process.env.ORG_ID!,
           docType: DocType.MemberSkill,
           createdAt: qualification.created_at.getTime() as any,
           updatedAt: qualification.created_at.getTime() as any,

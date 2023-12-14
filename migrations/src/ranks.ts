@@ -27,7 +27,7 @@ export const ranks = async (collection: Collection) => {
         const item: MongoRank = {
           name: rank.name,
           active: rank.is_active === 1,
-          orgId: '64cd5e262c436093a2b7e680',
+          orgId: process.env.ORG_ID!,
           createdAt: new Date(rank.created_at).getTime() as any,
           updatedAt: new Date(rank.created_at).getTime() as any,
           docType: DocType.Rank,

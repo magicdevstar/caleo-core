@@ -53,7 +53,7 @@ export const skills = async (collection: Collection, db: Db) => {
           updatedAt: new Date(skill.modified_at).getTime() as any,
           docType: DocType.Skill,
           migrationId: skill.id,
-          orgId: '64cd5e262c436093a2b7e680',
+          orgId: process.env.ORG_ID!,
         };
         bulk.push(item);
       }

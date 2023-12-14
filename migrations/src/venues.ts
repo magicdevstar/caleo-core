@@ -56,7 +56,7 @@ export const venues = async (collection: Collection) => {
             phone: venue.contact_phone,
           },
           status: statusMap[venue.status] || VenueStatus.Inactive,
-          orgId: '64cd5e262c436093a2b7e680',
+          orgId: process.env.ORG_ID!,
           createdAt: venue.created_at.getTime() as any,
           updatedAt: venue.created_at.getTime() as any,
           docType: DocType.Venue,

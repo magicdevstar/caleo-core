@@ -10,6 +10,7 @@ import { lotteryCounter } from "./lotteryCounter";
 import { events } from "./events";
 import { assignments } from "./assignments";
 import { shifts } from "./shifts";
+import { shiftRequest } from "./shiftRequests";
 
 (async () => {
   let connection: MongoClient | undefined;
@@ -25,6 +26,7 @@ import { shifts } from "./shifts";
     await events(mongoClient.collection('events'), mongoClient);
     await assignments(mongoClient.collection('assignments'), mongoClient);
     await shifts(mongoClient.collection('shifts'), mongoClient);
+    await shiftRequest(mongoClient.collection('shiftLotteryRequests'), mongoClient);
   } catch(error) {
     console.error('Failed to migrate: ', error);
   } finally {

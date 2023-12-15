@@ -16,6 +16,7 @@ import {
   ProfilePhotoAttachmentUpload,
   Shift,
   ShiftBufferRequestStatus,
+  ShiftStatus,
   User
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
@@ -37,7 +38,7 @@ import {
 import { DocumentModel } from './document';
 import { ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
-import { utcToZonedTime } from 'date-fns-tz';
+import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
 
 const cognito = new CognitoIdentityProviderClient({});
@@ -408,15 +409,17 @@ export class UserModel extends BaseModel<User> {
     organization: Organization
   }) {
     const weekStartsOn: any = dayMap[organization.weekBegins] - 1;
-    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), organization.timezone || 'America/Los_Angeles' as any);
+    const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
+    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
     const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });
     const endOfShiftWeek = endOfWeek(shiftStartTime, { weekStartsOn });
     const numOfShifts = (await this.shifts.collection.countDocuments({
       userId: user.id,
       orgId: organization.id,
+      status: ShiftStatus.Assigned,
       startTime: {
-        $gte: startOfShiftWeek,
-        $lte: endOfShiftWeek,
+        $gte: zonedTimeToUtc(startOfShiftWeek, orgTimezone).valueOf(),
+        $lte: zonedTimeToUtc(endOfShiftWeek, orgTimezone).valueOf(),
       }
     }));
 

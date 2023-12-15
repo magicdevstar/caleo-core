@@ -107,17 +107,19 @@ export const assignments = async (collection: Collection, db: Db) => {
       const eventUpdates: any = {};
       Object.keys(res.insertedIds).forEach((index) => {
         const assignmentId = res.insertedIds[index as any];
-        const { eventId } = bulk[index];
-        if (!eventUpdates[eventId]) {
-          eventUpdates[eventId] = [];
+        const { eventId, removedAt } = bulk[index];
+        if (!removedAt) {
+          if (!eventUpdates[eventId]) {
+            eventUpdates[eventId] = [];
+          }
+          eventUpdates[eventId].push(assignmentId.toString());
         }
-        eventUpdates[eventId].push(assignmentId);
       });
 
       const eventBulkUpdates: any = Object.keys(eventUpdates).map((eventId) => ({
         updateOne: {
           filter: { _id: new ObjectId(eventId) },
-          update: { $push: { assignmentIds: eventUpdates[eventId] } },
+          update: { $push: { assignmentIds: {$each: eventUpdates[eventId]} } },
         },
       }));
 

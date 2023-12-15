@@ -25,11 +25,11 @@ export default function UserDetail() {
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       id: params.id,
-    }, 
+    },
   });
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: 2 }}>
       <CustomBreadcrumbs
         heading="User Detail"
         links={[

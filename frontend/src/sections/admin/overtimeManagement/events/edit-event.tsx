@@ -81,7 +81,19 @@ export default function EditEvent({ currentEvent }: Props) {
     countValue: currentEvent?.lotteryCounter as LotteryCounter,
     dateLimit: currentEvent?.endTime || undefined,
   });
-  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentEvent?.status || '' as any), [currentEvent?.status]);
+
+  const allDisabled = useMemo(() => {
+    const hasInvalidStatus = [EventStatus.Removed].includes(currentEvent?.status || '' as any);
+    const isRemoved = currentEvent?.removedAt;
+    return Boolean(hasInvalidStatus || isRemoved);
+  }, [currentEvent?.status, currentEvent?.removedAt]);
+
+  const isComplete = useMemo(() => {
+    const completeStatus = currentEvent?.status === EventStatus.Complete;
+    const completeEndTime = currentEvent?.endTime ? Date.now() >= new Date(currentEvent.endTime).valueOf() : false;
+    return completeStatus || completeEndTime;
+  }, [currentEvent?.endTime, currentEvent?.status]);
+
   const { data: venueRes } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -328,7 +340,7 @@ export default function EditEvent({ currentEvent }: Props) {
         text: 'Add Assignment',
         icon: 'ic:baseline-add',
         loading: upsertEventLoading,
-        disabled: !currentEvent?.id && !isValid,
+        disabled: (!currentEvent?.id && !isValid) || allDisabled || isComplete,
         onClick: async () => {
           let eventId = currentEvent?.id;
           if (!eventId) {
@@ -393,6 +405,7 @@ export default function EditEvent({ currentEvent }: Props) {
       {
         getName: () => 'Delete',
         getIcon: () => 'solar:trash-bin-trash-bold',
+        getDisabled: () => allDisabled || isComplete,
         onClick: (row: Assignment) => {
           openRemoveAssignment(row.id)
         },
@@ -473,6 +486,8 @@ export default function EditEvent({ currentEvent }: Props) {
     isValid,
     router,
     upsertEventLoading,
+    allDisabled,
+    isComplete,
   ]);
 
   const currentFormValues = getValues();
@@ -528,7 +543,7 @@ export default function EditEvent({ currentEvent }: Props) {
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
-              <RHFEditor simple name="notes" />
+              <RHFEditor readOnly={allDisabled} simple name="notes" />
             </Stack>
 
             {/* TODO: Implement attachments */}
@@ -553,7 +568,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   fullWidth
                   name="status"
                   label="Posting type"
-                  disabled={allDisabled}
+                  disabled={allDisabled || isComplete}
                   InputLabelProps={{ shrink: true }}
                   PaperPropsSx={{ textTransform: 'capitalize' }}
                 >
@@ -575,6 +590,7 @@ export default function EditEvent({ currentEvent }: Props) {
                     <DateTimePicker
                       label="First come first serve start time"
                       ampm={false}
+                      disabled={allDisabled || isComplete}
                       timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                       timezone={user.member.org?.timezone}
                       value={currentFormValues?.scheduledFirstComeFirstServe ? dayjs(new Date(currentFormValues?.scheduledFirstComeFirstServe)) : dayjs(new Date())}
@@ -589,13 +605,14 @@ export default function EditEvent({ currentEvent }: Props) {
                       }}
                     />
 
-                    <RHFSwitch name="notifyOnFirstComeFirstServe" label="Notify when first come first serve is available" />
+                    <RHFSwitch disabled={allDisabled || isComplete} name="notifyOnFirstComeFirstServe" label="Notify when first come first serve is available" />
                   </Box>
                 )}
 
                 {currentFormValues && currentFormValues.status === EventStatus.ReadyForLottery && (
                   <RHFSelect
                     fullWidth
+                    disabled={allDisabled || isComplete}
                     name="lotteryNumber"
                     label="Lottery Date"
                     InputLabelProps={{ shrink: true }}
@@ -649,7 +666,7 @@ export default function EditEvent({ currentEvent }: Props) {
               </>
             }
 
-            <RHFSwitch disabled={allDisabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+            <RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
           </Stack>
         </Card>
       </Grid>

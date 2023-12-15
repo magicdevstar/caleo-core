@@ -25,9 +25,10 @@ import EmptyContent from '../empty-content';
 type Props = {
   user: FrontendUser;
   adminViewer: boolean;
+  allDisabled?: boolean;
 };
 
-export default function AccountSkills({ user, adminViewer }: Props) {
+export default function AccountSkills({ user, adminViewer, allDisabled }: Props) {
   const [removeSkill, { loading: removeLoading }] = useMutation(REMOVE_MEMBER_SKILL, {
     refetchQueries: [GET_USER],
   })
@@ -84,6 +85,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
       button: {
         text: 'Add Skill',
         icon: 'ic:baseline-add',
+        disabled: allDisabled,
         onClick: () => {
           upsertMemberSkill.onTrue();
         },
@@ -102,6 +104,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
       {
         getName: () => 'Edit',
         getIcon: () => 'solar:pen-bold',
+        getDisabled: () => !!allDisabled,
         getHidden: (skill: MemberSkill) => skill.status !== SkillStatus.Pending,
         onClick: (row: MemberSkill) => {
           setEditSkill({ memberSkill: row });
@@ -110,6 +113,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
       },
       {
         getName: () => 'Delete',
+        getDisabled: () => !!allDisabled,
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (skill: MemberSkill) => {
           setEditSkill({ memberSkill: skill });
@@ -120,6 +124,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
         includeDivider: true,
         getName: () => 'Approve',
         getIcon: () => 'solar:check-circle-bold',
+        getDisabled: () => !!allDisabled,
         getHidden: (skill: MemberSkill) => !adminViewer || skill.status !== SkillStatus.Pending,
         onClick: (skill: MemberSkill) => {
           setEditSkill({
@@ -133,6 +138,7 @@ export default function AccountSkills({ user, adminViewer }: Props) {
         getName: () => 'Deny',
         getIcon: () => 'solar:close-circle-bold',
         getColor: (row: MemberSkill) => red[500],
+        getDisabled: () => !!allDisabled,
         getHidden: (skill: MemberSkill) => !adminViewer || skill.status !== SkillStatus.Pending,
         onClick: (skill: MemberSkill) => {
           setEditSkill({
@@ -174,8 +180,8 @@ export default function AccountSkills({ user, adminViewer }: Props) {
     return (
       <EmptyContent
         filled
-        title='User Rank not Found'
-        description='A Rank is required to view Skills. Please assign a Rank to this User.'
+        title='Rank Not Found'
+        description='A Rank is required to manage Skills. Please assign a Rank to this User.'
       />
     );
   }

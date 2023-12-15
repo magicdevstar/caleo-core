@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMutation } from '@apollo/client';
 import { useDebounce } from 'react-use';
 import omit from 'omit-deep';
@@ -55,9 +55,11 @@ const OVERTIME = [
 const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 export default function AccountOvertime({
-  user
+  user,
+  allDisabled,
 } : {
   user: FrontendUser
+  allDisabled?: boolean;
 }) {
   const [updateUser] = useMutation(UPDATE_USER, {
     refetchQueries: [GET_USER, GET_USERS],
@@ -65,8 +67,13 @@ export default function AccountOvertime({
   const [maxShifts, setMaxShifts] = useState(user?.member?.maxShifts || 6);
   const [modifiedAvailability, setModifiedAvailability] = useState(omit(clone(user.member.availability), ['__typename']) as UserAvailability);
 
+  const userAvailability = useMemo(() => user?.member?.availability ? omit(clone(user.member.availability), ['__typename']) : {}, [user]);
+
   useDebounce(() => {
-    if (JSON.stringify(user) !== JSON.stringify(modifiedAvailability)) {
+    if (
+      JSON.stringify(userAvailability) !== JSON.stringify(modifiedAvailability) ||
+      (maxShifts && user?.member?.maxShifts !== maxShifts))
+    {
       updateUser({
         variables: {
           input: {
@@ -103,6 +110,7 @@ export default function AccountOvertime({
               fullWidth
               type="number"
               value={maxShifts}
+              disabled={allDisabled}
               InputProps={{ inputProps: { min: "0", max: "10", step: "1" } }}
               helperText={`The maximum number of overtime shifts you are willing to work per week, cannot exceed ${user.member.org?.settings?.shiftsPerWeek} shifts per administrative settings.`}
               onChange={(event) => {
@@ -132,6 +140,7 @@ export default function AccountOvertime({
                 sx={{ width: 'fit-content' }}
                 control={
                   <Switch
+                    disabled={allDisabled}
                     checked={(modifiedAvailability[overtime.dayOfWeek as keyof UserAvailability] as DayAvailability).available}
                     onChange={(event, checked) => {
                       setModifiedAvailability((current: UserAvailability) => ({
@@ -148,6 +157,7 @@ export default function AccountOvertime({
               />
 
               <AccountTimePicker
+                disabled={allDisabled}
                 times={(modifiedAvailability[overtime.dayOfWeek as keyof UserAvailability] as DayAvailability).times || []}
                 setTime={({
                   key,

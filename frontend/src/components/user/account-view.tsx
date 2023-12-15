@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 // @mui
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-// components
-import Iconify from 'src/components/iconify';
 // types
 import { FrontendUser } from 'src/api/user';
-//
+import { MemberStatus } from 'src/__generated__/resolvers-types';
+// components
+import Iconify from 'src/components/iconify';
 import AccountGeneral from './account-general';
 import AccountSkills from './account-skills';
 import AccountOvertime from './account-overtime';
@@ -54,6 +54,8 @@ export default function MainAccountView({
     setCurrentTab(newValue);
   }, []);
 
+  const allDisabled = useMemo(() => user?.member?.status === MemberStatus.Removed, [user?.member?.status])
+
   return (
     <>
       <Tabs
@@ -68,11 +70,11 @@ export default function MainAccountView({
         ))}
       </Tabs>
 
-      {currentTab === 'general' && <AccountGeneral adminViewer={adminViewer} user={user} />}
+      {currentTab === 'general' && <AccountGeneral adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
 
-      {currentTab === 'overtime' && <AccountOvertime user={user} />}
+      {currentTab === 'overtime' && <AccountOvertime user={user} allDisabled={allDisabled} />}
 
-      {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} />}
+      {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
 
       {currentTab === 'security' && <AccountChangePassword />}
     </>

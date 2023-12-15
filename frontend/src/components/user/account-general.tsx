@@ -94,10 +94,12 @@ const DatePicker = memo(function PickMeComponent({
 
 export default function AccountGeneral({
   user,
-  adminViewer
+  adminViewer,
+  allDisabled,
 }: {
   user: FrontendUser;
   adminViewer: boolean;
+  allDisabled?: boolean;
 }) {
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
@@ -165,7 +167,7 @@ export default function AccountGeneral({
   const defaultValues = {
     firstName: (user?.firstName as string) || '',
     lastName: (user?.lastName as string) || '',
-    rank: (user?.member?.rank as Rank) || {},
+    rank: (user?.member?.rank as Rank) || undefined,
     pNumber: (user?.member?.pNumber as string) || '',
     status: (user?.member?.status) || MemberStatus.Active,
     tier: (user?.member?.tier) || MemberTier.Tier_1,
@@ -340,6 +342,7 @@ export default function AccountGeneral({
                 </Skeleton>
               ) : (
                 <RHFUploadAvatar
+                  disabled={allDisabled}
                   name="photoURL"
                   maxSize={3145728}
                   onDrop={handleDrop}
@@ -378,13 +381,13 @@ export default function AccountGeneral({
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField disabled={!adminViewer} name="firstName" label="First Name" />
-              <RHFTextField disabled={!adminViewer} name="lastName" label="Last Name" />
+              <RHFTextField disabled={!adminViewer || allDisabled} name="firstName" label="First Name" />
+              <RHFTextField disabled={!adminViewer|| allDisabled} name="lastName" label="Last Name" />
 
               <RHFAutocomplete
                 name="rank"
                 label="Rank"
-                disabled={!adminViewer}
+                disabled={!adminViewer || allDisabled}
                 options={ranks}
                 getOptionLabel={(option: any) => (option as Rank).name}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -404,13 +407,13 @@ export default function AccountGeneral({
                   );
                 }}
               />
-              <RHFTextField disabled={!adminViewer} name="pNumber" label="PNumber" />
+              <RHFTextField disabled={!adminViewer || allDisabled} name="pNumber" label="PNumber" />
 
               <RHFSelect
                 fullWidth
                 name="role"
                 label="Role"
-                disabled={!adminViewer}
+                disabled={!adminViewer || allDisabled}
                 InputLabelProps={{ shrink: true }}
                 PaperPropsSx={{ textTransform: 'capitalize' }}
               >
@@ -453,7 +456,7 @@ export default function AccountGeneral({
                 fullWidth
                 name="tier"
                 label="Tier"
-                disabled={!adminViewer}
+                disabled={!adminViewer || allDisabled}
                 InputLabelProps={{ shrink: true }}
                 PaperPropsSx={{ textTransform: 'capitalize' }}
               >
@@ -468,7 +471,7 @@ export default function AccountGeneral({
               </RHFSelect>
 
               <DatePicker
-                disabled={!adminViewer}
+                disabled={!adminViewer || allDisabled}
                 tz={user?.member?.org?.timezone!}
                 tierUntil={tierUntil}
                 helperText={tierUntilHelpText}
@@ -487,32 +490,33 @@ export default function AccountGeneral({
               }}
             >
               <Box>
-                <RHFPhoneField disabled={!adminViewer} name="primaryPhone" label="Primary Phone" />
-                <RHFSwitch disabled={!adminViewer} name="primaryPhoneReceive" label="Receive text messages" />
+                <RHFPhoneField disabled={!adminViewer || allDisabled} name="primaryPhone" label="Primary Phone" />
+                <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>
-                <RHFTextField disabled={!adminViewer} name="primaryEmail" label="Primary Email" />
-                <RHFSwitch disabled={!adminViewer} name="primaryEmailReceive" label="Receive emails" />
+                <RHFTextField disabled name="primaryEmail" label="Primary Email" />
+                <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryEmailReceive" label="Receive emails" />
               </Box>
 
               <Box>
-                <RHFPhoneField name="secondaryPhone" label="Secondary Phone" />
-                <RHFSwitch name="secondaryPhoneReceive" label="Receive text messages" />
+                <RHFPhoneField disabled={allDisabled} name="secondaryPhone" label="Secondary Phone" />
+                <RHFSwitch disabled={allDisabled} name="secondaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>
-                <RHFTextField name="secondaryEmail" label="Secondary Email" />
-                <RHFSwitch name="secondaryEmailReceive" label="Receive emails" />
+                <RHFTextField disabled={allDisabled} name="secondaryEmail" label="Secondary Email" />
+                <RHFSwitch disabled={allDisabled} name="secondaryEmailReceive" label="Receive emails" />
               </Box>
-              
+
             </Box>
             {
               adminViewer && (
                 <>
                   <Divider sx={{ mt: 4, mb: 2 }} />
-                  <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Contact Info</Typography>
+                  <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Admin Info</Typography>
                   <RHFTextField
+                    disabled={allDisabled}
                     fullWidth
                     multiline
                     rows={4}
@@ -522,7 +526,7 @@ export default function AccountGeneral({
                 </>
               )
             }
-            
+
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>

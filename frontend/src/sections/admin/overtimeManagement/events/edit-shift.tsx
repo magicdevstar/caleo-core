@@ -77,7 +77,16 @@ export default function EditShift({
     currentShifts?.[0]?.event?.status === EventStatus.FirstComeFirstServe &&
     currentShifts.some((shift) => shift.userId === null || !('userId' in shift)),
   [currentShifts]);
-  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentShifts?.[0]?.event?.status || '' as any), [currentShifts]);
+  const allDisabled = useMemo(() => {
+    const hasInvalidStatus = [EventStatus.Complete, EventStatus.Removed].includes(currentShifts?.[0]?.event?.status || '' as any);
+    const isRemoved = currentShifts?.[0]?.assignment?.removedAt || currentShifts?.[0]?.event?.removedAt;
+    return Boolean(hasInvalidStatus || isRemoved);
+  }, [currentShifts]);
+  const isComplete = useMemo(() => {
+    const completeStatus = currentShifts?.[0]?.event?.status === EventStatus.Complete;
+    const completeEndTime = currentShifts?.[0]?.event?.endTime ? Date.now() >= new Date(currentShifts[0].event.endTime).valueOf() : false;
+    return completeStatus || completeEndTime;
+  }, [currentShifts]);
 
   const [notify] = useMutation(NOTIFY_OF_SHIFT, {
     variables: {
@@ -209,7 +218,7 @@ export default function EditShift({
         text: 'Add Shift Slot',
         icon: 'ic:baseline-add',
         loading: isSubmitting,
-        disabled: !startTime || !endTime || allDisabled,
+        disabled: !startTime || !endTime || allDisabled || isComplete,
         onClick: async () => {
           const groupId = shiftId || uuid();
           await upsertShifts({
@@ -253,7 +262,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold',
-        getDisabled: (row: Shift) => !!row.locked || allDisabled,
+        getDisabled: (row: Shift) => !!row.locked || allDisabled || isComplete,
         onClick: (row: Shift) => {
           setEditShiftId(row.id);
           if (row.user) {
@@ -266,7 +275,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
         getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold' : 'solar:lock-keyhole-bold',
-        getDisabled: () => allDisabled,
+        getDisabled: () => allDisabled || isComplete,
         onClick: (row: Shift) => {
           setLockShift(row);
           lockConfirm.onTrue();
@@ -274,7 +283,7 @@ export default function EditShift({
       },
       {
         getName: () => 'Delete',
-        getDisabled: (row: Shift) => !!row.locked || allDisabled,
+        getDisabled: (row: Shift) => !!row.locked || allDisabled || isComplete,
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (row: Shift) => {
           openRemoveShift(row.id);
@@ -338,7 +347,7 @@ export default function EditShift({
         <Tooltip title={!canNotify ? 'Event must be first come first serve and there must be available shifts' : ''}>
           <span>
             <Button
-              disabled={!canNotify || allDisabled}
+              disabled={!canNotify || allDisabled || isComplete}
               variant='outlined'
               size="large"
               onClick={notify as any}
@@ -359,8 +368,9 @@ export default function EditShift({
           variant="contained"
           size="large"
           sx={{ ml: 2 }}
-          disabled={allDisabled}
+          disabled={allDisabled || !currentShifts.length}
           onClick={() => {
+            // TODO: Figure out what to do with this button since currently it does nothing.
             enqueueSnackbar({ message: 'Shifts saved', variant: 'success' })
             router.push(backLink);
           }}
@@ -392,12 +402,16 @@ export default function EditShift({
             <DateTimePicker
               timezone={user.member.org?.timezone}
               ampm={false}
+              disabled={allDisabled}
+              minDate={isComplete ? dayjs(startTime) : undefined}
+              maxDate={isComplete ? dayjs(startTime) : undefined}
               timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               label="Start time"
               value={dayjs(startTime)}
               onChange={async (newValue: any) => {
                 setStartTime(newValue);
-                if(dayjs(endTime).isBefore(newValue)) {
+                const afterEndTime = dayjs(endTime).isBefore(newValue);
+                if(afterEndTime) {
                   setEndTime(newValue);
                 }
                 if (currentShifts.length > 0) {
@@ -410,7 +424,7 @@ export default function EditShift({
                         eventId: shift.event.id,
                         status: shift.status,
                         assignmentId: shift.assignment.id,
-                        endTime: shift.endTime,
+                        endTime: afterEndTime ? newValue.toISOString() : shift.endTime,
                         startTime: newValue.toISOString(),
                       })),
                     }
@@ -422,17 +436,26 @@ export default function EditShift({
                   fullWidth: true,
                   margin: 'normal',
                 },
+                field: {
+                  readOnly: isComplete
+                }
               }}
             />
             <DateTimePicker
               label="End time"
               timezone={user.member.org?.timezone}
               ampm={false}
+              disabled={allDisabled}
               timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
               value={dayjs(endTime)}
-              minDate={dayjs(startTime)}
+              minDate={isComplete ? dayjs(endTime) : dayjs(startTime)}
+              maxDate={isComplete ? dayjs(endTime) : undefined}
               onChange={async (newValue: any) => {
                 setEndTime(newValue);
+                const beforeStartTime = dayjs(startTime).isAfter(newValue);
+                if(beforeStartTime) {
+                  setStartTime(newValue);
+                }
                 if (currentShifts.length > 0) {
                   await upsertShifts({
                     variables: {
@@ -443,7 +466,7 @@ export default function EditShift({
                         eventId: shift.event.id,
                         status: shift.status,
                         assignmentId: shift.assignment.id,
-                        startTime: shift.startTime,
+                        startTime: beforeStartTime ? newValue.toISOString() : shift.startTime,
                         endTime: newValue.toISOString(),
                       })),
                     }
@@ -455,6 +478,9 @@ export default function EditShift({
                   fullWidth: true,
                   margin: 'normal',
                 },
+                field: {
+                  readOnly: isComplete
+                }
               }}
             />
           </Stack>

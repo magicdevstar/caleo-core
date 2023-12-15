@@ -55,7 +55,16 @@ export default function EditAssignment({
 
   const [removeShiftId, setRemoveShiftId] = useState<string | null>();
   const deleteConfirm = useBoolean();
-  const allDisabled = useMemo(() => [EventStatus.Complete, EventStatus.Removed].includes(currentAssignment?.event?.status || '' as any), [currentAssignment?.event?.status]);
+  const allDisabled = useMemo(() => {
+    const hasInvalidStatus = [EventStatus.Removed].includes(currentAssignment?.event?.status || '' as any);
+    const isRemoved = currentAssignment?.removedAt || currentAssignment?.event?.removedAt;
+    return Boolean(hasInvalidStatus || isRemoved);
+  }, [currentAssignment?.event?.status, currentAssignment?.event?.removedAt, currentAssignment?.removedAt]);
+  const isComplete = useMemo(() => {
+    const completeStatus = currentAssignment?.event?.status === EventStatus.Complete;
+    const completeEndTime = currentAssignment?.event?.endTime ? Date.now() >= new Date(currentAssignment.event.endTime).valueOf() : false;
+    return completeStatus || completeEndTime;
+  }, [currentAssignment?.event?.endTime, currentAssignment?.event?.status]);
 
   const shiftMeta = useMemo(() =>
     Object.values((currentAssignment?.shifts || []).reduce((acc, shift) => {
@@ -189,7 +198,7 @@ export default function EditAssignment({
         text: 'Add Shift',
         icon: 'ic:baseline-add',
         loading: upsertAssignmentLoading,
-        disabled: !currentAssignment?.id && !isValid,
+        disabled: (!currentAssignment?.id && !isValid) || allDisabled || isComplete,
         onClick: async () => {
           let assignmentId = currentAssignment?.id;
           if (!assignmentId) {
@@ -233,6 +242,7 @@ export default function EditAssignment({
       },
       {
         getName: () => 'Delete',
+        getDisabled: () => allDisabled || isComplete,
         getIcon: () => 'solar:trash-bin-trash-bold',
         onClick: (row: Shift) => {
           openRemoveShift(row.shiftId)
@@ -327,13 +337,13 @@ export default function EditAssignment({
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>
-              <RHFEditor simple name="description" />
+              <RHFEditor readOnly={allDisabled} simple name="description" />
             </Stack>
 
             <RHFAutocomplete
               name="requiredSkills"
               placeholder="Required Skills"
-              disabled={allDisabled}
+              disabled={allDisabled || isComplete}
               multiple
               disableCloseOnSelect
               helperText="Leave empty to not require any shifts"
@@ -365,7 +375,7 @@ export default function EditAssignment({
               placeholder="Open to Ranks"
               multiple
               disableCloseOnSelect
-              disabled={allDisabled}
+              disabled={allDisabled || isComplete}
               helperText="Enter the ranks that are allowed to work this assignment"
               options={(ranks || [])}
               getOptionLabel={(rank: any) => rank?.name}
@@ -391,8 +401,8 @@ export default function EditAssignment({
             />
 
             <Stack direction="row" spacing={2}>
-              <RHFSwitch disabled={allDisabled} name="bwNeeded" label="B&W Needed" />
-              <RHFSwitch disabled={allDisabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+              <RHFSwitch disabled={allDisabled || isComplete} name="bwNeeded" label="B&W Needed" />
+              <RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
             </Stack>
           </Stack>
         </Card>

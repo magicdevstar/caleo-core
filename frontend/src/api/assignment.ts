@@ -49,6 +49,7 @@ export const GET_ASSIGNMENT = gql`
       eventId
       bwNeeded
       createdAt
+      removedAt
 
       requiredSkills {
         id
@@ -59,6 +60,8 @@ export const GET_ASSIGNMENT = gql`
       event {
         id
         status
+        endTime
+        removedAt
       }
 
       ranks {

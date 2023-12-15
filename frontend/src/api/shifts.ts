@@ -465,16 +465,20 @@ export const GET_GROUPED_SHIFTS = gql`
       endTime
       status
       locked
+      userId
 
       assignment {
         id
         name
+        removedAt
       }
 
       event {
         id
         name
         status
+        removedAt
+        endTime
       }
 
       user {

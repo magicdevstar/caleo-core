@@ -20,12 +20,12 @@ export default function AccountView() {
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       id: user.id,
-    }, 
+    },
   });
   const settings = useSettingsContext();
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: 2 }}>
       <Typography variant="h4"> Profile </Typography>
       {
         loading ? (

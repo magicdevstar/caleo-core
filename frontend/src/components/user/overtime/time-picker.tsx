@@ -21,6 +21,7 @@ export default function AccountTimePicker({
   setTime,
   newTime,
   removeTime,
+  disabled,
 }: {
   times: AvailabilityTime[];
   setTime: (input: {
@@ -30,6 +31,7 @@ export default function AccountTimePicker({
   }) => void;
   newTime: VoidFunction;
   removeTime: (index: number) => void;
+  disabled?: boolean;
 }) {
   return (
     <>
@@ -37,6 +39,7 @@ export default function AccountTimePicker({
         times.map((time, index) => (
           <Stack key={index} direction="row" alignItems="center" spacing={2} sx={{ pb: 2 }}>
             <TimePicker
+              disabled={disabled}
               timezone='UTC'
               label="Start"
               ampm={false}
@@ -76,6 +79,7 @@ export default function AccountTimePicker({
               }}
             />
             <TimePicker
+              disabled={disabled}
               timezone='UTC'
               ampm={false}
               timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
@@ -113,14 +117,14 @@ export default function AccountTimePicker({
                 },
               }}
             />
-            <IconButton onClick={() => removeTime(index)} edge="end">
+            <IconButton disabled={disabled} onClick={() => removeTime(index)} edge="end">
               <Iconify icon="solar:trash-bin-trash-bold-duotone" />
             </IconButton>
           </Stack>
         ))
       }
       <Button
-        disabled={times.length >= MAX_TIMES}
+        disabled={times.length >= MAX_TIMES || disabled}
         variant="outlined"
         onClick={newTime}
       >Add Time</Button>

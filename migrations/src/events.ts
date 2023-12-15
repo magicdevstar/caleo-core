@@ -1,4 +1,4 @@
-import { Collection, Db } from "mongodb";
+import { Collection, Db, ObjectId } from "mongodb";
 import { mysql } from "./utils/mysql";
 import { DocType, Event, EventStatus, MemberRole } from "./utils/resolvers-types";
 
@@ -27,6 +27,30 @@ export interface OldEvent {
 
 interface MongoEvent extends Omit<Event, 'id' | 'org'> {
   migrationId: number
+}
+
+export const adjustEventTimes = async (collection: Collection, map: Record<string, {startTime: number; endTime: number;}>) => {
+  const eventUpdates: any = [];
+
+  Object.keys(map).forEach((key) => {
+    const { startTime, endTime } = map[key];
+    eventUpdates.push({
+      updateOne: {
+        filter: { _id: new ObjectId(key) },
+        update: {
+          $set: {
+            startTime,
+            endTime,
+          },
+        },
+      },
+    });
+  });
+
+  if (eventUpdates.length > 0) {
+    const res = await collection.bulkWrite(eventUpdates);
+    console.log('Events bulk write: ', JSON.stringify(res, null, 2));
+  }
 }
 
 export const events = async (collection: Collection, db: Db) => {
@@ -70,13 +94,25 @@ export const events = async (collection: Collection, db: Db) => {
         if (event.lottery_end_at && event.lottery_start_at) {
           lotteryCounterKey = `${event.lottery_start_at.getTime()}^^^${event.lottery_end_at.getTime()}`;
         }
+
+        let status = EventStatus.Draft;
+        if (!!event.removed_at) {
+          status = EventStatus.Removed;
+        } else if (event.end_at && event.fcfs_start_at) {
+          status = EventStatus.FirstComeFirstServe;
+        } else if (event.end_at && event.lottery_start_at && event.end_at.getTime() > Date.now() && event.lottery_start_at.getTime() > Date.now()) {
+          status = EventStatus.ReadyForLottery;
+        } else if (event.end_at && event.end_at.getTime() < Date.now()) {
+          status = EventStatus.Complete;
+        }
+
         const item: MongoEvent = {
           name: event.name,
           referenceId: `${event.reference_number}`,
           searchAttribute: `${event.reference_number} ${event.name}`,
           notes: event.note,
           orgId: process.env.ORG_ID!,
-          status: EventStatus.Complete,
+          status,
           ...(event.fcfs_start_at && {scheduledFirstComeFirstServe: event.fcfs_start_at.getTime() as any}),
           notifyOnFirstComeFirstServe: !!event.send_notification_on_fcfs,
           notifyWhenFullyStaffed: !!event.notify_when_staffed,

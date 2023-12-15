@@ -105,7 +105,8 @@ const createAvailability = (shift: Shift, timezone: string) => {
   }, {} as any);
 };
 
-export const shifts = async (collection: Collection, db: Db) => {
+export const shifts = async (collection: Collection, db: Db): Promise<Record<string, {startTime: number; endTime: number;}>> => {
+  const eventTimeMap: Record<string, {startTime: number; endTime: number;}> = {};
   try {
     const bulk: any = [];
     const migrationIds = (await collection
@@ -155,6 +156,21 @@ export const shifts = async (collection: Collection, db: Db) => {
           idMap[shift.id] = uid;
         }
 
+        const eventId = eventMap[shift.eventId];
+
+        if (!eventTimeMap[eventId]) {
+          eventTimeMap[eventId] = {
+            startTime: shift.shiftStart.getTime(),
+            endTime: shift.shiftEnd.getTime(),
+          };
+        }
+        if (eventTimeMap[eventId].startTime > shift.shiftStart.getTime()) {
+          eventTimeMap[eventId].startTime = shift.shiftStart.getTime();
+        }
+        if (eventTimeMap[eventId].endTime < shift.shiftEnd.getTime()) {
+          eventTimeMap[eventId].endTime = shift.shiftEnd.getTime();
+        }
+        
         let status: ShiftStatus = ShiftStatus.Available;
         if (shift.isLocked === 1) {
           status = ShiftStatus.Locked;
@@ -188,13 +204,13 @@ export const shifts = async (collection: Collection, db: Db) => {
           orgId: process.env.ORG_ID!,
           locked: status === ShiftStatus.Locked,
           relinquishNote: shift.userRelinquishReason,
-          eventId: eventMap[shift.eventId],
+          eventId,
           assignmentId: assignmentMap[shift.assignmentId],
           userId: userMap[shift.userId],
           createdById: userMap[shift.userId],
           createdAt: shift.createdAt.getTime(),
           updatedAt: shift.modifiedAt.getTime(),
-          removedAt,
+          ...(removedAt && {removedAt}),
         };
         const availability = createAvailability(item as any, organization?.timezone || 'America/Los_Angeles');
         item.availability = availability;
@@ -205,8 +221,34 @@ export const shifts = async (collection: Collection, db: Db) => {
     if (bulk.length > 0) {
       const res = await collection.insertMany(bulk);
       console.log('shifts bulk write: ', JSON.stringify(res, null, 2));
+
+      const assignmentUpdates: any = {};
+      Object.keys(res.insertedIds).forEach((index) => {
+        const shiftId = res.insertedIds[index as any];
+        const { assignmentId, status } = bulk[index];
+        if ([ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked].includes(status)) {
+          if (!assignmentUpdates[assignmentId]) {
+            assignmentUpdates[assignmentId] = [];
+          }
+          assignmentUpdates[assignmentId].push(shiftId.toString());
+        }
+      });
+
+      const assignmentBulkUpdates: any = Object.keys(assignmentUpdates).map((assignmentId) => ({
+        updateOne: {
+          filter: { _id: new ObjectId(assignmentId) },
+          update: { $push: { shiftIds: {$each: assignmentUpdates[assignmentId]} } },
+        },
+      }));
+
+      if (assignmentBulkUpdates.length > 0) {
+        const assignmentRes = await db.collection('assignments').bulkWrite(assignmentBulkUpdates);
+        console.log('Assignment bulk write: ', JSON.stringify(assignmentRes, null, 2));
+      }
     } 
+
   } catch(error) {
     console.error('Failed to migrate venues: ', error);
   }
+  return eventTimeMap;
 }

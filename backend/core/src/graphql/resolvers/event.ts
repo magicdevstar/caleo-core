@@ -291,7 +291,7 @@ export const event = {
           await scheduler.updateScheduledEvent({
             event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
             orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledFirstComeFirstServe, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
+            eventTime: `at(${format(scheduledFirstComeFirstServe, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
             eventTimeZone: Timezone.UTC,
             customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
             eventInput: JSON.stringify({

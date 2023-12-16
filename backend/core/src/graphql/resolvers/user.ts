@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { utcToZonedTime } from "date-fns-tz";
 import { Context } from "../../utils/createContext";
 import {
   Member,
@@ -18,8 +19,9 @@ import {
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
-import { ScheduleEvent } from "../../models/scheduler";
+import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { format } from "date-fns";
+import logger from "../../utils/logger";
 
 const lambda = new LambdaClient();
 
@@ -212,8 +214,8 @@ export const user = {
             inactivateSchedule = scheduler.updateScheduledEvent({
               event: ScheduleEvent.USER_INACTIVE_RETURN,
               orgId: organization!.id,
-              eventTime: `at(${format(inactivateUntil, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
-              eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+              eventTime: `at(${format(inactivateUntil, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+              eventTimeZone: Timezone.UTC,
               customEventName: `${ScheduleEvent.USER_INACTIVE_RETURN}-${user.id}`,
               eventInput: JSON.stringify({
                 action: ScheduleEvent.USER_INACTIVE_RETURN,
@@ -274,8 +276,8 @@ export const user = {
           tierSchedule = scheduler.updateScheduledEvent({
             event: ScheduleEvent.USER_TIER_RETURN,
             orgId: organization!.id,
-            eventTime: `at(${format(tierReturnDate, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
-            eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+            eventTime: `at(${format(tierReturnDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTimeZone: Timezone.UTC,
             customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user.id}`,
             eventInput: JSON.stringify({
               action: ScheduleEvent.USER_TIER_RETURN,
@@ -285,9 +287,15 @@ export const user = {
             }),
           });
         } else {
+          tierSchedule = scheduler.removeSchedule({
+            event: ScheduleEvent.USER_TIER_RETURN,
+            orgId: organization!.id,
+            customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user.id}`,
+            ignoreError: true,
+          });
           tierUpdates = {
             tierUntil: null,
-            tierResetOnNextLottery: false,
+            tierResetOnNextLottery: !user.member.tierUntil ? existingUser.member.tierResetOnNextLottery : false,
           };
         }
       }

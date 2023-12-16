@@ -23,7 +23,7 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
-import { ScheduleEvent } from "../../models/scheduler";
+import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import {
   NotificationType,
   ShiftNotificationAction,
@@ -497,8 +497,8 @@ export const shift = {
         await scheduler.updateScheduledEvent({
           event: ScheduleEvent.USER_TIER_RETURN,
           orgId: user?.member.orgId!,
-          eventTime: `at(${format(tierUntil, 'yyyy-MM-dd&&hh:mm:ss').replace('&&','T')})`,
-          eventTimeZone: organization?.timezone || 'America/Los_Angeles' as any,
+          eventTime: `at(${format(tierUntil, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+          eventTimeZone: Timezone.UTC,
           customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${existingUserId}`,
           eventInput: JSON.stringify({
             action: ScheduleEvent.USER_TIER_RETURN,

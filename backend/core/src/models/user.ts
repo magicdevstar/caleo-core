@@ -360,7 +360,7 @@ export class UserModel extends BaseModel<User> {
       },
     ]);
 
-    logger.info('Res', { totalRes, res });
+    logger.info('Shift Res', { totalRes, res, myShifts });
 
     const enabledShiftBuffer = organization?.settings?.shiftBuffer?.enabled;
     const minuteBuffer = organization?.settings?.shiftBuffer?.minuteShiftBuffer;
@@ -381,7 +381,7 @@ export class UserModel extends BaseModel<User> {
           }
         });
         if (shiftBufferShift) {
-          shiftBufferShift.id = shiftBufferShift._id;
+          shiftBufferShift.id = shiftBufferShift._id || shiftBufferShift.id;
           delete shiftBufferShift._id;
         }
       }

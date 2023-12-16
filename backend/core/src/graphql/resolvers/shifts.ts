@@ -533,7 +533,7 @@ export const shift = {
         _,
         { shifts }: Context
       ) => shifts.loadOtherShiftSlots.load(shift.shiftId),
-      shiftBufferShift: (shift: Shift, _, { shiftBufferRequests }: Context) => shift.shiftBufferShift?.id ? shiftBufferRequests.loader.load(shift.shiftBufferShift.id) : null,
+      shiftBufferShift: (shift: Shift, _, { shifts }: Context) => shift.shiftBufferShift?.id ? shifts.loader.load(shift.shiftBufferShift.id) : null,
     },
   },
 };

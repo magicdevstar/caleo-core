@@ -561,6 +561,8 @@ export default function EditShift({
 
       <AssignShiftModal
         shiftId={editShiftId}
+        shiftStartTime={currentShifts?.[0]?.startTime}
+        orgMaxShifts={user?.member?.org?.settings?.shiftsPerWeek}
         existingUserIds={existingUserIds}
         assignConfirm={assignConfirm}
         assignLoading={isAssigningShift}

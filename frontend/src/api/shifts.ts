@@ -555,6 +555,20 @@ query GetShiftDetails($id: String!) {
 }
 `;
 
+export const GET_SHIFT_DETAILS_SLIM = gql`
+  query GetAllShifts($input: ShiftSearchInput!) {
+    shifts(input: $input) {
+      items {
+        id
+        startTime
+        endTime
+        status
+      }
+      total
+    }
+  }
+`;
+
 export const NOTIFY_OF_SHIFT = gql`
   mutation NotifyOfShift($shiftId: String!) {
     notifyUsersOfShift(shiftId: $shiftId)

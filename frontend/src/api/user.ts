@@ -15,6 +15,7 @@ const userDetailProperties = `
     org {
       id
       timezone
+      weekBegins
       settings {
         shiftsPerWeek
         lottery {
@@ -197,6 +198,9 @@ query GetUsers($input: UserSearchInput!) {
     items {
       id
       name
+      member {
+        maxShifts
+      }
     }
   }
 }

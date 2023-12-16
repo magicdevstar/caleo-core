@@ -14,11 +14,12 @@ import { useSettingsContext } from 'src/components/settings';
 import { useAuthContext } from 'src/auth/hooks';
 import { useTable } from 'src/components/table';
 import { ASSIGN_SHIFT, CREATE_SHIFT_BUFFER, GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS } from 'src/api/shifts';
-import { Shift } from 'src/__generated__/resolvers-types';
+import { MemberRole, Shift } from 'src/__generated__/resolvers-types';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftItems from 'src/components/shifts/shift-items';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { useWeeklyShifts } from 'src/hooks/use-weekly-shift-count';
 
 // ----------------------------------------------------------------------
 
@@ -33,6 +34,8 @@ export default function AvailableOvertimeView() {
   const [editShift, setEditShift] = useState<Shift | null>(null);
   const assignConfirm = useBoolean();
 
+  const isAdmin = useMemo(() => user?.member?.role === MemberRole.Admin, [user]);
+
   const canConfirm = useMemo(() => !editShift?.shiftBufferShift || (editShift?.shiftBufferShift && note.trim() !== ''), [editShift, note]);
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -46,6 +49,12 @@ export default function AvailableOvertimeView() {
     order: table.order,
   });
   const settings = useSettingsContext();
+
+  const { weeklyShifts, loading: loadingWeeklyShifts, error: weeklyShiftsError } = useWeeklyShifts({
+    userId,
+    date: editShift?.startTime,
+    skip: !isAdmin,
+  });
 
   const { data, loading } = useQuery(GET_AVAILABLE_SHIFTS, {
     fetchPolicy: 'no-cache', // Used for first execution
@@ -170,37 +179,54 @@ export default function AvailableOvertimeView() {
         onClose={closeAssign}
         title="Sign Up for Overtime"
         content={
-          editShift?.shiftBufferShift ? (<>
-            <Typography variant='body1'>
-              This shift overlaps with<br/><br/>
-              Event: {editShift?.shiftBufferShift?.event?.name}<br/>
-              Assignment: {editShift?.shiftBufferShift?.assignment?.name}<br/>
-              Start Time: {editShift?.shiftBufferShift?.startTime ? convertDate({ date: editShift?.shiftBufferShift?.startTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/>
-              End Time: {editShift?.shiftBufferShift?.endTime ? convertDate({ date: editShift?.shiftBufferShift?.endTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/><br/>
-              You must submit a reason you are able to work this shift.
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Reason"
-              type="text"
-              autoFocus
-              value={note}
-              sx={{ mt: 2 }}
-              onChange={(event) => {
-                setNote(event.target.value);
-              }}
-            />
-          </>) : (
-            <Typography variant='body1'>
-              Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{editShift?.startTime ? convertDate({ date: editShift?.startTime || new Date().toISOString(), user }).format(dateTimeFormat) : 'N/A'}?</strong>
-            </Typography>
-          )
+          <>
+            {editShift?.shiftBufferShift ? (<>
+              <Typography variant='body1'>
+                This shift overlaps with<br/><br/>
+                Event: {editShift?.shiftBufferShift?.event?.name}<br/>
+                Assignment: {editShift?.shiftBufferShift?.assignment?.name}<br/>
+                Start Time: {editShift?.shiftBufferShift?.startTime ? convertDate({ date: editShift?.shiftBufferShift?.startTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/>
+                End Time: {editShift?.shiftBufferShift?.endTime ? convertDate({ date: editShift?.shiftBufferShift?.endTime, user }).format('MM/DD/YYYY HH:mm') : 'N/A'}<br/><br/>
+                You must submit a reason you are able to work this shift.
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Reason"
+                type="text"
+                autoFocus
+                value={note}
+                sx={{ mt: 2 }}
+                onChange={(event) => {
+                  setNote(event.target.value);
+                }}
+              />
+            </>) : (
+              <Typography variant='body1'>
+                Are you sure you want to sign up for <br /><strong>{editShift?.event?.name}</strong> - <strong>{editShift?.assignment?.name}</strong><br/><strong>{editShift?.startTime ? convertDate({ date: editShift?.startTime || new Date().toISOString(), user }).format(dateTimeFormat) : 'N/A'}?</strong>
+              </Typography>
+            )}
+            {
+              isAdmin &&
+              ((weeklyShifts?.length || 0) >= (user?.member?.maxShifts || user?.member?.org?.settings?.shiftsPerWeek || Number.POSITIVE_INFINITY)) &&
+              !weeklyShiftsError &&
+              !loadingWeeklyShifts && (
+                <Typography variant='body2' color="warning.main" sx={{ mt: 2 }}>
+                  Warning: You have reached your max shift limit for this shift week.
+                </Typography>
+              )
+            }
+            {weeklyShiftsError && !loadingWeeklyShifts && (
+              <Typography variant='body2' color="error.main" sx={{ mt: 2 }}>
+                { `Error retrieving weekly shift count. Shift count for this shift's week is unknown. Proceed with Caution.` }
+              </Typography>
+            )}
+          </>
         }
         action={
           <LoadingButton
-            loading={assignLoading || createShiftBufferLoading}
+            loading={assignLoading || createShiftBufferLoading || loadingWeeklyShifts}
             disabled={!canConfirm}
             variant="contained"
             color="primary"

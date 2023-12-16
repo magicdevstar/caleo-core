@@ -264,7 +264,8 @@ export const user = {
       let tierUpdates: any = {};
       let tierSchedule: Promise<any> = Promise.resolve();
       if (user.member?.tier) {
-        if (user.member.tier === MemberTier.Tier_2 && user.member.tierUntil) {
+        if (user.member.tierUntil) {
+          const targetTier = user.member.tier === MemberTier.Tier_2 ? MemberTier.Tier_1 : MemberTier.Tier_2;
           const tierReturnDate = new Date(user.member.tierUntil);
           tierUpdates = {
             tierUntil: tierReturnDate.getTime(),
@@ -280,7 +281,7 @@ export const user = {
               action: ScheduleEvent.USER_TIER_RETURN,
               orgId: organization!.id,
               userId: user.id,
-              tier: MemberTier.Tier_1,
+              tier: targetTier,
             }),
           });
         } else {

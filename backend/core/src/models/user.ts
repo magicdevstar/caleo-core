@@ -612,7 +612,11 @@ export class UserModel extends BaseModel<User> {
           'member.orgId': orgId,
           _id: {
             $in: tier1Assignments.map((id) => new ObjectId(id)),
-          }
+          },
+          $or: [
+            { 'member.tierUntil': null },
+            { 'member.tierUntil': { $lte: Date.now() } },
+          ]
         }, {
           $set: {
             'member.tier': MemberTier.Tier_2,

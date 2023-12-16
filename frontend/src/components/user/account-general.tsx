@@ -57,12 +57,16 @@ const DatePicker = memo(function PickMeComponent({
   disabled,
   tierUntil,
   setTierUntil,
+  error,
+  onChange = () => {},
 }: {
   tz: string;
   helperText?: string;
   disabled?: boolean;
   tierUntil: Date | null;
   setTierUntil: any;
+  error?: boolean;
+  onChange?: (hasValue: boolean) => void;
 }) {
   return (
     <DateTimePicker
@@ -79,13 +83,21 @@ const DatePicker = memo(function PickMeComponent({
         },
       }}
       onChange={async (newValue: any) => {
-        setTierUntil(newValue.toDate());
+        if (!newValue) {
+          setTierUntil(newValue);
+          onChange(false);
+        } else {
+          setTierUntil(newValue.toDate());
+          onChange(true);
+        }
       }}
       slotProps={{
+        field: { clearable: true },
         textField: {
           fullWidth: true,
           margin: 'normal',
           helperText,
+          error,
         },
       }}
     />
@@ -193,11 +205,13 @@ export default function AccountGeneral({
 
   const {
     setValue,
+    setError,
+    clearErrors,
     handleSubmit,
     watch,
-    formState: { isSubmitting },
+    getValues,
+    formState: { isSubmitting, errors: formErrors },
   } = methods;
-
   const tierUntil = watch('tierUntil');
 
   useEffect(() => {
@@ -237,6 +251,12 @@ export default function AccountGeneral({
 
   const onSubmit = handleSubmit(async (d) => {
     try {
+      if (d.tier === MemberTier.Tier_2 && !d.tierUntil && !user.member.tierResetOnNextLottery) {
+        setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
+        return;
+      }
+      clearErrors('tierUntil')
+
       let imagePath;
       let uploadUrl;
       if (d.photoURL && !d.photoURL.existing) {
@@ -474,7 +494,16 @@ export default function AccountGeneral({
                 disabled={!adminViewer || allDisabled}
                 tz={user?.member?.org?.timezone!}
                 tierUntil={tierUntil}
-                helperText={tierUntilHelpText}
+                helperText={tierUntilHelpText || formErrors.tierUntil?.message as any}
+                error={!!formErrors.tierUntil}
+                onChange={(hasValue) => {
+                  const result = getValues()
+                  if (result.tier === MemberTier.Tier_2 && !hasValue) {
+                    setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
+                    return;
+                  }
+                  clearErrors('tierUntil')
+                }}
                 setTierUntil={(value: any) => setValue('tierUntil', value)}
               />
             </Box>

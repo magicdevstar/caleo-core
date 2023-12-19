@@ -10,6 +10,7 @@ export type SettingsValueProps = {
 };
 
 export type SettingsContextProps = SettingsValueProps & {
+  settings: SettingsValueProps;
   // Update
   onUpdate: (name: string, value: string | boolean) => void;
   // Direction by lang

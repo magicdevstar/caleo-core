@@ -8,6 +8,8 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 // routes
 import { useRouter } from 'src/routes/hooks';
 // auth
@@ -15,11 +17,14 @@ import { useAuthContext } from 'src/auth/hooks';
 // components
 import { varHover } from 'src/components/animate';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { useSettingsContext } from 'src/components/settings';
+import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
 const OPTIONS = [
   {
+    icon: 'ic:baseline-person',
     label: 'Profile',
     linkTo: '/dashboard/user',
   },
@@ -29,6 +34,8 @@ const OPTIONS = [
 
 export default function AccountPopover() {
   const router = useRouter();
+
+  const { themeMode, onUpdate } = useSettingsContext();
 
   const { logout, user } = useAuthContext();
 
@@ -94,7 +101,10 @@ export default function AccountPopover() {
         <Stack sx={{ p: 1 }}>
           {OPTIONS.map((option) => (
             <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-              {option.label}
+              <ListItemIcon sx={{ margin: 0 }}>
+                <Iconify sx={{ margin: 0 }} icon={option.icon} />
+              </ListItemIcon>
+              <ListItemText>{option.label}</ListItemText>
             </MenuItem>
           ))}
         </Stack>
@@ -102,10 +112,27 @@ export default function AccountPopover() {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem
+          sx={{ m: 1 }}
+          onClick={() => {
+            onUpdate('themeMode', themeMode === 'light' ? 'dark' : 'light');
+          }}
+        >
+          <ListItemIcon sx={{ margin: 0 }}>
+            <Iconify sx={{ margin: 0 }} icon={themeMode === 'dark' ? 'ic:round-light-mode' : 'ic:round-nightlight'} />
+          </ListItemIcon>
+          <ListItemText>{themeMode === 'dark' ? 'Light theme' : 'Dark theme'}</ListItemText>
+        </MenuItem>
+
+        <Divider sx={{ borderStyle: 'dashed' }} />
+
+        <MenuItem
           onClick={handleLogout}
           sx={{ m: 1, fontWeight: 'fontWeightBold', color: 'error.main' }}
         >
-          Logout
+          <ListItemIcon sx={{ margin: 0 }}>
+            <Iconify sx={{ margin: 0 }} icon="ic:baseline-logout" />
+          </ListItemIcon>
+          <ListItemText>Logout</ListItemText>
         </MenuItem>
       </CustomPopover>
     </>

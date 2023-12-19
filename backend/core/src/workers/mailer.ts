@@ -63,7 +63,7 @@ const sendInChunks = async (input: any, Addresses: any) => {
       logger.info('Pinpoint response', { res });
     }
   } else {
-    const hasSMS = Object.keys(Addresses).some((key) => chunk[key].ChannelType === 'SMS');
+    const hasSMS = Object.keys(Addresses).some((key) => Addresses[key].ChannelType === 'SMS');
     // Attaching to input so it will get logged with the error :)
     (input as any).pinpointInput = {
       ApplicationId: process.env.PINPOINT_ID,

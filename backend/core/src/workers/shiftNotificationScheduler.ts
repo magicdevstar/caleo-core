@@ -53,7 +53,7 @@ const upsertNotification = async ({
     eventTime: `at(${format(zonedDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
     eventTimeZone: tz as any,
     customEventName: eventId,
-    eventInput: JSON.stringify(payload),
+    eventInput: payload,
   });
 
   await shifts.collection.updateOne({ _id: new ObjectId(id) }, {

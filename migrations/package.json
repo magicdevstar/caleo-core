@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.470.0",
+    "@aws-sdk/client-lambda": "^3.476.0",
     "@aws-sdk/client-scheduler": "^3.476.0",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",

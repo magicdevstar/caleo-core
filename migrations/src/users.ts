@@ -149,7 +149,7 @@ const updateScheduledEvent = async ({
       ScheduleExpressionTimezone: eventTimeZone,
       Target: {
         Arn: 'arn:aws:lambda:us-west-2:707495320920:function:caleo-core-prod-scheduledEvents',
-        RoleArn: process.env.SCHEDULED_ROLE_ARN,
+        RoleArn: 'arn:aws:iam::707495320920:role/caleo-core-prod-SchedulerRole-LphWrhQMs4M0',
         Input: JSON.stringify(eventInput),
       } as Target,
       State: enabled,
@@ -171,14 +171,14 @@ export const setTierUntil = async (collection: Collection, db: Db) => {
       const targetTier = user.member.tier === MemberTier.Tier_2 ? MemberTier.Tier_1 : MemberTier.Tier_2;
       const out = await updateScheduledEvent({
         event: ScheduleEvent.USER_TIER_RETURN,
-        orgId: organization!.id,
+        orgId: organization!._id.toString(),
         eventTime: `at(${format(tierReturnDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
         eventTimeZone: Timezone.UTC,
-        customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user.id}`,
+        customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user._id.toString()}`,
         eventInput: JSON.stringify({
           action: ScheduleEvent.USER_TIER_RETURN,
-          orgId: organization!.id,
-          userId: user.id,
+          orgId: organization!._id.toString(),
+          userId: user._id.toString(),
           tier: targetTier,
         }),
       });

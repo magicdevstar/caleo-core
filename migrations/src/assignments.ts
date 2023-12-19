@@ -1,6 +1,10 @@
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Collection, Db, ObjectId } from "mongodb";
 import { mysql } from "./utils/mysql";
 import { Assignment, DocType, MemberRole } from "./utils/resolvers-types";
+import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from "../../backend/core/src/types/notifications";
+
+const lambda = new LambdaClient({ region: 'us-west-2' });
 
 export interface OldAssignment {
   id: number
@@ -18,6 +22,33 @@ export interface OldAssignment {
 
 interface MongoAssignment extends Omit<Assignment, 'id' | 'event' | 'org'> {
   migrationId: number
+}
+
+export const scheduleShiftReminders = async (collection: Collection, db: Db) => {
+  for await (const shift of collection.find({
+    startTime: { $gte: Date.now() },
+    userId: { $ne:null },
+    $or: [
+      {removedAt: { $exists: false }},
+      {removedAt: null }
+    ]
+  })) {
+    try {
+      const out = await lambda.send(new InvokeCommand({
+        FunctionName: 'caleo-core-prod-shiftNotificationScheduler',
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          type: NotificationType.Shift,
+          action: ShiftNotificationAction.UpsertNotification,
+          id: shift._id.toString(),
+        } as ShiftUpsertNotification),
+      }));
+      console.log(out);
+      await (async () => new Promise((resolve) => setTimeout(resolve, 500)))();
+    } catch(error) {
+      console.log(error);
+    }
+  }
 }
 
 export const assignments = async (collection: Collection, db: Db) => {

@@ -1,9 +1,43 @@
+import {
+  SchedulerClient,
+  CreateScheduleCommand,
+  UpdateScheduleCommand,
+  GetScheduleCommand,
+  CreateScheduleCommandInput,
+  FlexibleTimeWindowMode,
+  Target,
+  ScheduleState,
+  UpdateScheduleCommandInput,
+  DeleteScheduleCommand,
+  ActionAfterCompletion
+} from "@aws-sdk/client-scheduler";
 import { readFileSync, writeFileSync } from "fs";
-import { isAfter } from "date-fns";
-import { Collection, Db } from "mongodb";
+import { format, isBefore } from "date-fns";
+import { Collection, Db, ObjectId } from "mongodb";
 import { mysql } from "./utils/mysql";
 import { DocType, MemberRole, MemberStatus, MemberTier, User } from "./utils/resolvers-types";
 import { getUserByEmail } from "./utils/cognito-user-lookup";
+
+const scheduler = new SchedulerClient({ region: 'us-west-2' });
+
+export enum ScheduleEvent {
+  LOTTO_START = 'lotto_start',
+  LOTTO_END = 'lotto_end',
+  LOTTO_NOTIFY = 'lotto_notify',
+  SHIFT_REMINDER = 'shift_reminder',
+  EVENT_COMPLETE = 'event_complete',
+  EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE = 'event_fcfs_live',
+  USER_TIER_RETURN = 'user_tier_return',
+  USER_INACTIVE_RETURN = 'user_inactive_return',
+}
+
+export enum Timezone {
+  UTC = 'UTC',
+  PST = 'America/Los_Angeles',
+  EST = 'America/New_York',
+  CST = 'America/Chicago',
+  MST = 'America/Denver',
+}
 
 export interface OldUser {
   id: number
@@ -58,6 +92,102 @@ const availabilityDayMap: Record<string, string> = {
   'Fri': 'friday',
   'Sat': 'saturday',
   'Sun': 'sunday',
+}
+
+const getSchedule = async ({
+  orgId,
+  event,
+  customEventName,
+}: {
+  orgId: string;
+  event: ScheduleEvent;
+  customEventName?: string;
+}) => {
+  const command = new GetScheduleCommand({
+    Name: customEventName || `${orgId}-${event}`,
+  });
+
+  try {
+    const res = await scheduler.send(command);
+    return res;
+  } catch(error) {
+    return null;
+  }
+}
+
+const updateScheduledEvent = async ({
+  event,
+  orgId,
+  eventTime,
+  eventTimeZone,
+  eventInput,
+  customEventName,
+  enabled = ScheduleState.ENABLED,
+} : {
+  event: ScheduleEvent;
+  orgId: string;
+  customEventName?: string;
+  eventTime: string;
+  eventTimeZone: Timezone;
+  eventInput: any;
+  enabled?: ScheduleState;
+}) => {
+  try {
+    const foundSchedule = await getSchedule({
+      orgId,
+      event,
+      customEventName,
+    });
+    const input: CreateScheduleCommandInput | UpdateScheduleCommandInput = {
+      Name: customEventName || `${orgId}-${event}`,
+      ScheduleExpression: eventTime,
+      FlexibleTimeWindow: {
+        Mode: FlexibleTimeWindowMode.FLEXIBLE,
+        MaximumWindowInMinutes: 1,
+      },
+      ActionAfterCompletion: ActionAfterCompletion.DELETE,
+      ScheduleExpressionTimezone: eventTimeZone,
+      Target: {
+        Arn: 'arn:aws:lambda:us-west-2:707495320920:function:caleo-core-prod-scheduledEvents',
+        RoleArn: process.env.SCHEDULED_ROLE_ARN,
+        Input: JSON.stringify(eventInput),
+      } as Target,
+      State: enabled,
+    };
+
+    const command = foundSchedule ? new UpdateScheduleCommand(input) : new CreateScheduleCommand(input);
+    const res = await scheduler.send(command);
+    return res;
+  } catch(error) {
+    console.error('Failed to update scheduled event: ', error);
+  }
+}
+
+export const setTierUntil = async (collection: Collection, db: Db) => {
+  const organization = await db.collection('organizations').findOne({ _id: new ObjectId(process.env.ORG_ID!) });
+  for await (const user of collection.find({ 'member.tierUntil': { $gte: 0 } })) {
+    try {
+      const tierReturnDate = new Date(user.member.tierUntil);
+      const targetTier = user.member.tier === MemberTier.Tier_2 ? MemberTier.Tier_1 : MemberTier.Tier_2;
+      const out = await updateScheduledEvent({
+        event: ScheduleEvent.USER_TIER_RETURN,
+        orgId: organization!.id,
+        eventTime: `at(${format(tierReturnDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+        eventTimeZone: Timezone.UTC,
+        customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${user.id}`,
+        eventInput: JSON.stringify({
+          action: ScheduleEvent.USER_TIER_RETURN,
+          orgId: organization!.id,
+          userId: user.id,
+          tier: targetTier,
+        }),
+      });
+      console.log(out);
+      await (async () => new Promise((resolve) => setTimeout(resolve, 500)))();
+    } catch(error) {
+      console.log(error);
+    }
+  }
 }
 
 export const users = async (collection: Collection, db: Db) => {
@@ -167,9 +297,9 @@ export const users = async (collection: Collection, db: Db) => {
               }),
             },
             tier: user.tier_id === 1 ? MemberTier.Tier_1 : MemberTier.Tier_2,
-            tierUntil: user.tier_until && isAfter(new Date(), new Date(user.tier_until)) ? new Date(user.tier_until).getTime() : null,
+            tierUntil: user.tier_until && isBefore(new Date(), new Date(user.tier_until)) ? new Date(user.tier_until).getTime() : null,
             tierResetOnNextLottery: false,
-            inactivateUntil: user.deactivate_until_date && isAfter(new Date(), new Date(user.deactivate_until_date)) ? new Date(user.deactivate_until_date).getTime() : null,
+            inactivateUntil: user.deactivate_until_date && isBefore(new Date(), new Date(user.deactivate_until_date)) ? new Date(user.deactivate_until_date).getTime() : null,
             inactivationNote: user.status_reason,
             rankId: rankIdMap[user.rank_id] || officerRank,
             memberSkillIds: [],

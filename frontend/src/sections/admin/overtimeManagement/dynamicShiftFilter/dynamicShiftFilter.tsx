@@ -14,7 +14,9 @@ import { paths } from 'src/routes/paths';
 
 export default function DynamicShiftFilter() {
   const shiftHasBeenRemoved = (shift: Shift) =>
-    shift.event?.removedAt || shift.assignment?.removedAt || shift.status === ShiftStatus.Removed;
+    shift.event?.removedAt ||
+    shift.assignment?.removedAt ||
+    [ShiftStatus.Removed, ShiftStatus.Relinquished, ShiftStatus.Unassigned].includes(shift.status);
 
   const config: TableConfig<Shift> = {
     header: {

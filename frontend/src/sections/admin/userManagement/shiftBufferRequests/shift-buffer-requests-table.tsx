@@ -86,20 +86,24 @@ export default function ShiftBufferRequestsTable() {
             reason: editRequest?.reason,
           },
         });
-        setEditRequest(null);
         editRequestModal.onFalse();
       } catch(error) {
         console.error(error);
       }
     },
-    [updateRequest, editRequestModal, editRequest, setEditRequest]
+    [updateRequest, editRequestModal, editRequest]
   );
+
+  const handleClose = useCallback(() => {
+    setEditRequest(null);
+  }, [setEditRequest]);
 
   return (
     <>
       <GQLTable config={config} />
 
       <ShiftBufferRequestConfirm
+        handleClose={handleClose}
         editRequest={editRequest}
         editRequestModal={editRequestModal}
         setEditRequest={setEditRequest}

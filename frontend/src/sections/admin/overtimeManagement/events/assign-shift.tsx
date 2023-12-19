@@ -93,14 +93,14 @@ export const AssignShiftModal = ({
             ((weeklyShifts?.length || 0) >= (value?.member?.maxShifts || orgMaxShifts || Number.POSITIVE_INFINITY)) &&
             !weeklyShiftsError &&
             !loadingWeeklyShifts && (
-              <Typography variant='body2' color="warning.main" sx={{ mt: 2 }}>
+              <Typography variant='body2' color="warning.main" sx={{ mt: 2, ml: 1 }}>
                 { `Warning: ${value?.name} has reached their max shift limit for this shift week.` }
               </Typography>
             )
           }
           {weeklyShiftsError && !loadingWeeklyShifts && (
-            <Typography variant='body2' color="error.main" sx={{ mt: 2 }}>
-              { `Error retrieving user weekly shift count. User's shift count for this shift's week is unknown. Proceed with Caution.` }
+            <Typography variant='body2' color="error.main" sx={{ mt: 2, ml: 1 }}>
+              { `Error retrieving user weekly shift count. User's shift count for this shift week is unknown. Proceed with caution.` }
             </Typography>
           )}
         </>

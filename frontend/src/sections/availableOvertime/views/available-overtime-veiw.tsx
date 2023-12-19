@@ -219,7 +219,7 @@ export default function AvailableOvertimeView() {
             }
             {weeklyShiftsError && !loadingWeeklyShifts && (
               <Typography variant='body2' color="error.main" sx={{ mt: 2 }}>
-                { `Error retrieving weekly shift count. Shift count for this shift's week is unknown. Proceed with Caution.` }
+                Error retrieving weekly shift count. Shift count for this shift week is unknown. Proceed with Caution.
               </Typography>
             )}
           </>

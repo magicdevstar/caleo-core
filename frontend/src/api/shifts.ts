@@ -666,6 +666,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
           name
           member {
             pNumber
+            maxShifts
           }
         }
       }

@@ -7,13 +7,15 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-// Components
-import { ConfirmDialog } from "src/components/custom-dialog";
+// hooks
+import { useWeeklyShifts } from "src/hooks/use-weekly-shift-count";
+import { useAuthContext } from "src/auth/hooks";
+import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 // Types
 import { ShiftBufferRequest, ShiftBufferRequestStatus } from "src/__generated__/resolvers-types";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
-import { useAuthContext } from "src/auth/hooks";
+// Components
 import Iconify from "src/components/iconify";
+import { ConfirmDialog } from "src/components/custom-dialog";
 
 export const ShiftBufferRequestConfirm = ({
   editRequest,
@@ -21,6 +23,7 @@ export const ShiftBufferRequestConfirm = ({
   setEditRequest,
   updateRequestLoading,
   handleUpsert,
+  handleClose,
 }: {
   editRequest: {
     buffer: ShiftBufferRequest,
@@ -30,10 +33,18 @@ export const ShiftBufferRequestConfirm = ({
   editRequestModal: any;
   updateRequestLoading: boolean;
   handleUpsert: (input: any) => void;
+  handleClose: (node: HTMLElement) => void;
 }) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.up('md'));
   const { user } = useAuthContext();
+
+  const { weeklyShifts, loading: loadingWeeklyShifts, error: weeklyShiftsError } = useWeeklyShifts({
+    userId: editRequest?.buffer?.user?.id,
+    date: editRequest?.buffer?.startTime,
+  });
+
+  const shiftUser = useMemo(() => editRequest?.buffer?.user, [editRequest]);
 
   const body = useMemo(() => {
     if (!editRequest?.buffer) {
@@ -109,8 +120,14 @@ export const ShiftBufferRequestConfirm = ({
 
   return (
     <ConfirmDialog
+      TransitionProps={{
+        // wait for animation to end on closing
+        onExited: handleClose
+      }}
       open={editRequestModal.value}
-      onClose={editRequestModal.onFalse}
+      onClose={() => {
+        editRequestModal.onFalse();
+      }}
       title="Buffer request details"
       maxWidth='md'
       content={(
@@ -130,12 +147,27 @@ export const ShiftBufferRequestConfirm = ({
               } as any));
             }}
           />
+          {
+            shiftUser &&
+            ((weeklyShifts?.length || 0) >= (shiftUser?.member?.maxShifts || user?.member?.org?.settings?.shiftsPerWeek || Number.POSITIVE_INFINITY)) &&
+            !weeklyShiftsError &&
+            !loadingWeeklyShifts && (
+              <Typography variant='body2' color="warning.main" sx={{ mt: 2, ml: 1 }}>
+                { `Warning: ${shiftUser?.name} has reached their max shift limit for this shift week.` }
+              </Typography>
+            )
+          }
+          {shiftUser && weeklyShiftsError && !loadingWeeklyShifts && (
+            <Typography variant='body2' color="error.main" sx={{ mt: 2, ml: 1 }}>
+              { `Error retrieving user weekly shift count. User's shift count for this shift week is unknown. Proceed with caution.` }
+            </Typography>
+          )}
         </>)}
       action={
         <Stack direction="row" spacing={2} sx={{ mr: 2 }}>
           <LoadingButton
             disabled={editRequest?.reason?.trim() === ''}
-            loading={updateRequestLoading}
+            loading={updateRequestLoading || loadingWeeklyShifts}
             variant="contained"
             color="error"
             onClick={() => handleUpsert(ShiftBufferRequestStatus.Rejected)}
@@ -143,7 +175,7 @@ export const ShiftBufferRequestConfirm = ({
             Deny
           </LoadingButton>
           <LoadingButton
-            loading={updateRequestLoading}
+            loading={updateRequestLoading || loadingWeeklyShifts}
             variant="contained"
             color="primary"
             onClick={() => handleUpsert(ShiftBufferRequestStatus.Approved)}

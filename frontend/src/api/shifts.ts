@@ -100,7 +100,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         }
         otherShiftSlots {
           id
-          order
+          refNumber
           user {
             id
             firstName
@@ -294,7 +294,7 @@ export const GET_ALL_SHIFTS = gql`
         }
         otherShiftSlots {
           id
-          order
+          refNumber
           user {
             id
             firstName
@@ -541,7 +541,7 @@ query GetShiftDetails($id: String!) {
     }
     otherShiftSlots {
       id
-      order
+      refNumber
       user {
         id
         firstName
@@ -627,7 +627,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
           }
           otherShiftSlots {
             id
-            order
+            refNumber
             user {
               id
               firstName

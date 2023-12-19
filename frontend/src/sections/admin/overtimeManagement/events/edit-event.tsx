@@ -310,6 +310,7 @@ export default function EditEvent({ currentEvent }: Props) {
       }
       return res.data?.event.id;
     } catch (error) {
+      enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
       return '';
     }

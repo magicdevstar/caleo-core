@@ -338,6 +338,7 @@ export default function AccountGeneral({
       setValue('photoURL', undefined);
       enqueueSnackbar('Update success!');
     } catch (error) {
+      enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
     }
   });

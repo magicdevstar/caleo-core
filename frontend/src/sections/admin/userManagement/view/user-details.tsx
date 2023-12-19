@@ -2,6 +2,7 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
+import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
@@ -11,8 +12,9 @@ import { FrontendUser, GET_USER } from 'src/api/user';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import MainAccountView from 'src/components/user/account-view';
+import EmptyContent from 'src/components/empty-content';
 import { LoadingScreen } from 'src/components/loading-screen';
+import MainAccountView from 'src/components/user/account-view';
 
 // ----------------------------------------------------------------------
 
@@ -20,9 +22,10 @@ export default function UserDetail() {
   const settings = useSettingsContext();
   const params = useParams();
 
-  const { data, loading } = useQuery(GET_USER, {
+  const { data, refetch, loading, error } = useQuery(GET_USER, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    notifyOnNetworkStatusChange: true,
     variables: {
       id: params.id,
     },
@@ -42,22 +45,32 @@ export default function UserDetail() {
         sx={{ mb: 1 }}
       />
 
-      {
-        loading ? (
-          <LoadingScreen
-            sx={{
-              borderRadius: 1.5,
-              bgcolor: 'background.default',
-            }}
-          />
-        ) : (
-          <MainAccountView excludePassword adminViewer user={{
-            ...data?.user,
-            displayName: data?.user?.name,
-            photoURL: _mock.image.avatar(24),
-          } as FrontendUser} />
-        )
-      }
+      {loading && (
+        <LoadingScreen
+          sx={{
+            borderRadius: 1.5,
+            bgcolor: 'background.default',
+          }}
+        />
+      )}
+      {(!loading && error) && (
+        <EmptyContent
+          title='Error loading User'
+          description='There was an error loading user details. Please try again.'
+          action={
+            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+      {(!loading && !error) && (
+        <MainAccountView excludePassword adminViewer user={{
+          ...data?.user,
+          displayName: data?.user?.name,
+          photoURL: _mock.image.avatar(24),
+        } as FrontendUser} />
+      )}
     </Container>
   );
 }

@@ -132,6 +132,7 @@ export default function EditVenue({ currentVenue }: Props) {
       enqueueSnackbar(currentVenue ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.admin.overtime.venues);
     } catch (error) {
+      enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
     }
   });

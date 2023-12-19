@@ -306,6 +306,7 @@ export default function EditAssignment({
       }
       return res.data?.assignment.id;
     } catch (error) {
+      enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
       return null;
     }

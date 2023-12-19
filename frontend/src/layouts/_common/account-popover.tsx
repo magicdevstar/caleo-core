@@ -112,7 +112,7 @@ export default function AccountPopover() {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem
-          sx={{ m: 1 }}
+          sx={{ m: 1, marginBottom: '8px !important' }}
           onClick={() => {
             onUpdate('themeMode', themeMode === 'light' ? 'dark' : 'light');
           }}

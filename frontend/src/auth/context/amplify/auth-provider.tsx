@@ -43,6 +43,13 @@ const initialState: AuthStateType = {
 
 const reducer = (state: AuthStateType, action: Action) => {
   if (action.type === Types.INITIAL) {
+    if(window && (window as any).Beacon) {
+      (window as any).Beacon('identify', {
+        email: action.payload.user?.email,
+        name: action.payload.user?.displayName,
+      });
+    }
+
     return {
       loading: false,
       user: action.payload.user,
@@ -58,6 +65,9 @@ const reducer = (state: AuthStateType, action: Action) => {
     };
   }
   if (action.type === Types.LOGOUT) {
+    if(window && (window as any).Beacon) {
+      (window as any).Beacon('logout');
+    }
     return {
       ...state,
       user: null,

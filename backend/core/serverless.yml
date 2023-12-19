@@ -20,7 +20,7 @@ params:
     poolId: us-west-2_3enNflKSo
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
-    fromEmail: support@caleopro.com
+    fromEmail: lvmpd@caleopro.com
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
@@ -147,7 +147,7 @@ functions:
     timeout: 300
   mailer:
     handler: src/workers/mailer.handler
-    timeout: 300
+    timeout: 900
 
   # Test function
   scheduleTask:

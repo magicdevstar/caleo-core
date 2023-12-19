@@ -4,6 +4,7 @@ import { AddressConfiguration, MessageType, PinpointClient, SendMessagesCommand 
 import { utcToZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
 import logger from "../utils/logger";
+import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../types/mailer";
 import { createContext } from "../utils/createContext";
 import { EventStatus, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
@@ -18,10 +19,88 @@ const convertDate = (unixDate: number, organization: Organization) => {
   };
 };
 
+const sendInChunks = async (input: any, Addresses: any) => {
+  if (Object.keys(Addresses.length).length > 100) {
+    const chunks = chunk(Object.keys(Addresses), 100).map((chunk) => {
+      const obj = {} as Record<string, AddressConfiguration>;
+      chunk.forEach((key) => {
+        obj[key] = Addresses[key];
+      });
+      return obj;
+    });
+    for(const chunk of chunks) {
+      const hasSMS = Object.keys(chunk).some((key) => chunk[key].ChannelType === 'SMS');
+      // Attaching to input so it will get logged with the error :)
+      (input as any).pinpointInput = {
+        ApplicationId: process.env.PINPOINT_ID,
+        MessageRequest: {
+          Addresses: chunk as any,
+          MessageConfiguration: {
+            ...(hasSMS && {
+              SMSMessage: {
+                MessageType: MessageType.TRANSACTIONAL,
+              }
+            }),
+            EmailMessage: {
+              FromAddress: process.env.FROM_EMAIL,
+            },
+          },
+          TemplateConfiguration: {
+            ...(hasSMS && {
+              SMSTemplate: {
+                Name: input.template,
+                Version: '1',
+              },
+            }),
+            EmailTemplate: {
+              Name: input.template,
+              Version: '1',
+            },
+          },
+        }
+      };
+      const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
+      logger.info('Pinpoint response', { res });
+    }
+  } else {
+    const hasSMS = Object.keys(Addresses).some((key) => chunk[key].ChannelType === 'SMS');
+    // Attaching to input so it will get logged with the error :)
+    (input as any).pinpointInput = {
+      ApplicationId: process.env.PINPOINT_ID,
+      MessageRequest: {
+        Addresses: Addresses as any,
+        MessageConfiguration: {
+          ...(hasSMS && {
+            SMSMessage: {
+              MessageType: MessageType.TRANSACTIONAL,
+            }
+          }),
+          EmailMessage: {
+            FromAddress: process.env.FROM_EMAIL,
+          },
+        },
+        TemplateConfiguration: {
+          ...(hasSMS && {
+            SMSTemplate: {
+              Name: input.template,
+              Version: '1',
+            },
+          }),
+          EmailTemplate: {
+            Name: input.template,
+            Version: '1',
+          },
+        },
+      }
+    };
+    const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
+    logger.info('Pinpoint response', { res });
+  }
+}
+
 // TODO: Group events together when it makes sense.
 const sendEmail = async (input: MailerEvent) => {
   try {
-    let includeSMS = false;
     const context = await createContext();
     let Addresses: Record<string, AddressConfiguration> = {};
     if (input.template === MailerEvents.OfficerEventRemoved) {
@@ -94,7 +173,6 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
         if (shift && shift.user && shift.user.member.contactInfo?.primaryPhone.receiveTexts) {
-          includeSMS = true;
           Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
             ChannelType: 'SMS',
             Substitutions: {
@@ -289,7 +367,6 @@ const sendEmail = async (input: MailerEvent) => {
                   admin.member.contactInfo!.primaryPhone.number
                 )
                 .reduce((obj, admin: User) => {
-                  includeSMS = true;
                   const Substitutions: Record<string, string[]> = {
                     "event.name": [event.name],
                     "event.reference_number": [event.referenceId],
@@ -335,24 +412,10 @@ const sendEmail = async (input: MailerEvent) => {
                 ...SMSAddresses,
               } as any;
               if (Object.keys(finalAddresses).length > 0) {
-                const all = await pinpoint.send(new SendMessagesCommand({
-                  ApplicationId: process.env.PINPOINT_ID,
-                  MessageRequest: {
-                    Addresses: finalAddresses,
-                    MessageConfiguration: {
-                      EmailMessage: {
-                        FromAddress: process.env.FROM_EMAIL,
-                      },
-                    },
-                    TemplateConfiguration: {
-                      EmailTemplate: {
-                        Name: MailerEvents.AdminEventFullyStaffed,
-                        Version: '1',
-                      },
-                    },
-                  }
-                }));
-                logger.info('Event staffed response', { all });
+                await sendInChunks({
+                  ...input,
+                  template: MailerEvents.AdminEventFullyStaffed,
+                }, finalAddresses);
               }
             }
           }
@@ -381,7 +444,6 @@ const sendEmail = async (input: MailerEvent) => {
                   admin.member.contactInfo!.primaryPhone.number
                 )
                 .reduce((obj, admin: User) => {
-                  includeSMS = true;
                   const Substitutions: Record<string, string[]> = {
                     "shift.name": [assignment.name],
                     "event.name": [event.name],
@@ -428,24 +490,10 @@ const sendEmail = async (input: MailerEvent) => {
                 ...SMSAddresses,
               } as any;
               if (Object.keys(finalAddresses).length > 0) {
-                const all = await pinpoint.send(new SendMessagesCommand({
-                  ApplicationId: process.env.PINPOINT_ID,
-                  MessageRequest: {
-                    Addresses: finalAddresses,
-                    MessageConfiguration: {
-                      EmailMessage: {
-                        FromAddress: process.env.FROM_EMAIL,
-                      },
-                    },
-                    TemplateConfiguration: {
-                      EmailTemplate: {
-                        Name: MailerEvents.AdminEventShiftsFilled,
-                        Version: '1',
-                      },
-                    },
-                  }
-                }));
-                logger.info('Assignment staffed response', { all });
+                await sendInChunks({
+                  ...input,
+                  template: MailerEvents.AdminEventShiftsFilled,
+                }, finalAddresses);
               }
             }
           }
@@ -475,7 +523,6 @@ const sendEmail = async (input: MailerEvent) => {
         };
       }
       if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        includeSMS = true;
         Addresses = {
           ...Addresses,
           [user.member.contactInfo!.primaryPhone.number]: {
@@ -536,7 +583,6 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
         if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-          includeSMS = true;
           Addresses = {
             ...Addresses,
             [user.member.contactInfo!.primaryPhone.number]: {
@@ -711,7 +757,6 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
         if (shift && shift.user?.member.contactInfo?.primaryPhone.receiveTexts) {
-          includeSMS = true;
           Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
             ChannelType: 'SMS',
             Substitutions: {
@@ -811,7 +856,6 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
         if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
-          includeSMS = true;
           Addresses[user.member.contactInfo!.primaryPhone.number] = {
             ChannelType: 'SMS',
             Substitutions: {
@@ -898,7 +942,6 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
         if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
-          includeSMS = true;
           Addresses[user.member.contactInfo!.primaryPhone.number] = {
             ChannelType: 'SMS',
             Substitutions: {
@@ -982,7 +1025,6 @@ const sendEmail = async (input: MailerEvent) => {
             };
           }
           if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-            includeSMS = true;
             Addresses[user.member.contactInfo!.primaryPhone.number] = {
               ChannelType: 'SMS',
               Substitutions: {
@@ -1050,7 +1092,6 @@ const sendEmail = async (input: MailerEvent) => {
             };
           }
           if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-            includeSMS = true;
             Addresses[user.member.contactInfo!.primaryPhone.number] = {
               ChannelType: 'SMS',
               Substitutions: {
@@ -1118,7 +1159,6 @@ const sendEmail = async (input: MailerEvent) => {
       const SMSAddresses = (allAdmins || [])
         .filter((admin: User) => admin.member.contactInfo?.primaryPhone.receiveTexts)
         .reduce((obj, admin: User) => {
-          includeSMS = true;
           const Substitutions: Record<string, string[]> = {
             "user.first_name": [user.firstName],
             "user.last_name": [user.lastName],
@@ -1176,7 +1216,6 @@ const sendEmail = async (input: MailerEvent) => {
         };
       }
       if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        includeSMS = true;
         Addresses = {
           ...Addresses,
           [user.member.contactInfo!.primaryPhone.number]: {
@@ -1221,7 +1260,6 @@ const sendEmail = async (input: MailerEvent) => {
         };
       }
       if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        includeSMS = true;
         Addresses = {
           ...Addresses,
           [user.member.contactInfo!.primaryPhone.number]: {
@@ -1242,37 +1280,9 @@ const sendEmail = async (input: MailerEvent) => {
       });
       return;
     }
-    // Attaching to input so it will get logged with the error :)
-    (input as any).pinpointInput = {
-      ApplicationId: process.env.PINPOINT_ID,
-      MessageRequest: {
-        Addresses: Addresses as any,
-        MessageConfiguration: {
-          ...(includeSMS && {
-            SMSMessage: {
-              MessageType: MessageType.TRANSACTIONAL,
-            }
-          }),
-          EmailMessage: {
-            FromAddress: process.env.FROM_EMAIL,
-          },
-        },
-        TemplateConfiguration: {
-          ...(includeSMS && {
-            SMSTemplate: {
-              Name: input.template,
-              Version: '1',
-            },
-          }),
-          EmailTemplate: {
-            Name: input.template,
-            Version: '1',
-          },
-        },
-      }
-    };
-    const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
-    logger.info('Pinpoint response', { res });
+
+    await sendInChunks(input, Addresses);
+
   } catch(error) {
     logger.error('Error sending email', { error, input });
     throw error;

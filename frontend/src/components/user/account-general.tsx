@@ -301,13 +301,13 @@ export default function AccountGeneral({
                 ...(d.secondaryEmail && {
                   secondaryEmail: {
                     address: d.secondaryEmail,
-                    receiveEmails: d.secondaryEmailReceive,
+                    receiveEmails: !!d.secondaryEmailReceive,
                   }
                 }),
                 ...(d.secondaryPhone && {
                   secondaryPhone: {
-                    address: d.secondaryPhone,
-                    receiveEmails: d.secondaryPhoneReceive,
+                    number: d.secondaryPhone,
+                    receiveTexts: !!d.secondaryPhoneReceive,
                   }
                 }),
               }

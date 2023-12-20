@@ -61,7 +61,8 @@ const sendInChunks = async (input: any, Addresses: any) => {
         }
       };
       const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
-      logger.info('Pinpoint response', { res });
+      console.log(JSON.stringify(res, null, 2));
+      // logger.info('Pinpoint response', { res });
     }
   } else {
     const hasSMS = Object.keys(Addresses).some((key) => Addresses[key].ChannelType === 'SMS');
@@ -95,7 +96,8 @@ const sendInChunks = async (input: any, Addresses: any) => {
       }
     };
     const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
-    logger.info('Pinpoint response', { res });
+    // logger.info('Pinpoint response', { res });
+    console.log(JSON.stringify(res, null, 2));
   }
 }
 
@@ -362,27 +364,7 @@ const sendEmail = async (input: MailerEvent) => {
     
               const eventStart = convertDate(event.startTime as any, organization);
               const eventEnd = convertDate(event.endTime as any, organization);
-              const SMSAddresses = (allAdmins || [])
-                .filter((admin: User) =>
-                  admin.member.contactInfo!.primaryPhone.receiveTexts ||
-                  admin.member.contactInfo!.primaryPhone.number
-                )
-                .reduce((obj, admin: User) => {
-                  const Substitutions: Record<string, string[]> = {
-                    "event.name": [event.name],
-                    "event.reference_number": [event.referenceId],
-                    "venue.name": [venue.name],
-                  };
-                  const num = admin.member.contactInfo!.primaryPhone.number;
-    
-                  return {
-                    ...obj,
-                    [num]: {
-                      ChannelType: 'SMS',
-                      Substitutions,
-                    } as AddressConfiguration,
-                  };
-                }, {} as Record<string, AddressConfiguration>);
+              const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
                 .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
                 .reduce((obj, admin) => {
@@ -439,27 +421,7 @@ const sendEmail = async (input: MailerEvent) => {
     
               const eventStart = convertDate(event.startTime as any, organization);
               const eventEnd = convertDate(event.endTime as any, organization);
-              const SMSAddresses = (allAdmins || [])
-                .filter((admin: User) =>
-                  admin.member.contactInfo!.primaryPhone.receiveTexts ||
-                  admin.member.contactInfo!.primaryPhone.number
-                )
-                .reduce((obj, admin: User) => {
-                  const Substitutions: Record<string, string[]> = {
-                    "shift.name": [assignment.name],
-                    "event.name": [event.name],
-                    "venue.name": [venue.name],
-                  };
-                  const num = admin.member.contactInfo!.primaryPhone.number;
-    
-                  return {
-                    ...obj,
-                    [num]: {
-                      ChannelType: 'SMS',
-                      Substitutions,
-                    } as AddressConfiguration,
-                  };
-                }, {} as Record<string, AddressConfiguration>);
+              const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
                 .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
                 .reduce((obj, admin) => {
@@ -1022,16 +984,6 @@ const sendEmail = async (input: MailerEvent) => {
               },
             };
           }
-          if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-            Addresses[user.member.contactInfo!.primaryPhone.number] = {
-              ChannelType: 'SMS',
-              Substitutions: {
-                "shift.name": [assignment.name],
-                "event.name": [event.name],
-                "system.metro_name": [organization.name],
-              },
-            };
-          }
         }
       } while(user);
       if (Object.keys(Addresses).length === 0) {
@@ -1122,15 +1074,6 @@ const sendEmail = async (input: MailerEvent) => {
               },
             };
           }
-          if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-            Addresses[user.member.contactInfo!.primaryPhone.number] = {
-              ChannelType: 'SMS',
-              Substitutions: {
-                "event.name": [event.name],
-                "system.metro_name": [organization.name],
-              },
-            };
-          }
         }
       } while(user);
       if (Object.keys(Addresses).length === 0) {
@@ -1187,24 +1130,7 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }, {} as Record<string, AddressConfiguration>);
 
-      const SMSAddresses = (allAdmins || [])
-        .filter((admin: User) => admin.member.contactInfo?.primaryPhone.receiveTexts)
-        .reduce((obj, admin: User) => {
-          const Substitutions: Record<string, string[]> = {
-            "user.first_name": [user.firstName],
-            "user.last_name": [user.lastName],
-            "system.metro_name": [organization.name],
-          };
-          const num = admin.member.contactInfo!.primaryPhone.number || '';
-
-          return {
-            ...obj,
-            [num]: {
-              ChannelType: 'SMS',
-              Substitutions,
-            } as AddressConfiguration,
-          };
-        }, {} as Record<string, AddressConfiguration>);
+      const SMSAddresses = {};
 
       Addresses = {
         ...EmailAddresses,

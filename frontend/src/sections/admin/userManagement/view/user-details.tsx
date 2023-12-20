@@ -23,7 +23,7 @@ export default function UserDetail() {
   const { data, refetch, loading, error } = useQuery(GET_USER, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    notifyOnNetworkStatusChange: true,
+    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.id,
     },

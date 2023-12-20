@@ -23,7 +23,7 @@ export default function ShiftDetail() {
   const { data, refetch, loading, error } = useQuery(GET_GROUPED_SHIFTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    notifyOnNetworkStatusChange: true,
+    // notifyOnNetworkStatusChange: true,
     variables: {
       shiftId: params.shiftId,
     },

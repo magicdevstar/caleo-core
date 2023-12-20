@@ -1,6 +1,7 @@
 import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
+import isEqual from 'lodash.isequal';
 
 import logger from '../utils/logger';
 import { DocType, MemberTier, Organization, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
@@ -8,51 +9,66 @@ import { createContext } from '../utils/createContext';
 
 interface InputEvent {
   _id: string;
-  shifts: Shift[];
   dryRun: boolean;
 }
 
-const assignShift = async ({ _id: shiftGroupId, shifts, dryRun }: InputEvent) => {
+const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
   const {
     shiftLotteryRequests: lottery,
     organizations,
     users,
+    memberSkills,
     shifts: shiftsModel,
+    assignments,
   } = await createContext();
+
+  const shifts = await shiftsModel.findAllUnassignedShiftsByGroupId({
+    shiftGroupId,
+  });
+
+  if (shifts.length === 0) {
+    throw new Error('Shifts not found');
+  }
   
   // Fetch requests
   const organization = await organizations.get(shifts[0].orgId);
   if (!organization) {
     throw new Error('Organization not found');
   }
+
   const requests = await lottery.requestsStagedForAssignment(shiftGroupId);
 
   logger.info('Lottery requests', {
     requests,
   });
 
+  const assignment = await assignments.get(shifts[0].assignmentId);
+
   const tier1Assignments = new Set<string>();
   const shiftAssignments: any[] = [];
   const acceptedRequestIds: ObjectId[] = [];
   // Loop through requests, check if user can sign up for shift and assign the shift if so
   for(const request of requests) {
-    const { items } = await users.findOpenShifts({
+    if (!assignment?.rankIds?.includes(request.user?.member?.rankId)) {
+      logger.info('Request rank does not match assignment rank', {  assignmentRankIds: assignment?.rankIds, requestRankId: request.user?.member?.rankId });
+      continue;
+    }
+    if (assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
+      const mSkills = await memberSkills.findAll(request.user?.member?.memberSkillIds.map((id) => new ObjectId(id)));
+      const skillIds = mSkills.map(({ skillId }) => skillId);
+      if (!isEqual(assignment.requiredSkillIds, skillIds)) {
+        logger.info('Request skills do not match assignment skills', {  assignmentSkillIds: assignment.requiredSkillIds, requestSkillIds: skillIds });
+        continue;
+      }
+    }
+    const canSignUpForShift = await shiftsModel.canSignUpForShift({
       user: request.user as any,
-      organization: organization!,
-      orgId: organization!.id,
-      limit: 1,
-      skip: 0,
-      shiftGroupId,
-      defaultEventIds: [shifts[0].eventId],
-    });
-    // Remove any shifts that fall under the shift buffer
-    const total = items.filter(({ shiftBufferShift }) => !shiftBufferShift).length;
-    logger.info('Available for request', {
-      total,
-      request,
+      shift: shifts[0],
+      orgId: organization.id,
+      shiftBufferTime: organization.settings?.shiftBuffer.enabled ? organization.settings?.shiftBuffer.minuteShiftBuffer : 0,
     });
     // This means we can assign this shift to this user
-    if (total !== 0) {
+    if (canSignUpForShift) {
       const user = await users.get(request.user.id);
       if (!user) {
         continue;

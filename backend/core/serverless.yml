@@ -11,6 +11,8 @@ params:
     domainName: dev-api.caleopro.com
     pinpointId: d169e35fcb7d4f06b26da89e5650905a
     fromEmail: support@dev.caleopro.com
+    LOG_LEVEL: info
+    LOG_SAMPLE_RATE: 1
     appUrl: https://dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
@@ -21,6 +23,8 @@ params:
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: lvmpd@caleopro.com
+    LOG_LEVEL: warn
+    LOG_SAMPLE_RATE: 0
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
@@ -60,6 +64,8 @@ provider:
     LOGIN_URL: ${param:loginUrl}
     REGISTER_URL: ${param:registerUrl}
     APP_URL: ${param:appUrl}
+    LOG_LEVEL: ${param:LOG_LEVEL}
+    LOG_SAMPLE_RATE: ${param:LOG_SAMPLE_RATE}
   iam:
     role:
       statements:
@@ -104,6 +110,7 @@ functions:
     handler: src/auth/authorizer.handler
   graphql:
     handler: src/index.handler
+    memorySize: 2048
     events:
       - httpApi:
           path: /
@@ -131,9 +138,11 @@ functions:
   # Lotto Step Function
   fetchShifts:
     handler: src/steps/fetchShifts.handler
+    memorySize: 2048
     timeout: 300
   assignShift:
     handler: src/steps/assignShift.handler
+    memorySize: 2048
     timeout: 300
   finalizeLottery:
     handler: src/steps/finalizeLottery.handler
@@ -147,7 +156,8 @@ functions:
     timeout: 300
   mailer:
     handler: src/workers/mailer.handler
-    timeout: 900
+    memorySize: 2048
+    timeout: 300
 
   # Test function
   scheduleTask:

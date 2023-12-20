@@ -6,8 +6,8 @@ const getLoggerConfig = ({
   stage
 }): ConstructorOptions => ({
   serviceName,
-  logLevel: stage === 'prod' ? 'info' : 'debug',
-  sampleRateValue: stage === 'prod' ? 0.1 : 1,
+  logLevel: process.env.LOG_LEVEL! as any,
+  sampleRateValue: parseFloat(process.env.LOG_SAMPLE_RATE!),
 });
 
 export const persistentAttributes = [

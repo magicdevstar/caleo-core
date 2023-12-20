@@ -65,6 +65,9 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       id: string;
       member: {
         tier: MemberTier;
+        memberSkillIds: string[];
+        rankId: string;
+        availability: any;
       };
     };
   }[]> {

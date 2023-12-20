@@ -1,10 +1,10 @@
 import { Collection, Db } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DayOfWeek, DocType, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
-import { endOfDay, getDay, getHours, getMinutes, setHours, setMinutes } from 'date-fns';
+import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
@@ -153,6 +153,75 @@ export class ShiftModel extends BaseModel<Shift> {
         } as MailerEvent),
       }));
     }
+  }
+
+  async canSignUpForShift({
+    user,
+    shift,
+    orgId,
+    shiftBufferTime = 0,
+  }: {
+    user: User;
+    shift: Shift;
+    orgId: string;
+    shiftBufferTime?: number;
+  }) {
+    const bufferOffset = shiftBufferTime * 60 * 1000;
+    const available = Object.keys(user.member.availability).reduce((isAvailable: boolean, day: string) => {
+      if (!isAvailable || !shift.availability?.[day]) return isAvailable;
+      const { available, times } = user.member.availability[day] as DayAvailability;
+      if (!available && shift.availability?.[day]) {
+        return false;
+      }
+    
+      return (times || []).some(({ startTime, endTime }) => {
+        const originalStartTime = new Date(startTime);
+        const originalEndTime = new Date(endTime);
+    
+        const start = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalStartTime)), getMinutes(originalStartTime)), 0), 0);
+        const end = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalEndTime)), getMinutes(originalEndTime)), 999), 59);
+    
+        return (
+          (shift.availability?.[day]?.startTime && new Date(shift.availability?.[day]?.startTime).getTime() >= start.getTime()) &&
+          (shift.availability?.[day]?.endTime && new Date(shift.availability?.[day]?.endTime).getTime() <= end.getTime())
+        );
+      });
+    }, true);
+    
+    if (!available) {
+      return false;
+    }
+    const foundOverlap = await this.collection.findOne({
+      orgId,
+      userId: user.id,
+      removedAt: { $exists: false },
+      $or: [
+        {
+          startTime: { $lte: ((shift.startTime as any) - bufferOffset) },
+          endTime: { $gte: ((shift.startTime as any) - bufferOffset) },
+        },
+        {
+          startTime: { $lte: ((shift.endTime as any) + bufferOffset) },
+          endTime: { $gte: ((shift.endTime as any) + bufferOffset) },
+        },
+      ]
+    });
+    logger.info('Found overlap', { foundOverlap, bufferOffset, startTime: shift.startTime, endTime: shift.endTime, query: {
+      orgId,
+      userId: user.id,
+      removedAt: { $exists: false },
+      $or: [
+        {
+          startTime: { $lte: ((shift.startTime as any) - bufferOffset) },
+          endTime: { $gte: ((shift.startTime as any) - bufferOffset) },
+        },
+        {
+          startTime: { $lte: ((shift.endTime as any) + bufferOffset) },
+          endTime: { $gte: ((shift.endTime as any) + bufferOffset) },
+        },
+      ]
+    } })
+    return !foundOverlap;
   }
 
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
@@ -351,16 +420,12 @@ export class ShiftModel extends BaseModel<Shift> {
       {
         $group: {
           _id: "$shiftId",
-          shifts: {
-            $push: "$$ROOT",
-          },
         },
       },
     ];
 
     const res = await this.eventsCollection.aggregate<{
       _id: string;
-      shifts: Shift[];
     }>(pipeline).toArray();
 
     logger.info('Res', { res });
@@ -368,6 +433,44 @@ export class ShiftModel extends BaseModel<Shift> {
     return {
       items: res,
     };
+  }
+
+  async findAllUnassignedShiftsByGroupId({
+    shiftGroupId,
+  }: {
+    shiftGroupId: string;
+  }) {
+    const res = await this.collection.find({
+      $and: [
+        { shiftId: shiftGroupId },
+        { removedAt: { $exists: false } },
+        {
+          $or: [
+            { userId: null },
+            {
+              userId: {
+                $exists: false,
+              },
+            },
+          ],
+        },
+        {
+          $or: [
+            { locked: false },
+            {
+              locked: {
+                $exists: false,
+              },
+            },
+          ],
+        },
+      ],
+    }).toArray();
+    return res.map(({_id, ...item}) => ({
+      ...item,
+      _id,
+      id: _id.toString(),
+    }) as unknown as Shift);
   }
 
   async dynamicSearch(input: ShiftSearchExtended): Promise<SearchResults<Shift>> {

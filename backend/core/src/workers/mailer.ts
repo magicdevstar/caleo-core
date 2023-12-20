@@ -1,4 +1,5 @@
 import middy from "@middy/core";
+import uniq from 'lodash.uniq';
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { AddressConfiguration, MessageType, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
 import { utcToZonedTime } from "date-fns-tz";
@@ -20,7 +21,7 @@ const convertDate = (unixDate: number, organization: Organization) => {
 };
 
 const sendInChunks = async (input: any, Addresses: any) => {
-  if (Object.keys(Addresses.length).length > 100) {
+  if (Object.keys(Addresses).length > 100) {
     const chunks = chunk(Object.keys(Addresses), 100).map((chunk) => {
       const obj = {} as Record<string, AddressConfiguration>;
       chunk.forEach((key) => {
@@ -985,6 +986,7 @@ const sendEmail = async (input: MailerEvent) => {
       const allUsers = await context.users.collection.find({
         'member.orgId': organization.id,
         'member.status': MemberStatus.Active,
+        'member.rankId': { $in: assignment.rankIds },
         removedAt: { $exists: false },
       });
 
@@ -992,19 +994,15 @@ const sendEmail = async (input: MailerEvent) => {
       do {
         user = await allUsers.next() as any;
         if (user) {
-          const { total } = await context.users.findOpenShifts({
+          const canSignUpForShift = await context.shifts.canSignUpForShift({
             user: {
               ...user,
               id: (user as any)._id.toString(),
             },
-            organization: organization!,
+            shift,
             orgId: organization.id,
-            shiftId: shift.id,
-            limit: 1,
-            skip: 0,
           });
-          logger.info('Checking if user can sign up for shift', { user, shift, total });
-          if (total === 0) {
+          if (!canSignUpForShift) {
             continue;
           }
           if (user.member.contactInfo?.primaryEmail.receiveEmails) {
@@ -1049,12 +1047,30 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
+      const assignmentDetails = await context.assignments.collection.find({
+        orgId: organization.id,
+        eventId: event.id,
+      }).project({ _id: 1, rankIds: 1 }).toArray();
+
+      const shiftIds = await context.shifts.collection.find({
+        orgId: organization.id,
+        eventId: event.id,
+        assignmentId: { $in: assignmentDetails.map((a: any) => a._id.toString()) },
+        $or: [
+          { userId: null },
+          { userId: { $exists: false } },
+        ],
+      }).project({ shiftId: 1 }).toArray();
+      const uniqShiftIds = uniq(shiftIds.map((s: any) => s.shiftId));
+      const uniqRanksIds = uniq(assignmentDetails.map((a: any) => a.rankIds).flat());
+
       const eventStart = convertDate(event.startTime as any, organization);
       const eventEnd = convertDate(event.endTime as any, organization);
 
       const allUsers = await context.users.collection.find({
         'member.orgId': organization.id,
         'member.status': MemberStatus.Active,
+        'member.rankId': { $in: uniqRanksIds },
         removedAt: { $exists: false },
       });
 
@@ -1062,19 +1078,34 @@ const sendEmail = async (input: MailerEvent) => {
       do {
         user = await allUsers.next() as any;
         if (user) {
-          const { total } = await context.users.findOpenShifts({
-            user: {
-              ...user,
-              id: (user as any)._id.toString(),
-            },
-            organization: organization!,
-            orgId: organization.id,
-            defaultEventIds: [eventId],
-            limit: 1,
-            skip: 0,
-          });
-          logger.info('Checking if user can sign up for shift', { user, event, total });
-          if (total === 0) {
+          let canSignUpForAShift = false;
+          for(const shiftId of uniqShiftIds) {
+            const shift = await context.shifts.findOne({
+              shiftId,
+              orgId: organization.id,
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+            });
+            if (!shift) {
+              continue;
+            }
+            const canSignUpForShift = await context.shifts.canSignUpForShift({
+              user: {
+                ...user,
+                id: (user as any)._id.toString(),
+              },
+              shift,
+              orgId: organization.id,
+            });
+            if (!canSignUpForShift) {
+              continue;
+            }
+            canSignUpForAShift = true;
+            break;
+          }
+          if (!canSignUpForAShift) {
             continue;
           }
           if (user.member.contactInfo?.primaryEmail.receiveEmails) {
@@ -1280,9 +1311,7 @@ const sendEmail = async (input: MailerEvent) => {
       });
       return;
     }
-
     await sendInChunks(input, Addresses);
-
   } catch(error) {
     logger.error('Error sending email', { error, input });
     throw error;

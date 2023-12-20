@@ -2,7 +2,6 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
@@ -12,8 +11,7 @@ import { FrontendUser, GET_USER } from 'src/api/user';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import EmptyContent from 'src/components/empty-content';
-import { LoadingScreen } from 'src/components/loading-screen';
+import QueryView from 'src/components/query-view';
 import MainAccountView from 'src/components/user/account-view';
 
 // ----------------------------------------------------------------------
@@ -45,32 +43,19 @@ export default function UserDetail() {
         sx={{ mb: 1 }}
       />
 
-      {loading && (
-        <LoadingScreen
-          sx={{
-            borderRadius: 1.5,
-            bgcolor: 'background.default',
-          }}
-        />
-      )}
-      {(!loading && error) && (
-        <EmptyContent
-          title='Error loading User'
-          description='There was an error loading user details. Please try again.'
-          action={
-            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
-              Retry
-            </Button>
-          }
-        />
-      )}
-      {(!loading && !error) && (
+      <QueryView
+        loading={loading}
+        error={!!error}
+        errorTitle='Failed to Load User'
+        errorDescription='There was an error loading User details. Please try again.'
+        onRetry={refetch}
+      >
         <MainAccountView excludePassword adminViewer user={{
           ...data?.user,
           displayName: data?.user?.name,
           photoURL: _mock.image.avatar(24),
         } as FrontendUser} />
-      )}
+      </QueryView>
     </Container>
   );
 }

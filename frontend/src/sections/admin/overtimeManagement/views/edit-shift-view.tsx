@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
@@ -11,9 +10,8 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { LoadingScreen } from 'src/components/loading-screen';
 import { GET_GROUPED_SHIFTS } from 'src/api/shifts';
-import EmptyContent from 'src/components/empty-content';
+import QueryView from 'src/components/query-view';
 import EditShift from '../events/edit-shift';
 
 // ----------------------------------------------------------------------
@@ -57,26 +55,13 @@ export default function ShiftDetail() {
         sx={{ mb: 1 }}
       />
 
-      {loading && (
-        <LoadingScreen
-          sx={{
-            borderRadius: 1.5,
-            bgcolor: 'background.default',
-          }}
-        />
-      )}
-      {(!loading && error) && (
-        <EmptyContent
-          title='Error loading Shift'
-          description='There was an error loading shift details. Please try again.'
-          action={
-            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
-              Retry
-            </Button>
-          }
-        />
-      )}
-      {(!loading && !error) && (
+      <QueryView
+        loading={loading}
+        error={!!error}
+        errorTitle='Failed to Load Shift'
+        errorDescription='There was an error loading Shift details. Please try again.'
+        onRetry={refetch}
+      >
         <EditShift
           eventId={params.eventId!}
           assignmentId={params.assignmentId!}
@@ -84,7 +69,7 @@ export default function ShiftDetail() {
           backLink={assignmentLink}
           shiftId={params.shiftId === 'new' ? undefined : params.shiftId}
         />
-      )}
+      </QueryView>
     </Container>
   );
 }

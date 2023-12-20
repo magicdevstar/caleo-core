@@ -2,7 +2,6 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
@@ -10,9 +9,8 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { LoadingScreen } from 'src/components/loading-screen';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
-import EmptyContent from 'src/components/empty-content';
+import QueryView from 'src/components/query-view/query-view';
 import EditAssignment from '../events/edit-assignment';
 
 // ----------------------------------------------------------------------
@@ -48,28 +46,15 @@ export default function AssignmentDetail() {
         sx={{ mb: 1 }}
       />
 
-      {loading && (
-        <LoadingScreen
-          sx={{
-            borderRadius: 1.5,
-            bgcolor: 'background.default',
-          }}
-        />
-      )}
-      {(!loading && error) && (
-        <EmptyContent
-          title='Error loading Assignment'
-          description='There was an error loading assignment details. Please try again.'
-          action={
-            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
-              Retry
-            </Button>
-          }
-        />
-      )}
-      {(!loading && !error) && (
+      <QueryView
+        loading={loading}
+        error={!!error}
+        errorTitle='Failed to Load Assignment'
+        errorDescription='There was an error loading Assignment details. Please try again.'
+        onRetry={refetch}
+      >
         <EditAssignment eventId={params.eventId!} currentAssignment={data?.assignment} />
-      )}
+      </QueryView>
     </Container>
   );
 }

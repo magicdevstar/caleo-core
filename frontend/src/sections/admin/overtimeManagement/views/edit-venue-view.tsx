@@ -2,7 +2,6 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
@@ -10,9 +9,8 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { LoadingScreen } from 'src/components/loading-screen';
 import { GET_VENUE } from 'src/api/venues';
-import EmptyContent from 'src/components/empty-content';
+import QueryView from 'src/components/query-view';
 import EditVenue from '../venues/edit-venue';
 
 // ----------------------------------------------------------------------
@@ -42,29 +40,15 @@ export default function VenueDetail() {
         ]}
         sx={{ mb: 1 }}
       />
-
-      {loading && (
-        <LoadingScreen
-          sx={{
-            borderRadius: 1.5,
-            bgcolor: 'background.default',
-          }}
-        />
-      )}
-      {(!loading && error) && (
-        <EmptyContent
-          title='Error loading Venue'
-          description='There was an error loading venue details. Please try again.'
-          action={
-            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
-              Retry
-            </Button>
-          }
-        />
-      )}
-      {(!loading && !error) && (
+      <QueryView
+        loading={loading}
+        error={!!error}
+        errorTitle='Failed to Load Venue'
+        errorDescription='There was an error loading Venue details. Please try again.'
+        onRetry={refetch}
+      >
         <EditVenue currentVenue={data?.venue} />
-      )}
+      </QueryView>
     </Container>
   );
 }

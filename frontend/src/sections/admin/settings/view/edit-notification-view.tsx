@@ -2,17 +2,15 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
 // hooks
 import { useParams } from 'src/routes/hooks';
 // types
 import { GET_NOTIFICATION } from 'src/api/notification';
-import { LoadingScreen } from 'src/components/loading-screen';
 import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import EmptyContent from 'src/components/empty-content';
+import QueryView from 'src/components/query-view';
 import EditNotification from '../notifications/edit-notification';
 
 // ----------------------------------------------------------------------
@@ -31,32 +29,6 @@ export default function NotificationView() {
     },
   });
 
-  let content = (
-    <LoadingScreen
-      sx={{
-        borderRadius: 1.5,
-        bgcolor: 'background.default',
-      }}
-    />
-  );
-  if (!loading) {
-    if (error) {
-      content = (
-        <EmptyContent
-          title='Error loading Notification'
-          description='There was an error loading notification details. Please try again.'
-          action={
-            <Button variant="soft" onClick={() => refetch()} sx={{ mt: 2 }}>
-              Retry
-            </Button>
-          }
-        />
-      );
-    } else {
-      content = <EditNotification currentNotification={data?.notification} />;
-    }
-  }
-
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
@@ -69,7 +41,16 @@ export default function NotificationView() {
         ]}
         sx={{ mb: { xs: 3, md: 3 } }}
       />
-      {content}
+
+      <QueryView
+        loading={loading}
+        error={!!error}
+        errorTitle='Failed to Load Notification'
+        errorDescription='There was an error loading Notification details. Please try again.'
+        onRetry={refetch}
+      >
+        <EditNotification currentNotification={data?.notification} />
+      </QueryView>
     </Container>
   );
 }

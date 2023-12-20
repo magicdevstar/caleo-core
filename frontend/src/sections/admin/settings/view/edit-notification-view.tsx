@@ -22,7 +22,7 @@ export default function NotificationView() {
   const { data, refetch, loading, error } = useQuery(GET_NOTIFICATION, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    notifyOnNetworkStatusChange: true,
+    // notifyOnNetworkStatusChange: true,
     skip: params.id === 'new',
     variables: {
       id: params.id,

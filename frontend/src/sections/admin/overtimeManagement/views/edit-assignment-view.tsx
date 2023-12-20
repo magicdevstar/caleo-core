@@ -22,7 +22,7 @@ export default function AssignmentDetail() {
   const { data, refetch, loading, error } = useQuery(GET_ASSIGNMENT, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    notifyOnNetworkStatusChange: true,
+    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.assignmentId,
     },

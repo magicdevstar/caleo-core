@@ -18,7 +18,6 @@ export default function AccountView() {
   const { data, refetch, loading, error } = useQuery(GET_USER, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    notifyOnNetworkStatusChange: true,
     variables: {
       id: user.id,
     },

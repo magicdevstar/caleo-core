@@ -142,6 +142,7 @@ export default function EditNotification({ currentNotification }: Props) {
       enqueueSnackbar(currentNotification ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.admin.settings.notifications);
     } catch (error) {
+      enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
     }
   });

@@ -12,7 +12,7 @@ export default function RanksAndSkillsView() {
   const settings = useSettingsContext();
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: { xs: 1, md: 2, lg: 4 } }}>
       <RankTable />
       <Box sx={{ mb: 4 }} />
       <SkillTable />

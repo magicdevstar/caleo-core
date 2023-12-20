@@ -105,7 +105,7 @@ export function useNavData() {
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
                 { title: 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
-                { title: 'Notifications', path: paths.dashboard.admin.settings.notifications },
+                { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
               ],
             },
           ],

@@ -17,7 +17,7 @@ export default function ProductListView() {
   const inviteUser = useBoolean();
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: { xs: 1, md: 2, lg: 4 } }}>
       <CustomBreadcrumbs
         heading="User Search"
         links={[

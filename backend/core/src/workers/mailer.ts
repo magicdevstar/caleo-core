@@ -559,7 +559,7 @@ const sendEmail = async (input: MailerEvent) => {
         }
       }
     } else if (input.template === MailerEvents.OfficerRemovedFromShift) {
-      const { shift, existingUserId, organization } = input.data;
+      const { shift, removeUser, existingUserId, organization } = input.data;
 
       const event = await context.events.get(shift.eventId);
       if (!event) {
@@ -599,6 +599,52 @@ const sendEmail = async (input: MailerEvent) => {
             },
           },
         };
+      }
+
+      const allAdmins = await context.users.getAllAdmins({
+        orgId: event.orgId,
+      }) as any[];
+
+      const EmailAddresses = (allAdmins || [])
+        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .reduce((obj, admin) => {
+          const Substitutions: Record<string, string[]> = {
+            "shift.name": [assignment.name],
+            "event.name": [event.name],
+            "shift.start_date": [shiftStart.date],
+            "user.first_name": [user.firstName],
+            "user.last_name": [user.lastName],
+            'admin.first_name': [removeUser.firstName],
+            'admin.unassign.first_name': [removeUser.firstName],
+            'admin.unassign.last_name': [removeUser.lastName],
+            "event.reference_number": [event.referenceId],
+            "shift.start_time": [shiftStart.time],
+            "shift.end_date": [shiftEnd.date],
+            "shift.end_time": [shiftEnd.time],
+            "shift.reference_number": [`${shift.refNumber}`],
+            "unassigned_reason": shift.relinquishNote ? [shift.relinquishNote] : ['N/A'],
+            "system.metro_name": [organization.name],
+          };
+          const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+      
+      if (Object.keys(EmailAddresses).length > 0) {
+        try {
+          await sendInChunks({
+            ...input,
+            template: MailerEvents.AdminUnassignOfficerShift,
+          }, EmailAddresses);
+        } catch(error) {
+          logger.error('Failed to send admin notification', { error });
+        }
       }
 
     } else if (input.template === MailerEvents.AdminShiftRelinquished) {

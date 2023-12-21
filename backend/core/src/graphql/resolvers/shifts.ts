@@ -469,6 +469,7 @@ export const shift = {
             data: {
               shift: removedShift!,
               existingUserId,
+              removeUser: user,
               organization,
             }
           } as MailerEvent),

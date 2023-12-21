@@ -18,11 +18,18 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { useAuthContext } from 'src/auth/hooks';
+import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
+import { dateTimeFormat } from 'src/hooks/use-datejs';
+import useDebounceText from 'src/hooks/use-debounce-text';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 // types
 import {
   Assignment,
@@ -33,6 +40,9 @@ import {
   Venue,
   VenueStatus,
 } from 'src/__generated__/resolvers-types';
+import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
+import { GET_VENUE_LIST } from 'src/api/venues';
+import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -41,20 +51,13 @@ import FormProvider, {
   RHFSelect,
   RHFUpload,
   RHFSwitch,
+  RHFAutocomplete,
 } from 'src/components/hook-form';
-import { RouterLink } from 'src/routes/components';
-import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
-import { GET_VENUE_LIST } from 'src/api/venues';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { useBoolean } from 'src/hooks/use-boolean';
-import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
-import { useAuthContext } from 'src/auth/hooks';
 import Markdown from 'src/components/markdown';
 import { client } from 'src/utils/apollo';
-import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
-import { dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -94,12 +97,18 @@ export default function EditEvent({ currentEvent }: Props) {
     return completeStatus || completeEndTime;
   }, [currentEvent?.endTime, currentEvent?.status]);
 
-  const { data: venueRes } = useQuery(GET_VENUE_LIST, {
+  const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
+
+  const { data: venueRes, loading: venuesLoading } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
+        limit: 10,
+        orderBy: 'name',
+        order: 'asc',
         status: VenueStatus.Active,
+        query: venueSearch || undefined,
       },
     },
   });
@@ -128,7 +137,10 @@ export default function EditEvent({ currentEvent }: Props) {
     attachments: Yup.array(),
     notifyWhenFullyStaffed: Yup.boolean(),
     lotteryNumber: Yup.number().nullable(),
-    venueId: Yup.string().required('Venue is required'),
+    venueId: Yup.mixed<Venue | string>()
+      .nullable()
+      .transform((value: Venue) => value?.id)
+      .test('venue-required', 'Venue is Required', (value) => !!value),
     scheduledFirstComeFirstServe: Yup.string(),
     createdById: Yup.string(),
     assignments: Yup.array(),
@@ -142,7 +154,7 @@ export default function EditEvent({ currentEvent }: Props) {
       status: currentEvent?.status || EventStatus.Draft,
       notes: currentEvent?.notes || '',
       attachments: [],
-      venueId: currentEvent?.venueId || '',
+      venueId: currentEvent?.venue || null,
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
@@ -197,7 +209,8 @@ export default function EditEvent({ currentEvent }: Props) {
     loadAll();
   }, [currentEvent, setValue]);
 
-  const selectedVenue: Venue | undefined = useMemo(() => venues.find(({ id }: Venue) => values?.venueId === id), [venues, values?.venueId]);
+  // venueId is initially a venue object until it is transformed after form submit through schema
+  const selectedVenue = values.venueId as Venue | null;
 
   useEffect(() => {
     if (currentEvent) {
@@ -517,17 +530,32 @@ export default function EditEvent({ currentEvent }: Props) {
               disabled={allDisabled}
               helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
             />
-            <RHFSelect
+            <RHFAutocomplete
+              openOnFocus
               name="venueId"
-              label="Venue"
-              disabled={allDisabled}
-            >
-              {venues.map((option: any) => (
-                <MenuItem key={option.id} value={option.id}>
+              label="Venue Name *"
+              options={venues}
+              filterOptions={(x: any) => x}
+              loading={venuesLoading}
+              loadingText={
+                <>
+                  Loading...
+                  <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+                </>
+              }
+              getOptionLabel={(option) => (option as Venue).name}
+              isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+              onInputChange={(event, newInputValue) => {
+                if (event) {
+                  setVenueSearchText(newInputValue);
+                }
+              }}
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
                   {option.name}
-                </MenuItem>
-              ))}
-            </RHFSelect>
+                </li>
+              )}
+            />
 
             {selectedVenue && (
               <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>

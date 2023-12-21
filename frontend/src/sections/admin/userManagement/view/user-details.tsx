@@ -23,7 +23,6 @@ export default function UserDetail() {
   const { data, refetch, loading, error } = useQuery(GET_USER, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.id,
     },
@@ -48,7 +47,7 @@ export default function UserDetail() {
         error={!!error}
         errorTitle='Failed to Load User'
         errorDescription='There was an error loading User details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <MainAccountView excludePassword adminViewer user={{
           ...data?.user,

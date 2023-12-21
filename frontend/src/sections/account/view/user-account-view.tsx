@@ -32,7 +32,7 @@ export default function AccountView() {
         error={!!error}
         errorTitle='Failed to Load Profile'
         errorDescription='There was an error loading your Profile details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <MainAccountView
           adminViewer={user?.superAdmin || user?.member?.role === MemberRole.Admin}

@@ -23,7 +23,6 @@ export default function ShiftDetail() {
   const { data, refetch, loading, error } = useQuery(GET_GROUPED_SHIFTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     variables: {
       shiftId: params.shiftId,
     },
@@ -60,7 +59,7 @@ export default function ShiftDetail() {
         error={!!error}
         errorTitle='Failed to Load Shift'
         errorDescription='There was an error loading Shift details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <EditShift
           eventId={params.eventId!}

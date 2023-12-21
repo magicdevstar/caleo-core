@@ -22,7 +22,6 @@ export default function VenueDetail() {
   const { data, refetch, loading, error } = useQuery(GET_VENUE, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.id,
     },
@@ -45,7 +44,7 @@ export default function VenueDetail() {
         error={!!error}
         errorTitle='Failed to Load Venue'
         errorDescription='There was an error loading Venue details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <EditVenue currentVenue={data?.venue} />
       </QueryView>

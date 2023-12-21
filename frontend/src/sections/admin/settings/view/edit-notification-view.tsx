@@ -22,7 +22,6 @@ export default function NotificationView() {
   const { data, refetch, loading, error } = useQuery(GET_NOTIFICATION, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     skip: params.id === 'new',
     variables: {
       id: params.id,
@@ -47,7 +46,7 @@ export default function NotificationView() {
         error={!!error}
         errorTitle='Failed to Load Notification'
         errorDescription='There was an error loading Notification details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <EditNotification currentNotification={data?.notification} />
       </QueryView>

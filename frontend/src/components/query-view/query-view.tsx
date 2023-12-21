@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState } from 'react';
 // @mui
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -13,19 +13,27 @@ type QueryViewProps = PropsWithChildren & {
   errorImg?: React.ReactNode;
   loading?: boolean;
   error?: boolean;
+  refetch?: (variables?: any) => Promise<any>;
   onRetry?: VoidFunction;
 };
 
+/**
+ * Loading and Error fallback view Component for Queries. Best Paired with Apollo useQuery result props.
+ */
 export default function QueryView({
   errorTitle = 'Failed to Load Data',
   errorDescription = 'Failed to load data. Please try again.',
   errorImg,
   loading = false,
   error = false,
+  refetch,
   onRetry,
   children,
 }: QueryViewProps) {
-  if (loading) {
+  // Internal refetch loading state if notifyOnNetworkStatusChange on useQuery is not used.
+  const [refetchLoading, setRefetchLoading] = useState(false);
+
+  if (loading || refetchLoading) {
     return (
       <LoadingScreen
         sx={{
@@ -71,7 +79,16 @@ export default function QueryView({
 
         <Button
           variant="contained"
-          onClick={() => {
+          onClick={ async () => {
+            if (refetch) {
+              setRefetchLoading(true);
+              try {
+                await refetch?.();
+                setRefetchLoading(false);
+              } catch (e) {
+                setRefetchLoading(false);
+              }
+            }
             onRetry?.();
           }}
         >

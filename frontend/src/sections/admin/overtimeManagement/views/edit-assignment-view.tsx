@@ -22,7 +22,6 @@ export default function AssignmentDetail() {
   const { data, refetch, loading, error } = useQuery(GET_ASSIGNMENT, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.assignmentId,
     },
@@ -51,7 +50,7 @@ export default function AssignmentDetail() {
         error={!!error}
         errorTitle='Failed to Load Assignment'
         errorDescription='There was an error loading Assignment details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <EditAssignment eventId={params.eventId!} currentAssignment={data?.assignment} />
       </QueryView>

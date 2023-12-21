@@ -27,7 +27,6 @@ export default function VenueDetail() {
   const { data, refetch, loading, error } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    // notifyOnNetworkStatusChange: true,
     variables: {
       id: params.eventId,
     },
@@ -67,7 +66,7 @@ export default function VenueDetail() {
         error={!!error}
         errorTitle='Failed to Load Event'
         errorDescription='There was an error loading Event details. Please try again.'
-        onRetry={refetch}
+        refetch={refetch}
       >
         <EditEvent currentEvent={data?.event} />
       </QueryView>

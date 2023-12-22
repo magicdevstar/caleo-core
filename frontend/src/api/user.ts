@@ -5,6 +5,7 @@ const userDetailProperties = `
   id
   firstName
   lastName
+  name
   superAdmin
   cognitoId,
   image

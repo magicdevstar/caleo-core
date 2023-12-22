@@ -32,10 +32,11 @@ export default function NotificationView() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
         heading="Notification Detail"
+        hideLinks={loading}
         links={[
           { name: 'Notifications', href: paths.dashboard.admin.settings.notifications },
           {
-            name: 'Notification Detail',
+            name: data?.notification?.title || 'Notification Detail',
           },
         ]}
         sx={{ mb: { xs: 3, md: 3 } }}

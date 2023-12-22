@@ -16,11 +16,11 @@ export default function CustomBreadcrumbs({
   heading,
   moreLink,
   activeLast,
+  hideLinks,
+  maxLinkWidth = 300,
   sx,
   ...other
 }: CustomBreadcrumbsProps) {
-  const lastLink = links[links.length - 1].name;
-
   return (
     <Box sx={{ ...sx }}>
       <Stack direction="row" alignItems="center">
@@ -33,14 +33,15 @@ export default function CustomBreadcrumbs({
           )}
 
           {/* BREADCRUMBS */}
-          {!!links.length && (
+          {(!!links.length && !hideLinks) && (
             <Breadcrumbs separator={<Separator />} {...other}>
-              {links.map((link) => (
+              {links.map((link, index) => (
                 <LinkItem
                   key={link.name || ''}
                   link={link}
                   activeLast={activeLast}
-                  disabled={link.name === lastLink}
+                  disabled={index === links.length - 1}
+                  maxWidth={index !== links.length - 1 ? maxLinkWidth : undefined}
                 />
               ))}
             </Breadcrumbs>

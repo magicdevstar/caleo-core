@@ -14,5 +14,7 @@ export interface CustomBreadcrumbsProps extends BreadcrumbsProps {
   moreLink?: string[];
   activeLast?: boolean;
   action?: React.ReactNode;
+  maxLinkWidth?: number;
+  hideLinks?: boolean;
   links: BreadcrumbsLinkProps[];
 }

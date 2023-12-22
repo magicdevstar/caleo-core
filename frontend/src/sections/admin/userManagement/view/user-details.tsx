@@ -32,10 +32,11 @@ export default function UserDetail() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: 2 }}>
       <CustomBreadcrumbs
         heading="User Detail"
+        hideLinks={loading}
         links={[
           { name: 'User Search', href: paths.dashboard.admin.users.root },
           {
-            name: 'User Detail',
+            name: data?.user?.name || 'User Detail',
             href: paths.dashboard.admin.users.userDetail,
           },
         ]}

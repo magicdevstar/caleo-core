@@ -51,10 +51,11 @@ export default function VenueDetail() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
         heading="Event Detail"
+        hideLinks={loading}
         links={[
           { name: 'Events', href: paths.dashboard.admin.overtime.events },
           {
-            name: 'Event Detail',
+            name: data?.event?.name || 'Event Detail',
           },
         ]}
         sx={{ mb: 1 }}

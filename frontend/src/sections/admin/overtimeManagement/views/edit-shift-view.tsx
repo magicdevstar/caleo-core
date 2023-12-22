@@ -36,15 +36,16 @@ export default function ShiftDetail() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Event Detail"
+        heading="Shift Detail"
+        hideLinks={loading}
         links={[
           { name: 'Events', href: paths.dashboard.admin.overtime.events },
           {
-            name: 'Event Detail',
+            name: data?.groupedShifts?.[0]?.event?.name || 'Event Detail',
             href: paths.dashboard.admin.overtime.eventDetail.replace(':eventId', params?.eventId || ''),
           },
           {
-            name: 'Assignment Detail',
+            name: data?.groupedShifts?.[0]?.assignment?.name || 'Assignment Detail',
             href: assignmentLink,
           },
           {

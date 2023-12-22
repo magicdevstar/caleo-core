@@ -62,6 +62,7 @@ export const GET_ASSIGNMENT = gql`
         status
         endTime
         removedAt
+        name
       }
 
       ranks {

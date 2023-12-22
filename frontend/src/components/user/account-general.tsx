@@ -385,8 +385,6 @@ export default function AccountGeneral({
                 />
               )
             }
-            <Typography variant="h6"> { user?.displayName } </Typography>
-            <Typography variant="caption"> { user?.email } </Typography>
           </Card>
         </Grid>
 

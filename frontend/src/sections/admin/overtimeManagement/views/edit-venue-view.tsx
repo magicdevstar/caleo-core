@@ -31,10 +31,11 @@ export default function VenueDetail() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
         heading="Venue Detail"
+        hideLinks={loading}
         links={[
           { name: 'Venues', href: paths.dashboard.admin.overtime.venues },
           {
-            name: 'Venue Detail',
+            name: data?.venue?.name || 'Venue Detail',
           },
         ]}
         sx={{ mb: 1 }}

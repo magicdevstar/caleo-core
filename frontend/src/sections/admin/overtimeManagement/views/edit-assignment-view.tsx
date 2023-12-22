@@ -31,15 +31,16 @@ export default function AssignmentDetail() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Event Detail"
+        heading="Assignment Detail"
+        hideLinks={loading}
         links={[
           { name: 'Events', href: paths.dashboard.admin.overtime.events },
           {
-            name: 'Event Detail',
+            name: data?.assignment?.event?.name || 'Event Detail',
             href: paths.dashboard.admin.overtime.eventDetail.replace(':eventId', params?.eventId || ''),
           },
           {
-            name: 'Assignment Detail',
+            name: data?.assignment?.name || 'Assignment Detail',
           },
         ]}
         sx={{ mb: 1 }}

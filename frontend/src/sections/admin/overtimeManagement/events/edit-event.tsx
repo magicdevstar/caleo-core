@@ -73,6 +73,24 @@ const eventStatusNames = {
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
 }
 
+const NewEventSchema = Yup.object().shape({
+  id: Yup.string(),
+  name: Yup.string().required('Name is required'),
+  status: Yup.string(),
+  notes: Yup.string(),
+  attachments: Yup.array(),
+  notifyWhenFullyStaffed: Yup.boolean(),
+  lotteryNumber: Yup.number().nullable(),
+  venueId: Yup.mixed<Venue | string>()
+    .nullable()
+    .transform((value: Venue) => value?.id)
+    .test('venue-required', 'Venue is Required', (value) => !!value),
+  scheduledFirstComeFirstServe: Yup.string(),
+  createdById: Yup.string(),
+  assignments: Yup.array(),
+  notifyOnFirstComeFirstServe: Yup.boolean(),
+});
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -129,24 +147,6 @@ export default function EditEvent({ currentEvent }: Props) {
   const deleteConfirm = useBoolean();
   const { enqueueSnackbar } = useSnackbar();
 
-  const NewEventSchema = Yup.object().shape({
-    id: Yup.string(),
-    name: Yup.string().required('Name is required'),
-    status: Yup.string(),
-    notes: Yup.string(),
-    attachments: Yup.array(),
-    notifyWhenFullyStaffed: Yup.boolean(),
-    lotteryNumber: Yup.number().nullable(),
-    venueId: Yup.mixed<Venue | string>()
-      .nullable()
-      .transform((value: Venue) => value?.id)
-      .test('venue-required', 'Venue is Required', (value) => !!value),
-    scheduledFirstComeFirstServe: Yup.string(),
-    createdById: Yup.string(),
-    assignments: Yup.array(),
-    notifyOnFirstComeFirstServe: Yup.boolean(),
-  });
-
   const defaultValues = useMemo(
     () => ({
       id: currentEvent?.id,
@@ -167,6 +167,7 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const methods = useForm({
     resolver: yupResolver(NewEventSchema),
+    mode: 'onChange',
     defaultValues,
   });
 
@@ -176,6 +177,7 @@ export default function EditEvent({ currentEvent }: Props) {
     getValues,
     setValue,
     watch,
+    trigger,
     formState: { isSubmitting, isValid },
   } = methods;
 
@@ -358,14 +360,22 @@ export default function EditEvent({ currentEvent }: Props) {
         onClick: async () => {
           let eventId = currentEvent?.id;
           if (!eventId) {
-            eventId = await formSubmit(getValues(), false);
-            enqueueSnackbar('Created Event!');
+            const validated = await trigger();
+            if (validated) {
+              const formattedValues = NewEventSchema.cast(getValues());
+              eventId = await formSubmit(formattedValues, false);
+              if (eventId) {
+                enqueueSnackbar('Created Event!');
+              }
+            }
           }
-          router.push(
-            paths.dashboard.admin.overtime.eventAssignmentDetail
-            .replace(':eventId', eventId!)
-            .replace(':assignmentId', 'new')
-          );
+          if (eventId) {
+            router.push(
+              paths.dashboard.admin.overtime.eventAssignmentDetail
+              .replace(':eventId', eventId!)
+              .replace(':assignmentId', 'new')
+            );
+          }
         }
       }
     },
@@ -502,6 +512,7 @@ export default function EditEvent({ currentEvent }: Props) {
     upsertEventLoading,
     allDisabled,
     isComplete,
+    trigger,
   ]);
 
   const currentFormValues = getValues();

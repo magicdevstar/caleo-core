@@ -57,13 +57,17 @@ export const useLotteryCounterOptions = ({
       .minute(openTime.minute())
       .second(0)
       .millisecond(0);
-
     let closeOfLottery = dayjs().tz(org!.timezone || 'America/Los_Angeles')
       .day(dayMap[closeDay])
       .hour(closeTime.hour())
       .minute(closeTime.minute())
       .second(0)
       .millisecond(0);
+
+    if (data?.lotteryCounter.start) {
+      startOfLottery = dayjs(data?.lotteryCounter.start).tz(org!.timezone || 'America/Los_Angeles')
+      closeOfLottery = dayjs(data?.lotteryCounter.end).tz(org!.timezone || 'America/Los_Angeles')
+    }
 
     let startNumber = data?.lotteryCounter.counter;
 

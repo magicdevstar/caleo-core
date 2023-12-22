@@ -10,8 +10,9 @@ const lambda = new LambdaClient({});
 
 const postFCFSShifts = async ({
   orgId,
+  dryRun,
 }: FinalizeOutput) => {
-  if (!orgId) {
+  if (!orgId || dryRun) {
     return;
   }
   await lambda.send(new InvokeCommand({

@@ -115,27 +115,30 @@ const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
     logger.info('Bulk write res', { res });
   }
 
-  // Remove all open requests for this shift group
-  await lottery.removeMany({
-    shiftGroupId: shiftGroupId,
-    _id: {
-      $nin: acceptedRequestIds,
-    },
-  }, {
-    status: ShiftLotteryRequestStatus.Rejected,
-  });
-
-  await lottery.removeMany({
-    _id: {
-      $in: acceptedRequestIds,
-    },
-  }, {
-    status: ShiftLotteryRequestStatus.Approved,
-  });
+  if (!dryRun) {
+    // Remove all open requests for this shift group
+    await lottery.removeMany({
+      shiftGroupId: shiftGroupId,
+      _id: {
+        $nin: acceptedRequestIds,
+      },
+    }, {
+      status: ShiftLotteryRequestStatus.Rejected,
+    });
+  
+    await lottery.removeMany({
+      _id: {
+        $in: acceptedRequestIds,
+      },
+    }, {
+      status: ShiftLotteryRequestStatus.Approved,
+    });
+  }
 
   return {
     orgId: organization?.id,
     tier1Assignments: [...tier1Assignments],
+    dryRun: !!dryRun,
   };
 };
 

@@ -9,10 +9,12 @@ import { EventStatus } from '../__generated__/resolvers-types';
 interface InputEvent {
   orgId: string;
   tier1Assignments: string[];
+  dryRun?: boolean;
 };
 
 export interface FinalizeOutput {
   orgId?: string;
+  dryRun: boolean;
   fcfsDelay: string;
   previousCounter?: number;
 }
@@ -21,9 +23,11 @@ const formatDate = (d: Date) => `${d.toISOString().split('.')[0]}Z`;
 
 const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => {
   const orgId = input?.[0]?.orgId;
+  const dryRun = input?.[0]?.dryRun;
   // Skip if no orgId. This can happen if there are no events to rank :)
-  if (!orgId) {
+  if (!orgId || dryRun) {
     return {
+      dryRun: !!dryRun,
       fcfsDelay: formatDate(addSeconds(new Date(), 15)),
     };
   }
@@ -67,6 +71,7 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
 
   return {
     orgId,
+    dryRun: !!dryRun,
     fcfsDelay,
     previousCounter: counter - 1,
   };

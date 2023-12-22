@@ -6,9 +6,10 @@ import { createContext } from '../utils/createContext';
 
 interface InputEvent {
   orgId: string;
+  dryRun?: boolean;
 }
 
-const fetchShifts = async ({ orgId }: InputEvent) => {
+const fetchShifts = async ({ orgId, dryRun }: InputEvent) => {
   const { shifts } = await createContext();
 
   const { items } = await shifts.findOpenLotteryShiftsGroupedById({
@@ -17,7 +18,10 @@ const fetchShifts = async ({ orgId }: InputEvent) => {
 
   logger.info('Shifts', { items });
 
-  return items;
+  return items.map((item) => ({
+    ...item,
+    dryRun: !!dryRun,
+  }));
 };
 
 export const handler = middy(fetchShifts)

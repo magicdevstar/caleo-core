@@ -18,6 +18,7 @@ import EditVenue from '../venues/edit-venue';
 export default function VenueDetail() {
   const settings = useSettingsContext();
   const params = useParams();
+  const shouldSkip = !params.id || params.id === 'new';
 
   const { data, refetch, loading, error } = useQuery(GET_VENUE, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -25,6 +26,7 @@ export default function VenueDetail() {
     variables: {
       id: params.id,
     },
+    skip: shouldSkip,
   });
 
   return (

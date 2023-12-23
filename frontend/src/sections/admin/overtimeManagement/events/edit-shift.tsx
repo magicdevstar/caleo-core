@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useMutation } from '@apollo/client';
 import { v4 as uuid } from 'uuid';
+import PhoneNumberFormatter from 'phone-number-formats';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -149,8 +150,16 @@ export default function EditShift({
     ],
   });
 
-  const [startTime, setStartTime] = useState<Date | null>(currentShifts?.[0]?.startTime ? new Date(currentShifts[0].startTime) : new Date());
-  const [endTime, setEndTime] = useState<Date | null>(currentShifts?.[0]?.endTime ? new Date(currentShifts[0].endTime) : dayjs().add(1, 'hour').toDate());
+  const [startTime, setStartTime] = useState<Date | null>(
+    currentShifts?.[0]?.startTime
+      ? new Date(currentShifts[0].startTime)
+      : dayjs().startOf('hour').toDate()
+  );
+  const [endTime, setEndTime] = useState<Date | null>(
+    currentShifts?.[0]?.endTime
+      ? new Date(currentShifts[0].endTime)
+      : dayjs().startOf('hour').add(1, 'hour').toDate()
+  );
 
   const mdUp = useResponsive('up', 'md');
   const existingUserIds: string[] = useMemo(() => currentShifts.map((shift) => shift.user?.id).filter((id) => !!id) || [], [currentShifts]) as any;
@@ -310,7 +319,23 @@ export default function EditShift({
         width: '10%',
       },
       { id: 'user.name', width: '25%', label: 'Name', columnType: 'string' },
-      { id: 'user.member.contactInfo.primaryPhone.number', width: '25%', label: 'Phone', columnType: 'string' },
+      {
+        id: 'user.member.contactInfo.primaryPhone.number',
+        width: '25%',
+        label: 'Phone',
+        columnType: 'string',
+        renderValue: (value) => {
+          let phoneNum = value;
+          if (phoneNum) {
+            try {
+              phoneNum = new PhoneNumberFormatter(phoneNum).format({type: 'domestic'}).string;
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          return phoneNum;
+        }
+      },
       { id: 'user.member.pNumber', label: 'P #', columnType: 'string', width: '25%' },
       { id: '', width: '5%', columnType: 'action', label: '' },
     ],

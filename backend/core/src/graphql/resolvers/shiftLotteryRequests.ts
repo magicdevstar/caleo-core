@@ -18,6 +18,8 @@ export const shiftLotteryRequests = {
       {
         shiftLotteryRequests,
         user,
+        lotteryCounter,
+        organization,
       }: Context
     ): Promise<SearchResults<ShiftLotteryRequest>> => {
       let searchInput: any = {
@@ -38,6 +40,12 @@ export const shiftLotteryRequests = {
             $in: counters,
           };
         }
+      }
+      if (!userIsAdmin(user)) {
+        const { counter } = await lotteryCounter.get(organization!.id);
+        searchInput.lotteryCounter = {
+          $in: [counter],
+        };
       }
       return shiftLotteryRequests.search(searchInput);
     },

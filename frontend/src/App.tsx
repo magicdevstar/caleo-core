@@ -31,6 +31,7 @@ import { SettingsProvider, SettingsDrawer } from 'src/components/settings';
 import { AuthProvider, AuthConsumer } from 'src/auth/context/amplify';
 import { client } from './utils/apollo';
 import { SnackbarProvider } from './components/snackbar';
+import ErrorComponent from "./components/error/Error";
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +51,7 @@ export default function App() {
   console.info(`%c${charAt}`, 'color: #5BE49B');
 
   useScrollToTop();
+
 
   return (
     <AuthProvider>
@@ -71,7 +73,9 @@ export default function App() {
                   <SettingsDrawer />
                   <ProgressBar />
                   <AuthConsumer>
-                    <Router />
+                    <ErrorComponent>
+                      <Router />
+                    </ErrorComponent>
                   </AuthConsumer>
                 </SnackbarProvider>
               </MotionLazy>

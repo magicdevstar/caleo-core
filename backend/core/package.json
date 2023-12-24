@@ -20,6 +20,7 @@
     "@aws-sdk/client-pinpoint": "^3.421.0",
     "@aws-sdk/client-sfn": "^3.414.0",
     "@middy/core": "^4.5.5",
+    "@slack/web-api": "^6.11.0",
     "aws-lambda": "^1.0.7",
     "dataloader": "^2.2.2",
     "date-fns": "^2.30.0",

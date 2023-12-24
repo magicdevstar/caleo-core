@@ -13,6 +13,7 @@ params:
     fromEmail: support@dev.caleopro.com
     LOG_LEVEL: info
     LOG_SAMPLE_RATE: 1
+    ENABLED_ALERTS: 'false'
     appUrl: https://dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
@@ -25,6 +26,7 @@ params:
     fromEmail: lvmpd@caleopro.com
     LOG_LEVEL: warn
     LOG_SAMPLE_RATE: 0
+    ENABLED_ALERTS: 'true'
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
@@ -66,6 +68,8 @@ provider:
     APP_URL: ${param:appUrl}
     LOG_LEVEL: ${param:LOG_LEVEL}
     LOG_SAMPLE_RATE: ${param:LOG_SAMPLE_RATE}
+    SLACK_TOKEN: ${ssm:/caleo/slackToken}
+    ENABLED_ALERTS: ${param:ENABLED_ALERTS}
   iam:
     role:
       statements:
@@ -120,6 +124,15 @@ functions:
       - httpApi:
           path: /
           method: GET
+
+  uiErrors:
+    handler: src/uiErrors.handler
+    events:
+      - httpApi:
+          path: /errors
+          method: POST
+          authorizer:
+            name: customAuthorizer
 
   # Register Cognito User Hook
   registerUser:

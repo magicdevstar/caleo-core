@@ -10,18 +10,28 @@ import { MotionContainer, varBounce } from 'src/components/animate';
 
 // ----------------------------------------------------------------------
 
-export default function Page500() {
+export default function Page500({
+  resetErrorBoundary
+}: {
+  resetErrorBoundary?: any
+}) {
   return (
-    <MotionContainer>
+    <MotionContainer sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+    }}>
       <m.div variants={varBounce().in}>
         <Typography variant="h3" sx={{ mb: 2 }}>
-          500 Internal Server Error
+          Something went wrong!
         </Typography>
       </m.div>
 
       <m.div variants={varBounce().in}>
         <Typography sx={{ color: 'text.secondary' }}>
-          There was an error, please try again later.
+          We apologize for the inconvenience. We have been notified and are looking into the issue.
         </Typography>
       </m.div>
 
@@ -29,7 +39,7 @@ export default function Page500() {
         <SeverErrorIllustration sx={{ height: 260, my: { xs: 5, sm: 10 } }} />
       </m.div>
 
-      <Button component={RouterLink} href="/" size="large" variant="contained">
+      <Button component={RouterLink} href="/" size="large" variant="contained" onClick={resetErrorBoundary}>
         Go to Home
       </Button>
     </MotionContainer>

@@ -94,6 +94,7 @@ export class ShiftModel extends BaseModel<Shift> {
             $in: keys,
           },
           removedAt: { $exists: false },
+          status: { $ne: ShiftStatus.Locked },
           $or: [{userId: null}, {userId: {$exists: false}}],
         },
       },

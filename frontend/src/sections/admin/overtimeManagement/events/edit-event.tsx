@@ -37,6 +37,7 @@ import {
   EventStatus,
   LotteryCounter,
   Shift,
+  ShiftStatus,
   Venue,
   VenueStatus,
 } from 'src/__generated__/resolvers-types';
@@ -489,7 +490,7 @@ export default function EditEvent({ currentEvent }: Props) {
         columnType: 'string',
         renderValue: (shifts: Shift[]) => {
           const openShifts = (shifts || []).filter(Boolean).reduce((sum, shift) => {
-            if (!shift!.userId) {
+            if (!shift!.userId && shift.status !== ShiftStatus.Locked) {
               sum += 1;
             }
             return sum;

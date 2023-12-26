@@ -20,7 +20,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, EventStatus, Rank, Shift, Skill } from 'src/__generated__/resolvers-types';
+import { Assignment, EventStatus, Rank, Shift, ShiftStatus, Skill } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -77,7 +77,7 @@ export default function EditAssignment({
           endTime: shift!.endTime,
         };
       }
-      acc[shiftId].openShifts += shift?.userId ? 0 : 1;
+      acc[shiftId].openShifts += (shift?.userId || shift?.status === ShiftStatus.Locked) ? 0 : 1;
 
       if (isBefore(new Date(shift!.startTime), new Date(acc[shiftId].startTime))) {
         acc[shiftId].startTime = shift!.startTime;

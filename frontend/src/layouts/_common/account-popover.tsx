@@ -115,6 +115,7 @@ export default function AccountPopover() {
           sx={{ m: 1, marginBottom: '8px !important' }}
           onClick={() => {
             onUpdate('themeMode', themeMode === 'light' ? 'dark' : 'light');
+            onUpdate('themeContrast', themeMode === 'light' ? 'default' : 'bold');
           }}
         >
           <ListItemIcon sx={{ margin: 0 }}>

@@ -7,15 +7,16 @@ import CompactLayout from 'src/layouts/compact';
 import AuthModernLayout from 'src/layouts/auth/modern';
 // components
 import { SplashScreen } from 'src/components/loading-screen';
+import { lazyWithRetry } from 'src/utils/lazyRetry';
 
 // ----------------------------------------------------------------------
 
 // AMPLIFY
-const AmplifyLoginPage = lazy(() => import('src/pages/auth/amplify/login'));
-const AmplifyRegisterPage = lazy(() => import('src/pages/auth/amplify/register'));
-const AmplifyVerifyPage = lazy(() => import('src/pages/auth/amplify/verify'));
-const AmplifyNewPasswordPage = lazy(() => import('src/pages/auth/amplify/new-password'));
-const AmplifyForgotPasswordPage = lazy(() => import('src/pages/auth/amplify/forgot-password'));
+const AmplifyLoginPage = lazyWithRetry(() => import('src/pages/auth/amplify/login'));
+const AmplifyRegisterPage = lazyWithRetry(() => import('src/pages/auth/amplify/register'));
+const AmplifyVerifyPage = lazyWithRetry(() => import('src/pages/auth/amplify/verify'));
+const AmplifyNewPasswordPage = lazyWithRetry(() => import('src/pages/auth/amplify/new-password'));
+const AmplifyForgotPasswordPage = lazyWithRetry(() => import('src/pages/auth/amplify/forgot-password'));
 
 // ----------------------------------------------------------------------
 

@@ -6,32 +6,33 @@ import { AuthGuard } from 'src/auth/guard';
 import DashboardLayout from 'src/layouts/dashboard';
 // components
 import { LoadingScreen } from 'src/components/loading-screen';
+import { lazyWithRetry } from 'src/utils/lazyRetry';
 
 // ----------------------------------------------------------------------
 
-const IndexPage = lazy(() => import('src/pages/dashboard/myOvertime'));
-const AvailableOvertime = lazy(() => import('src/pages/dashboard/availableOvertime'));
-const UpcomingOvertime = lazy(() => import('src/pages/dashboard/upcomingOvertime'));
-const RankOvertime = lazy(() => import('src/pages/dashboard/rankOvertime'));
-const MyProfile = lazy(() => import('src/pages/dashboard/user/account'));
-const RanksAndSkills = lazy(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
-const AdminNotifications = lazy(() => import('src/pages/dashboard/admin/settings/notifications'));
-const EditNotification = lazy(() => import('src/pages/dashboard/admin/settings/editNotification'));
-const UserSearch = lazy(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
-const SkillRequests = lazy(() => import('src/pages/dashboard/admin/userManagement/skillRequests'));
-const ShiftBufferRequests = lazy(() => import('src/pages/dashboard/admin/userManagement/shiftBufferRequests'));
-const AccountRequests = lazy(() => import('src/pages/dashboard/admin/userManagement/accountRequests'));
-const AdminUserDetails = lazy(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
-const Reports = lazy(() => import('src/pages/dashboard/admin/reports'));
-const OvertimeSettings = lazy(() => import('src/pages/dashboard/admin/settings/overtime'));
-const DepartmentSettings = lazy(() => import('src/pages/dashboard/admin/settings/department'));
-const Venues = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/venues'));
-const DynamicShiftFilter = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/dynamicShiftFilter'));
-const EditVenue = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
-const Events = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
-const EditEvent = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
-const EditEventAssignment = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
-const EditEventAssignmentShift = lazy(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
+const IndexPage = lazyWithRetry(() => import('src/pages/dashboard/myOvertime'));
+const AvailableOvertime = lazyWithRetry(() => import('src/pages/dashboard/availableOvertime'));
+const UpcomingOvertime = lazyWithRetry(() => import('src/pages/dashboard/upcomingOvertime'));
+const RankOvertime = lazyWithRetry(() => import('src/pages/dashboard/rankOvertime'));
+const MyProfile = lazyWithRetry(() => import('src/pages/dashboard/user/account'));
+const RanksAndSkills = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+const AdminNotifications = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/notifications'));
+const EditNotification = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/editNotification'));
+const UserSearch = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
+const SkillRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/skillRequests'));
+const ShiftBufferRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/shiftBufferRequests'));
+const AccountRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/accountRequests'));
+const AdminUserDetails = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
+const Reports = lazyWithRetry(() => import('src/pages/dashboard/admin/reports'));
+const OvertimeSettings = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/overtime'));
+const DepartmentSettings = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/department'));
+const Venues = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/venues'));
+const DynamicShiftFilter = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/dynamicShiftFilter'));
+const EditVenue = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
+const Events = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
+const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
+const EditEventAssignment = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
+const EditEventAssignmentShift = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
 
 // ----------------------------------------------------------------------
 

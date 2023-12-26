@@ -2,11 +2,12 @@ import { lazy } from 'react';
 import { Outlet } from 'react-router-dom';
 // layouts
 import CompactLayout from 'src/layouts/compact';
+import { lazyWithRetry } from 'src/utils/lazyRetry';
 
 // ----------------------------------------------------------------------
 
-const Page404 = lazy(() => import('src/pages/404'));
-const NotApproved = lazy(() => import('src/pages/NotApproved'));
+const Page404 = lazyWithRetry(() => import('src/pages/404'));
+const NotApproved = lazyWithRetry(() => import('src/pages/NotApproved'));
 
 // ----------------------------------------------------------------------
 

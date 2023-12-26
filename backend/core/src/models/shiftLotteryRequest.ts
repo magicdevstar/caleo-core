@@ -55,7 +55,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     });
   }
 
-  async requestsStagedForAssignment(shiftGroupId: string): Promise<{
+  async requestsStagedForAssignment(shiftGroupId: string, reRun: boolean = false): Promise<{
     _id: ObjectId;
     shiftGroupId: string;
     docType: string;
@@ -71,13 +71,19 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       };
     };
   }[]> {
+    let match: any = {
+      shiftGroupId,
+      removedAt: { $exists: false },
+    };
+    if (reRun) {
+      match = {
+        shiftGroupId,
+        status: {$nin: [ShiftLotteryRequestStatus.Approved, ShiftLotteryRequestStatus.Removed]},
+      };
+    }
     const pipeline = [
       {
-        $match:
-          {
-            shiftGroupId,
-            removedAt: { $exists: false },
-          },
+        $match: match,
       },
       {
         $addFields:

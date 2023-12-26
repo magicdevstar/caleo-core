@@ -12,6 +12,7 @@ import { assignments, scheduleShiftReminders } from "./assignments";
 import { shifts } from "./shifts";
 import { shiftRequest } from "./shiftRequests";
 import { fixMe } from "./utils/fix-me";
+import { shiftOverlap } from "./utils/shift-overlap";
 
 (async () => {
   let connection: MongoClient | undefined;
@@ -23,7 +24,7 @@ import { fixMe } from "./utils/fix-me";
     const mongoClientProd = connectionProd.db(process.env.DB);
 
     // await fixMe(mongoClient, mongoClientProd);
-
+    // await shiftOverlap(mongoClient, mongoClientProd);
 
     await venues(mongoClient.collection('venues'));
     await ranks(mongoClient.collection('ranks'));
@@ -36,7 +37,6 @@ import { fixMe } from "./utils/fix-me";
     const minMaxMap = await shifts(mongoClient.collection('shifts'), mongoClient);
     await adjustEventTimes(mongoClient.collection('events'), minMaxMap);
     await shiftRequest(mongoClient.collection('shiftLotteryRequests'), mongoClient);
-
 
     // await setTierUntil(mongoClient.collection('users'), mongoClient);
     // await scheduleShiftReminders(mongoClient.collection('shifts'), mongoClient);

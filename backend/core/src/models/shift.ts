@@ -197,14 +197,17 @@ export class ShiftModel extends BaseModel<Shift> {
       removedAt: { $exists: false },
       $or: [
         {
-          startTime: { $lte: ((shift.startTime as any) - bufferOffset) },
-          endTime: { $gte: ((shift.startTime as any) - bufferOffset) },
+          startTime: {
+            $gte: ((shift.startTime as any) - bufferOffset),
+            $lte: ((shift.endTime as any) + bufferOffset) },
         },
         {
-          startTime: { $lte: ((shift.endTime as any) + bufferOffset) },
-          endTime: { $gte: ((shift.endTime as any) + bufferOffset) },
+          endTime: {
+            $gte: ((shift.startTime as any) - bufferOffset),
+            $lte: ((shift.endTime as any) + bufferOffset),
+          },
         },
-      ]
+      ],
     });
     logger.info('Found overlap', { foundOverlap, bufferOffset, startTime: shift.startTime, endTime: shift.endTime, query: {
       orgId,
@@ -212,14 +215,17 @@ export class ShiftModel extends BaseModel<Shift> {
       removedAt: { $exists: false },
       $or: [
         {
-          startTime: { $lte: ((shift.startTime as any) - bufferOffset) },
-          endTime: { $gte: ((shift.startTime as any) - bufferOffset) },
+          startTime: {
+            $gte: ((shift.startTime as any) - bufferOffset),
+            $lte: ((shift.endTime as any) + bufferOffset) },
         },
         {
-          startTime: { $lte: ((shift.endTime as any) + bufferOffset) },
-          endTime: { $gte: ((shift.endTime as any) + bufferOffset) },
+          endTime: {
+            $gte: ((shift.startTime as any) - bufferOffset),
+            $lte: ((shift.endTime as any) + bufferOffset),
+          },
         },
-      ]
+      ],
     } })
     return !foundOverlap;
   }

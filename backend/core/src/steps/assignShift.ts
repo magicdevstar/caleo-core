@@ -4,15 +4,20 @@ import { ObjectId } from 'mongodb';
 import isEqual from 'lodash.isequal';
 
 import logger from '../utils/logger';
-import { DocType, MemberTier, Organization, Shift, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
+import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
 
 interface InputEvent {
   _id: string;
   dryRun: boolean;
+  reRun: boolean;
 }
 
-const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
+const assignShift = async ({
+  _id: shiftGroupId,
+  dryRun,
+  reRun,
+}: InputEvent) => {
   const {
     shiftLotteryRequests: lottery,
     organizations,
@@ -27,6 +32,12 @@ const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
   });
 
   if (shifts.length === 0) {
+    if (reRun) {
+      return {
+        tier1Assignments: [],
+        dryRun: !!dryRun,
+      }
+    }
     throw new Error('Shifts not found');
   }
   
@@ -36,7 +47,7 @@ const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
     throw new Error('Organization not found');
   }
 
-  const requests = await lottery.requestsStagedForAssignment(shiftGroupId);
+  const requests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
 
   logger.info('Lottery requests', {
     requests,
@@ -117,14 +128,16 @@ const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
 
   if (!dryRun) {
     // Remove all open requests for this shift group
-    await lottery.removeMany({
-      shiftGroupId: shiftGroupId,
-      _id: {
-        $nin: acceptedRequestIds,
-      },
-    }, {
-      status: ShiftLotteryRequestStatus.Rejected,
-    });
+    if (!reRun) {
+      await lottery.removeMany({
+        shiftGroupId: shiftGroupId,
+        _id: {
+          $nin: acceptedRequestIds,
+        },
+      }, {
+        status: ShiftLotteryRequestStatus.Rejected,
+      });
+    }
   
     await lottery.removeMany({
       _id: {
@@ -139,6 +152,7 @@ const assignShift = async ({ _id: shiftGroupId, dryRun }: InputEvent) => {
     orgId: organization?.id,
     tier1Assignments: [...tier1Assignments],
     dryRun: !!dryRun,
+    acceptedRequestIds,
   };
 };
 

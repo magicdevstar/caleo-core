@@ -246,4 +246,23 @@ stepFunctions:
             Resource:
               Fn::GetAtt: [postFCFSShifts, Arn]
             End: true
+    lottoReRun:
+      name: lotto-rerun-${sls:stage}
+      definition:
+        StartAt: AssignShifts
+        States:
+          AssignShifts:
+            Type: Map
+            MaxConcurrency: 1
+            ItemProcessor:
+              ProcessorConfig:
+                Mode: INLINE
+              StartAt: AssignShift
+              States:
+                AssignShift:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [assignShift, Arn]
+                  End: true
+            End: true
   validate: true

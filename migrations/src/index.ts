@@ -15,6 +15,7 @@ import { fixMe } from "./utils/fix-me";
 import { shiftOverlap } from "./utils/shift-overlap";
 import { schedulerFix } from "./utils/scheduler-update";
 import { unassignmentCSV } from "./utils/unassignment-csv";
+import { availabilityMap } from "./utils/avail-fix";
 
 (async () => {
   let connection: MongoClient | undefined;
@@ -29,6 +30,7 @@ import { unassignmentCSV } from "./utils/unassignment-csv";
     // await shiftOverlap(mongoClient, mongoClientProd);
     // await unassignmentCSV(mongoClientProd);
     // await schedulerFix(mongoClientProd);
+    // await availabilityMap(mongoClientProd);
 
     await venues(mongoClient.collection('venues'));
     await ranks(mongoClient.collection('ranks'));

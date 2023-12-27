@@ -260,19 +260,19 @@ export class ShiftModel extends BaseModel<Shift> {
   createAvailability(shift: Shift, timezone: string) {
     const startTime = utcToZonedTime(new Date(shift.startTime), timezone);
     const endTime = utcToZonedTime(new Date(shift.endTime), timezone);
-
+  
     const startDay = getDay(startTime);
     const endDay = getDay(endTime);
-
+  
     const inBetweenDays: number[] = [];
     if (startDay !== endDay) {
-      let inBetween = startDay + 1;
+      let inBetween = (startDay + 1) % dayOfWeek.length;
       while(inBetween !== endDay) {
         inBetweenDays.push(inBetween);
         inBetween = ((inBetween + 1) % dayOfWeek.length);
       }
     }
-
+  
     return dayOfWeek.reduce((acc, day, index) => {
       acc[day] = {};
       if (index === startDay) {

@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@rmp135/sql-ts": "^1.18.1",
+    "@types/lodash": "^4.14.202",
     "@types/node": "^20.10.4",
     "@types/uuid": "^9.0.7",
     "ts-node": "^10.9.1",

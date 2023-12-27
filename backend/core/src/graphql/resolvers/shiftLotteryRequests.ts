@@ -86,7 +86,7 @@ export const shiftLotteryRequests = {
       const highestOrderNumber = await shiftLotteryRequests.highestOrderNumber(counter, user!.id);
       const upsertObject = {
         status: ShiftLotteryRequestStatus.Pending,
-        order: highestOrderNumber,
+        order: highestOrderNumber + 1,
         ...shiftLotteryRequest,
         shiftGroupId: shift.shiftId,
         eventId: shift.eventId,

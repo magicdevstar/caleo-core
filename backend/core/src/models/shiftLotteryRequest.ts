@@ -159,6 +159,6 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       lotteryCounter,
       userId,
     }).sort({ order: -1 }).limit(1).toArray();
-    return res[0]?.order || 0;
+    return res[0] ? res[0].order : -1;
   }
 };

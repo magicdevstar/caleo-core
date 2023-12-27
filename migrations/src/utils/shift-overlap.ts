@@ -204,10 +204,11 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
       }
     }
 
-    console.log(JSON.stringify(overlapMap, null, 2));
+    // console.log(JSON.stringify(overlapMap, null, 2));
     let bulkLotteryWrite: any = [];
     let bulkShiftWrite: any = [];
     const unassignedShiftGroupIds = new Set();
+    const unassignments: any = [];
     for(const userId of Object.keys(overlapMap)) {
       const data = overlapMap[userId];
       for(const group of data.overlappingGroups) {
@@ -247,6 +248,10 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
         group.keepId = keepId;
         group.removeIds = removeIds;
 
+        unassignments.push(...removeIds.map((id: any) => ({
+          userId,
+          id,
+        })));
         bulkShiftWrite.push(...removeIds.map((id: any) => ({
           updateOne: {
             filter: { _id: id },
@@ -256,10 +261,11 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
       }
     }
 
+    console.log(JSON.stringify(unassignments, null, 2));
     // const bulkLottery = await prodDb.collection('shiftLotteryRequests').bulkWrite(bulkLotteryWrite);
-    console.log('bulkLottery', JSON.stringify(bulkLotteryWrite, null, 2));
+    // console.log('bulkLottery', JSON.stringify(bulkLotteryWrite, null, 2));
     // const bulkShift = await prodDb.collection('shifts').bulkWrite(bulkShiftWrite);
-    console.log('bulkShift', JSON.stringify(bulkShiftWrite, null, 2));
+    // console.log('bulkShift', JSON.stringify(bulkShiftWrite, null, 2));
 
     console.log(JSON.stringify([...unassignedShiftGroupIds], null, 2));
   } catch(error) {

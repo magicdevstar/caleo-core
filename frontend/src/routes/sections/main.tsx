@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { Outlet } from 'react-router-dom';
 // layouts
 import CompactLayout from 'src/layouts/compact';

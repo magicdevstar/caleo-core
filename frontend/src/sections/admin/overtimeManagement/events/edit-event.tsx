@@ -19,6 +19,10 @@ import Button from '@mui/material/Button';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Divider from '@mui/material/Divider';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -58,6 +62,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import Markdown from 'src/components/markdown';
+import Iconify from 'src/components/iconify';
 import { client } from 'src/utils/apollo';
 
 // ----------------------------------------------------------------------
@@ -146,6 +151,7 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>();
   const deleteConfirm = useBoolean();
+  const showAttachments = useBoolean(false);
   const { enqueueSnackbar } = useSnackbar();
 
   const defaultValues = useMemo(
@@ -582,24 +588,9 @@ export default function EditEvent({ currentEvent }: Props) {
               </Box>
             )}
 
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle2">Notes</Typography>
+            <Stack spacing={1.5} sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" sx={{ml: 0.5}}>Notes</Typography>
               <RHFEditor readOnly={allDisabled} simple name="notes" />
-            </Stack>
-
-            {/* TODO: Implement attachments */}
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle2">Attachments</Typography>
-              <RHFUpload
-                multiple
-                thumbnail
-                disabled={allDisabled}
-                name="attachments"
-                maxSize={3145728}
-                onDrop={handleDrop}
-                onRemove={handleRemoveFile}
-                onRemoveAll={handleRemoveAllFiles}
-              />
             </Stack>
 
             {
@@ -709,6 +700,60 @@ export default function EditEvent({ currentEvent }: Props) {
 
             <RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
           </Stack>
+
+          <Divider sx={{ borderStyle: 'dashed' }} />
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            expanded={showAttachments.value}
+            onChange={(_, expanded) => {
+              showAttachments.setValue(expanded);
+            }}
+            sx={{
+              p: 1,
+              background: 'transparent',
+              boxShadow: 'none !important',
+              '&:before': {
+                opacity: 0,
+              }
+            }}
+          >
+            <AccordionSummary
+              sx={{
+                '& .MuiAccordionSummary-content': {
+                  justifyContent: 'center',
+                  marginY: 0,
+                }
+              }}
+            >
+              <Typography variant="subtitle2">
+                Attachments
+              </Typography>
+              <Iconify
+                sx={{
+                  mt: 0.2,
+                  ml: 1,
+                  transform: showAttachments.value ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 280ms'
+                }}
+                icon="mdi:chevron-down"
+              />
+            </AccordionSummary>
+            <AccordionDetails>
+                {/* TODO: Implement attachments */}
+                <RHFUpload
+                  multiple
+                  thumbnail
+                  disabled={allDisabled}
+                  name="attachments"
+                  maxSize={3145728}
+                  onDrop={handleDrop}
+                  onRemove={handleRemoveFile}
+                  onRemoveAll={handleRemoveAllFiles}
+                />
+            </AccordionDetails>
+          </Accordion>
         </Card>
       </Grid>
     </>

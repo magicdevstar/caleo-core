@@ -43,7 +43,7 @@ export default function AssignmentDetail() {
             name: data?.assignment?.name || 'Assignment Detail',
           },
         ]}
-        sx={{ mb: 1 }}
+        sx={{ mb: 3 }}
       />
 
       <QueryView

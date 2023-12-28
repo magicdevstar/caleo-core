@@ -40,7 +40,7 @@ export default function VenueDetail() {
             name: data?.venue?.name || 'Venue Detail',
           },
         ]}
-        sx={{ mb: 1 }}
+        sx={{ mb: 3 }}
       />
       <QueryView
         loading={loading}

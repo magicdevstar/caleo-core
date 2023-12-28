@@ -40,7 +40,7 @@ export default function UserDetail() {
             href: paths.dashboard.admin.users.userDetail,
           },
         ]}
-        sx={{ mb: 1 }}
+        sx={{ mb: 3 }}
       />
 
       <QueryView

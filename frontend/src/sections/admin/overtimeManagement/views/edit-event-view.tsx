@@ -58,7 +58,7 @@ export default function VenueDetail() {
             name: data?.event?.name || 'Event Detail',
           },
         ]}
-        sx={{ mb: 1 }}
+        sx={{ mb: 3 }}
         action={summaryButton}
       />
 

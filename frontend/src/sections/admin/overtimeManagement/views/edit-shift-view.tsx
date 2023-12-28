@@ -52,7 +52,7 @@ export default function ShiftDetail() {
             name: 'Shift Detail',
           },
         ]}
-        sx={{ mb: 1 }}
+        sx={{ mb: 3 }}
       />
 
       <QueryView

@@ -576,7 +576,7 @@ export default function EditEvent({ currentEvent }: Props) {
             />
 
             {selectedVenue && (
-              <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
+              <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2, mb: 1 }}>
                 <Stack direction="row" spacing={1.5}>
                   <Typography variant="subtitle2">Address: </Typography>
                   <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
@@ -587,11 +587,6 @@ export default function EditEvent({ currentEvent }: Props) {
                 <Markdown children={selectedVenue?.notes || ''} />
               </Box>
             )}
-
-            <Stack spacing={1.5} sx={{ mb: 1 }}>
-              <Typography variant="subtitle2" sx={{ml: 0.5}}>Notes</Typography>
-              <RHFEditor readOnly={allDisabled} simple name="notes" />
-            </Stack>
 
             {
               currentEvent &&
@@ -728,7 +723,7 @@ export default function EditEvent({ currentEvent }: Props) {
               }}
             >
               <Typography variant="subtitle2">
-                Attachments
+                Notes and Attachments
               </Typography>
               <Iconify
                 sx={{
@@ -741,6 +736,12 @@ export default function EditEvent({ currentEvent }: Props) {
               />
             </AccordionSummary>
             <AccordionDetails>
+              <Stack spacing={1.5} sx={{ mb: 4 }}>
+                <Typography variant="subtitle2" sx={{ml: 0.5}}>Notes</Typography>
+                <RHFEditor readOnly={allDisabled} simple name="notes" />
+              </Stack>
+              <Stack spacing={1.5}>
+                <Typography variant="subtitle2" sx={{ml: 0.5}}>Attachments</Typography>
                 {/* TODO: Implement attachments */}
                 <RHFUpload
                   multiple
@@ -752,6 +753,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   onRemove={handleRemoveFile}
                   onRemoveAll={handleRemoveAllFiles}
                 />
+              </Stack>
             </AccordionDetails>
           </Accordion>
         </Card>

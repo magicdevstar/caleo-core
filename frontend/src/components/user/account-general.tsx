@@ -76,6 +76,7 @@ const DatePicker = memo(function PickMeComponent({
       timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
       label="Tier set until"
       defaultValue={tierUntil && dayjs.utc(tierUntil)}
+      disablePast
       sx={{
         margin: 0,
         '& input': {
@@ -251,7 +252,7 @@ export default function AccountGeneral({
 
   const onSubmit = handleSubmit(async (d) => {
     try {
-      if (d.tier === MemberTier.Tier_2 && !d.tierUntil && !user.member.tierResetOnNextLottery) {
+      if (adminViewer && d.tier === MemberTier.Tier_2 && !d.tierUntil && !user.member.tierResetOnNextLottery) {
         setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
         return;
       }
@@ -283,12 +284,14 @@ export default function AccountGeneral({
             member: {
               orgId: user?.member?.orgId,
               pNumber: d.pNumber,
-              rankId: d.rank.id,
-              role: d.role,
-              tier: d.tier,
-              tierUntil: d.tierUntil,
-              adminNote: d.adminNote,
-              status: d.status,
+              ...(adminViewer && {
+                rankId: d.rank.id,
+                role: d.role,
+                tier: d.tier,
+                tierUntil: d.tierUntil,
+                adminNote: d.adminNote,
+                status: d.status,
+              }),
               contactInfo: {
                 primaryEmail: {
                   address: d.primaryEmail,

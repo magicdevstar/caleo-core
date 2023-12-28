@@ -196,7 +196,7 @@ export class ShiftModel extends BaseModel<Shift> {
     if (!available) {
       return res;
     }
-    const foundOverlap = await this.collection.findOne({
+    const query = {
       orgId,
       userId: user.id,
       removedAt: { $exists: false },
@@ -213,18 +213,28 @@ export class ShiftModel extends BaseModel<Shift> {
           },
         },
       ],
-    });
+    };
+    const foundOverlap = await this.collection.findOne(query);
+
     res.canSignUpForShift = !foundOverlap;
 
     if(
       foundOverlap &&
       !(
-        (foundOverlap.startTime >= shift.startTime && foundOverlap.startTime <= shift.endTime) ||
-        (foundOverlap.endTime >= shift.startTime && foundOverlap.endTime <= shift.endTime)
+        (foundOverlap.startTime > shift.startTime && foundOverlap.startTime < shift.endTime) ||
+        (foundOverlap.endTime > shift.startTime && foundOverlap.endTime < shift.endTime + 1)
       )
     ) {
       res.requiresShiftBuffer = true;
     }
+
+    logger.info('Found overlap', {
+      foundOverlap,
+      shift,
+      bufferOffset,
+      query,
+      res,
+    });
 
     return res;
   }

@@ -349,7 +349,7 @@ export const shift = {
           throw new GraphQLError("User not found");
         }
         const { canSignUpForShift, requiresShiftBuffer } = await shifts.canSignUpForShift({
-          user: user!,
+          user: assignUser,
           shift,
           orgId: user?.member.orgId!,
           shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,

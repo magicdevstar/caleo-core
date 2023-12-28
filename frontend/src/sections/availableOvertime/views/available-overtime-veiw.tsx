@@ -121,20 +121,26 @@ export default function AvailableOvertimeView() {
         enqueueSnackbar(`You successfully signed up for ${editShift?.event?.name} - ${editShift?.assignment?.name}.`, { variant: 'success' });
         closeAssign();
       } catch(error) {
-        if (/This shift if no longer available for this user/.test(error.message)) {
-          enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error' });
+        if (/This shift has an overlapping time/.test(error.message)) {
+          enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
           closeAssign();
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
           });
         } else if (/This shift requires a shift buffer request/.test(error.message)) {
-          enqueueSnackbar('This shift requires a buffer request. Please try again.', { variant: 'error' });
+          enqueueSnackbar('This shift requires a buffer request. Please try again.', { variant: 'error', autoHideDuration: 5000 });
           closeAssign();
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
           });
         } else if (/The user has reached their maximum shifts for that week/.test(error.message)) {
           enqueueSnackbar('You have reached your maximum number of shifts for that week.', { variant: 'error', autoHideDuration: 5000 });
+          closeAssign();
+          await client.refetchQueries({
+            include: [GET_AVAILABLE_SHIFTS]
+          });
+        } if (/Shift already assigned/.test(error.message)) {
+          enqueueSnackbar('You have already been assigned this shift. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
           closeAssign();
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]

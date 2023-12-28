@@ -1,7 +1,7 @@
 import { Collection, Db } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
@@ -167,6 +167,10 @@ export class ShiftModel extends BaseModel<Shift> {
     orgId: string;
     shiftBufferTime?: number;
   }) {
+    const res = {
+      canSignUpForShift: false,
+      requiresShiftBuffer: false,
+    }
     const bufferOffset = shiftBufferTime * 60 * 1000;
     const available = Object.keys(user.member.availability).reduce((isAvailable: boolean, day: string) => {
       if (!isAvailable || !shift.availability?.[day]) return isAvailable;
@@ -190,7 +194,7 @@ export class ShiftModel extends BaseModel<Shift> {
     }, true);
     
     if (!available) {
-      return false;
+      return res;
     }
     const foundOverlap = await this.collection.findOne({
       orgId,
@@ -210,25 +214,19 @@ export class ShiftModel extends BaseModel<Shift> {
         },
       ],
     });
-    logger.info('Found overlap', { foundOverlap, bufferOffset, startTime: shift.startTime, endTime: shift.endTime, query: {
-      orgId,
-      userId: user.id,
-      removedAt: { $exists: false },
-      $or: [
-        {
-          startTime: {
-            $gte: ((shift.startTime as any) - bufferOffset),
-            $lte: ((shift.endTime as any) + bufferOffset) },
-        },
-        {
-          endTime: {
-            $gte: ((shift.startTime as any) - bufferOffset),
-            $lte: ((shift.endTime as any) + bufferOffset),
-          },
-        },
-      ],
-    } })
-    return !foundOverlap;
+    res.canSignUpForShift = !foundOverlap;
+
+    if(
+      foundOverlap &&
+      !(
+        (foundOverlap.startTime >= shift.startTime && foundOverlap.startTime <= shift.endTime) ||
+        (foundOverlap.endTime >= shift.startTime && foundOverlap.endTime <= shift.endTime)
+      )
+    ) {
+      res.requiresShiftBuffer = true;
+    }
+
+    return res;
   }
 
   async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {

@@ -429,51 +429,6 @@ export class UserModel extends BaseModel<User> {
     );
   }
 
-  async canSignUpForShift({
-    user,
-    // Specific shift to filter for
-    shiftId,
-    organization,
-  }: {
-    user: User;
-    organization: Organization;
-    shiftId: string;
-  }) {
-    const maxEndTime = Date.now();
-    const myShifts = (await this.shifts.collection.find({
-      userId: user.id,
-      orgId: organization.id,
-      endTime: {
-        $gte: maxEndTime,
-      },
-      removedAt: { $exists: false },
-    }).toArray() as any[]) as Shift[];
-    const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
-      startTime,
-      endTime,
-    }));
-    const $and: any[] = [];
-    if (shiftRanges.length > 0) {
-      $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
-        $or: [
-          { startTime: { $gte: endTime } },
-          { endTime: { $lte: startTime } },
-        ],
-      })));
-    }
-    const res = await this.shifts.collection.find({
-      _id: new ObjectId(shiftId),
-      endTime: { $gte: maxEndTime },
-      removedAt: { $exists: false },
-      // Handles shift ranges
-      ...($and.length > 0 ? { $and } : {}),
-    }).toArray();
-    return {
-      total: res.length,
-      items: res,
-    }
-  }
-
   async findCompatibleUsersForShift({
     id,
     orgId,

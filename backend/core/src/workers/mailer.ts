@@ -1002,7 +1002,7 @@ const sendEmail = async (input: MailerEvent) => {
       do {
         user = await allUsers.next() as any;
         if (user) {
-          const canSignUpForShift = await context.shifts.canSignUpForShift({
+          const { canSignUpForShift } = await context.shifts.canSignUpForShift({
             user: {
               ...user,
               id: (user as any)._id.toString(),
@@ -1089,7 +1089,7 @@ const sendEmail = async (input: MailerEvent) => {
             if (!shift) {
               continue;
             }
-            const canSignUpForShift = await context.shifts.canSignUpForShift({
+            const { canSignUpForShift } = await context.shifts.canSignUpForShift({
               user: {
                 ...user,
                 id: (user as any)._id.toString(),

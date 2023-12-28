@@ -342,42 +342,28 @@ export const shift = {
         throw new GraphQLError("Shift already assigned");
       }
 
-      if (userId && userIsAdmin(user)) {
+      // If we are attempting to assign a user we should check if they can sign up for the shift
+      if (userId) {
         const assignUser = await users.get(userId!);
         if (!assignUser) {
           throw new GraphQLError("User not found");
         }
-        const { total } = await users.canSignUpForShift({
-          user: assignUser,
-          organization: organization!,
-          shiftId: shift.id,
-        });
-        if (total === 0) {
-          throw new GraphQLError("This shift has an overlapping time. Please try another assignment");
-        }
-      } else if (userId) {
-        const assignUser = await users.get(userId!);
-        if (!assignUser) {
-          throw new GraphQLError("User not found");
-        }
-        const { total, items } = await users.findOpenShifts({
-          user: assignUser,
-          organization: organization!,
+        const { canSignUpForShift, requiresShiftBuffer } = await shifts.canSignUpForShift({
+          user: user!,
+          shift,
           orgId: user?.member.orgId!,
-          limit: 1,
-          skip: 0,
-          shiftId: shift.id,
+          shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
         });
-        if (total === 0) {
-          throw new GraphQLError("This shift if no longer available for this user");
+        if (!canSignUpForShift && !requiresShiftBuffer) {
+          throw new GraphQLError("This shift has an overlapping time. Please try another assignment.");
         }
         if (
           !(organization?.settings?.shiftBuffer?.adminOverrideShiftBuffer && userIsAdmin(user!)) &&
-          !!items?.[0]?.shiftBufferShift
+          !canSignUpForShift && requiresShiftBuffer && !userIsAdmin(user)
         ) {
           throw new GraphQLError("This shift requires a shift buffer request");
         }
-        if (await users.hasMaxShifts({ user: assignUser, shift, organization: organization! })) {
+        if (!userIsAdmin(user) && await users.hasMaxShifts({ user: assignUser, shift, organization: organization! })) {
           throw new GraphQLError("The user has reached their maximum shifts for that week");
         }
       }

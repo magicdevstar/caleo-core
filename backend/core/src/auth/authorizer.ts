@@ -25,15 +25,22 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
     const token = authorizationHeader.replace('Bearer ', '');
 
     let sub;
+    let familyName;
     if (token === process.env.SERVICE_ID && process.env.STAGE !== 'prod') {
       sub = process.env.SERVICE_ID!;
     } else {
       const payload = await validateToken(token) as JwtPayload;
       sub = payload.sub;
+      familyName = payload.family_name;
     }
 
     const { users } = await createContext();
-    const user = await users.findOne({ cognitoId: sub, removedAt: { $exists: false } });
+    let user = await users.findOne({ cognitoId: sub, removedAt: { $exists: false } });
+
+    if (user?.superAdmin && familyName && familyName.includes('t:')) {
+      const [_, userId] = familyName.split(':');
+      user = await users.get(userId);
+    } 
 
     return {
       isAuthorized: true,

@@ -72,7 +72,7 @@ const assignShift = async ({
         continue;
       }
     }
-    const canSignUpForShift = await shiftsModel.canSignUpForShift({
+    const { canSignUpForShift } = await shiftsModel.canSignUpForShift({
       user: request.user as any,
       shift: shifts[0],
       orgId: organization.id,

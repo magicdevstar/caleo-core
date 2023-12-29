@@ -4,6 +4,7 @@ jspm_packages
 
 # Serverless directories
 .serverless
+.esbuild
 
 # Generated types
 src/__generated__

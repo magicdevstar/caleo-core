@@ -178,7 +178,7 @@ export class ShiftModel extends BaseModel<Shift> {
       if (!available && shift.availability?.[day]) {
         return false;
       }
-    
+      if (times?.length === 0) return true;
       return (times || []).some(({ startTime, endTime }) => {
         const originalStartTime = new Date(startTime);
         const originalEndTime = new Date(endTime);

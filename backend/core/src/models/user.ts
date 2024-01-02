@@ -134,7 +134,7 @@ export class UserModel extends BaseModel<User> {
     let eventQuery: any = {
       orgId,
       status: EventStatus.FirstComeFirstServe,
-      startTime: {
+      endTime: {
         $gte: Date.now(),
       },
       $or: [

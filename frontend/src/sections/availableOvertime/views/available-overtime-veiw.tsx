@@ -122,7 +122,7 @@ export default function AvailableOvertimeView() {
         closeAssign();
       } catch(error) {
         if (/This shift has an overlapping time/.test(error.message)) {
-          enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
+          enqueueSnackbar('This shift overlaps with another shift. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
           closeAssign();
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
@@ -139,14 +139,14 @@ export default function AvailableOvertimeView() {
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
           });
-        } if (/Shift already assigned/.test(error.message)) {
-          enqueueSnackbar('You have already been assigned this shift. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
+        } else if (/Shift already assigned/.test(error.message)) {
+          enqueueSnackbar('This shift is no longer available. Please try selecting another shift.', { variant: 'error', autoHideDuration: 5000 });
           closeAssign();
           await client.refetchQueries({
             include: [GET_AVAILABLE_SHIFTS]
           });
         } else {
-          enqueueSnackbar('Something went wrong assigning this shift. Pleas try again.', { variant: 'error' });
+          enqueueSnackbar('Something went wrong assigning this shift. Please try again.', { variant: 'error' });
         }
       }
     },

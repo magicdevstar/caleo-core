@@ -2,7 +2,8 @@ import middy from '@middy/core';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
-import isEqual from 'lodash.isequal';
+import difference from 'lodash.difference';
+import shuffle from 'lodash.shuffle';
 
 import logger from '../utils/logger';
 import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
@@ -51,7 +52,15 @@ const assignShift = async ({
     throw new Error('Organization not found');
   }
 
-  const requests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
+  const initialRequests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
+
+  const tier1Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
+  const tier2Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
+
+  const requests = [
+    ...shuffle(tier1Requests),
+    ...shuffle(tier2Requests),
+  ];
 
   logger.info('Lottery requests', {
     requests,
@@ -71,7 +80,7 @@ const assignShift = async ({
     if (assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
       const mSkills = await memberSkills.findAll(request.user?.member?.memberSkillIds.map((id) => new ObjectId(id)));
       const skillIds = mSkills.map(({ skillId }) => skillId);
-      if (!isEqual(assignment.requiredSkillIds, skillIds)) {
+      if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
         logger.info('Request skills do not match assignment skills', {  assignmentSkillIds: assignment.requiredSkillIds, requestSkillIds: skillIds });
         continue;
       }

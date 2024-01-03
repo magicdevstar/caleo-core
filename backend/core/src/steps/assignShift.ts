@@ -1,4 +1,5 @@
 import middy from '@middy/core';
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
 import isEqual from 'lodash.isequal';
@@ -6,12 +7,15 @@ import isEqual from 'lodash.isequal';
 import logger from '../utils/logger';
 import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
+import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../types/notifications';
 
 interface InputEvent {
   _id: string;
   dryRun: boolean;
   reRun: boolean;
 }
+
+const lambda = new LambdaClient({});
 
 const assignShift = async ({
   _id: shiftGroupId,
@@ -124,6 +128,21 @@ const assignShift = async ({
   if (shiftAssignments.length > 0 && !dryRun) {
     const res = await shiftsModel.collection.bulkWrite(shiftAssignments);
     logger.info('Bulk write res', { res });
+
+    for(const assignment of shiftAssignments) {
+      const id = assignment.updateOne.filter._id.toString();
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.SHIFT_NOTIFICATION_SCHEDULER,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          type: NotificationType.Shift,
+          action: ShiftNotificationAction.UpsertNotification,
+          id,
+        } as ShiftUpsertNotification),
+      })).catch((error) =>
+        logger.error('Error invoking shift notification scheduler', { error, id, assignment })
+      );
+    }
   }
 
   if (!dryRun) {

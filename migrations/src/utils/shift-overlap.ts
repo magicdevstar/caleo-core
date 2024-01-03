@@ -226,6 +226,9 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
           }, {} as any);
 
         const keeper = overlaps.find(({ shiftId }: any) => rankingsByShiftId[shiftId]);
+        if (!keeper) {
+          continue;
+        }
         const keepId = keeper._id;
         const removeIds = overlaps.filter(({ _id }: any) => keepId !== _id).map(({ _id, shiftId }: any) => {
           unassignedShiftGroupIds.add(shiftId);
@@ -263,9 +266,9 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
 
     console.log(JSON.stringify(unassignments, null, 2));
     // const bulkLottery = await prodDb.collection('shiftLotteryRequests').bulkWrite(bulkLotteryWrite);
-    // console.log('bulkLottery', JSON.stringify(bulkLotteryWrite, null, 2));
+    console.log('bulkLottery', JSON.stringify(bulkLotteryWrite, null, 2));
     // const bulkShift = await prodDb.collection('shifts').bulkWrite(bulkShiftWrite);
-    // console.log('bulkShift', JSON.stringify(bulkShiftWrite, null, 2));
+    console.log('bulkShift', JSON.stringify(bulkShiftWrite, null, 2));
 
     console.log(JSON.stringify([...unassignedShiftGroupIds], null, 2));
   } catch(error) {

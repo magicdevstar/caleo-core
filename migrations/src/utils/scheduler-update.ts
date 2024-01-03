@@ -8,7 +8,7 @@ export const schedulerFix = async (prodDb: Db) => {
   const or: any[] = [];
 
   for await (const req of prodDb.collection('shiftLotteryRequests').find({
-    lotteryCounter: 0,
+    lotteryCounter: 1,
     status: 'APPROVED',
   })) {
     const { userId, shiftGroupId } = req;
@@ -24,7 +24,6 @@ export const schedulerFix = async (prodDb: Db) => {
 
   for (const shift of shifts) {
     if (!shift.notificationId) {
-      console.log('No notification scheduled', shift._id.toString());
       // console.log('No notification scheduled', shift._id.toString());
       // try {
       //   const out = await lambda.send(new InvokeCommand({
@@ -36,7 +35,7 @@ export const schedulerFix = async (prodDb: Db) => {
       //       id: shift._id.toString(),
       //     } as ShiftUpsertNotification),
       //   }));
-      //   // console.log(out);
+      //   console.log(out);
       //   // await (async () => new Promise((resolve) => setTimeout(resolve, 500)))();
       // } catch(error) {
       //   console.log(error);

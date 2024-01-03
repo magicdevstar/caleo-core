@@ -16,6 +16,8 @@ import { shiftOverlap } from "./utils/shift-overlap";
 import { schedulerFix } from "./utils/scheduler-update";
 import { unassignmentCSV } from "./utils/unassignment-csv";
 import { availabilityMap } from "./utils/avail-fix";
+import { tierChecker } from './utils/tier-scheduler-check';
+// import { wtf } from './utils/wtf';
 
 (async () => {
   let connection: MongoClient | undefined;
@@ -26,23 +28,25 @@ import { availabilityMap } from "./utils/avail-fix";
     const mongoClient = connection.db(process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
+    // await tierChecker(mongoClientProd);
     // await fixMe(mongoClient, mongoClientProd);
     // await shiftOverlap(mongoClient, mongoClientProd);
     // await unassignmentCSV(mongoClientProd);
-    // await schedulerFix(mongoClientProd);
+    await schedulerFix(mongoClientProd);
     // await availabilityMap(mongoClientProd);
+    // await wtf(mongoClientProd);
 
-    await venues(mongoClient.collection('venues'));
-    await ranks(mongoClient.collection('ranks'));
-    await skills(mongoClient.collection('skills'), mongoClient);
-    await users(mongoClient.collection('users'), mongoClient);
-    await memberSkills(mongoClient.collection('memberSkills'), mongoClient);
-    await lotteryCounter(mongoClient.collection('lotteryCounter'));
-    await events(mongoClient.collection('events'), mongoClient);
-    await assignments(mongoClient.collection('assignments'), mongoClient);
-    const minMaxMap = await shifts(mongoClient.collection('shifts'), mongoClient);
-    await adjustEventTimes(mongoClient.collection('events'), minMaxMap);
-    await shiftRequest(mongoClient.collection('shiftLotteryRequests'), mongoClient);
+    // await venues(mongoClient.collection('venues'));
+    // await ranks(mongoClient.collection('ranks'));
+    // await skills(mongoClient.collection('skills'), mongoClient);
+    // await users(mongoClient.collection('users'), mongoClient);
+    // await memberSkills(mongoClient.collection('memberSkills'), mongoClient);
+    // await lotteryCounter(mongoClient.collection('lotteryCounter'));
+    // await events(mongoClient.collection('events'), mongoClient);
+    // await assignments(mongoClient.collection('assignments'), mongoClient);
+    // const minMaxMap = await shifts(mongoClient.collection('shifts'), mongoClient);
+    // await adjustEventTimes(mongoClient.collection('events'), minMaxMap);
+    // await shiftRequest(mongoClient.collection('shiftLotteryRequests'), mongoClient);
 
     // await setTierUntil(mongoClient.collection('users'), mongoClient);
     // await scheduleShiftReminders(mongoClient.collection('shifts'), mongoClient);

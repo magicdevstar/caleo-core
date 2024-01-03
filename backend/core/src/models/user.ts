@@ -350,17 +350,7 @@ export class UserModel extends BaseModel<User> {
       }
     ]);
 
-    const totalRes = await this.shifts.aggregate<{
-      total: number;
-    }>([
-      ...pipeline,
-      // Count results
-      {
-        $count: 'total',
-      },
-    ]);
-
-    logger.info('Shift Res', { totalRes, res, myShifts });
+    logger.info('Shift Res', { res, myShifts });
 
     const enabledShiftBuffer = organization?.settings?.shiftBuffer?.enabled;
     const minuteBuffer = organization?.settings?.shiftBuffer?.minuteShiftBuffer;
@@ -394,7 +384,7 @@ export class UserModel extends BaseModel<User> {
     });
 
     return {
-      total: totalRes?.[0]?.total || 0,
+      total: firstShifts.length,
       items: firstShifts.sort((a, b) => a.startTime - b.startTime)
     };
   }

@@ -11,7 +11,6 @@ import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
 import { format, setMilliseconds, addMinutes, setSeconds, isAfter } from "date-fns";
-import { utcToZonedTime } from "date-fns-tz";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
 
 export const event = {

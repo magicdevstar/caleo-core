@@ -18,6 +18,26 @@ interface InputEvent {
 
 const lambda = new LambdaClient({});
 
+const bucketAndShuffle = (requests: any[]) => {
+  const bucket = requests.reduce((acc, req) => {
+    if (!acc[req.order]) {
+      acc[req.order] = [];
+    }
+    acc[req.order].push(req);
+    return acc;
+  }, {});
+
+  let shuffledReq: any[] = [];
+
+  Object.keys(bucket)
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+    .forEach((key) => {
+      shuffledReq.push(...shuffle(bucket[key]));
+    });
+
+  return shuffledReq;
+}
+
 const assignShift = async ({
   _id: shiftGroupId,
   dryRun,
@@ -57,9 +77,9 @@ const assignShift = async ({
   const tier1Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
   const tier2Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
 
-  const requests = [
-    ...shuffle(tier1Requests),
-    ...shuffle(tier2Requests),
+  const requests: typeof tier1Requests = [
+    ...bucketAndShuffle(tier1Requests),
+    ...bucketAndShuffle(tier2Requests),
   ];
 
   logger.info('Lottery requests', {

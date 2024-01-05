@@ -185,14 +185,14 @@ export class ShiftModel extends BaseModel<Shift> {
     
         const start = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalStartTime)), getMinutes(originalStartTime)), 0), 0);
         const end = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalEndTime)), getMinutes(originalEndTime)), 999), 59);
-    
+
         return (
           (shift.availability?.[day]?.startTime && new Date(shift.availability?.[day]?.startTime).getTime() >= start.getTime()) &&
           (shift.availability?.[day]?.endTime && new Date(shift.availability?.[day]?.endTime).getTime() <= end.getTime())
         );
       });
     }, true);
-    
+
     if (!available) {
       return res;
     }

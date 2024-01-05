@@ -1,6 +1,3 @@
-import { LogoutOptions, RedirectLoginOptions, PopupLoginOptions } from '@auth0/auth0-react';
-import { FrontendUser } from 'src/api/user';
-
 // ----------------------------------------------------------------------
 
 export type ActionMapType<M extends { [index: string]: any }> = {
@@ -40,8 +37,8 @@ type CanRemove = {
   loginWithGithub?: () => Promise<void>;
   loginWithTwitter?: () => Promise<void>;
   //
-  loginWithPopup?: (options?: PopupLoginOptions) => Promise<void>;
-  loginWithRedirect?: (options?: RedirectLoginOptions) => Promise<void>;
+  loginWithPopup?: (options?: any) => Promise<void>;
+  loginWithRedirect?: (options?: any) => Promise<void>;
   //
   confirmRegister?: (email: string, code: string) => Promise<void>;
   forgotPassword?: (email: string) => Promise<void>;
@@ -76,7 +73,7 @@ export type FirebaseContextType = CanRemove & {
 };
 
 export type AmplifyContextType = CanRemove & {
-  user: FrontendUser;
+  user: any;
   method: string;
   loading: boolean;
   authenticated: boolean;
@@ -104,7 +101,7 @@ export type Auth0ContextType = CanRemove & {
   loading: boolean;
   authenticated: boolean;
   unauthenticated: boolean;
-  loginWithPopup: (options?: PopupLoginOptions) => Promise<void>;
-  loginWithRedirect: (options?: RedirectLoginOptions) => Promise<void>;
-  logout: (options?: LogoutOptions) => Promise<void>;
+  loginWithPopup: (options?: any) => Promise<void>;
+  loginWithRedirect: (options?: any) => Promise<void>;
+  logout: (options?: any) => Promise<void>;
 };

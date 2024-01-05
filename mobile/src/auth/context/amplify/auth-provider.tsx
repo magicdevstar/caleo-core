@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useCallback, useMemo } from 'react';
-import { Auth } from '@aws-amplify/auth';
 // config
-import { AMPLIFY_API } from '../../../config-global';
+import Auth, { customStorage } from '../../../utils/amplify';
 import { client } from '../../../utils/apollo';
 import { FrontendUser, ME } from '../../../api/user';
 import { User } from '../../../__generated__/resolvers-types';
@@ -77,8 +76,6 @@ const reducer = (state: AuthStateType, action: Action) => {
 
 // ----------------------------------------------------------------------
 
-Auth.configure(AMPLIFY_API);
-
 type Props = {
   children: React.ReactNode;
 };
@@ -88,6 +85,8 @@ export function AuthProvider({ children }: Props) {
 
   const initialize = useCallback(async () => {
     try {
+      // Sync preferences with memory storage
+      await customStorage.sync();
       const currentUser = await Auth.currentAuthenticatedUser();
       const { data: { me } } = await client.query<{ me: User }>({
         query: ME,

@@ -3,16 +3,14 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
 // Amplify
-import { Auth } from '@aws-amplify/auth';
+import Auth from './amplify';
 
 // ----------------------------------------------------------------------
 
 // config
-import { AMPLIFY_API, APOLLO_API } from '../config-global';
+import { APOLLO_API } from '../config-global';
 
 // ----------------------------------------------------------------------
-
-Auth.configure(AMPLIFY_API);
 
 const httpLink = createHttpLink({
   uri: APOLLO_API,

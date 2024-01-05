@@ -3,9 +3,14 @@ import { useParams } from 'react-router';
 import ExploreContainer from '../components/ExploreContainer';
 import './Page.css';
 
-const Page: React.FC = () => {
+const Page: React.FC<{ title?: string; }> = ({
+  title,
+}: {
+  title?: string;
+}) => {
 
-  const { name } = useParams<{ name: string; }>();
+  const { name: paramName } = useParams<{ name: string; }>();
+  const name = title || paramName;
 
   return (
     <IonPage>

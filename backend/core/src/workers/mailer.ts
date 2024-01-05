@@ -968,10 +968,24 @@ const sendEmail = async (input: MailerEvent) => {
       const shift = await context.shifts.findOne({
         shiftId,
         removedAt: { $exists: false },
-        $or: [
-          { userId: null },
-          { userId: { $exists: false } },
-        ],
+        $and: [
+          {
+            $or: [
+              { userId: null },
+              { userId: { $exists: false } },
+            ],
+          },
+          {
+            $or: [
+              { locked: false },
+              {
+                locked: {
+                  $exists: false,
+                },
+              },
+            ],
+          }
+        ]
       });
       if (!shift) {
         logger.error('Shift not found', { input, shift });
@@ -1063,16 +1077,32 @@ const sendEmail = async (input: MailerEvent) => {
       const assignmentDetails: Assignment[] = await context.assignments.collection.find({
         orgId: organization.id,
         eventId: event.id,
+        removedAt: { $exists: false },
       }).project({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray() as unknown as Assignment[];
 
       const shiftIds = await context.shifts.collection.find({
         orgId: organization.id,
         eventId: event.id,
         assignmentId: { $in: assignmentDetails.map((a: any) => a._id.toString()) },
-        $or: [
-          { userId: null },
-          { userId: { $exists: false } },
-        ],
+        removedAt: { $exists: false },
+        $and: [
+          {
+            $or: [
+              { userId: null },
+              { userId: { $exists: false } },
+            ],
+          },
+          {
+            $or: [
+              { locked: false },
+              {
+                locked: {
+                  $exists: false,
+                },
+              },
+            ],
+          }
+        ]
       }).project({ shiftId: 1 }).toArray();
       const uniqShiftIds = uniq(shiftIds.map((s: any) => s.shiftId));
       const uniqRanksIds = uniq(assignmentDetails.map((a: any) => a.rankIds).flat());

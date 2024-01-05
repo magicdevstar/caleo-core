@@ -87,7 +87,7 @@ export function AuthProvider({ children }: Props) {
     try {
       // Sync preferences with memory storage
       await customStorage.sync();
-      const currentUser = await Auth.currentAuthenticatedUser();
+      const currentUser = await Auth.currentAuthenticatedUser({ bypassCache: true });
       const { data: { me } } = await client.query<{ me: User }>({
         query: ME,
       });

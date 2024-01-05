@@ -1,0 +1,18 @@
+.loginBox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.submitButton {
+  width: 100%;
+}
+
+ion-spinner {
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+}
+

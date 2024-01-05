@@ -1,15 +1,21 @@
-import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
+import { IonRouterOutlet, IonSplitPane } from '@ionic/react';
 import { Redirect, Route } from 'react-router-dom';
 import Menu from './components/Menu';
 import Page from './pages/Page';
+import Login from './pages/Login';
 import { useAuthContext } from './auth/hooks';
+import LoadingPage from './pages/Loading';
 
 const Routes: React.FC = () => {
-  const { authenticated } = useAuthContext();
+  const { authenticated, loading } = useAuthContext();
+
+  if (loading) {
+    return <LoadingPage />
+  }
 
   return (
     <IonSplitPane contentId="main">
-      <Menu />
+      {authenticated && <Menu />}
       <IonRouterOutlet id="main">
         <Route path="/" exact={true}>
           <Redirect to="/folder/Inbox" />
@@ -20,7 +26,7 @@ const Routes: React.FC = () => {
           render={(params: any) => authenticated ? (<Page {...params} />) : (<Redirect to="/login" />)}
         />
         <Route path="/login" exact={true}>
-          <Page title="Login" />
+          <Login />
         </Route>
       </IonRouterOutlet>
     </IonSplitPane>

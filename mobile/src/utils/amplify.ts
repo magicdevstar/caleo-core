@@ -13,17 +13,17 @@ class CustomStorage {
       key: `${this.MEMORY_KEY_PREFIX}${key}`,
       value,
     });
-    this.data[key] = value;
+    this.data[`${this.MEMORY_KEY_PREFIX}${key}`] = value;
     return this.data[key];
   }
 
   getItem(key: string) {
-    return this.data[key];
+    return this.data[`${this.MEMORY_KEY_PREFIX}${key}`];
   }
 
   removeItem(key: string) {
     Preferences.remove({ key: `${this.MEMORY_KEY_PREFIX}${key}` });
-    delete this.data[key];
+    delete this.data[`${this.MEMORY_KEY_PREFIX}${key}`];
   }
 
   clear() {
@@ -34,7 +34,11 @@ class CustomStorage {
     const { keys } = await Preferences.keys();
     for (const key of keys) {
       const res = await Preferences.get({ key });
-      this.data[key] = res.value || '';
+      try {
+        this.data[key] = JSON.parse(res.value || '');
+      } catch(error) {
+        this.data[key] = res.value || '';
+      }
     }
   }
 }

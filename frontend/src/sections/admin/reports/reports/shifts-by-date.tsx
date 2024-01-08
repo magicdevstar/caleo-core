@@ -73,7 +73,7 @@ export default function ShiftsByDate() {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
-    fileName: 'shifts-by-officer',
+    fileName: 'shifts-by-date',
     ext: 'csv',
   });
 

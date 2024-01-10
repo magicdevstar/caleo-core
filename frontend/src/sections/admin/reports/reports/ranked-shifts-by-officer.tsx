@@ -131,6 +131,7 @@ export default function RankedShiftsByOfficer() {
             ...(values.lotteryCounters.length && { counters: values.lotteryCounters }),
             orderBy: 'createdAt',
             order: 'desc',
+            includeRemoved: true,
           },
         },
       });

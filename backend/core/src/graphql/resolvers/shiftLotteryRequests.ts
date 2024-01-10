@@ -4,14 +4,26 @@ import {
   ShiftLotteryRequest,
   ShiftLotteryRequestStatus,
   ShiftLotteryRequestsSearchInput,
+  ShiftLottoRequestsSearchInput,
   UpsertShiftLotteryRequest
 } from "../../__generated__/resolvers-types";
-import { adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
+import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
 
 export const shiftLotteryRequests = {
   Query: {
+    shiftLottoRequests: async (
+      _parent: unknown,
+      { input }: { input: ShiftLottoRequestsSearchInput },
+      {
+        user,
+        shiftLotteryRequests,
+      }: Context
+    ): Promise<SearchResults<ShiftLotteryRequest>> => {
+      adminOnly(user);
+      return shiftLotteryRequests.search(input);
+    },
     shiftLotteryRequests: async (
       _parent: unknown,
       { input }: { input: ShiftLotteryRequestsSearchInput },

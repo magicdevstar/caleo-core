@@ -297,6 +297,7 @@
     requiredSkills: [Skill]
     ranks: [Rank]
     shifts: [Shift]
+    availableShifts: Int
     org: Organization!
     modifiedBy: User
   }
@@ -963,6 +964,7 @@
     query: String
     range: SearchTimeRange
     status: [EventStatus]
+    lotteryNumber: Int
     venueIds: [String]
     referenceIds: [Int]
     endTime: SearchTimeFilter
@@ -970,6 +972,15 @@
     orderBy: String
     order: String
     includeRemoved: Boolean
+  }
+
+  input AssignmentSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    eventId: String
+    orderBy: String
+    order: String
   }
 
   type AssignmentSearchResult {
@@ -992,6 +1003,7 @@
     createdById: [String]
     assignedIds: [String]
     eventIds: [String]
+    assignmentId: String
     startTime: String
     endTime: String
     orderBy: String
@@ -1034,6 +1046,15 @@
     userId: String
     counters: [Int]
     includeRemoved: Boolean
+  }
+
+  input ShiftLottoRequestsSearchInput {
+    limit: Int
+    skip: Int
+    lotteryCounter: Int!
+    shiftGroupId: String!
+    orderBy: String
+    order: String
   }
 
   type ShiftBufferRequestsSearchResult {
@@ -1106,7 +1127,7 @@ type Query {
   events(input: EventSearchInput): EventSearchResult
 
   assignment(id: String!): Assignment
-  assignments(input: SearchInput): AssignmentSearchResult
+  assignments(input: AssignmentSearchInput): AssignmentSearchResult
 
   availableShifts(input: AvailableShiftsSearchInput): ShiftSearchResult
   shift(id: String!): Shift
@@ -1116,6 +1137,7 @@ type Query {
   shiftUsers(id: String!, name: String): UserSearchResult
   shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
   shiftLotteryRequests(input: ShiftLotteryRequestsSearchInput): ShiftLotteryRequestsSearchResult
+  shiftLottoRequests(input: ShiftLottoRequestsSearchInput!): ShiftLotteryRequestsSearchResult
 
   lotteryCounter(counter: Int): LotteryCounter
   lotteryCounters(input: SearchInput): LotteryCounterSearchResult

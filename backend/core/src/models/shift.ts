@@ -111,6 +111,34 @@ export class ShiftModel extends BaseModel<Shift> {
     return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
   });
 
+  public assignmentShiftCount = new DataLoader(async (keys: readonly string[]) => {
+    const res = await this.collection.aggregate<{
+      _id: string;
+      count: number;
+    }>([
+      {
+        $match: {
+          assignmentId: {
+            $in: keys,
+          },
+          removedAt: { $exists: false },
+          status: { $ne: ShiftStatus.Locked },
+          $or: [{userId: null}, {userId: {$exists: false}}],
+        },
+      },
+      {
+        $group: {
+          _id: "$assignmentId",
+          count: {
+            $count: {},
+          },
+        },
+      },
+    ]).toArray();
+
+    return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
+  });
+
   constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');
@@ -196,23 +224,62 @@ export class ShiftModel extends BaseModel<Shift> {
     if (!available) {
       return res;
     }
+
+    const $or = [
+      // Case 1: The interval completely covers the start date and end date
+      // Ex. 👇
+      //     S                E 
+      //     |****************|
+      //  S1                     E1
+      //  |----------------------| 
+      {
+        $and: [
+          { startTime: { $lte: ((shift.startTime as any) - bufferOffset) } },
+          { endTime: { $gte: ((shift.endTime as any) + bufferOffset) } }
+        ],
+      },
+      // Case 2: The interval is completely inside the start date and end date
+      // Ex. 👇
+      //     S                E 
+      //     |****************|
+      //       S2        E2
+      //       |----------|
+      {
+        $and: [
+          { startTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
+          { endTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+        ],
+      },
+      // Case 3: The start date is outside the interval and the end date is inside the interval
+      // Ex. 👇
+      //     S                E 
+      //     |****************|
+      // S3          E3
+      // |-----------|
+      {
+        $and: [
+          { endTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
+          { endTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+        ],
+      },
+      // Case 4: The start date is inside the interval and the end date is outside the interval
+      //     S                E 
+      //     |****************|
+      //              S4           E4
+      //              |-------------|
+      {
+        $and: [
+          { startTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
+          { startTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+        ],
+      },
+    ];
+
     const query = {
       orgId,
       userId: user.id,
       removedAt: { $exists: false },
-      $or: [
-        {
-          startTime: {
-            $gte: ((shift.startTime as any) - bufferOffset),
-            $lte: ((shift.endTime as any) + bufferOffset) },
-        },
-        {
-          endTime: {
-            $gte: ((shift.startTime as any) - bufferOffset),
-            $lte: ((shift.endTime as any) + bufferOffset),
-          },
-        },
-      ],
+      $or,
     };
     const foundOverlap = await this.collection.findOne(query);
 

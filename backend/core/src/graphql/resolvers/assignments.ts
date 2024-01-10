@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { SearchInput, Assignment, UpsertAssignment } from "../../__generated__/resolvers-types";
+import { Assignment, UpsertAssignment, AssignmentSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
@@ -14,11 +14,12 @@ export const assignments = {
     ): Promise<Assignment | null> => assignments.get(id, { removed: true }),
     assignments: async (
       _parent: unknown,
-      { limit, skip }: SearchInput,
+      { input: {limit, skip, ...input} }: {input: AssignmentSearchInput},
       { assignments, user }: Context
     ): Promise<SearchResults<Assignment>> => assignments.search({
       limit,
       skip,
+      ...input,
       orgId: user?.member.orgId!,
     })
   },
@@ -119,6 +120,7 @@ export const assignments = {
       requiredSkills: (assignment: Assignment, _, { skills }: Context) => skills.loader.loadMany((assignment.requiredSkillIds || []) as any),
       ranks: (assignment: Assignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []) as any),
       shifts: (assignment: Assignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []) as any),
+      availableShifts: async (item: Assignment, _arg: unknown, { shifts }: Context) => shifts.assignmentShiftCount.load(item.id),
     },
   },
 };

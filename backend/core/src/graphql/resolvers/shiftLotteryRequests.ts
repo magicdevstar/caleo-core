@@ -22,7 +22,13 @@ export const shiftLotteryRequests = {
       }: Context
     ): Promise<SearchResults<ShiftLotteryRequest>> => {
       adminOnly(user);
-      return shiftLotteryRequests.search(input);
+      return shiftLotteryRequests.search({
+        ...input,
+        status: {
+          $in: [ShiftLotteryRequestStatus.Approved, ShiftLotteryRequestStatus.Rejected],
+        },
+        includeRemoved: true,
+      });
     },
     shiftLotteryRequests: async (
       _parent: unknown,
@@ -121,7 +127,14 @@ export const shiftLotteryRequests = {
       org: (item: ShiftLotteryRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId),
       event: (item: ShiftLotteryRequest, _, { events }: Context) => events.loader.load(item.eventId),
       assignment: (item: ShiftLotteryRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
-      user: (item: ShiftLotteryRequest, _, { users }: Context) => users.loader.load(item.userId),
+      user: async (item: ShiftLotteryRequest, {shiftStart, timezoneOffset}: {shiftStart: string; timezoneOffset: number;}, { users }: Context) => {
+        const user = await users.loader.load(item.userId);
+        return {
+          ...user,
+          shiftStart,
+          timezoneOffset,
+        };
+      },
       shift: (item: ShiftLotteryRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
     },
   },

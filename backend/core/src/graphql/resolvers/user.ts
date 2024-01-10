@@ -20,10 +20,15 @@ import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
-import { format } from "date-fns";
+import { addHours, endOfWeek, format, startOfWeek } from "date-fns";
 import logger from "../../utils/logger";
 
 const lambda = new LambdaClient();
+
+interface EnhancedUser extends User {
+  shiftStart?: string;
+  timezoneOffset?: number;
+}
 
 export const user = {
   Query: {
@@ -34,11 +39,17 @@ export const user = {
     ): Promise<User | null> => users.get(user!.id),
     user: async (
       _parent: unknown,
-      { id }: { id: string },
+      { id, shiftStart, timezoneOffset }: { id: string; shiftStart: string; timezoneOffset: number; },
       { users, user }: Context
-    ): Promise<User | null> => {
+    ): Promise<EnhancedUser | null> => {
       adminOrOwnerOnly(id, user);
-      return users.get(id);
+      const usr = await users.get(id);
+
+      return {
+        ...usr as User,
+        shiftStart,
+        timezoneOffset,
+      };
     },
     users: async (
       _parent: unknown,
@@ -353,6 +364,33 @@ export const user = {
     User: {
       ...commonResolvers,
       image: (user: User, _, { users }: Context) => user.imagePath ? users.getDownloadUrl(user.imagePath!) : null,
+      shiftsThisWeek: (parent: any, _: any, { shifts }: Context) => {
+        logger.info('Shifts this week', { parent });
+        if (!parent.shiftStart || !parent.timezoneOffset) {
+          return null;
+        }
+        const beginningOfWeek = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        const endOfTheWeek = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        return shifts.weekShiftsLoader.load({
+          id: parent.id,
+          orgId: parent.member.orgId,
+          beginningOfWeek,
+          endOfWeek: endOfTheWeek,
+        });
+      },
+      numberOfShiftsThisWeek: (parent: any, _args: any, { shifts }: Context) => {
+        if (!parent.shiftStart || !parent.timezoneOffset) {
+          return null;
+        }
+        const beginningOfWeek = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        const endOfTheWeek = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        return shifts.shiftCountLoader.load({
+          id: parent.id,
+          orgId: parent.member.orgId,
+          beginningOfWeek,
+          endOfWeek: endOfTheWeek,
+        });
+      },
     },
     Member: {
       rank: (member: Member, _, { ranks }: Context) =>

@@ -139,6 +139,80 @@ export class ShiftModel extends BaseModel<Shift> {
     return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
   });
 
+  public shiftCountLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {
+    const beginningOfWeek = keys[0].beginningOfWeek.getTime();
+    const endOfWeek = keys[0].endOfWeek.getTime();
+    const orgId = keys[0].orgId;
+    const userIds = keys.map(({ id }) => id);
+    const res = await this.collection.aggregate([
+      {
+        $match: {
+          orgId,
+          userId: {
+            $in: userIds,
+          },
+          startTime: {
+            $gte: beginningOfWeek,
+          },
+          endTime: {
+            $lte: endOfWeek,
+          },
+          removedAt: {
+            $exists: false,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$userId",
+          count: {
+            $count: {},
+          },
+        },
+      },
+    ]).toArray();
+    
+    return keys.map((key) => res.find((item: any) => item._id.toString() === key.id) || { count: 0 }).map(({ count }: any) => count);
+  });
+
+  public weekShiftsLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {
+    const beginningOfWeek = keys[0].beginningOfWeek.getTime();
+    const endOfWeek = keys[0].endOfWeek.getTime();
+    const orgId = keys[0].orgId;
+    const userIds = keys.map(({ id }) => id);
+    const res = await this.collection.aggregate([
+      {
+        $match: {
+          orgId,
+          userId: {
+            $in: userIds,
+          },
+          startTime: {
+            $gte: beginningOfWeek,
+          },
+          endTime: {
+            $lte: endOfWeek,
+          },
+          removedAt: {
+            $exists: false,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$userId",
+          shifts: { $push: '$$ROOT' },
+        },
+      },
+    ]).toArray();
+    
+    return keys
+      .map((key) =>
+        res
+          .find((item: any) => item._id.toString() === key.id) || { shifts: [] })
+          .map(({ shifts }: any) => shifts);
+  });
+
   constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');

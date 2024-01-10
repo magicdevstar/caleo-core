@@ -46,6 +46,7 @@ const cognito = new CognitoIdentityProviderClient({});
 export class UserModel extends BaseModel<User> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
+
   constructor(
     db: Db,
     private assignments: AssignmentModel,

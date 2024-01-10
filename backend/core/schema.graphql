@@ -127,6 +127,11 @@
 
     image: String
     modifiedBy: User
+    # Only used when getting lotto requests
+    # for the admin site. We could expand this later
+    # but for now 🤷‍♂️
+    numberOfShiftsThisWeek: Int
+    shiftsThisWeek: [Shift]
   }
 
   input InputAdminResetPassword {
@@ -388,7 +393,7 @@
     removedAt: String
     modifiedById: String
 
-    user: User
+    user(shiftStart: String, timezoneOffset: Int): User
     event: Event!
     assignment: Assignment!
     org: Organization!
@@ -1111,7 +1116,7 @@ type Query {
   organization: Organization
 
   users(input: UserSearchInput): UserSearchResult
-  user(id: String!): User
+  user(id: String!, shiftStart: String, timezoneOffset: Int): User
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

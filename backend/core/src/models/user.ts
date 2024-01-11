@@ -85,7 +85,7 @@ export class UserModel extends BaseModel<User> {
         Username: cognitoId,
         UserPoolId: process.env.COGNITO_POOL_ID,
         Password: password,
-        Permanent: false
+        Permanent: true
       });
       await cognito.send(command);
       return true;

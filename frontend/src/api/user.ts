@@ -152,6 +152,12 @@ export const CREATE_PROFILE_PHOTO_UPLOAD_URL = gql`
   }
 `;
 
+export const ADMIN_RESET_PASSWORD = gql`
+  mutation AdminResetPassword($input: InputAdminResetPassword!) {
+    adminEditPassword(input: $input)
+  }
+`;
+
 export const GET_USER = gql`
   query GetUser($id: String!) {
     user(id: $id) {

@@ -11,6 +11,7 @@ import AccountGeneral from './account-general';
 import AccountSkills from './account-skills';
 import AccountOvertime from './account-overtime';
 import AccountChangePassword from './account-change-password';
+import AccountNewPassword from './account-new-password';
 
 // ----------------------------------------------------------------------
 
@@ -65,7 +66,7 @@ export default function MainAccountView({
           mb: { xs: 3, md: 5 },
         }}
       >
-        {TABS.filter(({ value }) => excludePassword ? value !== 'security' : true).map((tab) => (
+        {TABS.map((tab) => (
           <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
         ))}
       </Tabs>
@@ -76,7 +77,7 @@ export default function MainAccountView({
 
       {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
 
-      {currentTab === 'security' && <AccountChangePassword />}
+      {currentTab === 'security' && !excludePassword ? <AccountChangePassword /> : <AccountNewPassword userId={user?.id} />}
     </>
   );
 }

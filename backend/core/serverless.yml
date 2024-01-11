@@ -81,6 +81,7 @@ provider:
             - 'scheduler:*'
             - 'states:*'
             - 'mobiletargeting:*'
+            - cognito-idp:AdminSetUserPassword
           Resource: '*'
 
 plugins:

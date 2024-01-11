@@ -81,7 +81,7 @@ export const shiftLotteryRequests = {
 
       adminOrOwnerOnly(foundRequest.userId, user);
 
-      await shiftLotteryRequests.remove(id, { modifiedById: user?.id });
+      await shiftLotteryRequests.remove(id, { modifiedById: user?.id, status: ShiftLotteryRequestStatus.Removed });
 
       return id;
     },

@@ -182,6 +182,7 @@ const assignShift = async ({
         _id: {
           $nin: acceptedRequestIds,
         },
+        status: ShiftLotteryRequestStatus.Pending
       }, {
         status: ShiftLotteryRequestStatus.Rejected,
       });
@@ -191,6 +192,7 @@ const assignShift = async ({
       _id: {
         $in: acceptedRequestIds,
       },
+      status: ShiftLotteryRequestStatus.Pending
     }, {
       status: ShiftLotteryRequestStatus.Approved,
     });

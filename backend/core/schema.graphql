@@ -12,6 +12,7 @@
     ASSIGNMENT
     SHIFT
     LOTTERY_COUNTER
+    SITE_LOCK
     SHIFT_BUFFER_REQUEST
     SHIFT_LOTTERY_REQUEST
   }
@@ -25,6 +26,28 @@
     SATURDAY
   }
 ###### END Common ######
+
+###### START Site Lock ######
+  type SiteLock {
+    id: ID!
+    locked: Boolean!
+    message: String
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertSiteLock {
+    locked: Boolean
+    message: String
+  }
+###### END Site Lock ######
 
 ###### START User ######
   enum MemberTier {
@@ -1150,6 +1173,8 @@ type Query {
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
+
+  siteLock: SiteLock
 }
 
 type Mutation {
@@ -1196,4 +1221,6 @@ type Mutation {
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!
   seenNotifications(notificationIds: [String]!): Boolean
+
+  siteLock(input: UpsertSiteLock): SiteLock
 }

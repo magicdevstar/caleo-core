@@ -19,10 +19,12 @@ import { VenueModel } from "../models/venue";
 import { DocumentModel } from "../models/document";
 import { EventReferenceNumber } from "../models/eventReferenceNumber";
 import { LotteryCounterModel } from "../models/lotteryCounter";
+import { SiteLockModel } from "../models/siteLock";
 
 let db: Db;
 
 export interface Context {
+  siteLock: SiteLockModel;
   eventReferenceNumber: EventReferenceNumber;
   organizations: OrganizationModel;
   lotteryCounter: LotteryCounterModel;
@@ -50,6 +52,7 @@ export const createContext = async (): Promise<Context> => {
     db = await mongodb.db(process.env.MONGODB_NAME!);
   }
 
+  const siteLock = new SiteLockModel(db);
   const organizations = new OrganizationModel(db);
   const lotteryCounter = new LotteryCounterModel(db, organizations);
   const eventReferenceNumber = new EventReferenceNumber(db);
@@ -85,5 +88,6 @@ export const createContext = async (): Promise<Context> => {
     shiftBufferRequests,
     shiftLotteryRequests,
     lotteryCounter,
+    siteLock,
   };
 };

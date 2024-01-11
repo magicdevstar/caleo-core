@@ -11,6 +11,7 @@ import { shift } from './shifts';
 import { shiftBufferRequests } from './shiftBufferRequests';
 import { shiftLotteryRequests } from './shiftLotteryRequests';
 import { lotteryCounter } from './lotteryCounter';
+import { siteLock } from './siteLock';
 
 export default {
   Query: {
@@ -27,6 +28,7 @@ export default {
     ...shiftBufferRequests.Query,
     ...shiftLotteryRequests.Query,
     ...lotteryCounter.Query,
+    ...siteLock.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -42,6 +44,7 @@ export default {
     ...shiftBufferRequests.Mutation,
     ...shiftLotteryRequests.Mutation,
     ...lotteryCounter.Mutation,
+    ...siteLock.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -56,4 +59,5 @@ export default {
   ...shiftBufferRequests.fields,
   ...shiftLotteryRequests.fields,
   ...lotteryCounter.fields,
+  ...siteLock.fields,
 };

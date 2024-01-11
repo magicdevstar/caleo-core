@@ -17,6 +17,7 @@ import { schedulerFix } from "./utils/scheduler-update";
 import { unassignmentCSV } from "./utils/unassignment-csv";
 import { availabilityMap } from "./utils/avail-fix";
 import { tierChecker } from './utils/tier-scheduler-check';
+import { analytics } from "./utils/analytics";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -30,11 +31,12 @@ import { tierChecker } from './utils/tier-scheduler-check';
 
     // await tierChecker(mongoClientProd);
     // await fixMe(mongoClient, mongoClientProd);
-    // await shiftOverlap(mongoClient, mongoClientProd);
+    await shiftOverlap(mongoClient, mongoClientProd);
     // await unassignmentCSV(mongoClientProd);
-    await schedulerFix(mongoClientProd);
+    // await schedulerFix(mongoClientProd);
     // await availabilityMap(mongoClientProd);
     // await wtf(mongoClientProd);
+    // await analytics(mongoClientProd);
 
     // await venues(mongoClient.collection('venues'));
     // await ranks(mongoClient.collection('ranks'));

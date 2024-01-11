@@ -127,7 +127,7 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
     // console.log(JSON.stringify(groupedByShiftId, null, 2));
 
     const events = await prodDb.collection('events').find({
-      lotteryNumber: 0,
+      lotteryNumber: 2,
       removedAt: { $exists: false },
     }).toArray();
 
@@ -162,18 +162,62 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
 
       const bufferOffset = 1000 * 60 * 15;
 
+      const $or = [
+        // Case 1: The interval completely covers the start date and end date
+        // Ex. 👇
+        //     S                E 
+        //     |****************|
+        //  S1                     E1
+        //  |----------------------| 
+        {
+          $and: [
+            { startTime: { $lte: ((startTime as any) - bufferOffset) } },
+            { endTime: { $gte: ((endTime as any) + bufferOffset) } }
+          ],
+        },
+        // Case 2: The interval is completely inside the start date and end date
+        // Ex. 👇
+        //     S                E 
+        //     |****************|
+        //       S2        E2
+        //       |----------|
+        {
+          $and: [
+            { startTime: { $gte: ((startTime as any) - bufferOffset) } },
+            { endTime: { $lte: ((endTime as any) + bufferOffset) } }
+          ],
+        },
+        // Case 3: The start date is outside the interval and the end date is inside the interval
+        // Ex. 👇
+        //     S                E 
+        //     |****************|
+        // S3          E3
+        // |-----------|
+        {
+          $and: [
+            { endTime: { $gte: ((startTime as any) - bufferOffset) } },
+            { endTime: { $lte: ((endTime as any) + bufferOffset) } }
+          ],
+        },
+        // Case 4: The start date is inside the interval and the end date is outside the interval
+        //     S                E 
+        //     |****************|
+        //              S4           E4
+        //              |-------------|
+        {
+          $and: [
+            { startTime: { $gte: ((startTime as any) - bufferOffset) } },
+            { startTime: { $lte: ((endTime as any) + bufferOffset) } }
+          ],
+        },
+      ];
+
       const overlappingShifts = await prodDb.collection('shifts').find({
         userId,
+        orgId: shift.orgId,
         removedAt: { $exists: false },
         _id: { $ne: shift._id },
-        $or: [
-          {
-            startTime: { $gte: ((startTime as any) - bufferOffset), $lte: ((endTime as any) + bufferOffset) },    
-          },
-          {
-            endTime: { $gte: ((startTime as any) - bufferOffset), $lte: ((endTime as any) + bufferOffset) },
-          },
-        ],
+        $or,
       }).toArray();
 
       if (overlappingShifts.length >= 1) {

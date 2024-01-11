@@ -13,3 +13,13 @@ export const GET_LOTTERY_DATES = gql`
     }
   }
 `;
+
+export const GET_SITE_LOCK = gql`
+  query GetSiteLock {
+    siteLock {
+      id
+      locked
+      message
+    }
+  }
+`;

@@ -7,6 +7,7 @@ import DashboardLayout from 'src/layouts/dashboard';
 // components
 import { LoadingScreen } from 'src/components/loading-screen';
 import { lazyWithRetry } from 'src/utils/lazyRetry';
+import LotteryLockGuard from 'src/auth/guard/lottery-lock-guard';
 
 // ----------------------------------------------------------------------
 
@@ -43,7 +44,9 @@ export const dashboardRoutes = [
       <AuthGuard>
         <DashboardLayout>
           <Suspense fallback={<LoadingScreen />}>
-            <Outlet />
+            <LotteryLockGuard>
+              <Outlet />
+            </LotteryLockGuard>
           </Suspense>
         </DashboardLayout>
       </AuthGuard>

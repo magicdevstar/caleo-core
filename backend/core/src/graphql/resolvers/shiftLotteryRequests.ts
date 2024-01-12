@@ -5,11 +5,13 @@ import {
   ShiftLotteryRequestStatus,
   ShiftLotteryRequestsSearchInput,
   ShiftLottoRequestsSearchInput,
+  ShiftStatus,
   UpsertShiftLotteryRequest
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
+import { ObjectId } from "mongodb";
 
 export const shiftLotteryRequests = {
   Query: {
@@ -120,6 +122,134 @@ export const shiftLotteryRequests = {
 
       return res;
     },
+    approveLottoAssignment: async (
+      _parent: unknown,
+      { id, shiftId, userId }: { id: string, shiftId: string, userId: string },
+      {
+        shiftLotteryRequests,
+        shifts,
+        users,
+        user,
+        organization,
+      }: Context
+    ) => {
+      adminOnly(user);
+      // find available slot
+      const availableShift = await shifts.findOne({
+        shiftId,
+        status: ShiftStatus.Available,
+        removedAt: { $exists: false },
+      });
+
+      // find lottery request
+      const foundRequest = await shiftLotteryRequests.get(id, { removed: true });
+
+      // find user
+      const lottoUser = await users.get(userId);
+
+      if (!lottoUser) {
+        throw new GraphQLError('User not found. Please try again.');
+      }
+
+      if (!foundRequest) {
+        throw new GraphQLError('Lottery Request not found. Please try again.');
+      }
+
+      if (!availableShift) {
+        throw new GraphQLError('There is no available shift for this shift group. Please unassign someone else before approving this request.');
+      }
+
+      const { canSignUpForShift } = await shifts.canSignUpForShift({
+        user: lottoUser,
+        shift: availableShift,
+        orgId: user?.member.orgId!,
+        shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
+      });
+
+      if (!canSignUpForShift) {
+        throw new GraphQLError('User cannot sign up for this shift due to a conflict of availability. Please try again.');
+      }
+      
+      try {
+        availableShift.status = ShiftStatus.Assigned;
+        availableShift.userId = lottoUser.id;
+        availableShift.modifiedById = user?.id!;
+        await shifts.update(availableShift, { skipMerge: true });
+
+        foundRequest.status = ShiftLotteryRequestStatus.Approved;
+        foundRequest.modifiedById = user?.id!;
+        await shiftLotteryRequests.update(foundRequest, { skipMerge: true });
+
+        return true;
+      } catch (error) {
+        logger.error('Error approving lottery assignment', { error });
+        throw new GraphQLError('Error approving lottery assignment. Please try again.');
+      }
+    },
+    rejectLottoAssignment: async (
+      _parent: unknown,
+      { id, shiftId, userId }: { id: string, shiftId: string, userId: string },
+      {
+        shiftLotteryRequests,
+        shifts,
+        users,
+        user,
+        organization,
+      }: Context
+    ) => {
+      adminOnly(user);
+      // find assigned slot
+      const assignedShift = await shifts.findOne({
+        shiftId,
+        userId,
+        status: ShiftStatus.Assigned,
+        removedAt: { $exists: false },
+      });
+
+      // find lottery request
+      const foundRequest = await shiftLotteryRequests.get(id, { removed: true });
+
+      // find user
+      const lottoUser = await users.get(userId);
+
+      if (!lottoUser) {
+        throw new GraphQLError('User not found. Please try again.');
+      }
+
+      if (!foundRequest) {
+        throw new GraphQLError('Lottery Request not found. Please try again.');
+      }
+
+      if (!assignedShift) {
+        throw new GraphQLError('There is no assigned shift for this user in this shift group. Please reload and try again.');
+      }
+
+      try {
+        await shifts.collection.updateOne(
+          {
+            _id: new ObjectId(assignedShift.id),
+          },
+          {
+            $set: {
+              status: ShiftStatus.Available,
+              modifiedById: user?.id!,
+            },
+            $unset: {
+              userId: 1,
+            },
+          }
+        );
+
+        foundRequest.status = ShiftLotteryRequestStatus.Rejected;
+        foundRequest.modifiedById = user?.id!;
+        await shiftLotteryRequests.update(foundRequest, { skipMerge: true });
+
+        return true;
+      } catch (error) {
+        logger.error('Error rejecting lottery assignment', { error });
+        throw new GraphQLError('Error rejecting lottery assignment. Please try again.');
+      }
+    }
   },
   fields: {
     ShiftLotteryRequest: {

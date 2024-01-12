@@ -1222,5 +1222,8 @@ type Mutation {
   removeNotification(id: String!): ID!
   seenNotifications(notificationIds: [String]!): Boolean
 
+  # Lottery review site
   siteLock(input: UpsertSiteLock): SiteLock
+  approveLottoAssignment(id: String!, shiftId: String!, userId: String!): Boolean
+  rejectLottoAssignment(id: String!, shiftId: String!, userId: String!): Boolean
 }

@@ -36,6 +36,7 @@ export default function ShiftItem({
   selectLoading = false,
   onSelect = () => {},
   cursor = 'pointer',
+  titlePrefix,
   shiftLabels,
   shiftActions,
 }: {
@@ -45,6 +46,13 @@ export default function ShiftItem({
   selectLoading?: boolean;
   cursor?: string;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  titlePrefix?: {
+    sx?: SxProps;
+    variant?: LabelVariant;
+    getHidden?: (shift: any) => boolean;
+    getColor?: (shift: any) => LabelColor;
+    getPrefix: (shift: any) => string;
+  }
   shiftLabels?: {
     key: string;
     sx?: SxProps;
@@ -250,18 +258,43 @@ export default function ShiftItem({
           }}
         >
           <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">
-            <Typography variant="h5" sx={{
-              display: 'flex',
-              alignItems: 'center',
-              '&:hover': {
-                textDecoration: 'underline',
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+            >
+              {
+                titlePrefix && (
+                  <Label
+                    sx={titlePrefix.sx}
+                    variant={titlePrefix.variant}
+                    color={titlePrefix.getColor?.(inputShift)}
+                  >
+                    {titlePrefix.getPrefix(inputShift)}
+                  </Label>
+                )
               }
-            }}>
-              {shift.event.name} - {shift.assignment.name} {labelComponent}
-            </Typography>
+              <Typography variant="h5" sx={{
+                display: 'flex',
+                alignItems: 'center',
+                '&:hover': {
+                  textDecoration: 'underline',
+                }
+              }}>
+                {shift.event.name} - {shift.assignment.name} {labelComponent}
+              </Typography>
+            </Stack>
             {
               shiftLabels?.length && (
-                <Stack direction={{ xs: 'column-reverse', md: 'row' }} spacing={1} alignItems="center" justifyContent="space-between">
+                <Stack
+                  direction={{ xs: 'column-reverse', md: 'row' }}
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={shiftActions.length ? {
+                    ml: 'auto'
+                  }: {}}
+                >
                   {
                     shiftLabels.map((shiftLabel) => !shiftLabel.getHidden?.(inputShift) && (
                       <Label

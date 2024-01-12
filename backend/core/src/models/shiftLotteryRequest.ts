@@ -158,7 +158,26 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     const res = await this.collection.find({
       lotteryCounter,
       userId,
+      removedAt: { $exists: false },
     }).sort({ order: -1 }).limit(1).toArray();
     return res[0] ? res[0].order : -1;
+  }
+
+  async reorderShifts(lotteryCounter: number, userId: string, excludeId: string) {
+    const res = await this.collection.find({
+      lotteryCounter,
+      userId,
+      removedAt: { $exists: false },
+    }).project({ _id: 1, order: 1 }).sort({ order: -1 }).toArray();
+
+    if (res && res.length) {
+      const bulkUpdate = res.filter((item) => item._id.toString() !== excludeId).map((item, index) => ({
+        updateOne: {
+          filter: { _id: item._id },
+          update: { $set: { order: index } },
+        },
+      }));
+      await this.collection.bulkWrite(bulkUpdate);
+    }
   }
 };

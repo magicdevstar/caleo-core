@@ -84,7 +84,7 @@ export const shiftLotteryRequests = {
       adminOrOwnerOnly(foundRequest.userId, user);
 
       await shiftLotteryRequests.remove(id, { modifiedById: user?.id, status: ShiftLotteryRequestStatus.Removed });
-
+      await shiftLotteryRequests.reorderShifts(foundRequest.lotteryCounter, user?.id!, id);
       return id;
     },
     shiftLotteryRequest: async (
@@ -119,7 +119,6 @@ export const shiftLotteryRequests = {
 
       const res = await shiftLotteryRequests.upsert(upsertObject);
       logger.info('Upsert Res', { res });
-
       return res;
     },
     approveLottoAssignment: async (

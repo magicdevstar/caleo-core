@@ -14,6 +14,7 @@ import { LabelColor, LabelVariant } from "../label";
 export default function ShiftItems({
   shifts,
   loading,
+  titlePrefix,
   shiftLabels,
   shiftActions,
   pageSize,
@@ -35,6 +36,13 @@ export default function ShiftItems({
   selectLoadingIndex?: number | null;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   setPage: (page: any) => void;
+  titlePrefix?: {
+    sx?: SxProps;
+    variant?: LabelVariant;
+    getHidden?: (shift: any) => boolean;
+    getColor?: (shift: any) => LabelColor;
+    getPrefix: (shift: any) => string;
+  }
   shiftLabels?: {
     key: string;
     sx?: SxProps;
@@ -74,6 +82,7 @@ export default function ShiftItems({
             selectLoading={selectLoadingIndex === index}
             selectable={selectable}
             onSelect={onSelect}
+            titlePrefix={titlePrefix}
             shiftLabels={shiftLabels}
             shiftActions={shiftActions}
             shift={shift}

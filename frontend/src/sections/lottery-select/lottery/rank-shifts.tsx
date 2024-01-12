@@ -1,23 +1,39 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { DragDropContext, Draggable, DropResult, Droppable } from "@hello-pangea/dnd";
 import { useCallback, useState } from "react";
 // mui
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
+import Typography from "@mui/material/Typography";
+import LoadingButton from "@mui/lab/LoadingButton";
+import Stack from "@mui/material/Stack";
 // API
 import { ShiftLotteryRequest } from "src/__generated__/resolvers-types";
-import { GET_LOTTERY_SHIFT_REQUESTS } from "src/api/shifts";
+import { GET_LOTTERY_SHIFTS, GET_LOTTERY_SHIFT_REQUESTS, REMOVE_LOTTERY_SHIFT_REQUEST } from "src/api/shifts";
 import EmptyContent from "src/components/empty-content";
 import ShiftItem from "src/components/shifts/shift-item";
 import ShiftItemSkeleton from "src/components/shifts/shift-item-skeleton";
 import { client } from "src/utils/apollo";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
+import { ConfirmDialog } from "src/components/custom-dialog";
+import { useBoolean } from "src/hooks/use-boolean";
+import Label from "src/components/label";
+import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { useAuthContext } from "src/auth/hooks";
+import { useSnackbar } from "src/components/snackbar";
 
 export default function RankShifts() {
+  const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
   const [updating, setUpdating] = useState<boolean>(false);
+  const [shiftToBeRemoved, setShiftToBeRemoved] = useState<ShiftLotteryRequest | null>(null);
+  const removePrompt = useBoolean(false);
+  const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST, {
+    refetchQueries: [GET_LOTTERY_SHIFTS],
+  });
   const { data: counterData, loading: counterLoading } = useQuery(GET_LOTTERY_COUNTER);
 
-  const { data, loading: requestLoading } = useQuery(GET_LOTTERY_SHIFT_REQUESTS, {
+  const { data, loading: requestLoading, refetch: refetchLotteryRequests } = useQuery(GET_LOTTERY_SHIFT_REQUESTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -92,6 +108,7 @@ export default function RankShifts() {
         variables: updates.variables,
       });
     } catch(error) {
+      enqueueSnackbar('Failed to re-order shifts. Please try again.', { variant: 'error' });
       await client.writeQuery({
         query: GET_LOTTERY_SHIFT_REQUESTS,
         data: {
@@ -105,7 +122,30 @@ export default function RankShifts() {
     } finally {
       setUpdating(false);
     }
-  }, [items]);
+  }, [items, enqueueSnackbar]);
+
+  const closeRemove = useCallback(() => {
+    removePrompt.onFalse();
+    setTimeout(() => {
+      setShiftToBeRemoved(null);
+    }, 200);
+  },[removePrompt, setShiftToBeRemoved]);
+
+  const handleRemove = useCallback(async () => {
+    setUpdating(true);
+    try {
+      await removeRequest({
+        variables: {
+          id: shiftToBeRemoved!.id
+        },
+      });
+      await refetchLotteryRequests();
+    } catch (error) {
+      enqueueSnackbar('Failed to remove shift. Please try again.', { variant: 'error' });
+    }
+    closeRemove();
+    setUpdating(false);
+  },[removeRequest, shiftToBeRemoved, closeRemove, refetchLotteryRequests, enqueueSnackbar]);
 
   if (loading) {
     return (
@@ -145,9 +185,28 @@ export default function RankShifts() {
                         <ShiftItem
                           key={shift.id}
                           index={index}
-                          shiftActions={[]}
                           shift={shift}
                           cursor="grab"
+                          titlePrefix={{
+                            getColor: () => 'info',
+                            sx: {
+                              ml: -0.5,
+                            },
+                            getPrefix: (shiftRequest: ShiftLotteryRequest) => `${(shiftRequest.order || 0) + 1}`,
+                          }}
+                          shiftActions={[
+                            {
+                              key: 'remove-shift',
+                              color: 'error',
+                              disabled: () => false,
+                              getName: () => 'Remove',
+                              getIcon: () => 'mdi:close-thick',
+                              onClick: (shiftRequest: ShiftLotteryRequest) => {
+                                setShiftToBeRemoved(shiftRequest);
+                                removePrompt.onTrue();
+                              }
+                            }
+                          ]}
                         />
                       </div>
                     )}
@@ -158,6 +217,41 @@ export default function RankShifts() {
           )}
         </Droppable>
       </DragDropContext>
+      <ConfirmDialog
+        open={removePrompt.value}
+        title="Remove Shift"
+        hasCancel
+        onClose={closeRemove}
+        content={(
+          <>
+            <Typography variant='body1'>
+              Are you sure you want to remove this shift?
+            </Typography>
+            <Stack spacing={0.5} sx={{ pl: 1, mt: 2}}>
+              <Stack direction="row" sx={{}} alignItems="center">
+                <Label color="info" sx={{ mr: 1, ml: -0.6, }}>{(shiftToBeRemoved?.order || 0) + 1}</Label>
+                <Typography variant='body1' sx={{ fontWeight: 'bold'}}>{shiftToBeRemoved?.shift?.event?.name}</Typography>
+              </Stack>
+              <Typography variant='body1' sx={{ fontWeight: 'bold' }}>{shiftToBeRemoved?.shift?.assignment?.name}</Typography>
+              <Typography variant='subtitle2' sx={{ color: 'text.secondary' }}>
+                {convertDate({ date: shiftToBeRemoved?.shift?.startTime || '', user}).format(dateTimeFormat)}
+                {' - '}
+                {convertDate({ date: shiftToBeRemoved?.shift?.endTime || '', user}).format(dateTimeFormat)}
+              </Typography>
+            </Stack>
+          </>
+        )}
+        action={
+          <LoadingButton
+            loading={updating}
+            variant="contained"
+            color="error"
+            onClick={handleRemove}
+          >
+            Remove
+          </LoadingButton>
+        }
+      />
     </>
   );
 }

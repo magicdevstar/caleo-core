@@ -549,6 +549,7 @@ export class UserModel extends BaseModel<User> {
         $set: {
           'member.tier': MemberTier.Tier_1,
           'member.tierUntil': null,
+          'member.tierResetOnNextLottery': false,
         },
       });
       logger.info('Set tier 1 res', { setTier1Res });

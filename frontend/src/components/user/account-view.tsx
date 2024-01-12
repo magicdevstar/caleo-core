@@ -57,6 +57,14 @@ export default function MainAccountView({
 
   const allDisabled = useMemo(() => user?.member?.status === MemberStatus.Removed, [user?.member?.status])
 
+  let securityTab;
+  if (currentTab === 'security') {
+    securityTab = <AccountChangePassword />;
+    if (excludePassword) {
+      securityTab = <AccountNewPassword userId={user?.id} />;
+    }
+  }
+
   return (
     <>
       <Tabs
@@ -77,7 +85,7 @@ export default function MainAccountView({
 
       {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
 
-      {currentTab === 'security' && !excludePassword ? <AccountChangePassword /> : <AccountNewPassword userId={user?.id} />}
+      {securityTab}
     </>
   );
 }

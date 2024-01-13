@@ -588,6 +588,7 @@ export class ShiftModel extends BaseModel<Shift> {
 
     return {
       items: res,
+      lotteryCounter: counter,
     };
   }
 

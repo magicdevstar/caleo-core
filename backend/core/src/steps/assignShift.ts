@@ -9,6 +9,7 @@ import logger from '../utils/logger';
 import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
 import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../types/notifications';
+import { LotteryState } from '../models/lotteryState';
 
 interface InputEvent {
   _id: string;
@@ -50,6 +51,7 @@ const assignShift = async ({
     memberSkills,
     shifts: shiftsModel,
     assignments,
+    lotteryState,
   } = await createContext();
 
   const shifts = await shiftsModel.findAllUnassignedShiftsByGroupId({
@@ -73,13 +75,43 @@ const assignShift = async ({
   }
 
   const initialRequests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
+  const lotteryCounter = initialRequests?.[0]?.lotteryCounter;
+  let state: LotteryState = {
+    orgId: organization.id,
+    assignedUsers: [],
+    lotteryCounter,
+  } as any;
+  if (typeof lotteryCounter === 'number') {
+    state = await lotteryState.getState(organization.id, lotteryCounter);
+  }
 
-  const tier1Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
-  const tier2Requests = initialRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
+  const {
+    assignedUserRequests,
+    unassignedUserRequests,
+  } = initialRequests.reduce((acc, req) => {
+    if (state.assignedUsers.includes(req.user.id)) {
+      acc.assignedUserRequests.push(req);
+    } else {
+      acc.unassignedUserRequests.push(req);
+    }
+    return acc;
+  }, {
+    assignedUserRequests: [] as any,
+    unassignedUserRequests: [] as any,
+  });
+
+  // Attempt to give everyone at least one shift before assigning a
+  // shift to someone who has already received as shift during this lottery
+  const tier1Requests = unassignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
+  const tier2Requests = unassignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
+  const assignedTier1Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
+  const assignedTier2Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
 
   const requests: typeof tier1Requests = [
     ...bucketAndShuffle(tier1Requests),
     ...bucketAndShuffle(tier2Requests),
+    ...bucketAndShuffle(assignedTier1Requests),
+    ...bucketAndShuffle(assignedTier2Requests),
   ];
 
   logger.info('Lottery requests', {
@@ -137,7 +169,7 @@ const assignShift = async ({
           },
         });
         acceptedRequestIds.push(new ObjectId(request._id));
-
+        state.assignedUsers.push(request.user.id);
         if (request.user?.member?.tier === MemberTier.Tier_1) {
           tier1Assignments.add(request.user.id);
         }
@@ -197,6 +229,12 @@ const assignShift = async ({
       status: ShiftLotteryRequestStatus.Approved,
     });
   }
+
+  // Update lottery state we can do this in the dry run :)
+  await lotteryState.saveState({
+    ...state,
+    assignedUsers: [...new Set(state.assignedUsers)],
+  });
 
   return {
     orgId: organization?.id,

@@ -61,6 +61,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
     docType: string;
     order: number;
     userId: string;
+    lotteryCounter: number;
     user: {
       id: string;
       member: {
@@ -138,6 +139,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
             docType: 1,
             order: 1,
             userId: 1,
+            lotteryCounter: 1,
             user: {
               id: 1,
               member: {

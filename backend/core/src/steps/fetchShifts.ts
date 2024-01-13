@@ -10,11 +10,14 @@ interface InputEvent {
 }
 
 const fetchShifts = async ({ orgId, dryRun }: InputEvent) => {
-  const { shifts } = await createContext();
+  const { shifts, lotteryState } = await createContext();
 
-  const { items } = await shifts.findOpenLotteryShiftsGroupedById({
+  const { items, lotteryCounter } = await shifts.findOpenLotteryShiftsGroupedById({
     orgId,
   });
+
+  // Init lottery state where we can store all of the assignments
+  await lotteryState.initialize(orgId, lotteryCounter);
 
   logger.info('Shifts', { items });
 

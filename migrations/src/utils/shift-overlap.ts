@@ -4,6 +4,8 @@ interface MongoEvent extends Omit<Event, 'id' | 'org'> {
   migrationId: number
 }
 
+const LOTTERY_NUMBER = 3;
+
 export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
   try {
 
@@ -127,7 +129,7 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
     // console.log(JSON.stringify(groupedByShiftId, null, 2));
 
     const events = await prodDb.collection('events').find({
-      lotteryNumber: 2,
+      lotteryNumber: LOTTERY_NUMBER,
       removedAt: { $exists: false },
     }).toArray();
 
@@ -139,7 +141,7 @@ export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
     }).toArray();
 
     const rankings = await prodDb.collection('shiftLotteryRequests').find({
-      lotteryCounter: 0,
+      lotteryCounter: LOTTERY_NUMBER,
     }).toArray();
 
     const groupedByUserAndShiftGroup = rankings.reduce((acc: any, ranking: any) => {

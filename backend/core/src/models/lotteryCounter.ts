@@ -1,9 +1,9 @@
-import { utcToZonedTime } from "date-fns-tz";
+import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 import { BaseModel } from "./base";
 import { DayOfWeek, DocType, LotteryCounter, Organization } from "../__generated__/resolvers-types";
 import { OrganizationModel } from "./organization";
 import { dayMap } from "../utils/dayMap";
-import { addWeeks, isAfter, setDay, setHours, setMinutes } from "date-fns";
+import { addWeeks, isAfter, setDay, setHours, setMinutes, getHours, getMinutes } from "date-fns";
 import logger from "../utils/logger";
 import DataLoader from "dataloader";
 
@@ -63,22 +63,14 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     const zonedDate = utcToZonedTime(new Date(), org?.timezone || 'America/Los_Angeles' as any);
     const endDay = dayMap[org.settings?.lottery.close.dayOfWeek || DayOfWeek.Sunday] - 1;
     const startDay = dayMap[org.settings?.lottery.open.dayOfWeek || DayOfWeek.Sunday] - 1;
-    const [endHour, endMinutes] = (org.settings?.lottery.close.time || '1970-01-02T06:00:00.000Z').split('T')[1].split(':').map((x) => {
-      try {
-        const parsed = parseInt(x);
-        return parsed;
-      } catch(e) {
-        return 0;
-      }
-    });
-    const [startHour, startMinutes] = (org.settings?.lottery.open.time || '1970-01-02T06:00:00.000Z').split('T')[1].split(':').map((x) => {
-      try {
-        const parsed = parseInt(x);
-        return parsed;
-      } catch(e) {
-        return 0;
-      }
-    });
+    
+    const zonedCloseTime = utcToZonedTime(org.settings?.lottery.close.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
+    const endHour = getHours(zonedCloseTime) || 0;
+    const endMinutes = getMinutes(zonedCloseTime) || 0;
+  
+    const zonedStartTime = utcToZonedTime(org.settings?.lottery.open.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
+    const startHour = getHours(zonedStartTime) || 0;
+    const startMinutes = getMinutes(zonedStartTime) || 0;
 
     logger.info('Lottery dates', {
       zonedDate,
@@ -87,8 +79,10 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
       startMinutes,
       org,
     });
+  
     let lottoStart = setMinutes(setHours(setDay(zonedDate, startDay), startHour), startMinutes);
     let lottoEnd = setMinutes(setHours(setDay(zonedDate, endDay), endHour), endMinutes);
+  
     if (endDay < startDay) {
       lottoEnd = addWeeks(lottoEnd, 1);
     }
@@ -99,8 +93,8 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     }
     
     return {
-      start: lottoStart,
-      end: lottoEnd,
+      start: zonedTimeToUtc(lottoStart, org?.timezone || 'America/Los_Angeles' as any),
+      end: zonedTimeToUtc(lottoEnd, org?.timezone || 'America/Los_Angeles' as any),
     };
   }
 

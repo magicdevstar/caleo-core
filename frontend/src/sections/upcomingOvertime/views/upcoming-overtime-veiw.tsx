@@ -31,7 +31,7 @@ export default function UpcomingOvertimeView() {
   });
   const settings = useSettingsContext();
   const { user } = useAuthContext();
-  
+
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
   });
@@ -83,7 +83,7 @@ export default function UpcomingOvertimeView() {
                 if (!foundCounter) {
                   return '';
                 }
-                return foundCounter?.endTime;
+                return foundCounter?.time;
               }
               if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
                 const fcfsDate = convertDate({ date: shift?.event?.scheduledFirstComeFirstServe || '', user });

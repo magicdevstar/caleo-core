@@ -34,6 +34,7 @@ export default function ShiftItem({
   index,
   selectable = false,
   selectLoading = false,
+  compact = false,
   onSelect = () => {},
   cursor = 'pointer',
   titlePrefix,
@@ -44,6 +45,7 @@ export default function ShiftItem({
   index: number;
   selectable?: boolean;
   selectLoading?: boolean;
+  compact?: boolean;
   cursor?: string;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   titlePrefix?: {
@@ -241,6 +243,44 @@ export default function ShiftItem({
     }).format(dateTimeFormat),
   };
 
+  const renderFirstRowDetails = (
+    <>
+      <Grid item xs={12} sm={4}>
+        {/* BW Needed */}
+        <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>BW Needed</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <Label variant="soft" color={(shift.assignment.bwNeeded && 'info') || 'default'} sx={labelSx}>
+              {shift.assignment.bwNeeded ? 'Yes' : 'No'}
+            </Label>
+          </Box>
+        </Stack>
+      </Grid>
+
+      <Grid item xs={12} sm={4}>
+        {/* Event Ref */}
+        <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <Label variant="soft" color='default' sx={labelSx}>
+              {shift.event.referenceId}
+            </Label>
+          </Box>
+        </Stack>
+      </Grid>
+
+      <Grid item xs={12} sm={4}>
+        {/* Include required skills */}
+        <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Required Skills</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            {requiredSkillRender}
+          </Box>
+        </Stack>
+      </Grid>
+    </>
+  );
+
   return (
     <Grid item sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
       <Stack
@@ -254,7 +294,7 @@ export default function ShiftItem({
         <Stack
           sx={{
             width: '100%',
-            p: (theme) => theme.spacing(3, 3, 2, 3),
+            p: (theme) => theme.spacing(3, 3, 3, 3),
           }}
         >
           <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">
@@ -332,7 +372,7 @@ export default function ShiftItem({
                   e.stopPropagation();
                   popover.onOpen(e);
                 }}>
-                  <Iconify icon="eva:more-horizontal-fill" />
+                  <Iconify icon="eva:more-vertical-fill" />
                 </IconButton>
               )
             }
@@ -351,52 +391,23 @@ export default function ShiftItem({
               {totalHours} hours | {dates.startTime} - {dates.endTime}
             </Box>
 
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: compact && detailHeight === '0px' ? 1 : '' }}>
               {venueInfo.name}
               {venueInfo.address && (<><br/>{venueInfo.address}</>)}
               {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
             </Typography>
 
             {/* Above the fold grid content */}
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                {/* BW Needed */}
-                <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>BW Needed</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <Label variant="soft" color={(shift.assignment.bwNeeded && 'info') || 'default'} sx={labelSx}>
-                      {shift.assignment.bwNeeded ? 'Yes' : 'No'}
-                    </Label>
-                  </Box>
-                </Stack>
+            {!compact && (
+              <Grid container spacing={2}>
+                {renderFirstRowDetails}
               </Grid>
-
-              <Grid item xs={12} sm={4}>
-                {/* Event Ref */}
-                <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <Label variant="soft" color='default' sx={labelSx}>
-                      {shift.event.referenceId}
-                    </Label>
-                  </Box>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12} sm={4}>
-                {/* Include required skills */}
-                <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Required Skills</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    {requiredSkillRender}
-                  </Box>
-                </Stack>
-              </Grid>
-            </Grid>
+            )}
           </Stack>
 
 
-          <Grid container spacing={2} sx={{ height: detailHeight, transition: 'all .15s ease-in-out' }}>
+          <Grid container spacing={2} sx={{ height: detailHeight, transition: 'all .15s ease-in-out', mt: compact ? -3 : '' }}>
+            {compact && renderFirstRowDetails}
             <Grid item xs={12} sm={4}>
               {/* Include open to roles */}
               <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
@@ -490,22 +501,31 @@ export default function ShiftItem({
       <CustomPopover
         open={popover.open}
         onClose={popover.onClose}
-        arrow="bottom-center"
-        sx={{ width: 140 }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        transformOrigin={{
+          vertical: 37,
+          horizontal: 'right',
+        }}
       >
         {shiftActions.map(({
           onClick,
           key,
           getIcon,
           getName,
+          disabled,
         }) => (
           <MenuItem
+            disabled={disabled(inputShift)}
             key={key}
             onClick={() => {
               onClick(inputShift);
+              popover.onClose();
             }}
           >
-            <Iconify icon={getIcon(shift)} />
+            <Iconify icon={getIcon(inputShift)} />
             {getName(inputShift)}
           </MenuItem>
         ))}

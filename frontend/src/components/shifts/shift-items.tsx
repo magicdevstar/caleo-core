@@ -23,6 +23,7 @@ export default function ShiftItems({
   emptyMessage = 'No Data',
   selectable = false,
   selectLoadingIndex,
+  compact = false,
   setPage,
   onSelect = () => {},
 }: {
@@ -34,6 +35,7 @@ export default function ShiftItems({
   emptyMessage?: string;
   selectable?: boolean;
   selectLoadingIndex?: number | null;
+  compact?: boolean;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   setPage: (page: any) => void;
   titlePrefix?: {
@@ -81,6 +83,7 @@ export default function ShiftItems({
             index={index}
             selectLoading={selectLoadingIndex === index}
             selectable={selectable}
+            compact={compact}
             onSelect={onSelect}
             titlePrefix={titlePrefix}
             shiftLabels={shiftLabels}

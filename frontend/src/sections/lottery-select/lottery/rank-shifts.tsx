@@ -7,6 +7,9 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Stack from "@mui/material/Stack";
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 // API
 import { ShiftLotteryRequest } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_SHIFTS, GET_LOTTERY_SHIFT_REQUESTS, REMOVE_LOTTERY_SHIFT_REQUEST } from "src/api/shifts";
@@ -21,13 +24,17 @@ import Label from "src/components/label";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useSnackbar } from "src/components/snackbar";
+import Iconify from "src/components/iconify";
 
 export default function RankShifts() {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const [updating, setUpdating] = useState<boolean>(false);
   const [shiftToBeRemoved, setShiftToBeRemoved] = useState<ShiftLotteryRequest | null>(null);
+  const [shiftMoveIndex, setShiftMoveIndex] = useState<number>(0);
+  const [shiftMoveInput, setShiftMoveInput] = useState<number>(1);
   const removePrompt = useBoolean(false);
+  const movePrompt = useBoolean(false);
   const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST, {
     refetchQueries: [GET_LOTTERY_SHIFTS],
   });
@@ -47,20 +54,13 @@ export default function RankShifts() {
 
   const { shiftLotteryRequests: { items } } = JSON.parse(JSON.stringify(data || { shiftLotteryRequests: { items: [], total: 0 } }));
 
-  const onDragEnd = useCallback(async ({ destination, source, draggableId }: DropResult) => {
+  const moveShifts = useCallback(async (sourceIndex: number, destinationIndex: number) => {
     setUpdating(true);
     const originalItems = JSON.parse(JSON.stringify(items));
     try {
-      if (!destination) {
-        return;
-      }
-
-      if (destination.droppableId === source.droppableId && destination.index === source.index) {
-        return;
-      }
-      const itemToMove = items[source.index];
-      items.splice(source.index, 1);
-      items.splice(destination.index, 0, itemToMove);
+      const itemToMove = items[sourceIndex];
+      items.splice(sourceIndex, 1);
+      items.splice(destinationIndex, 0, itemToMove);
       const orderedItems = items.map((item: ShiftLotteryRequest, index: number) => ({
         ...item,
         order: index,
@@ -124,6 +124,14 @@ export default function RankShifts() {
     }
   }, [items, enqueueSnackbar]);
 
+  const onDragEnd = useCallback(({ destination, source }: DropResult) => {
+    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
+      return;
+    }
+
+    moveShifts(source.index, destination.index);
+  }, [moveShifts]);
+
   const closeRemove = useCallback(() => {
     removePrompt.onFalse();
     setTimeout(() => {
@@ -147,6 +155,21 @@ export default function RankShifts() {
     setUpdating(false);
   },[removeRequest, shiftToBeRemoved, closeRemove, refetchLotteryRequests, enqueueSnackbar]);
 
+  const closeMove = useCallback(() => {
+    movePrompt.onFalse();
+    setTimeout(() => {
+      setShiftMoveIndex(0);
+      setShiftMoveInput(1);
+    }, 200);
+  }, [movePrompt]);
+
+  const handleMove = useCallback(() => {
+    if (shiftMoveIndex !== shiftMoveInput - 1) {
+      moveShifts(shiftMoveIndex, shiftMoveInput - 1);
+    }
+    closeMove();
+  }, [shiftMoveIndex, shiftMoveInput, moveShifts, closeMove]);
+
   if (loading) {
     return (
       <>
@@ -165,13 +188,13 @@ export default function RankShifts() {
 
   return (
     <>
-      <Box sx={{ mb: 2, minHeight: '4px' }}>
+      <Box sx={{ mt: -2, mb: 2, minHeight: '4px' }}>
         {updating &&  <LinearProgress color="info" />}
       </Box>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="Lottery items" type="TASK">
           {(dropProvided) => (
-            <div {...dropProvided.droppableProps} ref={dropProvided.innerRef}>
+            <div {...dropProvided.droppableProps} ref={dropProvided.innerRef} style={{ paddingBottom: '16px'}}>
               {items
                 .sort((a: ShiftLotteryRequest, b: ShiftLotteryRequest) => (a.order || -1) - (b.order || -1))
                 .map((shift: ShiftLotteryRequest, index: number) => (
@@ -187,6 +210,7 @@ export default function RankShifts() {
                           index={index}
                           shift={shift}
                           cursor="grab"
+                          compact
                           titlePrefix={{
                             getColor: () => 'info',
                             sx: {
@@ -195,6 +219,35 @@ export default function RankShifts() {
                             getPrefix: (shiftRequest: ShiftLotteryRequest) => `${(shiftRequest.order || 0) + 1}`,
                           }}
                           shiftActions={[
+                            {
+                              key: 'move-shift-custom',
+                              disabled: () => false,
+                              getName: () => 'Move ...',
+                              getIcon: () => 'mdi:arrow-expand-vertical',
+                              onClick: (shiftRequest: ShiftLotteryRequest) => {
+                                setShiftMoveIndex(index);
+                                setShiftMoveInput(index + 1);
+                                movePrompt.onTrue();
+                              }
+                            },
+                            {
+                              key: 'move-shift-up',
+                              disabled: () => index === 0,
+                              getName: () => 'Move Up',
+                              getIcon: () => 'mdi:arrow-up',
+                              onClick: (shiftRequest: ShiftLotteryRequest) => {
+                                moveShifts(index, index - 1);
+                              }
+                            },
+                            {
+                              key: 'move-shift-down',
+                              disabled: () => items.length - 1 === index,
+                              getName: () => 'Move Down',
+                              getIcon: () => 'mdi:arrow-down',
+                              onClick: (shiftRequest: ShiftLotteryRequest) => {
+                                moveShifts(index, index + 1);
+                              }
+                            },
                             {
                               key: 'remove-shift',
                               color: 'error',
@@ -249,6 +302,53 @@ export default function RankShifts() {
             onClick={handleRemove}
           >
             Remove
+          </LoadingButton>
+        }
+      />
+      <ConfirmDialog
+        fullWidth={false}
+        open={movePrompt.value}
+        title={
+          <Typography variant="inherit">
+            Move Shift
+            <Label color="info" sx={{mx: 1, position: 'relative', bottom: 2}}>{shiftMoveIndex + 1}</Label>
+            to :
+          </Typography>
+        }
+        hasCancel
+        onClose={closeMove}
+        content={(
+          <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} justifyContent="center">
+            <TextField
+              sx={{ width: 80 }}
+              inputProps={{ type: 'number', style: { textAlign: 'center' } }}
+              error={shiftMoveInput > items.length || shiftMoveInput <= 0}
+              value={shiftMoveInput || ''}
+              onChange={({ target: { value } }) => {
+                if (value === '') {
+                  setShiftMoveInput(0);
+                } else {
+                  const formattedValue = parseInt(value, 10);
+                  if (Number.isInteger(formattedValue)) {
+                    setShiftMoveInput(formattedValue);
+                  }
+                }
+              }}
+            />
+            <ButtonGroup orientation="vertical" variant="soft" color="inherit">
+              <Button sx={{ height: '26px', minWidth: '15px'}} onClick={() => setShiftMoveInput(1)}><Iconify width={14} icon="mdi:arrow-collapse-up" /></Button>
+              <Button sx={{ height: '26px', minWidth: '15px'}} onClick={() => setShiftMoveInput(items.length)}><Iconify width={14} icon="mdi:arrow-collapse-down" /></Button>
+            </ButtonGroup>
+          </Stack>
+        )}
+        action={
+          <LoadingButton
+            disabled={shiftMoveInput > items.length || shiftMoveInput <= 0}
+            variant="contained"
+            color="primary"
+            onClick={handleMove}
+          >
+            Confirm
           </LoadingButton>
         }
       />

@@ -4,6 +4,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { ObjectId } from 'mongodb';
 import difference from 'lodash.difference';
 import shuffle from 'lodash.shuffle';
+import uniqBy from 'lodash.uniqby';
 
 import logger from '../utils/logger';
 import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
@@ -107,12 +108,14 @@ const assignShift = async ({
   const assignedTier1Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
   const assignedTier2Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
 
-  const requests: typeof tier1Requests = [
+  const allRequests: typeof tier1Requests = [
     ...bucketAndShuffle(tier1Requests),
     ...bucketAndShuffle(tier2Requests),
     ...bucketAndShuffle(assignedTier1Requests),
     ...bucketAndShuffle(assignedTier2Requests),
   ];
+
+  const requests = uniqBy(allRequests, 'userId');
 
   logger.info('Lottery requests', {
     requests,

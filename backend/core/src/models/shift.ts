@@ -30,6 +30,7 @@ const lambda = new LambdaClient({});
 
 export class ShiftModel extends BaseModel<Shift> {
   eventsCollection: Collection;
+  lottoShiftRequestCollection: Collection;
 
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.aggregate(JSON.parse(JSON.stringify([
@@ -216,6 +217,7 @@ export class ShiftModel extends BaseModel<Shift> {
   constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');
+    this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
   }
 
   async highestRefNumber(shiftId: string) {
@@ -584,10 +586,40 @@ export class ShiftModel extends BaseModel<Shift> {
       _id: string;
     }>(pipeline).toArray();
 
-    logger.info('Res', { res });
+    const orderedIds = await this.lottoShiftRequestCollection.aggregate([
+      {
+        $match: {
+          lotteryCounter: counter,
+          shiftGroupId: {
+            $in: res.map(({ _id }) => _id),
+          },
+          removedAt: { $exists: false },
+        }
+      },
+      {
+        $group: {
+          _id: "$shiftGroupId",
+          count: {
+            $count: {},
+          },
+        }
+      },
+      {
+        $sort: {
+          count: -1,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+        },
+      },
+    ]).toArray();
+
+    logger.info('Res', { orderedIds });
 
     return {
-      items: res,
+      items: orderedIds,
       lotteryCounter: counter,
     };
   }

@@ -4,7 +4,7 @@ interface MongoEvent extends Omit<Event, 'id' | 'org'> {
   migrationId: number
 }
 
-const LOTTERY_NUMBER = 3;
+const LOTTERY_NUMBER = 4;
 
 export const shiftOverlap = async (devDb: Db, prodDb: Db) => {
   try {

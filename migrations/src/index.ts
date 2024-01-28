@@ -18,6 +18,7 @@ import { unassignmentCSV } from "./utils/unassignment-csv";
 import { availabilityMap } from "./utils/avail-fix";
 import { tierChecker } from './utils/tier-scheduler-check';
 import { analytics } from "./utils/analytics";
+import { noAssignCounter } from "./utils/no-assign-counter";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -31,7 +32,8 @@ import { analytics } from "./utils/analytics";
 
     // await tierChecker(mongoClientProd);
     // await fixMe(mongoClient, mongoClientProd);
-    await shiftOverlap(mongoClient, mongoClientProd);
+    // await shiftOverlap(mongoClient, mongoClientProd);
+    await noAssignCounter(mongoClientProd);
     // await unassignmentCSV(mongoClientProd);
     // await schedulerFix(mongoClientProd);
     // await availabilityMap(mongoClientProd);

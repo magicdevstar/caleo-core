@@ -130,6 +130,41 @@ export default function EventsTable() {
         noSort: true,
       },
       {
+        id: 'status',
+        label: 'Type',
+        width: 180,
+        columnType: 'string',
+        renderValue: (eventStatus) => {
+          switch (eventStatus) {
+            case EventStatus.Draft:
+              return 'Draft';
+            case EventStatus.ReadyForLottery:
+              return 'Lottery';
+            case EventStatus.FirstComeFirstServe:
+              return 'First Come First Serve';
+            case EventStatus.Removed:
+              return 'Removed';
+            default:
+              return 'N/A';
+          }
+        },
+        getLabelColor: (event) => {
+          switch (event.status) {
+            case EventStatus.ReadyForLottery:
+              return 'success';
+            case EventStatus.FirstComeFirstServe:
+              return 'primary';
+            case EventStatus.Removed:
+              return 'error';
+            case EventStatus.Draft:
+              return 'warning';
+            default:
+              return 'default';
+          }
+        }
+
+      },
+      {
         id: 'availableShifts',
         label: 'Open Shifts',
         width: 110,

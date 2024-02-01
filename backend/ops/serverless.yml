@@ -1,0 +1,30 @@
+service: ops
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  versionFunctions: false
+  logRetentionInDays: 3
+  region: us-west-2
+  environment:
+    STAGE: ${sls:stage}
+    REGION: ${aws:region}
+    MONGO_PROJECT_ID: ${ssm:/mongo/api/projectId}
+    MONGO_PUBLIC_KEY: ${ssm:/mongo/api/publicKey}
+    MONGO_PRIVATE_KEY: ${ssm:/mongo/api/privateKey}
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    packager: yarn
+
+functions:
+  mongoResize:
+    handler: src/handlers/mongoResize.handler
+    events:
+      - schedule: cron(0 23 * * ? *)

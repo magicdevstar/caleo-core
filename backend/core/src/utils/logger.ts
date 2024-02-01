@@ -16,7 +16,7 @@ export const persistentAttributes = [
 ];
 
 const logger = new Logger(getLoggerConfig({
-  serviceName: 'my-service',
+  serviceName: 'caleo-core',
   stage: process.env.STAGE,
 }));
 

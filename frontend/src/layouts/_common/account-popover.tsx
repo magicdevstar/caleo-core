@@ -19,6 +19,7 @@ import { varHover } from 'src/components/animate';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { useSettingsContext } from 'src/components/settings';
 import Iconify from 'src/components/iconify';
+import { useBrowserNotification } from 'src/hooks/use-browser-notification';
 
 // ----------------------------------------------------------------------
 
@@ -38,6 +39,8 @@ export default function AccountPopover() {
   const { themeMode, onUpdate } = useSettingsContext();
 
   const { logout, user } = useAuthContext();
+
+  const { canRequest, requesting, requestPermission } = useBrowserNotification();
 
   const popover = usePopover();
 
@@ -112,7 +115,7 @@ export default function AccountPopover() {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem
-          sx={{ m: 1, marginBottom: '8px !important' }}
+          sx={{ m: 1 }}
           onClick={() => {
             onUpdate('themeMode', themeMode === 'light' ? 'dark' : 'light');
             onUpdate('themeContrast', themeMode === 'light' ? 'default' : 'bold');
@@ -124,7 +127,18 @@ export default function AccountPopover() {
           <ListItemText>{themeMode === 'dark' ? 'Light theme' : 'Dark theme'}</ListItemText>
         </MenuItem>
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+        {canRequest && <MenuItem
+          disabled={requesting}
+          onClick={requestPermission}
+          sx={{ m: 1, fontWeight: 'fontWeightBold' }}
+        >
+          <ListItemIcon sx={{ margin: 0 }}>
+            <Iconify sx={{ margin: 0 }} icon={requesting ? "svg-spinners:270-ring-with-bg" : "ic:baseline-notifications"} />
+          </ListItemIcon>
+          <ListItemText>Enable Notifications</ListItemText>
+        </MenuItem>}
+
+        <Divider sx={{ borderStyle: 'dashed', marginTop: '8px !important' }} />
 
         <MenuItem
           onClick={handleLogout}

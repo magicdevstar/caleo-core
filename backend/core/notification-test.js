@@ -1,8 +1,8 @@
 const webPush = require("web-push");
 
 const keys = {
-  "publicKey": "BL2SasA9uga635D86dqww_O_qrEKA3cZDBQpHdaujGjxnsFHERTuzJGCy6j3oSIob2X2n_2FbsHPXCBTIJHw7ro",
-  "privateKey": "jr7Yc-BKEWrPzlqUd0Xbr8xp34BcH49HYBV_qRbJXYM"
+  "publicKey": process.env.PUB_KEY,
+  "privateKey": process.env.PRIV_KEY,
 };
 
 webPush.setVapidDetails(
@@ -14,14 +14,13 @@ webPush.setVapidDetails(
 (async () => {
   try {
     const subscription = {
-        "endpoint": "https://fcm.googleapis.com/fcm/send/cwcDqNvlDYQ:APA91bFnhcQkcJFz6_lgs0xMvaOrndo1027BDocwHT9KBImW-d-vlWbM99Y7xmJs0-IEnA6rW0EaUADGpu2BFfbImnDmQ9xUz78GygKBw6WV6LfLiPT-SP0lU-yxa7anQZUxpUvzGY_h",
-        "expirationTime": null,
-        "keys": {
-            "p256dh": "BKfyk65Z9YlpRQXSq7K03SU7d3PdWbZmIQthkr0z66CanaDsuNuGsSscs4X7q7Rt8uWYrL57wh9ot9rsGtg-Ueg",
-            "auth": "0p2ZWNbWjfLForWGvv-29A"
-        }
+      "endpoint": "https://web.push.apple.com/QEiHP6khrjtYgpqGOw2-eUpB_myIKguAq60i9o4dOO_57GTPQ509OXpYrS2pL5vtXJdioVS9VU4GyTj7KXBB3scZuqyIqi0THiAt0XNtLQ-CdOAAu5IdCA8Haj-9hJmCq9qxfQkVsx3w9CWtTVPIQ5L7TK45YFlYe67Bew6I2nc",
+      "keys": {
+        "p256dh": "BLHGkhCIgygPAMzdKtab2ffkDvj3YPJbp961X-hjajf_WRIa_ecVQaEkRtv3zdKVx52d09o8Kgwi9OxxkuCZHo4",
+        "auth": "FsBhv1HAAWtvSg19bWyWTQ"
+      }
     };
-    const payload = 'You have been unassigned blah - blah by Caleo Admin';
+    const payload = 'You have been unassigned blah - blah by Caleo Admin.';
     const out = await webPush.sendNotification(subscription, payload, {TTL: 10});
   } catch(error) {
     console.log(error);

@@ -9,12 +9,6 @@ const userDetailProperties = `
   superAdmin
   cognitoId,
   image
-  browserNotificationSettings {
-    id
-    subscription {
-      endpoint
-    }
-  }
   member {
     orgId
     inactivateUntil
@@ -139,14 +133,6 @@ export const ME = gql`
   query Me {
     me {
       ${userDetailProperties}
-    }
-  }
-`;
-
-export const CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION = gql`
-  mutation CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION($input: InputBrowserNotificationSubscription!) {
-    browserNotificationSubscription(input: $input) {
-      id
     }
   }
 `;

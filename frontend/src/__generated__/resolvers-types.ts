@@ -79,27 +79,6 @@ export type AvailableShiftsSearchInput = {
   upcoming?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
-export type BrowserNotificationKeys = {
-  __typename?: 'BrowserNotificationKeys';
-  auth: Scalars['String']['output'];
-  p256dh: Scalars['String']['output'];
-};
-
-export type BrowserNotificationSetting = {
-  __typename?: 'BrowserNotificationSetting';
-  id: Scalars['ID']['output'];
-  orgId: Scalars['String']['output'];
-  subscription: BrowserNotificationSubscription;
-  userId: Scalars['String']['output'];
-};
-
-export type BrowserNotificationSubscription = {
-  __typename?: 'BrowserNotificationSubscription';
-  endpoint: Scalars['String']['output'];
-  expirationTime?: Maybe<Scalars['String']['output']>;
-  keys: BrowserNotificationKeys;
-};
-
 export type ContactInfo = {
   __typename?: 'ContactInfo';
   primaryEmail: Email;
@@ -133,10 +112,8 @@ export enum DayOfWeek {
 
 export enum DocType {
   Assignment = 'ASSIGNMENT',
-  BrowserNotificationSetting = 'BROWSER_NOTIFICATION_SETTING',
   Event = 'EVENT',
   LotteryCounter = 'LOTTERY_COUNTER',
-  LotteryState = 'LOTTERY_STATE',
   MemberNotification = 'MEMBER_NOTIFICATION',
   MemberSkill = 'MEMBER_SKILL',
   Notification = 'NOTIFICATION',
@@ -237,17 +214,6 @@ export type InputAdminResetPassword = {
 export type InputAvailabilityTime = {
   endTime: Scalars['String']['input'];
   startTime: Scalars['String']['input'];
-};
-
-export type InputBrowserNotificationKeys = {
-  auth: Scalars['String']['input'];
-  p256dh: Scalars['String']['input'];
-};
-
-export type InputBrowserNotificationSubscription = {
-  endpoint: Scalars['String']['input'];
-  expirationTime?: InputMaybe<Scalars['String']['input']>;
-  keys: InputBrowserNotificationKeys;
 };
 
 export type InputDayAvailability = {
@@ -408,9 +374,7 @@ export enum MemberTier {
 export type Mutation = {
   __typename?: 'Mutation';
   adminEditPassword?: Maybe<Scalars['Boolean']['output']>;
-  approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
-  browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
   inviteUser?: Maybe<User>;
@@ -421,7 +385,6 @@ export type Mutation = {
   organization?: Maybe<Organization>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
-  rejectLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   removeAssignment: Scalars['ID']['output'];
   removeEvent: Scalars['ID']['output'];
   removeNotification: Scalars['ID']['output'];
@@ -454,20 +417,8 @@ export type MutationAdminEditPasswordArgs = {
 };
 
 
-export type MutationApproveLottoAssignmentArgs = {
-  id: Scalars['String']['input'];
-  shiftId: Scalars['String']['input'];
-  userId: Scalars['String']['input'];
-};
-
-
 export type MutationAssignmentArgs = {
   assignment: UpsertAssignment;
-};
-
-
-export type MutationBrowserNotificationSubscriptionArgs = {
-  input: InputBrowserNotificationSubscription;
 };
 
 
@@ -508,13 +459,6 @@ export type MutationOrganizationArgs = {
 
 export type MutationRankArgs = {
   rank: UpsertRank;
-};
-
-
-export type MutationRejectLottoAssignmentArgs = {
-  id: Scalars['String']['input'];
-  shiftId: Scalars['String']['input'];
-  userId: Scalars['String']['input'];
 };
 
 
@@ -1450,7 +1394,6 @@ export type UpsertVenueContact = {
 
 export type User = {
   __typename?: 'User';
-  browserNotificationSettings?: Maybe<Array<Maybe<BrowserNotificationSetting>>>;
   cognitoId?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
@@ -1643,9 +1586,6 @@ export type ResolversTypes = ResolversObject<{
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
-  BrowserNotificationKeys: ResolverTypeWrapper<BrowserNotificationKeys>;
-  BrowserNotificationSetting: ResolverTypeWrapper<BrowserNotificationSetting>;
-  BrowserNotificationSubscription: ResolverTypeWrapper<BrowserNotificationSubscription>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: ResolverTypeWrapper<DayAvailability>;
@@ -1660,8 +1600,6 @@ export type ResolversTypes = ResolversObject<{
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
-  InputBrowserNotificationKeys: InputBrowserNotificationKeys;
-  InputBrowserNotificationSubscription: InputBrowserNotificationSubscription;
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -1768,9 +1706,6 @@ export type ResolversParentTypes = ResolversObject<{
   AvailabilityTime: AvailabilityTime;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: Scalars['Boolean']['output'];
-  BrowserNotificationKeys: BrowserNotificationKeys;
-  BrowserNotificationSetting: BrowserNotificationSetting;
-  BrowserNotificationSubscription: BrowserNotificationSubscription;
   ContactInfo: ContactInfo;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: DayAvailability;
@@ -1782,8 +1717,6 @@ export type ResolversParentTypes = ResolversObject<{
   ID: Scalars['ID']['output'];
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
-  InputBrowserNotificationKeys: InputBrowserNotificationKeys;
-  InputBrowserNotificationSubscription: InputBrowserNotificationSubscription;
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
@@ -1912,27 +1845,6 @@ export type AssignmentSearchResultResolvers<ContextType = any, ParentType extend
 export type AvailabilityTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailabilityTime'] = ResolversParentTypes['AvailabilityTime']> = ResolversObject<{
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type BrowserNotificationKeysResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationKeys'] = ResolversParentTypes['BrowserNotificationKeys']> = ResolversObject<{
-  auth?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  p256dh?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type BrowserNotificationSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationSetting'] = ResolversParentTypes['BrowserNotificationSetting']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  subscription?: Resolver<ResolversTypes['BrowserNotificationSubscription'], ParentType, ContextType>;
-  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type BrowserNotificationSubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationSubscription'] = ResolversParentTypes['BrowserNotificationSubscription']> = ResolversObject<{
-  endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  expirationTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  keys?: Resolver<ResolversTypes['BrowserNotificationKeys'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2107,9 +2019,7 @@ export type MemberSkillSearchResultResolvers<ContextType = any, ParentType exten
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
-  approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
-  browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
@@ -2120,7 +2030,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
-  rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
@@ -2454,7 +2363,6 @@ export type SkillSearchResultResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
-  browserNotificationSettings?: Resolver<Maybe<Array<Maybe<ResolversTypes['BrowserNotificationSetting']>>>, ParentType, ContextType>;
   cognitoId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2541,9 +2449,6 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Assignment?: AssignmentResolvers<ContextType>;
   AssignmentSearchResult?: AssignmentSearchResultResolvers<ContextType>;
   AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
-  BrowserNotificationKeys?: BrowserNotificationKeysResolvers<ContextType>;
-  BrowserNotificationSetting?: BrowserNotificationSettingResolvers<ContextType>;
-  BrowserNotificationSubscription?: BrowserNotificationSubscriptionResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;

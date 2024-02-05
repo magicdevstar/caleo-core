@@ -15,10 +15,14 @@ import Switch from '@mui/material/Switch';
 
 // components
 import { ConfirmDialog } from "src/components/custom-dialog";
+import Iconify from 'src/components/iconify/iconify';
 // Types
 import { Rank, Skill } from 'src/__generated__/resolvers-types';
 import { GET_SKILLS, UPSERT_SKILL } from 'src/api/skill';
 import { GET_RANKS } from 'src/api/rank';
+
+const icon = <Iconify color="primary" icon="mdi:checkbox-blank-outline" width={32} />
+const checkedIcon = <Iconify color="primary" icon="mdi:checkbox-outline" width={32} />
 
 interface InputProps {
   skill?: Skill | null;

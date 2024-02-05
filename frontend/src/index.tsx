@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 //
 import App from './App';
 
@@ -23,6 +22,3 @@ root.render(
     </BrowserRouter>
   </HelmetProvider>
 );
-
-// Register notification for push notifications
-serviceWorkerRegistration.register();

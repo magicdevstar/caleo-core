@@ -391,7 +391,6 @@ export const user = {
           endOfWeek: endOfTheWeek,
         });
       },
-      browserNotificationSettings: (user: User, _, { browserNotificationSubscriptions }: Context) => browserNotificationSubscriptions.userIdLoader.load(new ObjectId(user.id)),
     },
     Member: {
       rank: (member: Member, _, { ranks }: Context) =>

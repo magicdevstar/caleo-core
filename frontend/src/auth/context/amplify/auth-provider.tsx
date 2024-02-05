@@ -4,7 +4,7 @@ import { Auth } from '@aws-amplify/auth';
 import { AMPLIFY_API } from 'src/config-global';
 import { _mock } from 'src/_mock';
 import { client } from 'src/utils/apollo';
-import { FrontendUser, ME } from 'src/api/user';
+import { CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION, FrontendUser, ME } from 'src/api/user';
 import { User } from 'src/__generated__/resolvers-types';
 //
 import { AuthContext } from './auth-context';
@@ -41,6 +41,26 @@ const initialState: AuthStateType = {
   loading: true,
 };
 
+// This function is needed because Chrome doesn't accept a base64 encoded string
+// as value for applicationServerKey in pushManager.subscribe yet
+// https://bugs.chromium.org/p/chromium/issues/detail?id=802280
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    // eslint-disable-next-line no-useless-escape
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+ 
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+ 
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 const reducer = (state: AuthStateType, action: Action) => {
   if (action.type === Types.INITIAL) {
     if(window && (window as any).Beacon) {
@@ -48,6 +68,48 @@ const reducer = (state: AuthStateType, action: Action) => {
         email: action.payload.user?.email,
         name: action.payload.user?.displayName,
       });
+    }
+
+    if (action.payload.user) {
+      // Request in-app notification permissions
+      // iOS requires the app to be added to the home screen before
+      // you can receive in-app notifications in safari :)
+      if (Notification) {
+        Notification.requestPermission()
+          .then((permission) => {
+            if (permission === 'granted') {
+              navigator.serviceWorker.ready.then((registration) => {
+                registration.pushManager.getSubscription()
+                  .then((subscription) => {
+                    if (subscription) {
+                      return subscription;
+                    }
+                    const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY!;
+                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+  
+                    // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
+                    // send notifications that don't have a visible effect for the user).
+                    return registration.pushManager.subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: convertedVapidKey
+                    });
+                  })
+                  .then((subscription) => {
+                    const urls = (action.payload.user?.browserNotificationSettings || []).map((setting) => setting?.subscription?.endpoint);
+                    if (!urls.includes(subscription.endpoint)) {
+                      client.mutate({
+                        mutation: CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION,
+                        variables: {
+                          input: JSON.parse(JSON.stringify(subscription)),
+                        }
+                      });
+                    }
+                  })
+                  .catch((error) => {});
+              });
+            }
+          });
+      }
     }
 
     return {
@@ -126,6 +188,19 @@ export function AuthProvider({ children }: Props) {
       });
     }
   }, []);
+
+  useEffect(() => {
+    const listener = (event: any) => {
+      if(state.user) {
+        console.log(event.detail);
+      }
+    };
+    window.document.addEventListener('push-notification-subscription', listener);
+
+    return () => {
+      window.document.removeEventListener('push-notification-subscription', listener);
+    };
+  }, [state]);
 
   useEffect(() => {
     initialize();

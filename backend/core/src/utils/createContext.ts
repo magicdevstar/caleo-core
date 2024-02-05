@@ -21,12 +21,14 @@ import { EventReferenceNumber } from "../models/eventReferenceNumber";
 import { LotteryCounterModel } from "../models/lotteryCounter";
 import { SiteLockModel } from "../models/siteLock";
 import { LotteryStateModel } from "../models/lotteryState";
+import { BrowserNotificationSubscription } from "../models/browserNotificationSubscription";
 
 let db: Db;
 
 export interface Context {
   lotteryState: LotteryStateModel;
   siteLock: SiteLockModel;
+  browserNotificationSubscriptions: BrowserNotificationSubscription;
   eventReferenceNumber: EventReferenceNumber;
   organizations: OrganizationModel;
   lotteryCounter: LotteryCounterModel;
@@ -73,6 +75,7 @@ export const createContext = async (): Promise<Context> => {
   const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document, lotteryCounter);
   const memberSkills = new MemberSkillModel(db, users, document, skills);
   const memberNotifications = new MemberNotificationModel(db, notifications);
+  const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
 
   return {
     organizations,
@@ -93,5 +96,6 @@ export const createContext = async (): Promise<Context> => {
     lotteryCounter,
     siteLock,
     lotteryState,
+    browserNotificationSubscriptions,
   };
 };

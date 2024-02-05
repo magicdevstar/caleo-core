@@ -16,6 +16,7 @@
     SHIFT_BUFFER_REQUEST
     SHIFT_LOTTERY_REQUEST
     LOTTERY_STATE
+    BROWSER_NOTIFICATION_SETTING
   }
   enum DayOfWeek {
     SUNDAY
@@ -156,6 +157,7 @@
     # but for now 🤷‍♂️
     numberOfShiftsThisWeek: Int
     shiftsThisWeek: [Shift]
+    browserNotificationSettings: [BrowserNotificationSetting]
   }
 
   input InputAdminResetPassword {
@@ -245,6 +247,44 @@
     availability: InputUserAvailability
   }
 ###### END User ######
+
+###### START Browser Notification Setting ######
+  type BrowserNotificationSetting {
+    id: ID!
+    userId: String!
+    orgId: String!
+    subscription: BrowserNotificationSubscription!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  type BrowserNotificationSubscription {
+    endpoint: String!
+    expirationTime: String
+    keys: BrowserNotificationKeys!
+  }
+
+  type BrowserNotificationKeys {
+    p256dh: String!
+    auth: String!
+  }
+
+  input InputBrowserNotificationSubscription {
+    endpoint: String!
+    expirationTime: String
+    keys: InputBrowserNotificationKeys!
+  }
+
+  input InputBrowserNotificationKeys {
+    p256dh: String!
+    auth: String!
+  }
+###### End Browser Notification Setting ######
 
 ###### START Events ######
   enum EventStatus {
@@ -1187,6 +1227,8 @@ type Mutation {
   removeUser(id: String!): ID!
   profilePhotoUploadUrl: ProfilePhotoAttachmentUpload
   adminEditPassword(input: InputAdminResetPassword!): Boolean
+  browserNotificationSubscription(input: InputBrowserNotificationSubscription!): BrowserNotificationSetting
+  removeBrowserNotificationSubscription(endpoint: String): Boolean
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!

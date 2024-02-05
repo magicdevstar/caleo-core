@@ -78,6 +78,17 @@ export class BaseModel<T> {
     } as T));
   }
 
+  async find(query: any, { includedRemoved = false } = {}): Promise<T[]> {
+    const res = await this.collection.find({
+      ...query,
+      ...(includedRemoved ? {} : { removedAt: { $exists: false } }),
+    }).toArray();
+    return res.map(({_id, ...item}) => ({
+      ...item,
+      id: _id.toString(),
+    } as T));
+  }
+
   async findOne(query: any): Promise<T | null> {
     const res = await this.collection.findOne({
       ...query,

@@ -12,6 +12,7 @@ import {
 } from '@ionic/react';
 import './MyOvertime.css';
 import EmptyView from '../../components/EmptyView/EmptyView';
+import UpcomingOvertime from './UpcomingOvertime/UpcomingOvertime';
 
 const segments = [
   {
@@ -45,9 +46,13 @@ const MyOvertime: React.FC<any> = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
-          <EmptyView title="No Overtime" />
-        </div>
+
+        { segment === 'assigned' && (<UpcomingOvertime />) }
+        { segment === 'past' && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+            <EmptyView title="Past Overtime" />
+          </div>
+        )}
       </IonContent>
     </IonPage>
   );

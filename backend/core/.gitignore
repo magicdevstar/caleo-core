@@ -9,5 +9,8 @@ jspm_packages
 # Generated types
 src/__generated__
 
+# Test files
+notification-test.js
+
 # Local env files
 .env*

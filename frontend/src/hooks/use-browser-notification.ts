@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User } from "src/__generated__/resolvers-types";
 import { CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION } from "src/api/user";
 import { useAuthContext } from "src/auth/hooks";
@@ -26,6 +26,42 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+const validateSubscription = (user: User, cb: any = () => {}) => {
+  navigator.serviceWorker.ready.then((registration) => {
+    registration.pushManager.getSubscription()
+      .then((subscription) => {
+        if (subscription) {
+          return subscription;
+        }
+        const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY!;
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
+        // send notifications that don't have a visible effect for the user).
+        return registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+      })
+      .then((subscription) => {
+        const urls = (user.browserNotificationSettings || []).map((setting) => setting?.subscription?.endpoint);
+        if (!urls.includes(subscription.endpoint)) {
+          client.mutate({
+            mutation: CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION,
+            variables: {
+              input: JSON.parse(JSON.stringify(subscription)),
+            }
+          });
+        }
+        cb(true);
+      })
+      .catch((error) => {
+        console.error('Error during service worker registration:', error);
+        cb(false);
+      });
+  });
+}
+
 export const requestBrowserNotificationPermission = (user: User, cb: any) => {
   // Request in-app notification permissions
   // iOS requires the app to be added to the home screen before
@@ -34,39 +70,7 @@ export const requestBrowserNotificationPermission = (user: User, cb: any) => {
     notify.requestPermission()
       .then((permission) => {
         if (permission === 'granted') {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.pushManager.getSubscription()
-              .then((subscription) => {
-                if (subscription) {
-                  return subscription;
-                }
-                const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY!;
-                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-      
-                // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
-                // send notifications that don't have a visible effect for the user).
-                return registration.pushManager.subscribe({
-                  userVisibleOnly: true,
-                  applicationServerKey: convertedVapidKey
-                });
-              })
-              .then((subscription) => {
-                const urls = (user.browserNotificationSettings || []).map((setting) => setting?.subscription?.endpoint);
-                if (!urls.includes(subscription.endpoint)) {
-                  client.mutate({
-                    mutation: CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION,
-                    variables: {
-                      input: JSON.parse(JSON.stringify(subscription)),
-                    }
-                  });
-                }
-                cb(true);
-              })
-              .catch((error) => {
-                console.error('Error during service worker registration:', error);
-                cb(false);
-              });
-          });
+          validateSubscription(user, cb);
         }
       });
   }
@@ -76,6 +80,13 @@ export const useBrowserNotification = () => {
   const { user } = useAuthContext();
   const [requesting, setRequesting] = useState(false);
   const [canRequest, setCanRequest] = useState(notify?.permission === 'default');
+
+  useEffect(() => {
+    if (user && notify?.permission === 'granted') {
+      // Ensure we have a proper subscription configured
+      validateSubscription(user);
+    }
+  }, [user]);
 
   return {
     canRequest,

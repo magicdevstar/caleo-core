@@ -4,7 +4,7 @@ import { Auth } from '@aws-amplify/auth';
 import { AMPLIFY_API } from 'src/config-global';
 import { _mock } from 'src/_mock';
 import { client } from 'src/utils/apollo';
-import { CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION, FrontendUser, ME } from 'src/api/user';
+import { FrontendUser, ME } from 'src/api/user';
 import { User } from 'src/__generated__/resolvers-types';
 //
 import { AuthContext } from './auth-context';
@@ -68,48 +68,6 @@ const reducer = (state: AuthStateType, action: Action) => {
         email: action.payload.user?.email,
         name: action.payload.user?.displayName,
       });
-    }
-
-    if (action.payload.user) {
-      // Request in-app notification permissions
-      // iOS requires the app to be added to the home screen before
-      // you can receive in-app notifications in safari :)
-      if (Notification) {
-        Notification.requestPermission()
-          .then((permission) => {
-            if (permission === 'granted') {
-              navigator.serviceWorker.ready.then((registration) => {
-                registration.pushManager.getSubscription()
-                  .then((subscription) => {
-                    if (subscription) {
-                      return subscription;
-                    }
-                    const vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY!;
-                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-  
-                    // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
-                    // send notifications that don't have a visible effect for the user).
-                    return registration.pushManager.subscribe({
-                      userVisibleOnly: true,
-                      applicationServerKey: convertedVapidKey
-                    });
-                  })
-                  .then((subscription) => {
-                    const urls = (action.payload.user?.browserNotificationSettings || []).map((setting) => setting?.subscription?.endpoint);
-                    if (!urls.includes(subscription.endpoint)) {
-                      client.mutate({
-                        mutation: CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION,
-                        variables: {
-                          input: JSON.parse(JSON.stringify(subscription)),
-                        }
-                      });
-                    }
-                  })
-                  .catch((error) => {});
-              });
-            }
-          });
-      }
     }
 
     return {
@@ -188,19 +146,6 @@ export function AuthProvider({ children }: Props) {
       });
     }
   }, []);
-
-  useEffect(() => {
-    const listener = (event: any) => {
-      if(state.user) {
-        console.log(event.detail);
-      }
-    };
-    window.document.addEventListener('push-notification-subscription', listener);
-
-    return () => {
-      window.document.removeEventListener('push-notification-subscription', listener);
-    };
-  }, [state]);
 
   useEffect(() => {
     initialize();

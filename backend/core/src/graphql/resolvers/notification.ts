@@ -1,8 +1,11 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { Notification, NotificationFrequency, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
+import { Notification, NotificationFrequency, NotificationSearchInput, SearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import { ObjectId } from "mongodb";
+import { IInAppNotification } from "../../models/inAppNotifications";
+import logger from "../../utils/logger";
 
 export const notification = {
   Query: {
@@ -20,6 +23,19 @@ export const notification = {
         queryField: 'title',
         ...input,
       }),
+    inAppNotifications: async (
+      _parent: unknown,
+      { input: { limit, skip } }: {input: { limit?: number, skip?: number}},
+      { inAppNotifications, user }: Context
+    ): Promise<SearchResults<IInAppNotification>> => {
+      logger.info('inAppNotifications', {limit, skip});
+      const res = await inAppNotifications.search({
+        limit,
+        skip,
+        userId: new ObjectId(user?.id!),
+      });
+      return res;
+    },
     activeNotifications: async (
       _parent: unknown,
       { limit, skip }: NotificationSearchInput,

@@ -1,0 +1,161 @@
+import { MailerEvents } from "./mailer";
+
+export const InAppTemplates = {
+  [MailerEvents.OfficerEventRemoved]: ({
+    eventName,
+    metroName,
+    shiftName,
+  }) => ({
+    title: 'Event Removed',
+    body: `${eventName} has been removed from ${metroName} Caleo, so you are no longer required to work your ${shiftName} shift for this event.`,
+  }),
+  [MailerEvents.OfficerAdminApprovedSkill]: ({
+    metroName,
+    skillName,
+  }) => ({
+    title: 'Skill Approved',
+    body: `An administrator for ${metroName} Caleo has approved your ${skillName} skill request!`,
+  }),
+  [MailerEvents.OfficerAdminDeniedSkill]: ({
+    metroName,
+    skillName,
+  }) => ({
+    title: 'Skill Denied',
+    body: `An administrator for ${metroName} Caleo has denied your ${skillName} skill request.`,
+  }),
+  [MailerEvents.AdminPendingShiftRequested]: ({
+    name,
+  }) => ({
+    title: 'Pending Shift Requested',
+    body: `${name} has requested a buffer override. Please review the shift buffer.`,
+  }),
+  [MailerEvents.AdminEventFullyStaffed]: ({
+    eventRefNumber,
+    eventName,
+    venueName,
+  }) => ({
+    title: 'Event Fully Staffed',
+    body: `#${eventRefNumber} - ${eventName} at ${venueName} has been fully staffed.`,
+  }),
+  [MailerEvents.AdminEventShiftsFilled]: ({
+    eventName,
+    shiftName,
+    venueName,
+  }) => ({
+    title: 'Event Shifts Filled',
+    body: `${shiftName} for ${eventName} at ${venueName} is now fully staffed!`,
+  }),
+  [MailerEvents.OfficerPendingShiftApproved]: ({
+    shiftName,
+    eventName,
+    venueName,
+  }) => ({
+    title: 'Pending Shift Approved',
+    body: `Your buffer override request for ${shiftName} for ${eventName} at ${venueName} has been approved!`,
+  }),
+  [MailerEvents.OfficerPendingShiftDenied]: ({
+    shiftName,
+    eventName,
+    venueName,
+    reason,
+  }) => ({
+    title: 'Pending Shift Denied',
+    body: `Your buffer override request for ${shiftName} for ${eventName} at ${venueName} has been denied for the following reason: ${reason}`,
+  }),
+  [MailerEvents.OfficerAdminAssignedShift]: ({
+    metroName,
+    shiftName,
+    eventName,
+    venueName,
+  }) => ({
+    title: 'Shift Assigned',
+    body: `An administrator for ${metroName} Caleo has assigned you ${shiftName} for ${eventName} at ${venueName}.`,
+  }),
+  [MailerEvents.OfficerRemovedFromShift]: ({
+    eventName,
+    shiftName,
+  }) => ({
+    title: 'Removed from Shift',
+    body: `You have been removed from ${eventName} - ${shiftName}`,
+  }),
+  [MailerEvents.AdminUnassignOfficerShift]: ({
+    eventName,
+    eventRefNumber,
+    shiftName,
+    officerName,
+    adminName,
+  }) => ({
+    title: 'Shift Unassigned',
+    body: `${officerName} has been unassigned from #${eventRefNumber} ${eventName} - ${shiftName} by ${adminName}`,
+  }),
+  [MailerEvents.AdminShiftRelinquished]: ({
+    officerName,
+    eventName,
+    eventRefNumber,
+    shiftName,
+    reason,
+  }) => ({
+    title: 'Shift Relinquished',
+    body: `${officerName} has relinquished their shift for #${eventRefNumber} ${eventName} - ${shiftName} for the following reason: ${reason}`,
+  }),
+  [MailerEvents.OfficerAssignmentRemoved]: ({
+    eventName,
+    metroName,
+    shiftName,
+  }) => ({
+    title: 'Assignment Removed',
+    body: `The ${shiftName} assignment for ${eventName} has been removed from ${metroName} Caleo, so you are no longer required to work your shift for this assignment.`,
+  }),
+  [MailerEvents.OfficerShiftStartingNotification]: ({
+    eventName,
+    shiftName,
+  }) => ({
+    title: 'Shift Starting',
+    body: `Your ${shiftName} shift for ${eventName} is starting soon!`,
+  }),
+  [MailerEvents.LotteryWindowClosing]: ({
+    metroName,
+    num,
+  }) => ({
+    title: 'Lottery Window Closing',
+    body: `The ${metroName} Caleo lottery ranking window closes in ${num} hours - don't forget to rank your preferences!`,
+  }),
+  [MailerEvents.OfficerAvailableOtPosted]: ({
+    metroName,
+  }) => ({
+    title: 'Available OT Posted',
+    body: `New overtime opportunities are available for ${metroName} Caleo!`,
+  }),
+  [MailerEvents.OfficerFcfsShiftAvailable]: ({
+    eventName,
+    metroName,
+    shiftName,
+  }) => ({
+    title: 'FCFS Shift Available',
+    body: `Shifts for the ${shiftName} assignment at ${eventName} are still available in ${metroName} Caleo!`,
+  }),
+  [MailerEvents.OfficerFcfsEventAvailable]: ({
+    eventName,
+    metroName,
+  }) => ({
+    title: 'FCFS Event Available',
+    body: `Shifts the ${eventName} event are still available in ${metroName} Caleo`,
+  }),
+  [MailerEvents.AdminUserAccountRequested]: ({
+    name,
+    metroName,
+  }) => ({
+    title: 'User Account Requested',
+    body: `${name} has requested to join ${metroName} on Caleo`,
+  }),
+  [MailerEvents.OfficerUserAccountDeactivated]: ({
+    metroName,
+  }) => ({
+    title: 'User Account Deactivated',
+    body: `Your ${metroName} Caleo account has been deactivated. If you have questions, reach out to your system administrator.`,
+  }),
+  [MailerEvents.OfficerUserAccountReactivated]: () => ({
+    title: 'User Account Reactivated',
+    body: `Your Caleo account has been reactivated. Welcome back!`,
+  }),
+};

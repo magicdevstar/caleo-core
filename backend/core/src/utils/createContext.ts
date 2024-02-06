@@ -22,10 +22,12 @@ import { LotteryCounterModel } from "../models/lotteryCounter";
 import { SiteLockModel } from "../models/siteLock";
 import { LotteryStateModel } from "../models/lotteryState";
 import { BrowserNotificationSubscription } from "../models/browserNotificationSubscription";
+import { InAppNotificationModel } from "../models/inAppNotifications";
 
 let db: Db;
 
 export interface Context {
+  inAppNotifications: InAppNotificationModel;
   lotteryState: LotteryStateModel;
   siteLock: SiteLockModel;
   browserNotificationSubscriptions: BrowserNotificationSubscription;
@@ -76,6 +78,7 @@ export const createContext = async (): Promise<Context> => {
   const memberSkills = new MemberSkillModel(db, users, document, skills);
   const memberNotifications = new MemberNotificationModel(db, notifications);
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
+  const inAppNotifications = new InAppNotificationModel(db);
 
   return {
     organizations,
@@ -97,5 +100,6 @@ export const createContext = async (): Promise<Context> => {
     siteLock,
     lotteryState,
     browserNotificationSubscriptions,
+    inAppNotifications,
   };
 };

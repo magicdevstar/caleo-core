@@ -53,6 +53,8 @@ provider:
     REGION: ${aws:region}
     COGNITO_POOL_ID: ${param:poolId}
     MONGODB_URI: ${ssm:/caleo/mongoURI}
+    BROWSER_PUBLIC_KEY: ${ssm:/caleo/browserPublicKey}
+    BROWSER_PRIVATE_KEY: ${ssm:/caleo/browserPrivateKey}
     MONGODB_NAME: ${param:dbName}
     MONGODB_COLLECTION: core
     SERVICE_ID: ${param:serviceId}

@@ -8,6 +8,7 @@
     VENUE
     NOTIFICATION
     MEMBER_NOTIFICATION
+    IN_APP_NOTIFICATION
     EVENT
     ASSIGNMENT
     SHIFT
@@ -891,6 +892,7 @@
     UNTIL_EXPIRE
   }
 
+  # These are notifications created by system admins
   type Notification {
     id: ID!
     title: String!
@@ -914,6 +916,26 @@
     ranks: [Rank]!
     memberNotification: MemberNotification
     modifiedBy: User
+  }
+
+  # These are notifications that will replace SMS notifications
+  type InAppNotifications {
+    id: ID!
+    title: String!
+    body: String!
+    read: Boolean!
+    # This is here so we what what kind of notification is being sent
+    # that way on the frontend we can determine an action to take based on the type
+    templateName: String!
+    docType: DocType!
+    orgId: String!
+    userId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+
+    org: Organization!
+    user: User!
   }
 
   type MemberNotification {
@@ -1141,6 +1163,11 @@
     total: Int!
   }
 
+  type InAppNotificationSearchResult {
+    items: [InAppNotifications]
+    total: Int!
+  }
+
   input NotificationSearchInput {
     limit: Int
     skip: Int
@@ -1214,6 +1241,7 @@ type Query {
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
+  inAppNotifications(input: SearchInput): InAppNotificationSearchResult
 
   siteLock: SiteLock
 }

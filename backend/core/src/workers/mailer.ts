@@ -1,4 +1,5 @@
 import middy from "@middy/core";
+import webPush from 'web-push';
 import { ObjectId } from "mongodb";
 import difference from 'lodash.difference';
 import uniq from 'lodash.uniq';
@@ -9,8 +10,9 @@ import { format } from "date-fns";
 import logger from "../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../types/mailer";
-import { createContext } from "../utils/createContext";
+import { Context, createContext } from "../utils/createContext";
 import { Assignment, EventStatus, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
+import { InAppTemplates } from "../types/inAppTemplates";
 
 const pinpoint = new PinpointClient({});
 
@@ -24,7 +26,7 @@ const convertDate = (unixDate: number, organization: Organization) => {
 
 const sendInChunks = async (input: any, Addresses: any) => {
   if (Object.keys(Addresses).length > 100) {
-    const chunks = chunk(Object.keys(Addresses), 100).map((chunk) => {
+    const chunks = chunk(Object.keys(Addresses), 100, undefined).map((chunk) => {
       const obj = {} as Record<string, AddressConfiguration>;
       chunk.forEach((key) => {
         obj[key] = Addresses[key];
@@ -100,6 +102,62 @@ const sendInChunks = async (input: any, Addresses: any) => {
     const res = await pinpoint.send(new SendMessagesCommand((input as any).pinpointInput));
     // logger.info('Pinpoint response', { res });
     console.log(JSON.stringify(res, null, 2));
+  }
+};
+
+const sendInAppNotification = async ({
+  context,
+  title,
+  body,
+  templateName,
+  userId,
+  orgId,
+} : {
+  context: Context;
+  title: string;
+  templateName: string;
+  body: string;
+  userId: string;
+  orgId: string;
+}) => {
+  try {
+    if (!userId) {
+      logger.warn('No user id provided', { title, body, templateName, userId, orgId });
+      return;
+    }
+    // Create in app notification
+    // TODO: Add in-app notification setting check
+    await context.inAppNotifications.create({
+      title,
+      body,
+      userId,
+      templateName,
+      orgId,
+    })
+
+    webPush.setVapidDetails(
+      process.env.APP_URL!,
+      process.env.BROWSER_PUBLIC_KEY!,
+      process.env.BROWSER_PRIVATE_KEY!,
+    );
+    const browserSubscriptions = await context.browserNotificationSubscriptions.getByUserId(userId);
+
+    const removeSubscriptions: ObjectId[] = [];
+    const promises = browserSubscriptions.map(async ({ id, subscription }) => {
+      try {
+        await webPush.sendNotification(subscription, body, { TTL: 10 });
+      } catch(error) {
+        if (error.statusCode === 410) {
+          removeSubscriptions.push(new ObjectId(id));
+        }
+      }
+    });
+    await Promise.allSettled(promises);
+    if (removeSubscriptions.length > 0) {
+      await context.browserNotificationSubscriptions.removeMany(removeSubscriptions);
+    }
+  } catch(error) {
+    logger.error('Failed to send in-app notification', { error });
   }
 }
 
@@ -187,6 +245,20 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
+
+        const { title, body } = InAppTemplates[input.template]({
+          eventName: event.name,
+          metroName: organization.name,
+          shiftName: shift!.assignment.name,
+        });
+        await sendInAppNotification({
+          context,
+          userId: shift!.userId!,
+          templateName: input.template,
+          orgId: organization.id,
+          title,
+          body,
+        });
       } while(shift);
 
       try {
@@ -231,6 +303,20 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+
+      const { title, body } = InAppTemplates[input.template]({
+        metroName: organization.name,
+        skillName: skill.name,
+      });
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      });
+
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
       const { shift, createdShiftBuffer, shiftBufferShift, user, organization } = input.data;
       
@@ -276,9 +362,23 @@ const sendEmail = async (input: MailerEvent) => {
       const bufferShiftStart = convertDate(shiftBufferShift.startTime as any, organization);
       const bufferShiftEnd = convertDate(shiftBufferShift.endTime as any, organization);
 
+      const inAppPromises: Promise<any>[] = [];
       // TODO: Look up conflicting shift
       Addresses = (allAdmins || [])
-        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .filter((admin: User) => {
+          const { title, body } = InAppTemplates[input.template]({
+            name: user.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: (admin as any)?._id?.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          }));
+          return admin.member.contactInfo?.primaryEmail.receiveEmails
+        })
         .reduce((obj, admin) => {
           const Substitutions: Record<string, string[]> = {
             "user.first_name": [user.firstName],
@@ -314,6 +414,8 @@ const sendEmail = async (input: MailerEvent) => {
             } as AddressConfiguration,
           };
         }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
     } else if (
       input.template === MailerEvents.OfficerPendingShiftApproved ||
       input.template === MailerEvents.OfficerPendingShiftDenied
@@ -346,6 +448,8 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
+      const inAppPromises: Promise<any>[] = [];
+
       if (input.template === MailerEvents.OfficerPendingShiftApproved) {
         const venue = await context.venues.get(event.venueId);
         if (venue) {
@@ -368,7 +472,22 @@ const sendEmail = async (input: MailerEvent) => {
               const eventEnd = convertDate(event.endTime as any, organization);
               const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
-                .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+                .filter((admin: User) => {
+                  const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
+                    eventRefNumber: event.referenceId,
+                    eventName: event.name,
+                    venueName: venue.name,
+                  });
+                  inAppPromises.push(sendInAppNotification({
+                    context,
+                    userId: (admin as any)?._id?.toString(),
+                    templateName: MailerEvents.AdminEventFullyStaffed,
+                    orgId: organization.id,
+                    title,
+                    body,
+                  }));
+                  return admin.member.contactInfo!.primaryEmail.receiveEmails
+                })
                 .reduce((obj, admin) => {
                   const Substitutions: Record<string, string[]> = {
                     "event.name": [event.name],
@@ -382,7 +501,7 @@ const sendEmail = async (input: MailerEvent) => {
                     "system.metro_name": [organization.name],
                   };
                   const email = admin.member.contactInfo!.primaryEmail.address || '';
-    
+
                   return {
                     ...obj,
                     [email]: {
@@ -425,7 +544,22 @@ const sendEmail = async (input: MailerEvent) => {
               const eventEnd = convertDate(event.endTime as any, organization);
               const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
-                .filter((admin: User) => admin.member.contactInfo!.primaryEmail.receiveEmails)
+                .filter((admin: User) => {
+                  const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
+                    shiftName: assignment.name,
+                    eventName: event.name,
+                    venueName: venue.name,
+                  });
+                  inAppPromises.push(sendInAppNotification({
+                    context,
+                    userId: (admin as any)?._id?.toString(),
+                    templateName: MailerEvents.AdminEventShiftsFilled,
+                    orgId: organization.id,
+                    title,
+                    body,
+                  }));
+                  return admin.member.contactInfo!.primaryEmail.receiveEmails
+                })
                 .reduce((obj, admin) => {
                   const Substitutions: Record<string, string[]> = {
                     "shift.name": [assignment.name],
@@ -465,6 +599,21 @@ const sendEmail = async (input: MailerEvent) => {
         }
       }
 
+      const { title, body } = InAppTemplates[input.template]({
+        shiftName: assignment.name,
+        eventName: event.name,
+        venueName: venue?.name || '',
+        reason: request.reason,
+      });
+      inAppPromises.push(sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      }));
+
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
           ...Addresses,
@@ -500,6 +649,8 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+
+      await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAdminAssignedShift) {
       const { adminAssignedShift, shift, organization } = input.data;
       const event = await context.events.get(shift.eventId);
@@ -559,6 +710,21 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
+
+        const {title, body} = InAppTemplates[input.template]({
+          metroName: organization.name,
+          shiftName: assignment.name,
+          eventName: event.name,
+          venueName: venue.name || '',
+        });
+        await sendInAppNotification({
+          context,
+          userId: user.id,
+          templateName: input.template,
+          orgId: organization.id,
+          title,
+          body,
+        });
       }
     } else if (input.template === MailerEvents.OfficerRemovedFromShift) {
       const { shift, removeUser, existingUserId, organization } = input.data;
@@ -582,6 +748,8 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
 
+      const inAppPromises: Promise<any>[] = [];
+
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
         Addresses = {
           ...Addresses,
@@ -602,13 +770,42 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+      const { title, body } = InAppTemplates[input.template]({
+        eventName: event.name,
+        shiftName: assignment.name,
+      });
+      inAppPromises.push(sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      }));
 
       const allAdmins = await context.users.getAllAdmins({
         orgId: event.orgId,
       }) as any[];
 
       const EmailAddresses = (allAdmins || [])
-        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .filter((admin: User) => {
+          const { title, body } = InAppTemplates[MailerEvents.AdminUnassignOfficerShift]({
+            eventName: event.name,
+            eventRefNumber: event.referenceId,
+            shiftName: assignment.name,
+            officerName: user.name,
+            adminName: removeUser.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: (admin as any)?._id?.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          }));
+          return admin.member.contactInfo?.primaryEmail.receiveEmails
+        })
         .reduce((obj, admin) => {
           const Substitutions: Record<string, string[]> = {
             "shift.name": [assignment.name],
@@ -649,6 +846,7 @@ const sendEmail = async (input: MailerEvent) => {
         }
       }
 
+      await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.AdminShiftRelinquished) {
       const { existingUserId, shift, organization } = input.data;
 
@@ -674,9 +872,28 @@ const sendEmail = async (input: MailerEvent) => {
       const allAdmins = await context.users.getAllAdmins({
         orgId: event.orgId,
       }) as any[];
+      
+      const inAppPromises: Promise<any>[] = [];
 
       Addresses = (allAdmins || [])
-        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .filter((admin: User) => {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            eventRefNumber: event.referenceId,
+            shiftName: assignment.name,
+            reason: shift.relinquishNote || 'N/A',
+            officerName: user.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: (admin as any)?._id?.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          }));
+          return admin.member.contactInfo?.primaryEmail.receiveEmails
+        })
         .reduce((obj, admin) => {
           const Substitutions: Record<string, string[]> = {
             "user.first_name": [user.firstName],
@@ -694,7 +911,6 @@ const sendEmail = async (input: MailerEvent) => {
             "shift.reference_number": [`${shift.refNumber}`],
           };
           const email = admin.member.contactInfo!.primaryEmail.address || '';
-
           return {
             ...obj,
             [email]: {
@@ -703,6 +919,8 @@ const sendEmail = async (input: MailerEvent) => {
             } as AddressConfiguration,
           };
         }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAssignmentRemoved) {
       const { assignment, organization, modifiedById } = input.data;
 
@@ -777,6 +995,20 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
+
+        const { title, body } = InAppTemplates[input.template]({
+          eventName: event.name,
+          metroName: organization.name,
+          shiftName: assignment.name,
+        });
+        await sendInAppNotification({
+          context,
+          userId: shift!.userId!,
+          templateName: input.template,
+          orgId: organization.id,
+          title,
+          body,
+        });
       } while(shift);
 
       // Remove shifts after notification is sent
@@ -837,6 +1069,19 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+
+      const { title, body } = InAppTemplates[input.template]({
+        eventName: event.name,
+        shiftName: assignment.name,
+      });
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      });
     } else if (input.template === MailerEvents.LotteryWindowClosing) {
       const { orgId } = input.data;
 
@@ -874,6 +1119,20 @@ const sendEmail = async (input: MailerEvent) => {
               "system.metro_name": [organization.name],
             },
           };
+        }
+        if (user) {
+          const { title, body } = InAppTemplates[input.template]({
+            metroName: organization.name,
+            num: organization.settings?.lottery.notifyUsersBeforeClose || 24,
+          });
+          await sendInAppNotification({
+            context,
+            userId: (user as any)._id.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
         }
       } while(user);
     } else if (input.template === MailerEvents.OfficerAvailableOtPosted) {
@@ -960,6 +1219,19 @@ const sendEmail = async (input: MailerEvent) => {
               "system.login_url": [process.env.LOGIN_URL || ''],
             },
           };
+        }
+        if (user) {
+          const { title, body } = InAppTemplates[input.template]({
+            metroName: organization.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: (user as any)._id.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
         }
       } while(user);
     } else if (input.template === MailerEvents.OfficerFcfsShiftAvailable) {
@@ -1059,6 +1331,20 @@ const sendEmail = async (input: MailerEvent) => {
               },
             };
           }
+
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            shiftName: assignment.name,
+            metroName: organization.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: (user as any)._id.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
         }
       } while(user);
       if (Object.keys(Addresses).length === 0) {
@@ -1179,6 +1465,18 @@ const sendEmail = async (input: MailerEvent) => {
               },
             };
           }
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            metroName: organization.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: (user as any)._id.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
         }
       } while(user);
       if (Object.keys(Addresses).length === 0) {
@@ -1214,8 +1512,23 @@ const sendEmail = async (input: MailerEvent) => {
         orgId,
       }) as any[];
 
+      const inAppPromises: Promise<any>[] = [];
       const EmailAddresses = (allAdmins || [])
-        .filter((admin: User) => admin.member.contactInfo?.primaryEmail.receiveEmails)
+        .filter((admin: User) => {
+          const { title, body } = InAppTemplates[input.template]({
+            metroName: organization.name,
+            name: user.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: (admin as any)?._id?.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          }));
+          return admin.member.contactInfo?.primaryEmail.receiveEmails
+        })
         .reduce((obj, admin) => {
           const Substitutions: Record<string, string[]> = {
             "user.first_name": [user.firstName],
@@ -1241,6 +1554,7 @@ const sendEmail = async (input: MailerEvent) => {
         ...EmailAddresses,
         ...SMSAddresses,
       };
+      await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerUserAccountDeactivated) {
       const {
         user: inputUser,
@@ -1288,6 +1602,18 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+
+      const { title, body } = InAppTemplates[input.template]({
+        metroName: organization.name,
+      });
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      });
     } else if (input.template === MailerEvents.OfficerUserAccountReactivated) {
       let {
         user: inputUser,
@@ -1333,6 +1659,16 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
+
+      const { title, body } = InAppTemplates[input.template]();
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+      });
     }
 
     if (Object.keys(Addresses).length === 0) {

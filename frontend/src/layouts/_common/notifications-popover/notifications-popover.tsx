@@ -5,7 +5,6 @@ import { useMutation, useQuery } from '@apollo/client';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import List from '@mui/material/List';
-import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Badge from '@mui/material/Badge';
 import Drawer from '@mui/material/Drawer';
@@ -22,27 +21,17 @@ import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { varHover } from 'src/components/animate';
-import Markdown from 'src/components/markdown';
-import { ConfirmDialog } from 'src/components/custom-dialog';
 import NotificationItem, { NotificationRendered } from 'src/layouts/_common/notifications-popover/notification-item';
 //
-import { GET_ACTIVE_NOTIFICATIONS, MARK_ALL_AS_SEEN } from 'src/api/notification';
-import { Notification, NotificationFrequency } from 'src/__generated__/resolvers-types';
+import { GET_IN_APP_NOTIFICATIONS, MARK_ALL_AS_SEEN, REMOVE_ALL_NOTIFICATIONS } from 'src/api/notification';
 
 // ----------------------------------------------------------------------
 
-const NotificationMap = {
-  [NotificationFrequency.Always]: 'Persistent Notification',
-  [NotificationFrequency.UntilExpire]: 'Temporary Notification',
-  [NotificationFrequency.Once]: 'Notification',
-}
-
-// ----------------------------------------------------------------------
+let inAppNotificationData: any;
+let inAppTotalMessages: number = 0;
 
 export default function NotificationsPopover() {
   const drawer = useBoolean();
-  const [notificationDetail, setNotificationDetail] = useState<Notification | undefined>();
-  const showDetail = useBoolean();
 
   const smUp = useResponsive('up', 'sm');
   const [currentTab, setCurrentTab] = useState('all');
@@ -51,51 +40,62 @@ export default function NotificationsPopover() {
     setCurrentTab(newValue);
   }, []);
 
-  const [markAsSeen] = useMutation(MARK_ALL_AS_SEEN, {
-    refetchQueries: [GET_ACTIVE_NOTIFICATIONS],
+  const [markAsSeen, { loading: markingAsSeenLoading }] = useMutation(MARK_ALL_AS_SEEN, {
+    refetchQueries: [GET_IN_APP_NOTIFICATIONS],
   });
-  const { data, loading } = useQuery(GET_ACTIVE_NOTIFICATIONS, {
+  const [removeAll, { loading: removeAllLoading }] = useMutation(REMOVE_ALL_NOTIFICATIONS, {
+    refetchQueries: [GET_IN_APP_NOTIFICATIONS],
+  });
+  const { data: queryData, loading } = useQuery(GET_IN_APP_NOTIFICATIONS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    pollInterval: 1000 * 20, // Poll every 20 seconds
+    variables: {
+      input: {
+        limit: 20,
+        ...(currentTab === 'unread' && { read: false }),
+      },
+    },
   });
 
-  const totalUnRead = loading ? (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />) : data?.activeNotifications?.items?.filter(({ seen, frequency }: Notification) => !seen || frequency === NotificationFrequency.Always)?.length;
+  const data = useMemo(() => {
+    if (queryData?.inAppNotifications) {
+      inAppNotificationData = queryData;
+    }
+    return inAppNotificationData;
+  }, [queryData]);
+  const totalMessages = useMemo(() => {
+    if (queryData?.inAppNotifications?.total) {
+      inAppTotalMessages = queryData.inAppNotifications.total;
+    }
+    return inAppTotalMessages;
+  }, [queryData?.inAppNotifications?.total]);
 
-  const notificationIds = useMemo(() =>
-    data?.activeNotifications?.items?.map(({ id }: Notification) => id) || [],
-  [data?.activeNotifications]);
+  const totalUnRead = loading ?
+    (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />) :
+    data?.inAppNotifications?.unreadCount || 0;
+
   const tabs = useMemo(() => [
     {
       value: 'all',
       label: 'All',
-      count: data?.activeNotifications?.total || 0,
+      count: totalMessages,
     },
     {
       value: 'unread',
       label: 'Unread',
-      count: data?.activeNotifications?.items?.filter(({ seen, frequency }: Notification) => !seen && frequency !== NotificationFrequency.Always).length || 0,
+      count: data?.inAppNotifications?.unreadCount || 0,
     },
-    {
-      value: 'always',
-      label: 'Persistent',
-      count: data?.activeNotifications?.items?.filter(({ frequency }: Notification) => frequency === NotificationFrequency.Always).length || 0,
-    },
-  ], [data?.activeNotifications]);
+  ], [totalMessages, data?.inAppNotifications]);
 
   const notificationList = useMemo(() => {
-    let list = data?.activeNotifications?.items || [];
-    if (currentTab === 'unread') {
-      list = data?.activeNotifications?.items?.filter(({ seen }: Notification) => !seen) || [];
-    } else if (currentTab === 'always') {
-      list = data?.activeNotifications?.items?.filter(({ frequency }: Notification) => frequency === NotificationFrequency.Always) || [];
-    }
-    return list.map((notification: Notification) => ({
-      id: notification.id as any,
-      title: notification.title as any,
-      body: notification.body.length > 250 ? `${notification.body.slice(0, 250)}...` : notification.body as any,
-      category: NotificationMap[notification.frequency],
-      createdAt: notification.updatedAt as any,
-      isUnRead: !notification.seen && notification.frequency !== NotificationFrequency.Always,
+    const list = data?.inAppNotifications?.items || [];
+    return list.map((notification: any) => ({
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      createdAt: notification.createdAt,
+      isUnRead: !notification.read,
       type: 'mail',
       avatarUrl: null,
       onClick: () => {
@@ -104,35 +104,29 @@ export default function NotificationsPopover() {
             ids: [notification.id],
           },
         });
-        showDetail.onTrue();
-        setNotificationDetail(notification);
       }
     } as NotificationRendered));
   }, [
-    currentTab,
-    data?.activeNotifications,
-    showDetail,
-    setNotificationDetail,
+    data?.inAppNotifications,
     markAsSeen,
   ]);
 
   const handleMarkAllAsRead = useCallback(() => {
-    if (notificationIds.length > 0) {
-      markAsSeen({
-        variables: {
-          ids: notificationIds,
-        }
-      });
-    }
-  }, [markAsSeen, notificationIds]);
+    markAsSeen({
+      variables: {
+        readAll: true,
+      },
+    });
+  }, [markAsSeen]);
 
-  const handleCloseDetail = useCallback(() => {
-    showDetail.onFalse();
-    // For animation
-    setTimeout(() => {
-      setNotificationDetail(undefined);
-    }, 200);
-  }, [showDetail, setNotificationDetail]);
+  const handleRemoveAll = useCallback(() => {
+    inAppTotalMessages = 0;
+    removeAll({
+      variables: {
+        removeAll: true,
+      },
+    });
+  }, [removeAll]);
 
   const renderHead = (
     <Stack direction="row" alignItems="center" sx={{ py: 2, pl: 2.5, pr: 1, minHeight: 68 }}>
@@ -140,13 +134,11 @@ export default function NotificationsPopover() {
         Notifications
       </Typography>
 
-      {!!totalUnRead && (
-        <Tooltip title="Mark all as read">
-          <IconButton color="primary" onClick={handleMarkAllAsRead}>
-            <Iconify icon="eva:done-all-fill" />
-          </IconButton>
-        </Tooltip>
-      )}
+      <Tooltip title="Mark all as read">
+        <IconButton disabled={markingAsSeenLoading} color="info" onClick={handleMarkAllAsRead}>
+          <Iconify icon={markingAsSeenLoading ? "svg-spinners:180-ring-with-bg" : "eva:done-all-fill"} />
+        </IconButton>
+      </Tooltip>
 
       {!smUp && (
         <IconButton onClick={drawer.onFalse}>
@@ -233,9 +225,11 @@ export default function NotificationsPopover() {
           sx={{ pl: 2.5, pr: 1 }}
         >
           {renderTabs}
-          {/* <IconButton onClick={handleMarkAllAsRead}>
-            <Iconify icon="solar:settings-bold-duotone" />
-          </IconButton> */}
+          <Tooltip title="Clear all notifications">
+            <IconButton disabled={removeAllLoading} color="info" onClick={handleRemoveAll}>
+              <Iconify icon={removeAllLoading ? "svg-spinners:180-ring-with-bg" : "eva:trash-2-fill"} />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
         <Divider />
@@ -246,19 +240,6 @@ export default function NotificationsPopover() {
           </Stack>
         ) : renderList}
       </Drawer>
-      <ConfirmDialog
-        open={showDetail.value}
-        onClose={showDetail.onFalse}
-        hasCancel={false}
-        maxWidth="sm"
-        title={notificationDetail?.title}
-        content={(<Markdown children={notificationDetail?.body || ''} />)}
-        action={
-          <Button variant="contained" color="primary" onClick={handleCloseDetail}>
-            Close
-          </Button>
-        }
-      />
     </>
   );
 }

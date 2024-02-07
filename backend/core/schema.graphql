@@ -1163,9 +1163,18 @@
     total: Int!
   }
 
+  input InAppNotificationSearchInput {
+    limit: Int
+    skip: Int
+    read: Boolean
+    orderBy: String
+    order: String
+  }
+
   type InAppNotificationSearchResult {
     items: [InAppNotifications]
     total: Int!
+    unreadCount: Int!
   }
 
   input NotificationSearchInput {
@@ -1241,7 +1250,7 @@ type Query {
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult
   activeNotifications(input: SearchInput): NotificationSearchResult
-  inAppNotifications(input: SearchInput): InAppNotificationSearchResult
+  inAppNotifications(input: InAppNotificationSearchInput): InAppNotificationSearchResult
 
   siteLock: SiteLock
 }
@@ -1292,6 +1301,8 @@ type Mutation {
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!
   seenNotifications(notificationIds: [String]!): Boolean
+  readInAppNotifications(ids: [String], readAll: Boolean): Boolean
+  removeInAppNotifications(ids: [String], removeAll: Boolean): Boolean
 
   # Lottery review site
   siteLock(input: UpsertSiteLock): SiteLock

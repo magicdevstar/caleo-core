@@ -38,20 +38,104 @@ export class InAppNotificationModel {
     this.typeName = docType.charAt(0).toUpperCase() + docType.slice(1).toLowerCase();
   }
 
+  async removeMany({
+    ids,
+    userId,
+    removeAll,
+  }: {
+    ids?: string[];
+    removeAll?: boolean;
+    userId: ObjectId;
+  }) {
+    if (removeAll) {
+      await this.collection.updateMany({
+        userId,
+      }, {
+        $set: {
+          read: true,
+          removedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    } else if (ids) {
+      await this.collection.updateMany({
+        userId,
+        _id: { $in: ids.map((id) => new ObjectId(id)) },
+      }, {
+        $set: {
+          read: true,
+          removedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return true;
+  };
+
+  async markAsRead({
+    ids,
+    readAll,
+    userId,
+  }: {
+    ids?: string[];
+    readAll?: boolean;
+    userId: ObjectId;
+  }) {
+    if (readAll) {
+      await this.collection.updateMany({
+        userId,
+        read: false,
+      }, {
+        $set: {
+          read: true,
+          updatedAt: new Date(),
+        },
+      });
+    } else if (ids) {
+      await this.collection.updateMany({
+        userId,
+        read: false,
+        _id: { $in: ids.map((id) => new ObjectId(id)) },
+      }, {
+        $set: {
+          read: true,
+          updatedAt: new Date(),
+        },
+      });
+    }
+    return true
+  }
+
+  unreadCount(userId: ObjectId) {
+    return this.collection.countDocuments({
+      userId,
+      read: false,
+    });
+  }
+
   async search({
     userId,
     limit = 10,
+    read,
+    order = 'desc',
+    orderBy = 'createdAt',
     skip,
   }: {
     userId: ObjectId;
+    read?: boolean;
     limit?: number;
+    order?: string;
+    orderBy?: string;
     skip?: number;
   }): Promise<SearchResults<IInAppNotification>> {
     const query = {
       userId,
+      removedAt: { $exists: false },
+      ...(typeof read === 'boolean' && { read }),
     };
 
-    const collectionQuery = this.collection.find(query).sort({ createdAt: -1 });
+    const collectionQuery = this.collection.find(query).sort({ [orderBy]: order === 'asc' ? 1 : -1 });
 
     if (skip) {
       collectionQuery.skip(skip);

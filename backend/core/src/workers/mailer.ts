@@ -145,10 +145,21 @@ const sendInAppNotification = async ({
     const removeSubscriptions: ObjectId[] = [];
     const promises = browserSubscriptions.map(async ({ id, subscription }) => {
       try {
-        await webPush.sendNotification(subscription, body, { TTL: 10 });
+        await webPush.sendNotification(subscription, JSON.stringify({title, body}), { TTL: 10 });
       } catch(error) {
         if (error.statusCode === 410) {
           removeSubscriptions.push(new ObjectId(id));
+        } else {
+          logger.error('Failed to send in-app notification', {
+            error,
+            event: {
+              title,
+              body,
+              templateName,
+              userId,
+              orgId,
+            }
+          });
         }
       }
     });
@@ -246,19 +257,21 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
 
-        const { title, body } = InAppTemplates[input.template]({
-          eventName: event.name,
-          metroName: organization.name,
-          shiftName: shift!.assignment.name,
-        });
-        await sendInAppNotification({
-          context,
-          userId: shift!.userId!,
-          templateName: input.template,
-          orgId: organization.id,
-          title,
-          body,
-        });
+        if (shift) {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            metroName: organization.name,
+            shiftName: shift!.assignment.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: shift!.userId!,
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
+        }
       } while(shift);
 
       try {
@@ -668,14 +681,14 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Assignment not found', { input, assignment });
         return;
       }
+      
+      const user = await context.users.get(shift.userId);
+      if (!user) {
+        logger.error('User not found', { input, user });
+        return;
+      }
 
       if (adminAssignedShift) {
-        const user = await context.users.get(shift.userId);
-        if (!user) {
-          logger.error('User not found', { input, user });
-          return;
-        }
-
         const shiftStart = convertDate(shift.startTime as any, organization);
         const shiftEnd = convertDate(shift.endTime as any, organization);
 
@@ -726,6 +739,168 @@ const sendEmail = async (input: MailerEvent) => {
           body,
         });
       }
+
+      const inAppPromises: Promise<any>[] = [];
+
+      const { title, body } = InAppTemplates[MailerEvents.OfficerNewShiftAssigned]({
+        shiftName: assignment.name,
+        eventName: event.name,
+        venueName: venue.name,
+      });
+      inAppPromises.push(sendInAppNotification({
+        context,
+        userId: user!.id,
+        templateName: MailerEvents.OfficerNewShiftAssigned,
+        orgId: organization.id,
+        title,
+        body,
+      }));
+
+      // Check if event is fully staffed
+      if (event.notifyWhenFullyStaffed) {
+        const totalUnassignedShifts = await context.shifts.collection.countDocuments({
+          eventId: event.id,
+          removedAt: { $exists: false },
+          $or: [
+            { userId: null },
+            { userId: { $exists: false } },
+          ],
+        });
+        if (totalUnassignedShifts === 0) {
+          const allAdmins = await context.users.getAllAdmins({
+            orgId: event.orgId,
+          }) as any[];
+
+          const eventStart = convertDate(event.startTime as any, organization);
+          const eventEnd = convertDate(event.endTime as any, organization);
+          const SMSAddresses = {};
+          const EmailAddresses = (allAdmins || [])
+            .filter((admin: User) => {
+              const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
+                eventRefNumber: event.referenceId,
+                eventName: event.name,
+                venueName: venue.name,
+              });
+              inAppPromises.push(sendInAppNotification({
+                context,
+                userId: (admin as any)?._id?.toString(),
+                templateName: MailerEvents.AdminEventFullyStaffed,
+                orgId: organization.id,
+                title,
+                body,
+              }));
+              return admin.member.contactInfo!.primaryEmail.receiveEmails
+            })
+            .reduce((obj, admin) => {
+              const Substitutions: Record<string, string[]> = {
+                "event.name": [event.name],
+                "event.start_date": [eventStart.date],
+                "admin.first_name": [admin.firstName],
+                "event.reference_number": [event.referenceId],
+                "venue.name": [venue.name],
+                "event.start_time": [eventStart.time],
+                "event.end_date": [eventEnd.date],
+                "event.end_time": [eventEnd.time],
+                "system.metro_name": [organization.name],
+              };
+              const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+              return {
+                ...obj,
+                [email]: {
+                  ChannelType: 'EMAIL',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
+
+          const finalAddresses = {
+            ...EmailAddresses,
+            ...SMSAddresses,
+          } as any;
+          if (Object.keys(finalAddresses).length > 0) {
+            await sendInChunks({
+              ...input,
+              template: MailerEvents.AdminEventFullyStaffed,
+            }, finalAddresses);
+          }
+        }
+      }
+
+      // Check if assignment is fully staffed
+      if (assignment.notifyWhenFullyStaffed) {
+        const totalUnassignedShifts = await context.shifts.collection.countDocuments({
+          eventId: event.id,
+          assignmentId: assignment.id,
+          $or: [
+            { userId: null },
+            { userId: { $exists: false } },
+          ],
+          removedAt: { $exists: false },
+        });
+        if (totalUnassignedShifts === 0) {
+          const allAdmins = await context.users.getAllAdmins({
+            orgId: event.orgId,
+          }) as any[];
+
+          const eventStart = convertDate(event.startTime as any, organization);
+          const eventEnd = convertDate(event.endTime as any, organization);
+          const SMSAddresses = {};
+          const EmailAddresses = (allAdmins || [])
+            .filter((admin: User) => {
+              const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
+                shiftName: assignment.name,
+                eventName: event.name,
+                venueName: venue.name,
+              });
+              inAppPromises.push(sendInAppNotification({
+                context,
+                userId: (admin as any)?._id?.toString(),
+                templateName: MailerEvents.AdminEventShiftsFilled,
+                orgId: organization.id,
+                title,
+                body,
+              }));
+              return admin.member.contactInfo!.primaryEmail.receiveEmails
+            })
+            .reduce((obj, admin) => {
+              const Substitutions: Record<string, string[]> = {
+                "shift.name": [assignment.name],
+                "event.name": [event.name],
+                "admin.first_name": [admin.firstName],
+                "event.reference_number": [event.referenceId],
+                "venue.name": [venue.name],
+                "event.start_date": [eventStart.date],
+                "event.start_time": [eventStart.time],
+                "event.end_date": [eventEnd.date],
+                "event.end_time": [eventEnd.time],
+                "system.metro_name": [organization.name],
+              };
+              const email = admin.member.contactInfo!.primaryEmail.address || '';
+
+              return {
+                ...obj,
+                [email]: {
+                  ChannelType: 'EMAIL',
+                  Substitutions,
+                } as AddressConfiguration,
+              };
+            }, {} as Record<string, AddressConfiguration>);
+
+          const finalAddresses = {
+            ...EmailAddresses,
+            ...SMSAddresses,
+          } as any;
+          if (Object.keys(finalAddresses).length > 0) {
+            await sendInChunks({
+              ...input,
+              template: MailerEvents.AdminEventShiftsFilled,
+            }, finalAddresses);
+          }
+        }
+      }
+
+      await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerRemovedFromShift) {
       const { shift, removeUser, existingUserId, organization } = input.data;
 
@@ -996,19 +1171,21 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
 
-        const { title, body } = InAppTemplates[input.template]({
-          eventName: event.name,
-          metroName: organization.name,
-          shiftName: assignment.name,
-        });
-        await sendInAppNotification({
-          context,
-          userId: shift!.userId!,
-          templateName: input.template,
-          orgId: organization.id,
-          title,
-          body,
-        });
+        if (shift) {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            metroName: organization.name,
+            shiftName: assignment.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: shift!.userId!,
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+          });
+        }
       } while(shift);
 
       // Remove shifts after notification is sent

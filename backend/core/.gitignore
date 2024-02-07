@@ -5,6 +5,7 @@ jspm_packages
 # Serverless directories
 .serverless
 .esbuild
+__sls__/input/input.json
 
 # Generated types
 src/__generated__

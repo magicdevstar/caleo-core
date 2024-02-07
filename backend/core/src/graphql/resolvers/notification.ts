@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { Notification, NotificationFrequency, NotificationSearchInput, SearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
+import { InAppNotificationSearchInput, Notification, NotificationFrequency, NotificationSearchInput, SearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ObjectId } from "mongodb";
@@ -25,13 +25,32 @@ export const notification = {
       }),
     inAppNotifications: async (
       _parent: unknown,
-      { input: { limit, skip } }: {input: { limit?: number, skip?: number}},
+      {
+        input: {
+          limit,
+          skip,
+          read,
+          order,
+          orderBy,
+        }
+      }: {
+        input: {
+          limit: number;
+          skip: number;
+          read?: boolean;
+          orderBy?: string;
+          order?: string;
+        }
+      },
       { inAppNotifications, user }: Context
     ): Promise<SearchResults<IInAppNotification>> => {
       logger.info('inAppNotifications', {limit, skip});
       const res = await inAppNotifications.search({
         limit,
         skip,
+        read,
+        order,
+        orderBy,
         userId: new ObjectId(user?.id!),
       });
       return res;
@@ -76,6 +95,24 @@ export const notification = {
     }),
   },
   Mutation: {
+    removeInAppNotifications: async (
+      _parent: unknown,
+      { ids, removeAll }: { ids?: string[], removeAll?: boolean },
+      { inAppNotifications, user }: Context
+    ): Promise<boolean> => inAppNotifications.removeMany({
+      ids,
+      removeAll,
+      userId: new ObjectId(user!.id)
+    }),
+    readInAppNotifications: async (
+      _parent: unknown,
+      { ids, readAll }: { ids?: string[], readAll?: boolean },
+      { inAppNotifications, user }: Context
+    ): Promise<boolean> => inAppNotifications.markAsRead({
+      ids,
+      readAll,
+      userId: new ObjectId(user!.id)
+    }),
     removeNotification: async (
       _parent: unknown,
       { id }: { id: string },
@@ -119,6 +156,18 @@ export const notification = {
     }
   },
   fields: {
+    InAppNotificationSearchResult: {
+      unreadCount: async (
+        _result,
+        _args,
+        { inAppNotifications, user } : Context
+      ) => inAppNotifications.unreadCount(new ObjectId(user?.id!))
+    },
+    InAppNotifications: {
+      createdAt: (notification: IInAppNotification) => notification.createdAt.toISOString(),
+      updatedAt: (notification: IInAppNotification) => notification.updatedAt.toISOString(),
+      removedAt: (notification: IInAppNotification) => notification.removedAt && notification.removedAt.toISOString(),
+    },
     Notification: {
       ...commonResolvers,
       org: (notification: Notification, _, { organizations }: Context) => organizations.loader.load(notification.orgId),

@@ -236,20 +236,23 @@ export const user = {
               }),
             });
           }
-          await lambda.send(new InvokeCommand({
-            FunctionName: process.env.MAILER_LAMBDA!,
-            InvocationType: 'Event',
-            Payload: JSON.stringify({
-              action: Action.Email,
-              template: MailerEvents.OfficerUserAccountDeactivated,
-              data: {
-                user: existingUser,
-                organization,
-                inactivateUntil: user.member?.inactivateUntil,
-                inactivationNote: user.member?.inactivationNote,
-              },
-            } as MailerEvent),
-          }));
+          // Prevent sending multiple deactivation notices 😈
+          if (existingUser.member.status !== user.member.status) {
+            await lambda.send(new InvokeCommand({
+              FunctionName: process.env.MAILER_LAMBDA!,
+              InvocationType: 'Event',
+              Payload: JSON.stringify({
+                action: Action.Email,
+                template: MailerEvents.OfficerUserAccountDeactivated,
+                data: {
+                  user: existingUser,
+                  organization,
+                  inactivateUntil: user.member?.inactivateUntil,
+                  inactivationNote: user.member?.inactivationNote,
+                },
+              } as MailerEvent),
+            }));
+          }
         } else if (existingUser.member.status === MemberStatus.Inactive) {
           user.member.inactivateUntil = null;
           user.member.inactivationNote = null;

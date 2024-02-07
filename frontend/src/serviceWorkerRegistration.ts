@@ -23,24 +23,6 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
-// This function is needed because Chrome doesn't accept a base64 encoded string
-// as value for applicationServerKey in pushManager.subscribe yet
-// https://bugs.chromium.org/p/chromium/issues/detail?id=802280
-function urlBase64ToUint8Array(base64String: string) {
-  var padding = '='.repeat((4 - base64String.length % 4) % 4);
-  var base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
- 
-  var rawData = window.atob(base64);
-  var outputArray = new Uint8Array(rawData.length);
- 
-  for (var i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
 export function register(config?: Config) {
   if ('serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
@@ -94,6 +76,8 @@ function registerValidSW(swUrl: string, config?: Config) {
                 'New content is available and will be used when all ' +
                   'tabs for this page are closed. See https://cra.link/PWA.'
               );
+
+              installingWorker.postMessage(JSON.stringify({ type: 'SKIP_WAITING' }));
 
               // Execute callback
               if (config && config.onUpdate) {

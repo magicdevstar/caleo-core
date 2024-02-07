@@ -7,11 +7,13 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
+import Tooltip from '@mui/material/Tooltip';
 // utils
 import { fToNow } from 'src/utils/format-time';
 // components
 import Label from 'src/components/label';
 import FileThumbnail from 'src/components/file-thumbnail';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +21,7 @@ export interface NotificationRendered {
   id: string;
   title: string;
   body?: string;
-  category: string;
+  category?: string;
   createdAt: Date;
   isUnRead: boolean;
   type: string;
@@ -83,7 +85,9 @@ export default function NotificationItem({ notification }: NotificationItemProps
             />
           }
         >
-          {fToNow(notification.createdAt)}
+          <Tooltip title={convertDate({ date: notification.createdAt, user: {} as any }).format(dateTimeFormat)}>
+            <span>{fToNow(notification.createdAt)}</span>
+          </Tooltip>
           {notification.category}
         </Stack>
       }

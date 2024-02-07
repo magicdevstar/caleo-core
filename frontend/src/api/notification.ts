@@ -7,8 +7,31 @@ export const REMOVE_NOTIFICATION = gql`
 `;
 
 export const MARK_ALL_AS_SEEN = gql`
-  mutation MarkAsSeen($ids: [String]!) {
-    seenNotifications(notificationIds: $ids)
+  mutation MarkAsSeen($ids: [String], $readAll: Boolean) {
+    readInAppNotifications(ids: $ids, readAll: $readAll)
+  }
+`;
+
+export const REMOVE_ALL_NOTIFICATIONS = gql`
+  mutation RemoveAllNotifications($ids: [String], $removeAll: Boolean) {
+    removeInAppNotifications(ids: $ids, removeAll: $removeAll)
+  }
+`;
+
+export const GET_IN_APP_NOTIFICATIONS = gql`
+  query GetInAppNotifications($input: InAppNotificationSearchInput) {
+    inAppNotifications(input: $input) {
+      items {
+        id
+        title
+        body
+        templateName
+        read
+        createdAt
+      }
+      total
+      unreadCount
+    }
   }
 `;
 

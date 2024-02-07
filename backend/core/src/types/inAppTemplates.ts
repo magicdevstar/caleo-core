@@ -139,7 +139,7 @@ export const InAppTemplates = {
     metroName,
   }) => ({
     title: 'FCFS Event Available',
-    body: `Shifts the ${eventName} event are still available in ${metroName} Caleo`,
+    body: `Shifts for the ${eventName} event are still available in ${metroName} Caleo`,
   }),
   [MailerEvents.AdminUserAccountRequested]: ({
     name,
@@ -157,5 +157,13 @@ export const InAppTemplates = {
   [MailerEvents.OfficerUserAccountReactivated]: () => ({
     title: 'User Account Reactivated',
     body: `Your Caleo account has been reactivated. Welcome back!`,
+  }),
+  [MailerEvents.OfficerNewShiftAssigned]: ({
+    shiftName,
+    eventName,
+    venueName,
+  }) => ({
+    title: 'Shift Secured',
+    body: `You have been assigned to ${shiftName} for ${eventName} at ${venueName}.`,
   }),
 };

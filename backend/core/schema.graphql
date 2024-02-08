@@ -933,9 +933,20 @@
     createdAt: String!
     updatedAt: String!
     removedAt: String
+    meta: InAppNotificationMeta
 
     org: Organization!
     user: User!
+  }
+
+  type InAppNotificationMeta {
+    eventId: String
+    assignmentId: String
+    shiftId: String
+    rankId: String
+    skillId: String
+    venueId: String
+    shiftBufferRequestId: String
   }
 
   type MemberNotification {

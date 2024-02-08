@@ -27,6 +27,9 @@
   <meta name="description"
     content="CaleoPro is the best overtime shift management platform on the planet." />
   <meta name="keywords" content="react,material,kit,application,dashboard,admin,template" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@1.8/dist/add-to-homescreen.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@1.8/dist/add-to-homescreen.min.js"></script>
+
 </head>
 
 <body>
@@ -36,6 +39,20 @@
   <script type="text/javascript">
     window.Beacon('init', 'fe3d0204-1953-406d-8449-e3e0fe10a3ec')
     window.Beacon('config', {display: { position: 'left', horizontalOffset: 65, zIndex: 1102 } })
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      window.AddToHomeScreenInstance = new window.AddToHomeScreen({
+        appName: 'CaleoPro',
+        appIconUrl: '/favicon/apple-touch-icon.png',
+        assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@1.8/dist/assets/img/',
+        showErrorMessageForUnsupportedBrowsers: window.AddToHomeScreen.SHOW_ERRMSG_UNSUPPORTED.NONE,
+        allowUserToCloseModal: true,
+        maxModalDisplayCount: -1,
+      });
+      ret = window.AddToHomeScreenInstance.show();
+    });
   </script>
 </body>
 

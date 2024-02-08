@@ -24,6 +24,10 @@ import { varHover } from 'src/components/animate';
 import NotificationItem, { NotificationRendered } from 'src/layouts/_common/notifications-popover/notification-item';
 //
 import { GET_IN_APP_NOTIFICATIONS, MARK_ALL_AS_SEEN, REMOVE_ALL_NOTIFICATIONS } from 'src/api/notification';
+import { useRouter } from 'src/routes/hooks';
+import { InAppNotifications } from 'src/__generated__/resolvers-types';
+import { notificationRouterPath } from 'src/utils/notificationRouterPath';
+import { clearNotifications } from 'src/hooks/use-browser-notification';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +36,7 @@ let inAppTotalMessages: number = 0;
 
 export default function NotificationsPopover() {
   const drawer = useBoolean();
+  const router = useRouter();
 
   const smUp = useResponsive('up', 'sm');
   const [currentTab, setCurrentTab] = useState('all');
@@ -90,13 +95,14 @@ export default function NotificationsPopover() {
 
   const notificationList = useMemo(() => {
     const list = data?.inAppNotifications?.items || [];
-    return list.map((notification: any) => ({
+    return list.map((notification: InAppNotifications) => ({
       id: notification.id,
       title: notification.title,
       body: notification.body,
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt as any,
       isUnRead: !notification.read,
       type: 'mail',
+      notificationAction: notificationRouterPath(notification.templateName, notification.meta!),
       avatarUrl: null,
       onClick: () => {
         markAsSeen({
@@ -104,6 +110,7 @@ export default function NotificationsPopover() {
             ids: [notification.id],
           },
         });
+        clearNotifications();
       }
     } as NotificationRendered));
   }, [
@@ -112,6 +119,7 @@ export default function NotificationsPopover() {
   ]);
 
   const handleMarkAllAsRead = useCallback(() => {
+    clearNotifications();
     markAsSeen({
       variables: {
         readAll: true,
@@ -121,6 +129,7 @@ export default function NotificationsPopover() {
 
   const handleRemoveAll = useCallback(() => {
     inAppTotalMessages = 0;
+    clearNotifications();
     removeAll({
       variables: {
         removeAll: true,

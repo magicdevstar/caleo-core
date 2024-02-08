@@ -27,6 +27,15 @@ export const GET_IN_APP_NOTIFICATIONS = gql`
         body
         templateName
         read
+        meta {
+          eventId
+          assignmentId
+          shiftId
+          rankId
+          skillId
+          venueId
+          shiftBufferRequestId
+        }
         createdAt
       }
       total

@@ -1,5 +1,5 @@
 import { Collection, Db, ObjectId } from 'mongodb';
-import { DocType, InAppNotifications } from '../__generated__/resolvers-types';
+import { DocType, InAppNotificationMeta, InAppNotifications } from '../__generated__/resolvers-types';
 import DataLoader from 'dataloader';
 import { SearchResults } from '../utils/common.resolvers';
 import logger from '../utils/logger';
@@ -159,12 +159,14 @@ export class InAppNotificationModel {
     templateName,
     userId,
     orgId,
+    meta,
   }: {
     title: string;
     body: string;
     templateName: string;
     userId: string;
     orgId: string;
+    meta?: InAppNotificationMeta;
   }): Promise<IInAppNotification> {
     const now = new Date();
     const document: Omit<IInAppNotification, 'id'> = {
@@ -175,6 +177,7 @@ export class InAppNotificationModel {
       docType: DocType.InAppNotification,
       orgId: new ObjectId(orgId),
       userId: new ObjectId(userId),
+      meta,
       createdAt: now,
       updatedAt: now,
     };

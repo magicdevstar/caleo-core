@@ -19,6 +19,7 @@ import {
   AccountPopover,
   NotificationsPopover,
 } from '../_common';
+import NotificationRequestModal from '../_common/notification-request-modal';
 
 // ----------------------------------------------------------------------
 
@@ -64,6 +65,8 @@ export default function Header({ onOpenNav }: Props) {
         <NotificationsPopover />
 
         {/* <SettingsButton /> */}
+
+        <NotificationRequestModal />
 
         <AccountPopover />
       </Stack>

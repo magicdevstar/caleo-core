@@ -87,9 +87,15 @@ export type BrowserNotificationKeys = {
 
 export type BrowserNotificationSetting = {
   __typename?: 'BrowserNotificationSetting';
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  org?: Maybe<Organization>;
   orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
   subscription: BrowserNotificationSubscription;
+  updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
 };
 
@@ -135,6 +141,7 @@ export enum DocType {
   Assignment = 'ASSIGNMENT',
   BrowserNotificationSetting = 'BROWSER_NOTIFICATION_SETTING',
   Event = 'EVENT',
+  InAppNotification = 'IN_APP_NOTIFICATION',
   LotteryCounter = 'LOTTERY_COUNTER',
   LotteryState = 'LOTTERY_STATE',
   MemberNotification = 'MEMBER_NOTIFICATION',
@@ -228,6 +235,50 @@ export enum EventStatus {
   ReadyForLottery = 'READY_FOR_LOTTERY',
   Removed = 'REMOVED'
 }
+
+export type InAppNotificationMeta = {
+  __typename?: 'InAppNotificationMeta';
+  assignmentId?: Maybe<Scalars['String']['output']>;
+  eventId?: Maybe<Scalars['String']['output']>;
+  rankId?: Maybe<Scalars['String']['output']>;
+  shiftBufferRequestId?: Maybe<Scalars['String']['output']>;
+  shiftId?: Maybe<Scalars['String']['output']>;
+  skillId?: Maybe<Scalars['String']['output']>;
+  venueId?: Maybe<Scalars['String']['output']>;
+};
+
+export type InAppNotificationSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  read?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type InAppNotificationSearchResult = {
+  __typename?: 'InAppNotificationSearchResult';
+  items?: Maybe<Array<Maybe<InAppNotifications>>>;
+  total: Scalars['Int']['output'];
+  unreadCount: Scalars['Int']['output'];
+};
+
+export type InAppNotifications = {
+  __typename?: 'InAppNotifications';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  meta?: Maybe<InAppNotificationMeta>;
+  org: Organization;
+  orgId: Scalars['String']['output'];
+  read: Scalars['Boolean']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  templateName: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  user: User;
+  userId: Scalars['String']['output'];
+};
 
 export type InputAdminResetPassword = {
   password: Scalars['String']['input'];
@@ -421,9 +472,12 @@ export type Mutation = {
   organization?: Maybe<Organization>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
+  readInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   rejectLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   removeAssignment: Scalars['ID']['output'];
+  removeBrowserNotificationSubscription?: Maybe<Scalars['Boolean']['output']>;
   removeEvent: Scalars['ID']['output'];
+  removeInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   removeNotification: Scalars['ID']['output'];
   removeRank: Scalars['ID']['output'];
   removeShift: Scalars['ID']['output'];
@@ -511,6 +565,12 @@ export type MutationRankArgs = {
 };
 
 
+export type MutationReadInAppNotificationsArgs = {
+  ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  readAll?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
 export type MutationRejectLottoAssignmentArgs = {
   id: Scalars['String']['input'];
   shiftId: Scalars['String']['input'];
@@ -523,8 +583,19 @@ export type MutationRemoveAssignmentArgs = {
 };
 
 
+export type MutationRemoveBrowserNotificationSubscriptionArgs = {
+  endpoint?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationRemoveEventArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveInAppNotificationsArgs = {
+  ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  removeAll?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -780,6 +851,7 @@ export type Query = {
   events?: Maybe<EventSearchResult>;
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
+  inAppNotifications?: Maybe<InAppNotificationSearchResult>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryCounters?: Maybe<LotteryCounterSearchResult>;
   lotteryShifts?: Maybe<ShiftSearchResult>;
@@ -838,6 +910,11 @@ export type QueryEventsArgs = {
 
 export type QueryGroupedShiftsArgs = {
   shiftId: Scalars['String']['input'];
+};
+
+
+export type QueryInAppNotificationsArgs = {
+  input?: InputMaybe<InAppNotificationSearchInput>;
 };
 
 
@@ -1658,6 +1735,10 @@ export type ResolversTypes = ResolversObject<{
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  InAppNotificationMeta: ResolverTypeWrapper<InAppNotificationMeta>;
+  InAppNotificationSearchInput: InAppNotificationSearchInput;
+  InAppNotificationSearchResult: ResolverTypeWrapper<InAppNotificationSearchResult>;
+  InAppNotifications: ResolverTypeWrapper<InAppNotifications>;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
@@ -1780,6 +1861,10 @@ export type ResolversParentTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   ID: Scalars['ID']['output'];
+  InAppNotificationMeta: InAppNotificationMeta;
+  InAppNotificationSearchInput: InAppNotificationSearchInput;
+  InAppNotificationSearchResult: InAppNotificationSearchResult;
+  InAppNotifications: InAppNotifications;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
@@ -1922,9 +2007,15 @@ export type BrowserNotificationKeysResolvers<ContextType = any, ParentType exten
 }>;
 
 export type BrowserNotificationSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationSetting'] = ResolversParentTypes['BrowserNotificationSetting']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   subscription?: Resolver<ResolversTypes['BrowserNotificationSubscription'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1999,6 +2090,42 @@ export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends
 export type EventSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventSearchResult'] = ResolversParentTypes['EventSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Event']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InAppNotificationMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotificationMeta'] = ResolversParentTypes['InAppNotificationMeta']> = ResolversObject<{
+  assignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  rankId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shiftBufferRequestId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shiftId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  skillId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  venueId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InAppNotificationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotificationSearchResult'] = ResolversParentTypes['InAppNotificationSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['InAppNotifications']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  unreadCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InAppNotificationsResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotifications'] = ResolversParentTypes['InAppNotifications']> = ResolversObject<{
+  body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  meta?: Resolver<Maybe<ResolversTypes['InAppNotificationMeta']>, ParentType, ContextType>;
+  org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  read?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  templateName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2120,9 +2247,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
+  readInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationReadInAppNotificationsArgs>>;
   rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
+  removeBrowserNotificationSubscription?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveBrowserNotificationSubscriptionArgs>>;
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
+  removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
   removeShift?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftArgs, 'id'>>;
@@ -2233,6 +2363,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inAppNotifications?: Resolver<Maybe<ResolversTypes['InAppNotificationSearchResult']>, ParentType, ContextType, Partial<QueryInAppNotificationsArgs>>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
   lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
@@ -2550,6 +2681,9 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Event?: EventResolvers<ContextType>;
   EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
+  InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
+  InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;
+  InAppNotifications?: InAppNotificationsResolvers<ContextType>;
   LotteryCounter?: LotteryCounterResolvers<ContextType>;
   LotteryCounterSearchResult?: LotteryCounterSearchResultResolvers<ContextType>;
   LotteryDate?: LotteryDateResolvers<ContextType>;

@@ -13,7 +13,18 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('message', (event) => {
   const { type } = JSON.parse(event.data);
-  if (type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  switch(type) {
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+    case 'REMOVE_ALL_NOTIFICATIONS':
+      self.registration.getNotifications().then((notifications) => {
+        notifications.forEach((notification) => {
+          notification.close();
+        });
+      });
+      break;
+    default:
+      break;
   }
 });

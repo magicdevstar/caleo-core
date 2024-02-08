@@ -11,7 +11,7 @@ import logger from "../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../types/mailer";
 import { Context, createContext } from "../utils/createContext";
-import { Assignment, EventStatus, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
+import { Assignment, EventStatus, InAppNotificationMeta, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
 import { InAppTemplates } from "../types/inAppTemplates";
 
 const pinpoint = new PinpointClient({});
@@ -112,6 +112,7 @@ const sendInAppNotification = async ({
   templateName,
   userId,
   orgId,
+  meta,
 } : {
   context: Context;
   title: string;
@@ -119,6 +120,7 @@ const sendInAppNotification = async ({
   body: string;
   userId: string;
   orgId: string;
+  meta?: InAppNotificationMeta;
 }) => {
   try {
     if (!userId) {
@@ -133,7 +135,8 @@ const sendInAppNotification = async ({
       userId,
       templateName,
       orgId,
-    })
+      meta,
+    });
 
     webPush.setVapidDetails(
       process.env.APP_URL!,
@@ -270,6 +273,9 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+            },
           });
         }
       } while(shift);
@@ -328,6 +334,9 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: organization.id,
         title,
         body,
+        meta: {
+          skillId: new ObjectId(skill.id) as any,
+        },
       });
 
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
@@ -389,6 +398,13 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+              shiftId: shift.shiftId,
+              venueId: new ObjectId(venue.id) as any,
+              assignmentId: new ObjectId(assignment.id) as any,
+              shiftBufferRequestId: new ObjectId(createdShiftBuffer.id) as any,
+            },
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
         })
@@ -498,6 +514,9 @@ const sendEmail = async (input: MailerEvent) => {
                     orgId: organization.id,
                     title,
                     body,
+                    meta: {
+                      eventId: new ObjectId(event.id) as any,
+                    }
                   }));
                   return admin.member.contactInfo!.primaryEmail.receiveEmails
                 })
@@ -570,6 +589,10 @@ const sendEmail = async (input: MailerEvent) => {
                     orgId: organization.id,
                     title,
                     body,
+                    meta: {
+                      eventId: new ObjectId(event.id) as any,
+                      assignmentId: new ObjectId(assignment.id) as any,
+                    }
                   }));
                   return admin.member.contactInfo!.primaryEmail.receiveEmails
                 })
@@ -625,6 +648,12 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: organization.id,
         title,
         body,
+        meta: {
+          eventId: new ObjectId(event.id) as any,
+          shiftId: shift.shiftId,
+          assignmentId: new ObjectId(assignment.id) as any,
+          shiftBufferRequestId: new ObjectId(request.id) as any,
+        }
       }));
 
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
@@ -737,6 +766,11 @@ const sendEmail = async (input: MailerEvent) => {
           orgId: organization.id,
           title,
           body,
+          meta: {
+            eventId: new ObjectId(event.id) as any,
+            shiftId: shift.shiftId,
+            assignmentId: new ObjectId(assignment.id) as any,
+          }
         });
       }
 
@@ -754,6 +788,11 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: organization.id,
         title,
         body,
+        meta: {
+          eventId: new ObjectId(event.id) as any,
+          shiftId: shift.shiftId,
+          assignmentId: new ObjectId(assignment.id) as any,
+        }
       }));
 
       // Check if event is fully staffed
@@ -788,6 +827,11 @@ const sendEmail = async (input: MailerEvent) => {
                 orgId: organization.id,
                 title,
                 body,
+                meta: {
+                  eventId: new ObjectId(event.id) as any,
+                  shiftId: shift.shiftId,
+                  assignmentId: new ObjectId(assignment.id) as any,
+                }
               }));
               return admin.member.contactInfo!.primaryEmail.receiveEmails
             })
@@ -860,6 +904,11 @@ const sendEmail = async (input: MailerEvent) => {
                 orgId: organization.id,
                 title,
                 body,
+                meta: {
+                  eventId: new ObjectId(event.id) as any,
+                  shiftId: shift.shiftId,
+                  assignmentId: new ObjectId(assignment.id) as any,
+                }
               }));
               return admin.member.contactInfo!.primaryEmail.receiveEmails
             })
@@ -956,6 +1005,11 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: organization.id,
         title,
         body,
+        meta: {
+          eventId: new ObjectId(event.id) as any,
+          shiftId: shift.shiftId,
+          assignmentId: new ObjectId(assignment.id) as any,
+        }
       }));
 
       const allAdmins = await context.users.getAllAdmins({
@@ -978,6 +1032,11 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+              shiftId: shift.shiftId,
+              assignmentId: new ObjectId(assignment.id) as any,
+            }
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
         })
@@ -1066,6 +1125,11 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+              shiftId: shift.shiftId,
+              assignmentId: new ObjectId(assignment.id) as any,
+            }
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
         })
@@ -1184,6 +1248,11 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+              shiftId: shift.shiftId,
+              assignmentId: new ObjectId(assignment.id) as any,
+            }
           });
         }
       } while(shift);
@@ -1258,6 +1327,11 @@ const sendEmail = async (input: MailerEvent) => {
         orgId: organization.id,
         title,
         body,
+        meta: {
+          eventId: new ObjectId(event.id) as any,
+          shiftId: shift.shiftId,
+          assignmentId: new ObjectId(assignment.id) as any,
+        }
       });
     } else if (input.template === MailerEvents.LotteryWindowClosing) {
       const { orgId } = input.data;
@@ -1653,6 +1727,9 @@ const sendEmail = async (input: MailerEvent) => {
             orgId: organization.id,
             title,
             body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+            }
           });
         }
       } while(user);

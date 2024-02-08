@@ -40,7 +40,7 @@ export const notificationRouterPath = (template: string, meta?: InAppNotificatio
     case MailerEvents.AdminShiftRelinquished:
       if (meta?.eventId && meta?.assignmentId && meta?.shiftId) {
         return {
-          path: `/dashboard/admin/overtime/events/${meta?.eventId}/assignment/${meta?.assignmentId}/shift/${meta?.shiftId}`,
+          path: `/dashboard/admin/overtime/events/${meta?.eventId}/assignment/${meta?.assignmentId}/shifts/${meta?.shiftId}`,
           buttonText: 'View Shift',
         };
       }

@@ -97,7 +97,7 @@ export default function ShiftItems({
 
   return (
     <>
-      <Grid container spacing={2} sx={{ padding: '9px' }}>
+      <Grid container rowSpacing={2} sx={{ padding: { lg: '9px'} }}>
         {loading ? renderSkeleton : renderList}
       </Grid>
 

@@ -20,6 +20,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftItems from 'src/components/shifts/shift-items';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useWeeklyShifts } from 'src/hooks/use-weekly-shift-count';
+import { useResponsive } from 'src/hooks/use-responsive';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +30,7 @@ export default function AvailableOvertimeView() {
   const { enqueueSnackbar } = useSnackbar();
   const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT);
   const [createShiftBuffer, { loading: createShiftBufferLoading }] = useMutation(CREATE_SHIFT_BUFFER);
+  const mdDown = useResponsive('down', 'md');
 
   const [note, setNote] = useState<string>('');
   const [editShift, setEditShift] = useState<Shift | null>(null);
@@ -166,6 +168,7 @@ export default function AvailableOvertimeView() {
       <ShiftItems
         emptyMessage='No Overtime Shifts Available - Check Back Later'
         pageSize={table.rowsPerPage}
+        compact={mdDown}
         total={total}
         setPage={(page: number) => {
           table.onChangePage(null, page - 1);

@@ -13,6 +13,7 @@ import { EventStatus, Shift } from 'src/__generated__/resolvers-types';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
+import { useResponsive } from 'src/hooks/use-responsive';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ export default function UpcomingOvertimeView() {
   });
   const settings = useSettingsContext();
   const { user } = useAuthContext();
+  const mdDown = useResponsive('down', 'md');
 
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
@@ -58,6 +60,7 @@ export default function UpcomingOvertimeView() {
       <ShiftItems
         emptyMessage='No Upcoming Overtime Shifts - Check Back Later'
         pageSize={table.rowsPerPage}
+        compact={mdDown}
         total={total}
         setPage={(page: number) => {
           table.onChangePage(null, page - 1);

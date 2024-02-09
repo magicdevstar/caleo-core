@@ -15,6 +15,7 @@ import { useSettingsContext } from 'src/components/settings';
 import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_SHIFT_BUFFER_REQUESTS, REMOVE_SHIFT_BUFFER_REQUEST } from 'src/api/shifts';
 import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
+import { useResponsive } from 'src/hooks/use-responsive';
 // local imports
 import ShiftItems from 'src/components/shifts/shift-items';
 import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, ShiftStatus } from 'src/__generated__/resolvers-types';
@@ -92,6 +93,7 @@ export default function MyOvertimeView() {
     startTime: new Date().toISOString(),
   });
   const settings = useSettingsContext();
+  const mdDown = useResponsive('down', 'md');
 
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
   const { data: organizationData } = useQuery(ORGANIZATION, {
@@ -267,6 +269,7 @@ export default function MyOvertimeView() {
 
       <ShiftItems
         emptyMessage='No Overtime'
+        compact={mdDown}
         total={total}
         pageSize={table.rowsPerPage}
         setPage={(page: number) => {

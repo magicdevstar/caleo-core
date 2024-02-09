@@ -11,6 +11,7 @@ import {
 } from "src/api/shifts";
 // types
 import { Shift } from "src/__generated__/resolvers-types";
+import { useResponsive } from 'src/hooks/use-responsive';
 // components
 import ShiftItems from "src/components/shifts/shift-items";
 import { client } from "src/utils/apollo";
@@ -24,6 +25,7 @@ export default function SelectShifts({
   const [selectLoadingIndex, setSelectLoadingIndex] = useState<number | null>(null);
   const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST);
   const [upsertRequest] = useMutation(CREATE_SHIFT_LOTTERY_REQUEST);
+  const mdDown = useResponsive('down', 'md');
 
   const { lotteryShifts: { items, total } } = data || { lotteryShifts: { items: [], total: 0 } };
 
@@ -70,6 +72,7 @@ export default function SelectShifts({
     <ShiftItems
       emptyMessage='No shifts to rank at this time. Please check back later.'
       pageSize={100000}
+      compact={mdDown}
       total={total}
       setPage={() => {}}
       currentPage={1}

@@ -24,7 +24,7 @@ export default function ShiftItemSkeleton() {
             </Box>
 
             <IconButton color='default'>
-              <Iconify icon="eva:more-horizontal-fill" />
+              <Iconify icon="eva:more-vertical-fill" />
             </IconButton>
           </Stack>
 

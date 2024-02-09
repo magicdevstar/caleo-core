@@ -21,6 +21,7 @@ import Label, { LabelColor, LabelVariant } from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
+import { useResponsive } from 'src/hooks/use-responsive';
 
 const labelSx = {
   whiteSpace: 'break-spaces',
@@ -92,6 +93,7 @@ export default function ShiftItem({
   const { user } = useAuthContext();
   const [detailHeight, setDetailHeight] = useState<string>('0px');
   const popover = usePopover();
+  const mdDown = useResponsive('down', 'md');
 
   const requiredSkillRender = useMemo(() => {
     let value: any = (
@@ -232,6 +234,38 @@ export default function ShiftItem({
     return details;
   }, [shift?.event?.venue]);
 
+  const renderShiftActions = useMemo(() => {
+    if (!shiftActions?.length) {
+      return null;
+    }
+
+    if (!mdDown && shiftActions.length === 1) {
+      return (
+        <Button
+          size="small"
+          disabled={shiftActions[0].disabled(shift)}
+          startIcon={<Iconify icon={shiftActions[0].getIcon(shift)} />}
+          onClick={(event) => {
+            event.stopPropagation();
+            shiftActions[0].onClick(inputShift)
+          }}
+          sx={{ flex: '0 0 auto' }}
+          color={shiftActions[0].color as any}
+          variant="outlined"
+        >{shiftActions[0].getName(inputShift)}</Button>
+      );
+    }
+
+    return (
+      <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
+        e.stopPropagation();
+        popover.onOpen(e);
+      }}>
+        <Iconify icon="eva:more-vertical-fill" />
+      </IconButton>
+    );
+  }, [shiftActions, inputShift, mdDown, shift, popover])
+
   const dates = {
     startTime: convertDate({
       date: shift.startTime,
@@ -329,7 +363,7 @@ export default function ShiftItem({
                 <Stack
                   direction={{ xs: 'column-reverse', md: 'row' }}
                   spacing={1}
-                  alignItems="center"
+                  alignItems={{ xs: 'end', md: 'center' }}
                   justifyContent="space-between"
                   sx={shiftActions.length ? {
                     ml: 'auto'
@@ -350,32 +384,7 @@ export default function ShiftItem({
                 </Stack>
               )
             }
-            {
-              shiftActions.length === 1 && (
-                <Button
-                  size="small"
-                  disabled={shiftActions[0].disabled(shift)}
-                  startIcon={<Iconify icon={shiftActions[0].getIcon(shift)} />}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    shiftActions[0].onClick(inputShift)
-                  }}
-                  sx={{ flex: '0 0 auto' }}
-                  color={shiftActions[0].color as any}
-                  variant="outlined"
-                >{shiftActions[0].getName(inputShift)}</Button>
-              )
-            }
-            {
-              shiftActions?.length > 1 && (
-                <IconButton color={popover.open ? 'inherit' : 'default'} onClick={(e) => {
-                  e.stopPropagation();
-                  popover.onOpen(e);
-                }}>
-                  <Iconify icon="eva:more-vertical-fill" />
-                </IconButton>
-              )
-            }
+            {renderShiftActions}
             {selectable && (selectLoading ? <CircularProgress color="info" size={22} thickness={5} /> :
               <Checkbox
                 checked={!!shift.lotteryRequest}
@@ -516,10 +525,12 @@ export default function ShiftItem({
           getIcon,
           getName,
           disabled,
+          color
         }) => (
           <MenuItem
             disabled={disabled(inputShift)}
             key={key}
+            sx={{ color: color && !disabled(inputShift) ? `${color}.main` : null}}
             onClick={() => {
               onClick(inputShift);
               popover.onClose();

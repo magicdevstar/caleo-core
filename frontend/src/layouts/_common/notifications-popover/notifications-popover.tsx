@@ -24,7 +24,6 @@ import { varHover } from 'src/components/animate';
 import NotificationItem, { NotificationRendered } from 'src/layouts/_common/notifications-popover/notification-item';
 //
 import { GET_IN_APP_NOTIFICATIONS, MARK_ALL_AS_SEEN, REMOVE_ALL_NOTIFICATIONS } from 'src/api/notification';
-import { useRouter } from 'src/routes/hooks';
 import { InAppNotifications } from 'src/__generated__/resolvers-types';
 import { notificationRouterPath } from 'src/utils/notificationRouterPath';
 import { clearNotifications } from 'src/hooks/use-browser-notification';
@@ -36,7 +35,6 @@ let inAppTotalMessages: number = 0;
 
 export default function NotificationsPopover() {
   const drawer = useBoolean();
-  const router = useRouter();
 
   const smUp = useResponsive('up', 'sm');
   const [currentTab, setCurrentTab] = useState('all');
@@ -102,6 +100,7 @@ export default function NotificationsPopover() {
       createdAt: notification.createdAt as any,
       isUnRead: !notification.read,
       type: 'mail',
+      drawer,
       notificationAction: notificationRouterPath(notification.templateName, notification.meta!),
       avatarUrl: null,
       onClick: () => {
@@ -114,6 +113,7 @@ export default function NotificationsPopover() {
       }
     } as NotificationRendered));
   }, [
+    drawer,
     data?.inAppNotifications,
     markAsSeen,
   ]);

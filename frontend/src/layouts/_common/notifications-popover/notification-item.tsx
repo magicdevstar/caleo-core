@@ -3,7 +3,6 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -13,6 +12,7 @@ import { fToNow } from 'src/utils/format-time';
 // components
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useRouter } from 'src/routes/hooks';
+import { UseBooleanReturnType } from 'src/hooks/use-boolean';
 
 // ----------------------------------------------------------------------
 
@@ -23,6 +23,7 @@ export interface NotificationRendered {
   category?: string;
   createdAt: Date;
   isUnRead: boolean;
+  drawer: UseBooleanReturnType;
   notificationAction?: {
     path: string;
     buttonText: string;
@@ -134,6 +135,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
       <Button onClick={() => {
         notification?.onClick?.();
         if (notification.notificationAction?.path) {
+          notification.drawer.onFalse();
           router.push(notification.notificationAction?.path);
         }
       }} size="small" variant="contained">

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocalStorage } from 'react-use';
 import { User } from "src/__generated__/resolvers-types";
 import { CREATE_BROWSER_NOTIFICATION_SUBSCRIPTION } from "src/api/user";
 import { useAuthContext } from "src/auth/hooks";
@@ -71,6 +72,8 @@ export const requestBrowserNotificationPermission = (user: User, cb: any) => {
       .then((permission) => {
         if (permission === 'granted') {
           validateSubscription(user, cb);
+        } else {
+          cb();
         }
       });
   }
@@ -89,7 +92,10 @@ export const clearNotifications = () => {
 export const useBrowserNotification = () => {
   const { user } = useAuthContext();
   const [requesting, setRequesting] = useState(false);
-  const [canRequest, setCanRequest] = useState(notify?.permission === 'default');
+  const [notificationRequest, setNotificationRequest] = useLocalStorage(
+    'notification-permission',
+    { canRequest: notify?.permission === 'default' }
+  );
 
   useEffect(() => {
     if (user && notify?.permission === 'granted') {
@@ -99,13 +105,13 @@ export const useBrowserNotification = () => {
   }, [user]);
 
   return {
-    canRequest,
+    canRequest: notificationRequest?.canRequest,
     requesting,
     clearNotifications,
     requestPermission: () => {
       setRequesting(true);
-      requestBrowserNotificationPermission(user!, (success: boolean) => {
-        setCanRequest(!success);
+      requestBrowserNotificationPermission(user!, () => {
+        setNotificationRequest({ canRequest: false });
         setRequesting(false);
       });
     },

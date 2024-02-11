@@ -1,13 +1,16 @@
 // Push notification handler
 self.addEventListener('push', (event) => {
-  const data = JSON.parse(event?.data?.text());
+  // No ? operator because of Mobile Chrome on Android :(
+  let data = {};
+  if (event && event.data && event.data.text) {
+    data = JSON.parse(event.data.text());
+  }
   const options = {
-    body: data?.body || 'Attention!',
+    body: data.body || 'Attention!',
     icon: '/favicon/android-chrome-512x512.png',
   };
-  console.log('Push event', event);
   event.waitUntil(
-    self.registration.showNotification(`Caleo Pro: ${data?.title}`, options)
+    self.registration.showNotification(`Caleo Pro: ${data.title}`, options)
   );
 });
 

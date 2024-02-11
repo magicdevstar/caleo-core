@@ -41,26 +41,6 @@ const initialState: AuthStateType = {
   loading: true,
 };
 
-// This function is needed because Chrome doesn't accept a base64 encoded string
-// as value for applicationServerKey in pushManager.subscribe yet
-// https://bugs.chromium.org/p/chromium/issues/detail?id=802280
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    // eslint-disable-next-line no-useless-escape
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
- 
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
- 
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
 const reducer = (state: AuthStateType, action: Action) => {
   if (action.type === Types.INITIAL) {
     if(window && (window as any).Beacon) {

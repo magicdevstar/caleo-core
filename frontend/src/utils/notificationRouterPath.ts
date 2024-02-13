@@ -36,6 +36,7 @@ export const notificationRouterPath = (template: string, meta?: InAppNotificatio
         path: '/dashboard',
         buttonText: 'View Overtime',
       };
+    case MailerEvents.OfficerRemovedFromShift:
     case MailerEvents.AdminUnassignOfficerShift:
     case MailerEvents.AdminShiftRelinquished:
       if (meta?.eventId && meta?.assignmentId && meta?.shiftId) {

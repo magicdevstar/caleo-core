@@ -23,8 +23,13 @@ import Scrollbar from 'src/components/scrollbar';
 import { varHover } from 'src/components/animate';
 import NotificationItem, { NotificationRendered } from 'src/layouts/_common/notifications-popover/notification-item';
 //
-import { GET_IN_APP_NOTIFICATIONS, MARK_ALL_AS_SEEN, REMOVE_ALL_NOTIFICATIONS } from 'src/api/notification';
-import { InAppNotifications } from 'src/__generated__/resolvers-types';
+import {
+  GET_IN_APP_NOTIFICATIONS,
+  MARK_ALL_AS_SEEN,
+  REMOVE_ALL_NOTIFICATIONS,
+  GET_ACTIVE_NOTIFICATIONS
+} from 'src/api/notification';
+import { InAppNotifications, Notification } from 'src/__generated__/resolvers-types';
 import { notificationRouterPath } from 'src/utils/notificationRouterPath';
 import { clearNotifications } from 'src/hooks/use-browser-notification';
 
@@ -60,6 +65,12 @@ export default function NotificationsPopover() {
       },
     },
   });
+  const {
+    data: legacyNotifications,
+  } = useQuery(GET_ACTIVE_NOTIFICATIONS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+  });
 
   const data = useMemo(() => {
     if (queryData?.inAppNotifications) {
@@ -74,9 +85,17 @@ export default function NotificationsPopover() {
     return inAppTotalMessages;
   }, [queryData?.inAppNotifications?.total]);
 
-  const totalUnRead = loading ?
-    (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />) :
-    data?.inAppNotifications?.unreadCount || 0;
+
+  const totalUnRead = useMemo(() => {
+    if (loading) {
+      return (<CircularProgress size={11} sx={{ color: 'white' }} thickness={7} />);  
+    }
+
+    return (data?.inAppNotifications?.unreadCount || 0);
+  }, [
+    loading,
+    data?.inAppNotifications,
+  ]);
 
   const tabs = useMemo(() => [
     {
@@ -89,31 +108,43 @@ export default function NotificationsPopover() {
       label: 'Unread',
       count: data?.inAppNotifications?.unreadCount || 0,
     },
-  ], [totalMessages, data?.inAppNotifications]);
+    {
+      value: 'system',
+      label: 'System',
+      count: legacyNotifications?.activeNotifications?.items?.length || 0,
+    },
+  ], [totalMessages, data?.inAppNotifications, legacyNotifications]);
 
   const notificationList = useMemo(() => {
-    const list = data?.inAppNotifications?.items || [];
-    return list.map((notification: InAppNotifications) => ({
+    let list = data?.inAppNotifications?.items || [];
+    if (currentTab === 'system') {
+      list = legacyNotifications?.activeNotifications?.items || [];
+    }
+    return list.map((notification: InAppNotifications | Notification) => ({
       id: notification.id,
       title: notification.title,
       body: notification.body,
       createdAt: notification.createdAt as any,
-      isUnRead: !notification.read,
+      isUnRead: notification.__typename === 'Notification' ? false : !(notification as InAppNotifications).read,
       type: 'mail',
       drawer,
-      notificationAction: notificationRouterPath(notification.templateName, notification.meta!),
+      notificationAction: notification.__typename === 'Notification' ? null : notificationRouterPath((notification as InAppNotifications).templateName, (notification as InAppNotifications).meta!),
       avatarUrl: null,
       onClick: () => {
-        markAsSeen({
-          variables: {
-            ids: [notification.id],
-          },
-        });
-        clearNotifications();
+        if (notification.__typename !== 'Notification') {
+          markAsSeen({
+            variables: {
+              ids: [notification.id],
+            },
+          });
+          clearNotifications();
+        }
       }
     } as NotificationRendered));
   }, [
+    currentTab,
     drawer,
+    legacyNotifications?.activeNotifications,
     data?.inAppNotifications,
     markAsSeen,
   ]);

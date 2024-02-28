@@ -1,7 +1,10 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { utcToZonedTime } from "date-fns-tz";
+import {
+  CognitoIdentityProviderClient,
+  AdminUpdateUserAttributesCommand
+} from "@aws-sdk/client-cognito-identity-provider";
 import { Context } from "../../utils/createContext";
 import {
   Member,
@@ -24,6 +27,7 @@ import { addHours, endOfWeek, format, startOfWeek } from "date-fns";
 import logger from "../../utils/logger";
 
 const lambda = new LambdaClient();
+const cognito = new CognitoIdentityProviderClient({});
 
 interface EnhancedUser extends User {
   shiftStart?: string;
@@ -291,6 +295,30 @@ export const user = {
             tierUntil: null,
             tierResetOnNextLottery: !user.member.tierUntil ? existingUser.member.tierResetOnNextLottery : false,
           };
+        }
+      }
+
+      if (
+        user.member?.contactInfo?.primaryEmail?.address &&
+        user.member?.contactInfo?.primaryEmail?.address !== existingUser.member.contactInfo?.primaryEmail.address
+      ) {
+        try {
+          await cognito.send(new AdminUpdateUserAttributesCommand({
+            UserPoolId: process.env.COGNITO_POOL_ID!,
+            Username: existingUser.cognitoId!,
+            UserAttributes: [
+              {
+                Name: 'email',
+                Value: user.member.contactInfo.primaryEmail.address,
+              },
+              {
+                Name: 'email_verified',
+                Value: 'true',
+              },
+            ],
+          }));
+        } catch(error) {
+          logger.error('Error updating email in cognito', { error });
         }
       }
 

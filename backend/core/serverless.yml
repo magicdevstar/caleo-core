@@ -85,6 +85,7 @@ provider:
             - 'states:*'
             - 'mobiletargeting:*'
             - cognito-idp:AdminSetUserPassword
+            - cognito-idp:AdminUpdateUserAttributes
           Resource: '*'
 
 plugins:
@@ -109,6 +110,8 @@ custom:
     bundle: true
     minify: false
     packager: yarn
+    exclude:
+      - '@aws-sdk'
 
 # Create the authorizer
 # Create a hook that will create a user when a new user signs up
@@ -261,7 +264,7 @@ stepFunctions:
               Fn::GetAtt: [postFCFSShifts, Arn]
             End: true
     timeSync:
-      name: lotto-steps-${sls:stage}
+      name: time-sync-${sls:stage}
       events:
         - schedule: rate(1 hour)
       definition:

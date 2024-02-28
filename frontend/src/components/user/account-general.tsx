@@ -526,7 +526,7 @@ export default function AccountGeneral({
               </Box>
 
               <Box>
-                <RHFTextField disabled name="primaryEmail" label="Primary Email" />
+                <RHFTextField disabled={!adminViewer || allDisabled} name="primaryEmail" label="Primary Email" />
                 <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryEmailReceive" label="Receive emails" />
               </Box>
 

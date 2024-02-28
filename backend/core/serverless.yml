@@ -178,11 +178,16 @@ functions:
     memorySize: 2048
     timeout: 300
 
+  # Data sync functions
+  tierResetSync:
+    handler: src/steps/tierResetSync.handler
+    timeout: 300
+
   # Test function
   scheduleTask:
     handler: src/scheduled/test.handler
 
-resources: # CloudFormation template syntax
+resources:
   Resources:
     SchedulerRole:
       Type: 'AWS::IAM::Role'
@@ -252,23 +257,22 @@ stepFunctions:
             Resource:
               Fn::GetAtt: [postFCFSShifts, Arn]
             End: true
-    lottoReRun:
-      name: lotto-rerun-${sls:stage}
+    timeSync:
+      name: lotto-steps-${sls:stage}
+      events:
+        - schedule: rate(1 hour)
       definition:
-        StartAt: AssignShifts
+        StartAt: Parallel
         States:
-          AssignShifts:
-            Type: Map
-            MaxConcurrency: 1
-            ItemProcessor:
-              ProcessorConfig:
-                Mode: INLINE
-              StartAt: AssignShift
-              States:
-                AssignShift:
-                  Type: Task
-                  Resource:
-                    Fn::GetAtt: [assignShift, Arn]
-                  End: true
+          Parallel:
+            Type: Parallel
             End: true
+            Branches:
+              - StartAt: TierResetSync
+                States:
+                  TierResetSync:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [tierResetSync, Arn]
+                    End: true
   validate: true

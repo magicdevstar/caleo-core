@@ -480,20 +480,6 @@ export const shift = {
             modifiedById: user?.id!,
           },
         });
-
-        await scheduler.updateScheduledEvent({
-          event: ScheduleEvent.USER_TIER_RETURN,
-          orgId: user?.member.orgId!,
-          eventTime: `at(${format(tierUntil, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
-          eventTimeZone: Timezone.UTC,
-          customEventName: `${ScheduleEvent.USER_TIER_RETURN}-${existingUserId}`,
-          eventInput: JSON.stringify({
-            action: ScheduleEvent.USER_TIER_RETURN,
-            orgId: user?.member.orgId!,
-            userId: existingUserId,
-            tier: MemberTier.Tier_1,
-          }),
-        });
       }
 
       return updatedShift!;

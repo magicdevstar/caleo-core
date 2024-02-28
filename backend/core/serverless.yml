@@ -182,6 +182,9 @@ functions:
   tierResetSync:
     handler: src/steps/tierResetSync.handler
     timeout: 300
+  markEventAsComplete:
+    handler: src/steps/markEventAsComplete.handler
+    timeout: 300
 
   # Test function
   scheduleTask:
@@ -274,5 +277,12 @@ stepFunctions:
                     Type: Task
                     Resource:
                       Fn::GetAtt: [tierResetSync, Arn]
+                    End: true
+              - StartAt: MarkAsComplete
+                States:
+                  MarkAsComplete:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [markEventAsComplete, Arn]
                     End: true
   validate: true

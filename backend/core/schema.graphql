@@ -297,10 +297,10 @@
     FIRST_COME_FIRST_SERVE
     # Event has removedAt set
     REMOVED
-
-    # Computed statuses
     # Event is past the end date
     COMPLETE
+
+    # Computed statuses
     # Event that will appear in the next lottery run
     PRE_LOTTERY
     # Event that is staged for first come first serve but not yet available

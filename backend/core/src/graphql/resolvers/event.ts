@@ -80,7 +80,6 @@ export const event = {
         const includePreFCFS = status.includes(EventStatus.PreFirstComeFirstServe);
         const includeRemoved = status.includes(EventStatus.Removed);
         const filteredStatus = status.filter((s: any) => ![
-          EventStatus.Complete,
           EventStatus.ReadyForLottery,
           EventStatus.PreLottery,
           EventStatus.PreFirstComeFirstServe,
@@ -122,32 +121,8 @@ export const event = {
         if (includeRemoved) {
           (input as any).includeRemoved = true;
         } 
-        if (filteredStatus.length > 0 && includeComplete) {
-          $or.push({
-            status: { $in: filteredStatus },
-          });
-        } else if (filteredStatus.length > 0) {
+        if (filteredStatus.length > 0) {
           (input as any).status = { $in: filteredStatus };
-        }
-        if (includeComplete && filteredStatus.length > 0) {
-          let time = Date.now();
-          if (timeFilters.endTime && typeof timeFilters.endTime === 'number') {
-            time = timeFilters.endTime;
-          } else if (timeFilters.endTime?.gte) {
-            time = timeFilters.endTime.gte;
-          }
-          $or.push({
-            endTime: {
-              $gte: time,
-            },
-          });
-        } else if (includeComplete) {
-          timeFilters = {
-            ...timeFilters,
-            endTime: {
-              $lte: Date.now(),
-            }
-          };
         }
       }
 

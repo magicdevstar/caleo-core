@@ -142,6 +142,8 @@ export default function EventsTable() {
               return 'Lottery';
             case EventStatus.FirstComeFirstServe:
               return 'First Come First Serve';
+            case EventStatus.Complete:
+              return 'Complete';
             case EventStatus.Removed:
               return 'Removed';
             default:

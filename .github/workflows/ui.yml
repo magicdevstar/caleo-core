@@ -1,0 +1,14 @@
+name: UI Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Trigger UI Deploy
+        run: |
+          curl -X POST -d {} "https://webhooks.amplify.us-west-2.amazonaws.com/prod/webhooks?id=2f7c39f4-9867-43b3-b5b5-9ba3252f9caf&token=JQ4Gkms7Vn8sN5A2KpH5TN6x1y0k5LPydHo1u52XV2c&operation=startbuild" -H "Content-Type:application/json"

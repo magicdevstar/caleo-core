@@ -34,29 +34,17 @@ const sendInChunks = async (input: any, Addresses: any) => {
       return obj;
     });
     for(const chunk of chunks) {
-      const hasSMS = Object.keys(chunk).some((key) => chunk[key].ChannelType === 'SMS');
       // Attaching to input so it will get logged with the error :)
       (input as any).pinpointInput = {
         ApplicationId: process.env.PINPOINT_ID,
         MessageRequest: {
           Addresses: chunk as any,
           MessageConfiguration: {
-            ...(hasSMS && {
-              SMSMessage: {
-                MessageType: MessageType.TRANSACTIONAL,
-              }
-            }),
             EmailMessage: {
               FromAddress: process.env.FROM_EMAIL,
             },
           },
           TemplateConfiguration: {
-            ...(hasSMS && {
-              SMSTemplate: {
-                Name: input.template,
-                Version: '1',
-              },
-            }),
             EmailTemplate: {
               Name: input.template,
               Version: '1',
@@ -69,29 +57,17 @@ const sendInChunks = async (input: any, Addresses: any) => {
       // logger.info('Pinpoint response', { res });
     }
   } else {
-    const hasSMS = Object.keys(Addresses).some((key) => Addresses[key].ChannelType === 'SMS');
     // Attaching to input so it will get logged with the error :)
     (input as any).pinpointInput = {
       ApplicationId: process.env.PINPOINT_ID,
       MessageRequest: {
         Addresses: Addresses as any,
         MessageConfiguration: {
-          ...(hasSMS && {
-            SMSMessage: {
-              MessageType: MessageType.TRANSACTIONAL,
-            }
-          }),
           EmailMessage: {
             FromAddress: process.env.FROM_EMAIL,
           },
         },
         TemplateConfiguration: {
-          ...(hasSMS && {
-            SMSTemplate: {
-              Name: input.template,
-              Version: '1',
-            },
-          }),
           EmailTemplate: {
             Name: input.template,
             Version: '1',
@@ -249,16 +225,6 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
-        if (shift && shift.user && shift.user.member.contactInfo?.primaryPhone.receiveTexts) {
-          Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
-            ChannelType: 'SMS',
-            Substitutions: {
-              'shift.name': [shift.assignment.name],
-              'event.name': [event.name],
-              'system.metro_name': [organization.name],
-            },
-          };
-        }
 
         if (shift) {
           const { title, body } = InAppTemplates[input.template]({
@@ -304,20 +270,6 @@ const sendEmail = async (input: MailerEvent) => {
               'skill.name': [skill.name],
               'system.metro_name': [organization.name],
               ...(input.template === MailerEvents.OfficerAdminDeniedSkill && { 'skill.denial_reason': [skill.statusReason || ''] }),
-            },
-          },
-        };
-      }
-
-      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        Addresses = {
-          ...Addresses,
-          [user.member.contactInfo!.primaryPhone.receiveTexts]: {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "system.login_url": [process.env.LOGIN_URL || ''],
-              'skill.name': [skill.name],
-              'system.metro_name': [organization.name],
             },
           },
         };
@@ -499,7 +451,6 @@ const sendEmail = async (input: MailerEvent) => {
     
               const eventStart = convertDate(event.startTime as any, organization);
               const eventEnd = convertDate(event.endTime as any, organization);
-              const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
                 .filter((admin: User) => {
                   const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
@@ -545,7 +496,6 @@ const sendEmail = async (input: MailerEvent) => {
     
               const finalAddresses = {
                 ...EmailAddresses,
-                ...SMSAddresses,
               } as any;
               if (Object.keys(finalAddresses).length > 0) {
                 await sendInChunks({
@@ -574,7 +524,6 @@ const sendEmail = async (input: MailerEvent) => {
     
               const eventStart = convertDate(event.startTime as any, organization);
               const eventEnd = convertDate(event.endTime as any, organization);
-              const SMSAddresses = {};
               const EmailAddresses = (allAdmins || [])
                 .filter((admin: User) => {
                   const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
@@ -622,7 +571,6 @@ const sendEmail = async (input: MailerEvent) => {
     
               const finalAddresses = {
                 ...EmailAddresses,
-                ...SMSAddresses,
               } as any;
               if (Object.keys(finalAddresses).length > 0) {
                 await sendInChunks({
@@ -678,19 +626,6 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
-      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        Addresses = {
-          ...Addresses,
-          [user.member.contactInfo!.primaryPhone.number]: {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "shift.name": [assignment.name],
-              "event.name": [event.name],
-              "venue.name": [venue?.name || ''],
-            },
-          },
-        };
-      }
 
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAdminAssignedShift) {
@@ -735,18 +670,6 @@ const sendEmail = async (input: MailerEvent) => {
                 "shift.start_time": [shiftStart.time],
                 "shift.end_date": [shiftEnd.date],
                 "shift.end_time": [shiftEnd.time],
-                "system.login_url": [process.env.LOGIN_URL || ''],
-              },
-            },
-          };
-        }
-        if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-          Addresses = {
-            ...Addresses,
-            [user.member.contactInfo!.primaryPhone.number]: {
-              ChannelType: 'SMS',
-              Substitutions: {
-                "system.metro_name": [organization.name],
                 "system.login_url": [process.env.LOGIN_URL || ''],
               },
             },
@@ -812,7 +735,6 @@ const sendEmail = async (input: MailerEvent) => {
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
-          const SMSAddresses = {};
           const EmailAddresses = (allAdmins || [])
             .filter((admin: User) => {
               const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
@@ -860,7 +782,6 @@ const sendEmail = async (input: MailerEvent) => {
 
           const finalAddresses = {
             ...EmailAddresses,
-            ...SMSAddresses,
           } as any;
           if (Object.keys(finalAddresses).length > 0) {
             await sendInChunks({
@@ -889,7 +810,6 @@ const sendEmail = async (input: MailerEvent) => {
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
-          const SMSAddresses = {};
           const EmailAddresses = (allAdmins || [])
             .filter((admin: User) => {
               const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
@@ -938,7 +858,6 @@ const sendEmail = async (input: MailerEvent) => {
 
           const finalAddresses = {
             ...EmailAddresses,
-            ...SMSAddresses,
           } as any;
           if (Object.keys(finalAddresses).length > 0) {
             await sendInChunks({
@@ -1224,16 +1143,6 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
-        if (shift && shift.user?.member.contactInfo?.primaryPhone.receiveTexts) {
-          Addresses[shift.user!.member.contactInfo!.primaryPhone.number] = {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "shift.name": [assignment.name],
-              "event.name": [event.name],
-              "system.metro_name": [organization.name],
-            },
-          };
-        }
 
         if (shift) {
           const { title, body } = InAppTemplates[input.template]({
@@ -1362,15 +1271,6 @@ const sendEmail = async (input: MailerEvent) => {
             },
           };
         }
-        if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
-          Addresses[user.member.contactInfo!.primaryPhone.number] = {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "num": [`${organization.settings?.lottery.notifyUsersBeforeClose || 24}`],
-              "system.metro_name": [organization.name],
-            },
-          };
-        }
         if (user) {
           const { title, body } = InAppTemplates[input.template]({
             metroName: organization.name,
@@ -1458,15 +1358,6 @@ const sendEmail = async (input: MailerEvent) => {
             Substitutions: {
               "system.metro_name": [organization.name],
               "user.first_name": [user.firstName],
-              "system.login_url": [process.env.LOGIN_URL || ''],
-            },
-          };
-        }
-        if (user && user.member.contactInfo?.primaryPhone.receiveTexts) {
-          Addresses[user.member.contactInfo!.primaryPhone.number] = {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "system.metro_name": [organization.name],
               "system.login_url": [process.env.LOGIN_URL || ''],
             },
           };
@@ -1802,11 +1693,8 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }, {} as Record<string, AddressConfiguration>);
 
-      const SMSAddresses = {};
-
       Addresses = {
         ...EmailAddresses,
-        ...SMSAddresses,
       };
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerUserAccountDeactivated) {
@@ -1840,17 +1728,6 @@ const sendEmail = async (input: MailerEvent) => {
               "deactivated_until": [inactiveDate],
               "deactivation_reason": [inactivationNote],
               "user.first_name": [user.firstName],
-              "system.metro_name": [organization.name],
-            },
-          },
-        };
-      }
-      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        Addresses = {
-          ...Addresses,
-          [user.member.contactInfo!.primaryPhone.number]: {
-            ChannelType: 'SMS',
-            Substitutions: {
               "system.metro_name": [organization.name],
             },
           },
@@ -1901,18 +1778,6 @@ const sendEmail = async (input: MailerEvent) => {
           },
         };
       }
-      if (user.member.contactInfo?.primaryPhone.receiveTexts) {
-        Addresses = {
-          ...Addresses,
-          [user.member.contactInfo!.primaryPhone.number]: {
-            ChannelType: 'SMS',
-            Substitutions: {
-              "system.metro_name": [organization.name],
-              "system.login_url": [process.env.LOGIN_URL || ''],
-            },
-          },
-        };
-      }
 
       const { title, body } = InAppTemplates[input.template]();
       await sendInAppNotification({
@@ -1940,8 +1805,7 @@ const sendEmail = async (input: MailerEvent) => {
 };
 
 const mailer = async (event: MailerEvent) => {
-  if (event.action === 'SMS') {
-  } else if (event.action === 'Email') {
+  if (event.action === 'Email') {
     await sendEmail(event);
   }
 };

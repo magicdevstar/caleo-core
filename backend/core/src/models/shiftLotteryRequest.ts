@@ -170,7 +170,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       lotteryCounter,
       userId,
       removedAt: { $exists: false },
-    }).project({ _id: 1, order: 1 }).sort({ order: -1 }).toArray();
+    }).project({ _id: 1, order: 1 }).sort({ order: 1 }).toArray();
 
     if (res && res.length) {
       const bulkUpdate = res.filter((item) => item._id.toString() !== excludeId).map((item, index) => ({

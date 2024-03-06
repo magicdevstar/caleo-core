@@ -18,6 +18,7 @@
     SHIFT_LOTTERY_REQUEST
     LOTTERY_STATE
     BROWSER_NOTIFICATION_SETTING
+    USER_ANALYTICS
   }
   enum DayOfWeek {
     SUNDAY
@@ -51,6 +52,34 @@
     message: String
   }
 ###### END Site Lock ######
+
+###### START Lotto Analytics ######
+  type LottoAnalytics {
+    id: ID!
+    userId: String!
+    lotteryCounter: Int!
+    createdAt: String!
+    total: Int!
+    approved: Int!
+    rejected: Int!
+    requests: [LottoRequests]
+
+    org: Organization
+  }
+
+  type LottoRequests {
+    id: ID!
+    eventId: String!
+    assignmentId: String!
+    shiftGroupId: String!
+    status: ShiftLotteryRequestStatus!
+    order: Int!
+    totalRequests: Int!
+
+    event: Event
+    assignment: Assignment
+  }
+###### END Lotto Analytics ######
 
 ###### START User ######
   enum MemberTier {

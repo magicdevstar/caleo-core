@@ -144,7 +144,7 @@ const sendInAppNotification = async ({
     });
     await Promise.allSettled(promises);
     if (removeSubscriptions.length > 0) {
-      await context.browserNotificationSubscriptions.removeMany(removeSubscriptions);
+      await context.browserNotificationSubscriptions.removeMany({ _id: {$in: removeSubscriptions} });
     }
   } catch(error) {
     logger.error('Failed to send in-app notification', { error });

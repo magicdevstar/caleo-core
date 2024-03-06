@@ -20,6 +20,7 @@ import { tierChecker } from './utils/tier-scheduler-check';
 import { analytics } from "./utils/analytics";
 import { noAssignCounter } from "./utils/no-assign-counter";
 import { fixDupUsers } from "./utils/fix-duplicate-users";
+import { lottoAnalytics } from "./utils/lotto-analytics";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -32,7 +33,8 @@ import { fixDupUsers } from "./utils/fix-duplicate-users";
     const mongoClientProd = connectionProd.db(process.env.DB);
 
 
-    await fixDupUsers(mongoClientProd);
+    await lottoAnalytics(mongoClientProd);
+    // await fixDupUsers(mongoClientProd);
     // await tierChecker(mongoClientProd);
     // await fixMe(mongoClient, mongoClientProd);
     // await shiftOverlap(mongoClient, mongoClientProd);

@@ -63,7 +63,7 @@ provider:
     LOTTO_STEP_FUNCTION_ARN: arn:aws:states:${aws:region}:${aws:accountId}:stateMachine:lotto-steps-${sls:stage}
     SHIFT_NOTIFICATION_SCHEDULER: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-shiftNotificationScheduler
     MAILER_LAMBDA: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-mailer
-    # SCHEDULED_ROLE_ARN: !GetAtt SchedulerRole.Arn
+    SCHEDULED_ROLE_ARN: !GetAtt SchedulerRole.Arn
     PINPOINT_ID: ${param:pinpointId}
     FROM_EMAIL: ${param:fromEmail}
     LOGIN_URL: ${param:loginUrl}
@@ -110,6 +110,8 @@ custom:
     bundle: true
     minify: false
     packager: yarn
+    external:
+      - 'saslprep'
     exclude:
       - '@aws-sdk'
 
@@ -172,7 +174,10 @@ functions:
   postFCFSShifts:
     handler: src/steps/postFCFSShifts.handler
     timeout: 300
-  
+  lotteryAnalytics:
+    handler: src/steps/lotteryAnalytics.handler
+    timeout: 300
+
   shiftNotificationScheduler:
     handler: src/workers/shiftNotificationScheduler.handler
     timeout: 300
@@ -257,12 +262,25 @@ stepFunctions:
           FCFSDelay:
             Type: Wait
             TimestampPath: $.fcfsDelay
-            Next: PostFCFSShifts
-          PostFCFSShifts:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [postFCFSShifts, Arn]
+            Next: ParallelFCFSDelay
+          ParallelFCFSDelay:
+            Type: Parallel
             End: true
+            Branches:
+              - StartAt: PostFCFSShifts
+                States:
+                  PostFCFSShifts:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [postFCFSShifts, Arn]
+                    End: true
+              - StartAt: LotteryAnalytics
+                States:
+                  LotteryAnalytics:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [lotteryAnalytics, Arn]
+                    End: true
     timeSync:
       name: time-sync-${sls:stage}
       events:

@@ -8,6 +8,12 @@ interface CreateUserAnalytics extends Omit<LottoAnalytics, 'id' | 'userId' | 'cr
   createdAt: Date;
 }
 
+export interface ILottoAnalytics extends Omit<LottoAnalytics, 'id' | 'userId' | 'createdAt'> {
+  _id: ObjectId;
+  userId: ObjectId;
+  createdAt: Date;
+}
+
 export class UserAnalyticsModel {
   collection: Collection;
   lottoRequestsCollection: Collection;
@@ -60,12 +66,16 @@ export class UserAnalyticsModel {
       }
     ];
 
+    let totalShifts = 0;
+
     for await (const { total, requests } of this.lottoRequestsCollection.aggregate(pipeline)) {
+      totalShifts += 1;
       requests.forEach((request: any) => {
         let analytics: CreateUserAnalytics = userAnalytics[request.userId];
         if (!userAnalytics[request.userId]) {
           analytics = {
             userId: new ObjectId(request.userId),
+            totalShifts: 0,
             lotteryCounter,
             createdAt: new Date(),
             total: 0,
@@ -94,9 +104,25 @@ export class UserAnalyticsModel {
     }
     logger.info('User Analytics', { userAnalytics });
     if (Object.values(userAnalytics).length > 0) {
-      const res = await this.collection.insertMany(Object.values(userAnalytics));
+      const res = await this.collection.insertMany(Object.values(userAnalytics).map((analytics) => ({
+        ...analytics,
+        totalShifts,
+      })));
       logger.info('Written analytics response', { res });
     }
 
+  }
+
+  getUserLottoAnalytics({
+    userId,
+    lotteryCounter,
+  }: {
+    userId: string;
+    lotteryCounter: number;
+  }) {
+    return this.collection.findOne({
+      userId: new ObjectId(userId),
+      lotteryCounter,
+    }) as unknown as ILottoAnalytics | null;
   }
 }

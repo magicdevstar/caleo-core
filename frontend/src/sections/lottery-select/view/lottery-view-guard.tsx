@@ -5,16 +5,12 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { capitalize } from "lodash";
 // @mui
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 import { convertDate, timeFormat, getNow } from "src/hooks/use-datejs";
-// routes
-import { RouterLink } from 'src/routes/components';
-// assets
-import * as Illustrations from 'src/assets/illustrations';
 // components
+import LotteryAnalytics from 'src/components/analytics/lottery-analytics';
 import { MotionContainer, varFade } from 'src/components/animate';
 import LotteryView from './lottery-view';
 
@@ -79,12 +75,11 @@ export default function LotteryViewGuard() {
     <MotionContainer sx={{
       mx: 'auto',
       p: 5,
-      maxWidth: 600,
       textAlign: 'center',
       justifyContent: 'center',
     }}>
       <m.div variants={varFade().in}>
-        <Typography variant="h3" sx={{ mb: 2 }}>
+        <Typography variant="h3">
           {`Rank Order ${lottery?.enabled ? 'Period is Closed' : 'System is Disabled'}`}
         </Typography>
       </m.div>
@@ -93,11 +88,9 @@ export default function LotteryViewGuard() {
           <m.div variants={varFade().in}>
             <Typography sx={{ color: 'text.secondary' }}>
               The rank order period is now closed. Come back on
-            </Typography>
-            <Typography variant="h6" sx={{ color: 'text.secondary', my: 1 }}>
-              {`${capitalize(lottery?.open?.dayOfWeek || '')} at ${lotteryOpenTime.format(timeFormat)}`}
-            </Typography>
-            <Typography sx={{ color: 'text.secondary' }}>
+              <Typography component="span" variant="h6" sx={{ color: 'text.secondary', my: 1 }}>
+                {` ${capitalize(lottery?.open?.dayOfWeek || '')} at ${lotteryOpenTime.format(timeFormat)} `}
+              </Typography>
               to rank your shifts for the next period.
             </Typography>
           </m.div>
@@ -110,18 +103,9 @@ export default function LotteryViewGuard() {
         )
       }
 
-      <m.div variants={varFade().in}>
-        <Illustrations.ComingSoonIllustration
-          sx={{
-            height: 260,
-            my: { xs: 5, sm: 10 },
-          }}
-        />
+      <m.div variants={varFade().in} style={{ marginTop: '10px', marginBottom: '10px' }}>
+        <LotteryAnalytics />
       </m.div>
-
-      <Button component={RouterLink} href="/dashboard/available/overtime" size="large" variant="contained">
-        See Available Overtime
-      </Button>
     </MotionContainer>
   );
 }

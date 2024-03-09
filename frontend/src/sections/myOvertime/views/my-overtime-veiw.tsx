@@ -9,6 +9,9 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import LoadingButton from '@mui/lab/LoadingButton';
 import TextField from '@mui/material/TextField';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import { alpha, useTheme } from '@mui/material/styles';
 // components
 import { useSettingsContext } from 'src/components/settings';
 // types
@@ -78,6 +81,7 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
 
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
+  const theme = useTheme();
   const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -245,58 +249,62 @@ export default function MyOvertimeView() {
     <Container sx={{
       height: '100%',
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
-      <Box sx={{mb: { xs: 3, md: 5 }}}>
+      <Box>
         <Typography variant="h4" gutterBottom>
           My Overtime
         </Typography>
       </Box>
 
-      <Tabs
-        value={currentTab}
-        onChange={handleTabChange}
-        sx={{mb: { xs: 3, md: 5 }}}
-      >
-        {['assigned', 'past'].map((tab) => (
-          <Tab
-            key={tab}
-            iconPosition="end"
-            value={tab}
-            label={tab}
-            sx={{ textTransform: 'capitalize' }}
+      <Card sx={{ background: alpha(theme.palette.background.paper, 0.5) }}>
+        <CardContent>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            sx={{mb: { xs: 3, md: 5 }}}
+          >
+            {['assigned', 'past'].map((tab) => (
+              <Tab
+                key={tab}
+                iconPosition="end"
+                value={tab}
+                label={tab}
+                sx={{ textTransform: 'capitalize' }}
+              />
+            ))}
+          </Tabs>
+
+          <ShiftItems
+            emptyMessage='No Overtime'
+            compact={mdDown}
+            total={total}
+            pageSize={table.rowsPerPage}
+            setPage={(page: number) => {
+              table.onChangePage(null, page - 1);
+              setFilters((c: any) => ({
+                ...c,
+                skip: (page - 1) * table.rowsPerPage,
+              }));
+            }}
+            currentPage={table.page + 1}
+            shifts={listData.map((rawShift: any) => {
+              const shift = JSON.parse(JSON.stringify(rawShift));
+              if (shift.locked) {
+                shift.disabled = true;
+              } else {
+                const startDate = new Date(shift.startTime);
+                const numberOfHoursBeforeShift = shift.organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
+                const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
+                const now = new Date();
+                shift.disabled = isAfter(now, disableDate);
+              }
+
+              return shift;
+            })}
+            shiftActions={shiftActions}
+            loading={loading || loadingShiftBuffers}
           />
-        ))}
-      </Tabs>
-
-      <ShiftItems
-        emptyMessage='No Overtime'
-        compact={mdDown}
-        total={total}
-        pageSize={table.rowsPerPage}
-        setPage={(page: number) => {
-          table.onChangePage(null, page - 1);
-          setFilters((c: any) => ({
-            ...c,
-            skip: (page - 1) * table.rowsPerPage,
-          }));
-        }}
-        currentPage={table.page + 1}
-        shifts={listData.map((rawShift: any) => {
-          const shift = JSON.parse(JSON.stringify(rawShift));
-          if (shift.locked) {
-            shift.disabled = true;
-          } else {
-            const startDate = new Date(shift.startTime);
-            const numberOfHoursBeforeShift = shift.organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-            const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-            const now = new Date();
-            shift.disabled = isAfter(now, disableDate);
-          }
-
-          return shift;
-        })}
-        shiftActions={shiftActions}
-        loading={loading || loadingShiftBuffers}
-      />
+        </CardContent>
+      </Card>
 
       <ConfirmDialog
         open={relinquishConfirm.value}

@@ -12,6 +12,7 @@ import AccountSkills from './account-skills';
 import AccountOvertime from './account-overtime';
 import AccountChangePassword from './account-change-password';
 import AccountNewPassword from './account-new-password';
+import AccountLotteryAnalytics from './account-lottery-analytics';
 
 // ----------------------------------------------------------------------
 
@@ -19,21 +20,31 @@ const TABS = [
   {
     value: 'general',
     label: 'General',
+    visible: () => true,
     icon: <Iconify icon="solar:user-id-bold" width={24} />,
   },
   {
     value: 'overtime',
     label: 'Overtime Availability',
+    visible: () => true,
     icon: <Iconify icon="solar:bell-bing-bold" width={24} />,
   },
   {
     value: 'skills',
     label: 'Skills',
+    visible: () => true,
     icon: <Iconify icon="solar:share-bold" width={24} />,
+  },
+  {
+    value: 'lottoAnalytics',
+    label: 'Lottery Analytics',
+    visible: (canView = true) => canView,
+    icon: <Iconify icon="ic:baseline-area-chart" width={24} />,
   },
   {
     value: 'security',
     label: 'Password',
+    visible: () => true,
     icon: <Iconify icon="ic:round-vpn-key" width={24} />,
   },
 ];
@@ -74,7 +85,7 @@ export default function MainAccountView({
           mb: { xs: 3, md: 5 },
         }}
       >
-        {TABS.map((tab) => (
+        {TABS.filter(({visible}) => visible(adminViewer)).map((tab) => (
           <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
         ))}
       </Tabs>
@@ -84,6 +95,8 @@ export default function MainAccountView({
       {currentTab === 'overtime' && <AccountOvertime user={user} allDisabled={allDisabled} />}
 
       {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
+      
+      {currentTab === 'lottoAnalytics' && <AccountLotteryAnalytics user={user} />}
 
       {securityTab}
     </>

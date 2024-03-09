@@ -60,11 +60,13 @@
     lotteryCounter: Int!
     createdAt: String!
     total: Int!
+    totalShifts: Int!
     approved: Int!
     rejected: Int!
     requests: [LottoRequests]
 
     org: Organization
+    user: User
   }
 
   type LottoRequests {
@@ -1286,6 +1288,7 @@ type Query {
 
   lotteryCounter(counter: Int): LotteryCounter
   lotteryCounters(input: SearchInput): LotteryCounterSearchResult
+  lottoAnalytics(userId: String): LottoAnalytics
 
   notification(id: String!): Notification
   notifications(input: NotificationSearchInput): NotificationSearchResult

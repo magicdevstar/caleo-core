@@ -155,6 +155,7 @@ export enum DocType {
   SiteLock = 'SITE_LOCK',
   Skill = 'SKILL',
   User = 'USER',
+  UserAnalytics = 'USER_ANALYTICS',
   Venue = 'VENUE'
 }
 
@@ -362,6 +363,34 @@ export type LotterySettings = {
   fcfsShiftsDelay: Scalars['Int']['output'];
   notifyUsersBeforeClose: Scalars['Int']['output'];
   open: LotteryDate;
+};
+
+export type LottoAnalytics = {
+  __typename?: 'LottoAnalytics';
+  approved: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lotteryCounter: Scalars['Int']['output'];
+  org?: Maybe<Organization>;
+  rejected: Scalars['Int']['output'];
+  requests?: Maybe<Array<Maybe<LottoRequests>>>;
+  total: Scalars['Int']['output'];
+  totalShifts: Scalars['Int']['output'];
+  user?: Maybe<User>;
+  userId: Scalars['String']['output'];
+};
+
+export type LottoRequests = {
+  __typename?: 'LottoRequests';
+  assignment?: Maybe<Assignment>;
+  assignmentId: Scalars['String']['output'];
+  event?: Maybe<Event>;
+  eventId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  order: Scalars['Int']['output'];
+  shiftGroupId: Scalars['String']['output'];
+  status: ShiftLotteryRequestStatus;
+  totalRequests: Scalars['Int']['output'];
 };
 
 export type Member = {
@@ -855,6 +884,7 @@ export type Query = {
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryCounters?: Maybe<LotteryCounterSearchResult>;
   lotteryShifts?: Maybe<ShiftSearchResult>;
+  lottoAnalytics?: Maybe<LottoAnalytics>;
   me?: Maybe<User>;
   memberSkills?: Maybe<MemberSkillSearchResult>;
   notification?: Maybe<Notification>;
@@ -925,6 +955,11 @@ export type QueryLotteryCounterArgs = {
 
 export type QueryLotteryCountersArgs = {
   input?: InputMaybe<SearchInput>;
+};
+
+
+export type QueryLottoAnalyticsArgs = {
+  userId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1752,6 +1787,8 @@ export type ResolversTypes = ResolversObject<{
   LotteryCounterSearchResult: ResolverTypeWrapper<LotteryCounterSearchResult>;
   LotteryDate: ResolverTypeWrapper<LotteryDate>;
   LotterySettings: ResolverTypeWrapper<LotterySettings>;
+  LottoAnalytics: ResolverTypeWrapper<LottoAnalytics>;
+  LottoRequests: ResolverTypeWrapper<LottoRequests>;
   Member: ResolverTypeWrapper<Member>;
   MemberNotification: ResolverTypeWrapper<MemberNotification>;
   MemberRole: MemberRole;
@@ -1878,6 +1915,8 @@ export type ResolversParentTypes = ResolversObject<{
   LotteryCounterSearchResult: LotteryCounterSearchResult;
   LotteryDate: LotteryDate;
   LotterySettings: LotterySettings;
+  LottoAnalytics: LottoAnalytics;
+  LottoRequests: LottoRequests;
   Member: Member;
   MemberNotification: MemberNotification;
   MemberSkill: MemberSkill;
@@ -2166,6 +2205,34 @@ export type LotterySettingsResolvers<ContextType = any, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type LottoAnalyticsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LottoAnalytics'] = ResolversParentTypes['LottoAnalytics']> = ResolversObject<{
+  approved?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lotteryCounter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  rejected?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  requests?: Resolver<Maybe<Array<Maybe<ResolversTypes['LottoRequests']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalShifts?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type LottoRequestsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LottoRequests'] = ResolversParentTypes['LottoRequests']> = ResolversObject<{
+  assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType>;
+  eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  order?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['ShiftLotteryRequestStatus'], ParentType, ContextType>;
+  totalRequests?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member']> = ResolversObject<{
   adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
@@ -2367,6 +2434,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
   lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
+  lottoAnalytics?: Resolver<Maybe<ResolversTypes['LottoAnalytics']>, ParentType, ContextType, Partial<QueryLottoAnalyticsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   memberSkills?: Resolver<Maybe<ResolversTypes['MemberSkillSearchResult']>, ParentType, ContextType, Partial<QueryMemberSkillsArgs>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QueryNotificationArgs, 'id'>>;
@@ -2688,6 +2756,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   LotteryCounterSearchResult?: LotteryCounterSearchResultResolvers<ContextType>;
   LotteryDate?: LotteryDateResolvers<ContextType>;
   LotterySettings?: LotterySettingsResolvers<ContextType>;
+  LottoAnalytics?: LottoAnalyticsResolvers<ContextType>;
+  LottoRequests?: LottoRequestsResolvers<ContextType>;
   Member?: MemberResolvers<ContextType>;
   MemberNotification?: MemberNotificationResolvers<ContextType>;
   MemberSkill?: MemberSkillResolvers<ContextType>;

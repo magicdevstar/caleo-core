@@ -1,5 +1,4 @@
 import { GraphQLResolveInfo } from 'graphql';
-
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -830,6 +829,7 @@ export type Organization = {
   contact?: Maybe<OrganizationContact>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
+  features?: Maybe<OrganizationFeatures>;
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -847,6 +847,12 @@ export type OrganizationContact = {
   __typename?: 'OrganizationContact';
   email: Scalars['String']['output'];
   phone: Scalars['String']['output'];
+};
+
+export type OrganizationFeatures = {
+  __typename?: 'OrganizationFeatures';
+  lottery: Scalars['Boolean']['output'];
+  venueContractDates: Scalars['Boolean']['output'];
 };
 
 export type OrganizationOvertimeSettings = {
@@ -1544,6 +1550,7 @@ export type UpsertVenue = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   contact?: InputMaybe<UpsertVenueContact>;
+  contract?: InputMaybe<UpsertVenueContract>;
   id?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
@@ -1558,6 +1565,11 @@ export type UpsertVenueContact = {
   firstName?: InputMaybe<Scalars['String']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpsertVenueContract = {
+  expirationDate?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type User = {
@@ -1630,6 +1642,7 @@ export type Venue = {
   address?: Maybe<Scalars['String']['output']>;
   city?: Maybe<Scalars['String']['output']>;
   contact?: Maybe<VenueContact>;
+  contract?: Maybe<VenueContract>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
@@ -1653,6 +1666,12 @@ export type VenueContact = {
   firstName?: Maybe<Scalars['String']['output']>;
   lastName?: Maybe<Scalars['String']['output']>;
   phone?: Maybe<Scalars['String']['output']>;
+};
+
+export type VenueContract = {
+  __typename?: 'VenueContract';
+  expirationDate?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type VenueSearchInput = {
@@ -1810,6 +1829,7 @@ export type ResolversTypes = ResolversObject<{
   NotificationSearchResult: ResolverTypeWrapper<NotificationSearchResult>;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
+  OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
   Phone: ResolverTypeWrapper<Phone>;
   ProfilePhotoAttachmentUpload: ResolverTypeWrapper<ProfilePhotoAttachmentUpload>;
@@ -1865,6 +1885,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertUserRelinquishShift: UpsertUserRelinquishShift;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
+  UpsertVenueContract: UpsertVenueContract;
   User: ResolverTypeWrapper<User>;
   UserAvailability: ResolverTypeWrapper<UserAvailability>;
   UserRelinquishShift: ResolverTypeWrapper<UserRelinquishShift>;
@@ -1872,6 +1893,7 @@ export type ResolversTypes = ResolversObject<{
   UserSearchResult: ResolverTypeWrapper<UserSearchResult>;
   Venue: ResolverTypeWrapper<Venue>;
   VenueContact: ResolverTypeWrapper<VenueContact>;
+  VenueContract: ResolverTypeWrapper<VenueContract>;
   VenueSearchInput: VenueSearchInput;
   VenueSearchResult: ResolverTypeWrapper<VenueSearchResult>;
   VenueStatus: VenueStatus;
@@ -1934,6 +1956,7 @@ export type ResolversParentTypes = ResolversObject<{
   NotificationSearchResult: NotificationSearchResult;
   Organization: Organization;
   OrganizationContact: OrganizationContact;
+  OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
   Phone: Phone;
   ProfilePhotoAttachmentUpload: ProfilePhotoAttachmentUpload;
@@ -1984,6 +2007,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertUserRelinquishShift: UpsertUserRelinquishShift;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
+  UpsertVenueContract: UpsertVenueContract;
   User: User;
   UserAvailability: UserAvailability;
   UserRelinquishShift: UserRelinquishShift;
@@ -1991,6 +2015,7 @@ export type ResolversParentTypes = ResolversObject<{
   UserSearchResult: UserSearchResult;
   Venue: Venue;
   VenueContact: VenueContact;
+  VenueContract: VenueContract;
   VenueSearchInput: VenueSearchInput;
   VenueSearchResult: VenueSearchResult;
 }>;
@@ -2380,6 +2405,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   contact?: Resolver<Maybe<ResolversTypes['OrganizationContact']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  features?: Resolver<Maybe<ResolversTypes['OrganizationFeatures']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2397,6 +2423,12 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
 export type OrganizationContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationContact'] = ResolversParentTypes['OrganizationContact']> = ResolversObject<{
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+  lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2703,6 +2735,7 @@ export type VenueResolvers<ContextType = any, ParentType extends ResolversParent
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['VenueContact']>, ParentType, ContextType>;
+  contract?: Resolver<Maybe<ResolversTypes['VenueContract']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2726,6 +2759,12 @@ export type VenueContactResolvers<ContextType = any, ParentType extends Resolver
   firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type VenueContractResolvers<ContextType = any, ParentType extends ResolversParentTypes['VenueContract'] = ResolversParentTypes['VenueContract']> = ResolversObject<{
+  expirationDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2768,6 +2807,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   NotificationSearchResult?: NotificationSearchResultResolvers<ContextType>;
   Organization?: OrganizationResolvers<ContextType>;
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
+  OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
   ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;
@@ -2793,6 +2833,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   UserSearchResult?: UserSearchResultResolvers<ContextType>;
   Venue?: VenueResolvers<ContextType>;
   VenueContact?: VenueContactResolvers<ContextType>;
+  VenueContract?: VenueContractResolvers<ContextType>;
   VenueSearchResult?: VenueSearchResultResolvers<ContextType>;
 }>;
 

@@ -1,7 +1,9 @@
 import { Context } from "../../utils/createContext";
-import { Venue, UpsertVenue, VenueSearchInput } from "../../__generated__/resolvers-types";
+import { Venue, VenueSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import { IUpsertVenue, IVenueContract } from "../../models/venue";
+import logger from "../../utils/logger";
 
 export const venue = {
   Query: {
@@ -35,10 +37,15 @@ export const venue = {
     },
     venue: async (
       _parent: unknown,
-      { venue }: { venue: UpsertVenue },
+      { venue }: { venue: IUpsertVenue },
       { venues, user }: Context
     ): Promise<Venue> => {
       adminOnly(user);
+
+      if (venue.contract?.expirationDate) {
+        venue.contract.expirationDate = new Date(venue.contract.expirationDate);
+      }
+
       return venues.upsert({
         ...venue,
         orgId: user?.member.orgId!,
@@ -50,6 +57,9 @@ export const venue = {
     Venue: {
       ...commonResolvers,
       org: (venue: Venue, _, { organizations }: Context) => organizations.loader.load(venue.orgId),
+    },
+    VenueContract: {
+      expirationDate: (contract: IVenueContract) => new Date(contract.expirationDate).toISOString(),
     },
   },
 };

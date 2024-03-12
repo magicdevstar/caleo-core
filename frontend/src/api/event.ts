@@ -54,6 +54,9 @@ export const GET_ALL_EVENTS = gql`
         venue {
           id
           name
+          contract {
+            expirationDate
+          }
         }
         createdAt
       }
@@ -222,6 +225,9 @@ export const GET_EVENT = gql`
         state
         zip
         notes
+        contract {
+          expirationDate
+        }
       }
 
       assignments {

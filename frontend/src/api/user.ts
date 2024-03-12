@@ -23,6 +23,10 @@ const userDetailProperties = `
       id
       timezone
       weekBegins
+      features {
+        lottery
+        venueContractDates
+      }
       settings {
         shiftsPerWeek
         lottery {

@@ -26,11 +26,13 @@ import FormProvider, {
   RHFTextField,
   RHFSwitch,
   RHFSelect,
+  RHFDatePicker,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_ALL_VENUES, GET_VENUE, UPSERT_VENUE } from 'src/api/venues';
 import { states } from 'src/utils/states';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +41,7 @@ type Props = {
 };
 
 export default function EditVenue({ currentVenue }: Props) {
+  const { user } = useAuthContext();
   const router = useRouter();
 
   const [upsertVenue] = useMutation(UPSERT_VENUE, {
@@ -49,6 +52,8 @@ export default function EditVenue({ currentVenue }: Props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const showContractFields = user.member.org?.features?.venueContractDates;
+
   const NewVenueSchema = Yup.object().shape({
     id: Yup.string(),
     name: Yup.string().required('Name is required'),
@@ -58,6 +63,10 @@ export default function EditVenue({ currentVenue }: Props) {
     zip: Yup.string(),
     phone: Yup.string(),
     notes: Yup.string(),
+    contract: Yup.object().shape({
+      expirationDate: Yup.date().optional(),
+      name: Yup.string(),
+    }).optional(),
     contact: Yup.object().shape({
       firstName: Yup.string(),
       lastName: Yup.string(),
@@ -77,6 +86,10 @@ export default function EditVenue({ currentVenue }: Props) {
       zip: currentVenue?.zip || '',
       phone: currentVenue?.phone || '',
       notes: currentVenue?.notes || '',
+      contract: currentVenue?.contract ? {
+        expirationDate: currentVenue?.contract?.expirationDate ? new Date(currentVenue?.contract?.expirationDate) : undefined,
+        name: currentVenue?.contract?.name || '',
+      } : undefined,
       contact: {
         firstName: currentVenue?.contact?.firstName || '',
         lastName: currentVenue?.contact?.lastName || '',
@@ -118,6 +131,9 @@ export default function EditVenue({ currentVenue }: Props) {
             zip: data.zip,
             phone: data.phone,
             notes: data.notes,
+            ...(data.contract && showContractFields && {
+              contract: data.contract,
+            }),
             contact: {
               firstName: data.contact.firstName,
               lastName: data.contact.lastName,
@@ -174,6 +190,14 @@ export default function EditVenue({ currentVenue }: Props) {
               <RHFTextField name="zip" label="Zip Code" />
               <RHFPhoneField name="phone" label="Phone" />
             </Stack>
+
+            {
+              showContractFields && (
+                <Stack direction="row" spacing={2}>
+                  <RHFTextField name="contract.name" label="Contract/Insurance Name" />
+                  <RHFDatePicker name="contract.expirationDate" label="Contract/Insurance Expiration" />
+                </Stack>
+              )}
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>

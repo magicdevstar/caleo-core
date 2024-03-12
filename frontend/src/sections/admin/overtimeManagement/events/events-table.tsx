@@ -18,7 +18,7 @@ import { GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
-import { convertDate } from 'src/hooks/use-datejs';
+import { convertDate, dateFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
@@ -32,6 +32,8 @@ export default function EventsTable() {
   const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
     refetchQueries: [GET_ALL_EVENTS],
   });
+
+  const enabledVenueContractField = user.member.org?.features?.venueContractDates;
 
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const deleteConfirm = useBoolean();
@@ -113,13 +115,13 @@ export default function EventsTable() {
         label: 'Ref #',
         columnType: 'string',
         width: 100,
-        getHref: (row) => `/dashboard/admin/overtime/events/${row.id}`,
+        getHref: (row: any) => `/dashboard/admin/overtime/events/${row.id}`,
       },
       {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        getHref: (row) => `/dashboard/admin/overtime/events/${row.id}`,
+        getHref: (row: any) => `/dashboard/admin/overtime/events/${row.id}`,
       },
       { id: 'startTime', label: 'Starts At', width: 160, columnType: 'date' },
       {
@@ -129,12 +131,20 @@ export default function EventsTable() {
         columnType: 'string',
         noSort: true,
       },
+      (enabledVenueContractField && {
+        id: 'venue.contract.expirationDate',
+        label: 'Venue Contract Exp',
+        width: 210,
+        renderValue: (expirationDate: any) => expirationDate ? convertDate({ date: expirationDate, user }).format(dateFormat) : 'N/A',
+        columnType: 'string',
+        noSort: true,
+      }) as any,
       {
         id: 'status',
         label: 'Type',
         width: 180,
         columnType: 'string',
-        renderValue: (eventStatus) => {
+        renderValue: (eventStatus: any) => {
           switch (eventStatus) {
             case EventStatus.Draft:
               return 'Draft';
@@ -150,7 +160,7 @@ export default function EventsTable() {
               return 'N/A';
           }
         },
-        getLabelColor: (event) => {
+        getLabelColor: (event: any) => {
           switch (event.status) {
             case EventStatus.ReadyForLottery:
               return 'success';
@@ -174,7 +184,7 @@ export default function EventsTable() {
         noSort: true,
       },
       { id: '', width: 88, columnType: 'action', label: '' },
-    ],
+    ].filter(Boolean),
     filters: [
       {
         id: 'query',

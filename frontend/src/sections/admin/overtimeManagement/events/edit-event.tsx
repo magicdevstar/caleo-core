@@ -28,7 +28,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
-import { dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import useDebounceText from 'src/hooks/use-debounce-text';
 // routes
 import { paths } from 'src/routes/paths';
@@ -103,6 +103,17 @@ dayjs.extend(timezone);
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
+  const enabledVenueContractField = user.member.org?.features?.venueContractDates;
+  const showVenueContractWarning = useMemo(() => {
+    if (!enabledVenueContractField) {
+      return false;
+    }
+    const convertedDate = convertDate({ date: new Date(currentEvent?.venue?.contract?.expirationDate || 0), user });
+    if (!currentEvent?.venue?.contract?.expirationDate || convertedDate.isBefore(dayjs())) {
+      return true;
+    }
+    return false;
+  }, [enabledVenueContractField, currentEvent?.venue?.contract?.expirationDate, user]);
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
     countValue: currentEvent?.lotteryCounter as LotteryCounter,
@@ -576,15 +587,23 @@ export default function EditEvent({ currentEvent }: Props) {
             />
 
             {selectedVenue && (
-              <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2, mb: 1 }}>
-                <Stack direction="row" spacing={1.5}>
-                  <Typography variant="subtitle2">Address: </Typography>
-                  <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
-                  <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
-                  <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
-                  <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
-                </Stack>
-                <Markdown children={selectedVenue?.notes || ''} />
+              <Box sx={{ mb: 1 }}>
+                <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
+                  <Stack direction="row" spacing={1.5}>
+                    <Typography variant="subtitle2">Address: </Typography>
+                    <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
+                    <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
+                    <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
+                    <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
+                  </Stack>
+                  <Markdown children={selectedVenue?.notes || ''} />
+                  {showVenueContractWarning && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography variant='caption' color="grey">⚠️ Venue contract is is expired. Please update the contract or replace the venue.</Typography>
+                      <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${currentEvent?.venue?.id}`}>Edit venue</Button>
+                    </Box>
+                  )}
+                </Box>
               </Box>
             )}
 

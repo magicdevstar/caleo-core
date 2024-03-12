@@ -36,6 +36,9 @@ export const organization = {
           ...existingOrg?.settings,
           ...(org.settings || {}),
         },
+        features: {
+          ...existingOrg?.features,
+        }
       };
 
       if (!mergedOrg.id && !mergedOrg.settings) {

@@ -15,6 +15,7 @@ src/reportWebVitals.js
 src/service-worker.js
 src/serviceWorkerRegistration.js
 src/setupTests.js
+src/__generated__/*
 
 src/reportWebVitals.ts
 src/service-worker.ts

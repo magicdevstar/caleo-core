@@ -630,6 +630,7 @@
     state: String
     zip: String
     phone: String
+    contract: VenueContract
     notes: String
     contact: VenueContact
     status: VenueStatus
@@ -644,11 +645,21 @@
     modifiedBy: User
   }
 
+  type VenueContract {
+    expirationDate: String
+    name: String
+  }
+
   input UpsertVenueContact {
     firstName: String
     lastName: String
     email: String
     phone: String
+  }
+
+  input UpsertVenueContract {
+    expirationDate: String
+    name: String
   }
 
   input UpsertVenue {
@@ -659,6 +670,7 @@
     state: String
     zip: String
     phone: String
+    contract: UpsertVenueContract
     notes: String
     contact: UpsertVenueContact
     status: VenueStatus
@@ -787,8 +799,14 @@
     removedAt: String
     modifiedById: String
     settings: OrganizationOvertimeSettings
+    features: OrganizationFeatures
 
     modifiedBy: User
+  }
+
+  type OrganizationFeatures {
+    lottery: Boolean!
+    venueContractDates: Boolean!
   }
 
   type OrganizationOvertimeSettings {

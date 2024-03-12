@@ -13,6 +13,9 @@ export const GET_ALL_VENUES = gql`
         id
         name
         address
+        contract {
+          expirationDate
+        }
         contact {
           firstName
           lastName
@@ -90,6 +93,10 @@ export const GET_VENUE = gql`
       zip
       phone
       notes
+      contract {
+        expirationDate
+        name
+      }
       contact {
         firstName
         lastName

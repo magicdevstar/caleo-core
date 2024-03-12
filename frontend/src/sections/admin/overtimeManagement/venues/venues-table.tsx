@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import dayjs from 'dayjs';
 import { capitalize } from "lodash";
 // @mui
 import Button from '@mui/material/Button';
@@ -17,12 +18,15 @@ import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_VENUES, GET_VENUES_FOR_CSV, REMOVE_VENUE, UPSERT_VENUE } from 'src/api/venues';
 import { client } from 'src/utils/apollo';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
-
+import { useAuthContext } from 'src/auth/hooks';
+import { convertDate } from 'src/hooks/use-datejs';
 
 // ----------------------------------------------------------------------
 
 export default function VenuesTable() {
+  const { user } = useAuthContext();
   const navigate = useNavigate();
+  const venueContractEnabled = user.member.org?.features?.venueContractDates;
 
   const { download } = useDownloadCsv({ fileName: 'venues', ext: 'csv' });
   const [loadingCSV, setLoadingCSV] = useState(false);
@@ -142,7 +146,7 @@ export default function VenuesTable() {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        getHref: (row) => `/dashboard/admin/overtime/venues/${row.id}`,
+        getHref: (row: any) => `/dashboard/admin/overtime/venues/${row.id}`,
       },
       { id: 'address', label: 'Address', width: 210, columnType: 'string' },
       {
@@ -150,7 +154,7 @@ export default function VenuesTable() {
         label: 'Contact Name',
         width: 150,
         columnType: 'string',
-        renderValue: (_value, _index, row: Venue) =>
+        renderValue: (_value: any, _index: any, row: Venue) =>
           `${row.contact?.firstName} ${row.contact?.lastName}`
       },
       {
@@ -158,7 +162,7 @@ export default function VenuesTable() {
         label: 'Status',
         width: 110,
         columnType: 'string',
-        renderValue: (status) => capitalize(status),
+        renderValue: (status: any) => capitalize(status),
         getLabelColor: (row: Venue) => {
           switch (row.status) {
             case VenueStatus.Active:
@@ -171,9 +175,29 @@ export default function VenuesTable() {
           }
         }
       },
+      (venueContractEnabled && {
+        id: 'contract.expirationDate',
+        label: 'Contract Exp',
+        width: 110,
+        columnType: 'string',
+        renderValue: (date: any) => {
+          if (!date) {
+            return 'Invalid';
+          }
+          const expired = convertDate({ date, user }).isBefore(dayjs());
+          return expired ? 'Expired' : 'Valid';
+        },
+        getLabelColor: (venue: Venue) => {
+          if (!venue.contract?.expirationDate) {
+            return 'warning';
+          }
+          const expired = convertDate({ date: venue.contract?.expirationDate, user }).isBefore(dayjs());
+          return expired ? 'error' : 'success';
+        }
+      }) as any,
       { id: 'createdAt', label: 'Created at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },
-    ],
+    ].filter(Boolean),
     filters: [
       {
         id: 'status',

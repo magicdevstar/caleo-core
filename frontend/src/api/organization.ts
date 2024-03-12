@@ -15,6 +15,10 @@ query ORGANIZATION {
     state
     timezone
     weekBegins
+    features {
+      lottery
+      venueContractDates
+    }
     settings {
       shiftsPerWeek
       lottery {

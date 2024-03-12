@@ -220,16 +220,16 @@ export class ShiftModel extends BaseModel<Shift> {
     this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
   }
 
-  async highestRefNumber(shiftId: string) {
+  async highestRefNumber(eventId: string) {
     try {
       const res = await this.collection
-        .find({ shiftId })
+        .find({ eventId })
         .sort({ refNumber: -1 })
         .limit(1)
         .toArray();
       return res[0]?.refNumber || null;
     } catch(error) {
-      logger.warn('Could not find highest shift ref number', { shiftId });
+      logger.warn('Could not find highest shift ref number', { eventId });
       return null;
     }
   }

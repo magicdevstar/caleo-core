@@ -21,6 +21,7 @@ import { analytics } from "./utils/analytics";
 import { noAssignCounter } from "./utils/no-assign-counter";
 import { fixDupUsers } from "./utils/fix-duplicate-users";
 import { lottoAnalytics } from "./utils/lotto-analytics";
+import { shiftRefMigration } from "./utils/shift-ref-update";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -29,11 +30,12 @@ import { lottoAnalytics } from "./utils/lotto-analytics";
   try {
     connection = await mongo.connect();
     connectionProd = await mongoProd.connect();
-    const mongoClient = connection.db(process.env.DB);
+    const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
 
-    await lottoAnalytics(mongoClientProd);
+    await shiftRefMigration(mongoClient)
+    // await lottoAnalytics(mongoClientProd);
     // await fixDupUsers(mongoClientProd);
     // await tierChecker(mongoClientProd);
     // await fixMe(mongoClient, mongoClientProd);

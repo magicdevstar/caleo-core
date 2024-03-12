@@ -244,7 +244,7 @@ export const shift = {
         throw new GraphQLError("Event not found");
       }
 
-      let highestRefNumber = await shiftsModel.highestRefNumber(shifts[0].shiftId);
+      let highestRefNumber = await shiftsModel.highestRefNumber(shifts[0].eventId);
       const existingShifts = await shiftsModel.search({
         shiftId: shifts[0].shiftId,
         orgId: user?.member.orgId!,

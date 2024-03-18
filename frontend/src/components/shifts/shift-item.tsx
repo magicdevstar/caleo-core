@@ -36,17 +36,22 @@ export default function ShiftItem({
   selectable = false,
   selectLoading = false,
   compact = false,
+  collapsed = false,
+  collapsible = true,
   onSelect = () => {},
   cursor = 'pointer',
   titlePrefix,
   shiftLabels,
   shiftActions,
+  sx,
 }: {
   shift: Shift | ShiftBufferRequest | ShiftLotteryRequest;
   index: number;
   selectable?: boolean;
   selectLoading?: boolean;
   compact?: boolean;
+  collapsed?: boolean;
+  collapsible?: boolean;
   cursor?: string;
   onSelect?: (shift: Shift, event: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   titlePrefix?: {
@@ -72,6 +77,7 @@ export default function ShiftItem({
     getIcon: (shift: any) => string;
     getName: (shift: any) => string;
   }[];
+  sx?: SxProps,
 }) {
   const labelComponent = useMemo(() => {
     if (inputShift.__typename === 'ShiftBufferRequest') {
@@ -91,7 +97,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
-  const [detailHeight, setDetailHeight] = useState<string>('0px');
+  const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
 
@@ -316,10 +322,12 @@ export default function ShiftItem({
   );
 
   return (
-    <Grid item sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out' }}>
+    <Grid item sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out', ...sx }}>
       <Stack
         onClick={() => {
-          setDetailHeight((c) => c === '0px' ? '100%' : '0px');
+          if (collapsible) {
+            setDetailHeight((c) => c === '0px' ? '100%' : '0px');
+          }
         }}
         component={Card}
         direction="row"

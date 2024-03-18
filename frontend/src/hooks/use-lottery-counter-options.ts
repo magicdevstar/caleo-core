@@ -6,20 +6,11 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { LotteryCounter, Organization } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
+import { DayMap } from "src/types/day";
 import { dateTimeFormat } from "./use-datejs";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const dayMap: Record<string, number> = {
-  sunday: 0,
-  monday: 1,
-  tuesday: 2,
-  wednesday: 3,
-  thursday: 4,
-  friday: 5,
-  saturday: 6,
-};
 
 export interface ILotteryCounterOption {
   counter: number;
@@ -52,13 +43,13 @@ export const useLotteryCounterOptions = ({
     const closeTime = dayjs(org!.settings!.lottery.close.time).tz(org!.timezone || 'America/Los_Angeles');
 
     let startOfLottery = dayjs().tz(org!.timezone || 'America/Los_Angeles')
-      .day(dayMap[openDay])
+      .day(DayMap[openDay])
       .hour(openTime.hour())
       .minute(openTime.minute())
       .second(0)
       .millisecond(0);
     let closeOfLottery = dayjs().tz(org!.timezone || 'America/Los_Angeles')
-      .day(dayMap[closeDay])
+      .day(DayMap[closeDay])
       .hour(closeTime.hour())
       .minute(closeTime.minute())
       .second(0)
@@ -71,7 +62,7 @@ export const useLotteryCounterOptions = ({
 
     let startNumber = data?.lotteryCounter.counter;
 
-    // Set the lottery start date to the next 
+    // Set the lottery start date to the next
     if (dayjs().tz(org!.timezone || 'America/Los_Angeles').isAfter(startOfLottery)) {
       startNumber += 1;
       startOfLottery = startOfLottery.add(1, 'week');

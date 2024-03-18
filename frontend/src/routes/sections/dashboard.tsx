@@ -11,7 +11,8 @@ import LotteryLockGuard from 'src/auth/guard/lottery-lock-guard';
 
 // ----------------------------------------------------------------------
 
-const IndexPage = lazyWithRetry(() => import('src/pages/dashboard/myOvertime'));
+const IndexPage = lazyWithRetry(() => import('src/pages/dashboard/dashboard'));
+const MyOvertime = lazyWithRetry(() => import('src/pages/dashboard/myOvertime'));
 const AvailableOvertime = lazyWithRetry(() => import('src/pages/dashboard/availableOvertime'));
 const UpcomingOvertime = lazyWithRetry(() => import('src/pages/dashboard/upcomingOvertime'));
 const RankOvertime = lazyWithRetry(() => import('src/pages/dashboard/rankOvertime'));
@@ -53,6 +54,7 @@ export const dashboardRoutes = [
     ),
     children: [
       { element: <IndexPage />, index: true },
+      { path: 'overtime', element: <MyOvertime /> },
       { path: 'available/overtime', element: <AvailableOvertime /> },
       { path: 'upcoming/overtime', element: <UpcomingOvertime /> },
       { path: 'rank/overtime', element: <RankOvertime /> },

@@ -33,7 +33,7 @@ export const notificationRouterPath = (template: string, meta?: InAppNotificatio
     case MailerEvents.OfficerNewShiftAssigned:
     case MailerEvents.OfficerAdminAssignedShift:
       return {
-        path: '/dashboard',
+        path: '/dashboard/overtime',
         buttonText: 'View Overtime',
       };
     case MailerEvents.OfficerRemovedFromShift:

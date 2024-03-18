@@ -23,6 +23,7 @@ export const paths = {
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
+    myOvertime: `${ROOTS.DASHBOARD}/overtime`,
     availableOvertime: `${ROOTS.DASHBOARD}/available/overtime`,
     upcomingOvertime: `${ROOTS.DASHBOARD}/upcoming/overtime`,
     rankOvertime: `${ROOTS.DASHBOARD}/rank/overtime`,

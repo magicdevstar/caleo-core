@@ -71,7 +71,7 @@ export default function ShiftItems({
   );
 
   let renderList = (
-    <EmptyContent filled title={emptyMessage} sx={{ py: 10 }} />
+    <EmptyContent filled title={emptyMessage} sx={{ py: 10, mt: 2 }} />
   )
 
   if (shifts.length > 0) {
@@ -107,7 +107,8 @@ export default function ShiftItems({
           page={currentPage}
           onChange={(_event, page) => setPage(page)}
           sx={{
-            mt: 8,
+            mt: 1,
+            mb: 3,
             [`& .${paginationClasses.ul}`]: {
               justifyContent: 'center',
             },

@@ -1,4 +1,4 @@
-import { format, getTime, formatDistanceToNow } from 'date-fns';
+import { format, getTime, formatDistanceToNow, startOfWeek, endOfWeek } from 'date-fns';
 
 // ----------------------------------------------------------------------
 
@@ -26,4 +26,25 @@ export function fToNow(date: InputValue) {
         addSuffix: true,
       })
     : '';
+}
+
+export function fWeekRange(date: Date, weekStartsOn?: number) {
+  const start = startOfWeek(date, { weekStartsOn: weekStartsOn as any });
+  const end = endOfWeek(date, { weekStartsOn: weekStartsOn as any });
+  const sameMonth = start.getMonth() === end.getMonth();
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startMonth = format(start, 'MMM');
+  const startDay = format(start, 'dd');
+  const startYear = format(start, 'yyyy');
+  const endDay = format(end, 'dd');
+  const endMonth = format(end, 'MMM');
+  const endYear = format(end, 'yyyy');
+
+  if (sameMonth) {
+    return `${startMonth} ${startDay} - ${endDay}, ${startYear}`;
+  }
+  if (sameYear) {
+    return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${startYear}`;
+  }
+  return `${startMonth} ${startDay}, ${startYear} - ${endMonth} ${endDay}, ${endYear}`;
 }

@@ -193,6 +193,9 @@ functions:
   markEventAsComplete:
     handler: src/steps/markEventAsComplete.handler
     timeout: 300
+  checkoutNotifications:
+    handler: src/steps/checkoutNotifications.handler
+    timeout: 300
 
   # Test function
   scheduleTask:
@@ -298,6 +301,13 @@ stepFunctions:
                     Type: Task
                     Resource:
                       Fn::GetAtt: [tierResetSync, Arn]
+                    End: true
+              - StartAt: CheckoutNotifications
+                States:
+                  CheckoutNotifications:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [checkoutNotifications, Arn]
                     End: true
               - StartAt: MarkAsComplete
                 States:

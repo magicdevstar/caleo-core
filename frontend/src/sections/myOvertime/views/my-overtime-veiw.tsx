@@ -25,6 +25,7 @@ import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, Shif
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import CheckInOut from 'src/components/shifts/check-in-out';
 
 // ----------------------------------------------------------------------
 
@@ -157,7 +158,7 @@ export default function MyOvertimeView() {
     ].sort((a: any, b: any) => {
       const aStart = new Date(a.startTime);
       const bStart = new Date(b.startTime);
-      return aStart.getTime() - bStart.getTime();
+      return bStart.getTime() - aStart.getTime();
     });
   }, [items, bufferItems]);
 
@@ -249,6 +250,8 @@ export default function MyOvertimeView() {
     <Container sx={{
       height: '100%',
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
+      <CheckInOut />
+
       <Box>
         <Typography variant="h4" gutterBottom>
           My Overtime

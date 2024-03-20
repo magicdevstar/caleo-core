@@ -26,6 +26,7 @@ export class AssignmentModel extends BaseModel<Assignment> {
     await this.remove(assignment.id, { modifiedById: user.id });
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
       Payload: JSON.stringify({
         action: Action.Email,
         template: MailerEvents.OfficerAssignmentRemoved,

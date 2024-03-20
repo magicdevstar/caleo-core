@@ -167,6 +167,18 @@ export const GET_EVENT_FOR_SUMMARY = gql`
           startTime
           endTime
           status
+          shiftCheckInOut {
+            checkInTime
+            checkOutTime
+            checkInCoords {
+              latitude
+              longitude
+            }
+            checkOutCoords {
+              latitude
+              longitude
+            }
+          }
           user {
             id
             firstName

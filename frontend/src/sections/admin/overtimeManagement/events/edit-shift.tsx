@@ -43,6 +43,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
+import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -68,10 +69,12 @@ export default function EditShift({
   const router = useRouter();
   const { user } = useAuthContext();
   const [editShiftId, setEditShiftId] = useState<string | null>();
+  const editCheckInOutModal = useBoolean();
   const deleteConfirm = useBoolean();
   const unassignConfirm = useBoolean();
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
+  const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
   const canNotify = useMemo(() =>
@@ -270,7 +273,7 @@ export default function EditShift({
     rowActions: [
       {
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
-        getIcon: () => 'solar:pen-bold',
+        getIcon: () => 'solar:pen-bold-duotone',
         getDisabled: (row: Shift) => !!row.locked || allDisabled || isComplete,
         onClick: (row: Shift) => {
           setEditShiftId(row.id);
@@ -283,7 +286,7 @@ export default function EditShift({
       },
       {
         getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
-        getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold' : 'solar:lock-keyhole-bold',
+        getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold-duotone' : 'solar:lock-keyhole-bold-duotone',
         getDisabled: () => allDisabled || isComplete,
         onClick: (row: Shift) => {
           setLockShift(row);
@@ -293,12 +296,21 @@ export default function EditShift({
       {
         getName: () => 'Delete',
         getDisabled: (row: Shift) => !!row.locked || allDisabled || isComplete,
-        getIcon: () => 'solar:trash-bin-trash-bold',
+        getIcon: () => 'solar:trash-bin-trash-bold-duotone',
         onClick: (row: Shift) => {
           openRemoveShift(row.id);
         },
-      }
-    ],
+      },
+      ...(user.member.org?.features?.eventCheckIn ? [{
+        getName: () => 'View Check In/Out',
+        getDisabled: (row: Shift) => !row.shiftCheckInOut,
+        getIcon: () => 'solar:stopwatch-bold-duotone',
+        onClick: (row: Shift) => {
+          setEditCheckInOut(row);
+          editCheckInOutModal.onTrue();
+        },
+      }] : []),
+    ].filter(Boolean) as any,
     columns: [
       {
         id: 'id',
@@ -584,6 +596,16 @@ export default function EditShift({
         }
       />
 
+      <EditCheckInOut
+        shift={editCheckInOut!}
+        editCheckInOutModal={editCheckInOutModal}
+        handleClose={() => {
+          editCheckInOutModal.onFalse();
+          setTimeout(() => {
+            setEditCheckInOut(null);
+          }, 200);
+        }}
+      />
       <AssignShiftModal
         shiftId={editShiftId}
         shiftStartTime={currentShifts?.[0]?.startTime}

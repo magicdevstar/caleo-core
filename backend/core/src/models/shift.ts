@@ -1,7 +1,7 @@
-import { Collection, Db } from 'mongodb';
+import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
@@ -25,6 +25,13 @@ export interface ShiftSearchExtended extends ShiftSearchInput {
   orgId: string;
   requestingUser: User;
 }
+
+export interface IShift extends Omit<Shift, 'shiftCheckInOut'> {
+  shiftCheckInOut: {
+    checkInTime: Date;
+    checkOutTime: Date;
+  }
+} 
 
 const lambda = new LambdaClient({});
 
@@ -218,6 +225,81 @@ export class ShiftModel extends BaseModel<Shift> {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');
     this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
+  }
+
+  async editCheckInOut({
+    id,
+    checkInTime,
+    checkOutTime,
+    adminNotes,
+  } : {
+    id: string,
+    checkInTime?: string,
+    checkOutTime?: string,
+    adminNotes?: string,
+  }) {
+    await this.collection.updateOne({
+      _id: new ObjectId(id),
+    }, {
+      $set: {
+        'updatedAt': Date.now(),
+        ...(checkInTime ? { 'shiftCheckInOut.checkInTime': checkInTime } : {}),
+        ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': checkOutTime } : {}),
+        ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
+      },
+    });
+  }
+
+  async checkIn({
+    id,
+    coords,
+    time,
+    checkInNote,
+    adminNotes,
+  } : {
+    id: string,
+    coords?: ShiftCheckInOutCoordinates,
+    time?: string,
+    checkInNote?: string,
+    adminNotes?: string,
+  }) {
+    await this.collection.updateOne({
+      _id: new ObjectId(id),
+    }, {
+      $set: {
+        'updatedAt': Date.now(),
+        'shiftCheckInOut.checkInTime': time || new Date(),
+        ...(checkInNote ? { 'shiftCheckInOut.checkInNote': checkInNote } : {}),
+        ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
+        ...(coords ? { 'shiftCheckInOut.checkInCoords': coords } : {}),
+      },
+    });
+  }
+
+  async checkOut({
+    id,
+    coords,
+    time,
+    checkOutNote,
+    adminNotes,
+  } : {
+    id: string,
+    coords?: ShiftCheckInOutCoordinates,
+    time?: string,
+    checkOutNote?: string,
+    adminNotes?: string,
+  }) {
+    await this.collection.updateOne({
+      _id: new ObjectId(id),
+    }, {
+      $set: {
+        'updatedAt': Date.now(),
+        'shiftCheckInOut.checkOutTime': time || new Date(),
+        ...(checkOutNote ? { 'shiftCheckInOut.checkOutNote': checkOutNote } : {}),
+        ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
+        ...(coords ? { 'shiftCheckInOut.checkOutCoords': coords } : {}),
+      },
+    });
   }
 
   async highestRefNumber(eventId: string) {

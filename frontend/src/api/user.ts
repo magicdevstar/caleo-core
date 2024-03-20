@@ -26,9 +26,14 @@ const userDetailProperties = `
       features {
         lottery
         venueContractDates
+        eventCheckIn
       }
       settings {
         shiftsPerWeek
+        checkInOut {
+          minutesBeforeShiftStart
+          minutesAfterShiftEnd
+        }
         lottery {
           enabled
           fcfsShiftsDelay

@@ -128,7 +128,7 @@ export function RHFMultiSelect({
           {label && <InputLabel id={name}> {label} </InputLabel>}
 
           <Select
-            {...field}
+            {...(field as any)}
             multiple
             displayEmpty={!!placeholder}
             labelId={name}

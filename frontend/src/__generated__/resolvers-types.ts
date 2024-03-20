@@ -105,6 +105,22 @@ export type BrowserNotificationSubscription = {
   keys: BrowserNotificationKeys;
 };
 
+export type CheckInOutCoordinates = {
+  accuracy?: InputMaybe<Scalars['Float']['input']>;
+  altitude?: InputMaybe<Scalars['Float']['input']>;
+  altitudeAccuracy?: InputMaybe<Scalars['Float']['input']>;
+  heading?: InputMaybe<Scalars['Float']['input']>;
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+  speed?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type CheckInOutSetting = {
+  __typename?: 'CheckInOutSetting';
+  minutesAfterShiftEnd: Scalars['Int']['output'];
+  minutesBeforeShiftStart: Scalars['Int']['output'];
+};
+
 export type ContactInfo = {
   __typename?: 'ContactInfo';
   primaryEmail: Email;
@@ -490,6 +506,9 @@ export type Mutation = {
   approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
   browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
+  checkIn: Shift;
+  checkOut: Shift;
+  editCheckInOut: Shift;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
   inviteUser?: Maybe<User>;
@@ -550,6 +569,21 @@ export type MutationAssignmentArgs = {
 
 export type MutationBrowserNotificationSubscriptionArgs = {
   input: InputBrowserNotificationSubscription;
+};
+
+
+export type MutationCheckInArgs = {
+  input: ShiftCheckInOutEvent;
+};
+
+
+export type MutationCheckOutArgs = {
+  input: ShiftCheckInOutEvent;
+};
+
+
+export type MutationEditCheckInOutArgs = {
+  input: ShiftAdminCheckInOutEvent;
 };
 
 
@@ -851,12 +885,14 @@ export type OrganizationContact = {
 
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
+  eventCheckIn: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
 };
 
 export type OrganizationOvertimeSettings = {
   __typename?: 'OrganizationOvertimeSettings';
+  checkInOut?: Maybe<CheckInOutSetting>;
   lottery: LotterySettings;
   shiftBuffer: ShiftBuffer;
   shiftReminder: ShiftReminder;
@@ -1132,12 +1168,20 @@ export type Shift = {
   relinquishNote?: Maybe<Scalars['String']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   shiftBufferShift?: Maybe<Shift>;
+  shiftCheckInOut?: Maybe<ShiftCheckInOut>;
   shiftId: Scalars['String']['output'];
   startTime: Scalars['String']['output'];
   status: ShiftStatus;
   updatedAt: Scalars['String']['output'];
   user?: Maybe<User>;
   userId?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShiftAdminCheckInOutEvent = {
+  adminNotes?: InputMaybe<Scalars['String']['input']>;
+  checkInTime?: InputMaybe<Scalars['String']['input']>;
+  checkOutTime?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
 };
 
 export type ShiftAvailabilityTime = {
@@ -1208,6 +1252,36 @@ export type ShiftBufferRequestsSearchResult = {
   __typename?: 'ShiftBufferRequestsSearchResult';
   items?: Maybe<Array<Maybe<ShiftBufferRequest>>>;
   total: Scalars['Int']['output'];
+};
+
+export type ShiftCheckInOut = {
+  __typename?: 'ShiftCheckInOut';
+  adminNotes?: Maybe<Scalars['String']['output']>;
+  checkInCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  checkInNote?: Maybe<Scalars['String']['output']>;
+  checkInTime?: Maybe<Scalars['String']['output']>;
+  checkOutCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  checkOutNote?: Maybe<Scalars['String']['output']>;
+  checkOutTime?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShiftCheckInOutCoordinates = {
+  __typename?: 'ShiftCheckInOutCoordinates';
+  accuracy?: Maybe<Scalars['Float']['output']>;
+  altitude?: Maybe<Scalars['Float']['output']>;
+  altitudeAccuracy?: Maybe<Scalars['Float']['output']>;
+  heading?: Maybe<Scalars['Float']['output']>;
+  latitude: Scalars['Float']['output'];
+  longitude: Scalars['Float']['output'];
+  speed?: Maybe<Scalars['Float']['output']>;
+};
+
+export type ShiftCheckInOutEvent = {
+  adminNotes?: InputMaybe<Scalars['String']['input']>;
+  coords?: InputMaybe<CheckInOutCoordinates>;
+  id: Scalars['String']['input'];
+  note?: InputMaybe<Scalars['String']['input']>;
+  time?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ShiftDayTime = {
@@ -1413,6 +1487,11 @@ export type UpsertAssignment = {
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
+export type UpsertCheckInOutSetting = {
+  minutesAfterShiftEnd: Scalars['Int']['input'];
+  minutesBeforeShiftStart: Scalars['Int']['input'];
+};
+
 export type UpsertEvent = {
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -1479,6 +1558,7 @@ export type UpsertOrganizationContact = {
 };
 
 export type UpsertOrganizationOvertimeSettings = {
+  checkInOut?: InputMaybe<UpsertCheckInOutSetting>;
   lottery: UpsertLotterySettings;
   shiftBuffer: UpsertShiftBuffer;
   shiftReminder: UpsertShiftReminder;
@@ -1777,6 +1857,8 @@ export type ResolversTypes = ResolversObject<{
   BrowserNotificationKeys: ResolverTypeWrapper<BrowserNotificationKeys>;
   BrowserNotificationSetting: ResolverTypeWrapper<BrowserNotificationSetting>;
   BrowserNotificationSubscription: ResolverTypeWrapper<BrowserNotificationSubscription>;
+  CheckInOutCoordinates: CheckInOutCoordinates;
+  CheckInOutSetting: ResolverTypeWrapper<CheckInOutSetting>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: ResolverTypeWrapper<DayAvailability>;
@@ -1788,6 +1870,7 @@ export type ResolversTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   InAppNotificationMeta: ResolverTypeWrapper<InAppNotificationMeta>;
   InAppNotificationSearchInput: InAppNotificationSearchInput;
@@ -1841,12 +1924,16 @@ export type ResolversTypes = ResolversObject<{
   SearchTimeFilter: SearchTimeFilter;
   SearchTimeRange: SearchTimeRange;
   Shift: ResolverTypeWrapper<Shift>;
+  ShiftAdminCheckInOutEvent: ShiftAdminCheckInOutEvent;
   ShiftAvailabilityTime: ResolverTypeWrapper<ShiftAvailabilityTime>;
   ShiftBuffer: ResolverTypeWrapper<ShiftBuffer>;
   ShiftBufferRequest: ResolverTypeWrapper<ShiftBufferRequest>;
   ShiftBufferRequestStatus: ShiftBufferRequestStatus;
   ShiftBufferRequestsSearchInput: ShiftBufferRequestsSearchInput;
   ShiftBufferRequestsSearchResult: ResolverTypeWrapper<ShiftBufferRequestsSearchResult>;
+  ShiftCheckInOut: ResolverTypeWrapper<ShiftCheckInOut>;
+  ShiftCheckInOutCoordinates: ResolverTypeWrapper<ShiftCheckInOutCoordinates>;
+  ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
   ShiftLotteryRequest: ResolverTypeWrapper<ShiftLotteryRequest>;
   ShiftLotteryRequestStatus: ShiftLotteryRequestStatus;
@@ -1867,6 +1954,7 @@ export type ResolversTypes = ResolversObject<{
   UpdateUser: UpdateUser;
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
+  UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertEvent: UpsertEvent;
   UpsertLotteryDate: UpsertLotteryDate;
   UpsertLotterySettings: UpsertLotterySettings;
@@ -1911,6 +1999,8 @@ export type ResolversParentTypes = ResolversObject<{
   BrowserNotificationKeys: BrowserNotificationKeys;
   BrowserNotificationSetting: BrowserNotificationSetting;
   BrowserNotificationSubscription: BrowserNotificationSubscription;
+  CheckInOutCoordinates: CheckInOutCoordinates;
+  CheckInOutSetting: CheckInOutSetting;
   ContactInfo: ContactInfo;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: DayAvailability;
@@ -1919,6 +2009,7 @@ export type ResolversParentTypes = ResolversObject<{
   EventAttachmentUpload: EventAttachmentUpload;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
+  Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   InAppNotificationMeta: InAppNotificationMeta;
   InAppNotificationSearchInput: InAppNotificationSearchInput;
@@ -1968,11 +2059,15 @@ export type ResolversParentTypes = ResolversObject<{
   SearchTimeFilter: SearchTimeFilter;
   SearchTimeRange: SearchTimeRange;
   Shift: Shift;
+  ShiftAdminCheckInOutEvent: ShiftAdminCheckInOutEvent;
   ShiftAvailabilityTime: ShiftAvailabilityTime;
   ShiftBuffer: ShiftBuffer;
   ShiftBufferRequest: ShiftBufferRequest;
   ShiftBufferRequestsSearchInput: ShiftBufferRequestsSearchInput;
   ShiftBufferRequestsSearchResult: ShiftBufferRequestsSearchResult;
+  ShiftCheckInOut: ShiftCheckInOut;
+  ShiftCheckInOutCoordinates: ShiftCheckInOutCoordinates;
+  ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftDayTime: ShiftDayTime;
   ShiftLotteryRequest: ShiftLotteryRequest;
   ShiftLotteryRequestsSearchInput: ShiftLotteryRequestsSearchInput;
@@ -1989,6 +2084,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpdateUser: UpdateUser;
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
+  UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertEvent: UpsertEvent;
   UpsertLotteryDate: UpsertLotteryDate;
   UpsertLotterySettings: UpsertLotterySettings;
@@ -2088,6 +2184,12 @@ export type BrowserNotificationSubscriptionResolvers<ContextType = any, ParentTy
   endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   expirationTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   keys?: Resolver<ResolversTypes['BrowserNotificationKeys'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type CheckInOutSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['CheckInOutSetting'] = ResolversParentTypes['CheckInOutSetting']> = ResolversObject<{
+  minutesAfterShiftEnd?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  minutesBeforeShiftStart?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2329,6 +2431,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
+  checkIn?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckInArgs, 'input'>>;
+  checkOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
+  editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
@@ -2427,12 +2532,14 @@ export type OrganizationContactResolvers<ContextType = any, ParentType extends R
 }>;
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+  eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
+  checkInOut?: Resolver<Maybe<ResolversTypes['CheckInOutSetting']>, ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
   shiftBuffer?: Resolver<ResolversTypes['ShiftBuffer'], ParentType, ContextType>;
   shiftReminder?: Resolver<ResolversTypes['ShiftReminder'], ParentType, ContextType>;
@@ -2535,6 +2642,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   relinquishNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
+  shiftCheckInOut?: Resolver<Maybe<ResolversTypes['ShiftCheckInOut']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ShiftStatus'], ParentType, ContextType>;
@@ -2593,6 +2701,28 @@ export type ShiftBufferRequestResolvers<ContextType = any, ParentType extends Re
 export type ShiftBufferRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftBufferRequestsSearchResult'] = ResolversParentTypes['ShiftBufferRequestsSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftBufferRequest']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftCheckInOutResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOut'] = ResolversParentTypes['ShiftCheckInOut']> = ResolversObject<{
+  adminNotes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  checkInCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkInNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  checkInTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  checkOutCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkOutNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOutCoordinates'] = ResolversParentTypes['ShiftCheckInOutCoordinates']> = ResolversObject<{
+  accuracy?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  altitude?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  altitudeAccuracy?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  heading?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  latitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  longitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  speed?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2782,6 +2912,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   BrowserNotificationKeys?: BrowserNotificationKeysResolvers<ContextType>;
   BrowserNotificationSetting?: BrowserNotificationSettingResolvers<ContextType>;
   BrowserNotificationSubscription?: BrowserNotificationSubscriptionResolvers<ContextType>;
+  CheckInOutSetting?: CheckInOutSettingResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
@@ -2819,6 +2950,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftBuffer?: ShiftBufferResolvers<ContextType>;
   ShiftBufferRequest?: ShiftBufferRequestResolvers<ContextType>;
   ShiftBufferRequestsSearchResult?: ShiftBufferRequestsSearchResultResolvers<ContextType>;
+  ShiftCheckInOut?: ShiftCheckInOutResolvers<ContextType>;
+  ShiftCheckInOutCoordinates?: ShiftCheckInOutCoordinatesResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
   ShiftLotteryRequest?: ShiftLotteryRequestResolvers<ContextType>;
   ShiftLotteryRequestsSearchResult?: ShiftLotteryRequestsSearchResultResolvers<ContextType>;

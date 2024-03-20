@@ -25,13 +25,15 @@ export default function ConfirmDialog({
 
       {content && <DialogContent sx={{ typography: 'body2' }}> {content} </DialogContent>}
 
-      <DialogActions>
-        {action}
+      {action && (
+        <DialogActions>
+          {action}
 
-        {hasCancel && <Button variant="outlined" color="inherit" onClick={onClose}>
-          Cancel
-        </Button>}
-      </DialogActions>
+          {hasCancel && <Button variant="outlined" color="inherit" onClick={onClose}>
+            Cancel
+          </Button>}
+        </DialogActions>
+      )}
     </Dialog>
   );
 }

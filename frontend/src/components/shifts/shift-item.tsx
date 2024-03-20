@@ -283,9 +283,30 @@ export default function ShiftItem({
     }).format(dateTimeFormat),
   };
 
+  const hasCheckInOutData = user.member.org?.features?.eventCheckIn && shift.shiftCheckInOut;
+  const checkIn = shift.shiftCheckInOut?.checkInTime;
+  const checkOut = shift.shiftCheckInOut?.checkOutTime;
+  const firstRowSize = hasCheckInOutData ? 3 : 4;
+
   const renderFirstRowDetails = (
     <>
-      <Grid item xs={12} sm={4}>
+      {hasCheckInOutData && (
+        <Grid item xs={12} sm={firstRowSize}>
+          {/* Check in/out */}
+          <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Check in/out</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <Label variant="soft" color="info" sx={labelSx}>
+                Check in: {checkIn ? convertDate({ date: new Date(checkIn), user }).format(dateTimeFormat) : '-'}
+              </Label>
+              <Label variant="soft" color="info" sx={labelSx}>
+                Check out: {checkOut ? convertDate({ date: new Date(checkOut), user }).format(dateTimeFormat) : '-'}
+              </Label>
+            </Box>
+          </Stack>
+        </Grid>
+      )}
+      <Grid item xs={12} sm={firstRowSize}>
         {/* BW Needed */}
         <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>BW Needed</Typography>
@@ -297,7 +318,7 @@ export default function ShiftItem({
         </Stack>
       </Grid>
 
-      <Grid item xs={12} sm={4}>
+      <Grid item xs={12} sm={firstRowSize}>
         {/* Event Ref */}
         <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
@@ -309,7 +330,7 @@ export default function ShiftItem({
         </Stack>
       </Grid>
 
-      <Grid item xs={12} sm={4}>
+      <Grid item xs={12} sm={firstRowSize}>
         {/* Include required skills */}
         <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Required Skills</Typography>

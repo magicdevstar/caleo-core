@@ -36,6 +36,8 @@ export enum MailerEvents {
   OfficerUserAccountInvitation = 'OfficerUserAccountInvitation',
   OfficerUserAccountDeactivated = 'OfficerUserAccountDeactivated',
   OfficerUserAccountReactivated = 'OfficerUserAccountReactivated',
+  OfficerShiftAutoCheckout = 'OfficerShiftAutoCheckout',
+  OfficerShiftCheckInOutEdited = 'OfficerShiftCheckInOutEdited',
 };
 
 export enum SMSEvents {

@@ -32,7 +32,7 @@ export default function ErrorComponent({
   children,
 }: any) {
   return (
-    <ErrorBoundary fallbackRender={ErrorPage} onError={forwardError}>
+    <ErrorBoundary fallbackRender={ErrorPage} onError={forwardError as any}>
       {children}
     </ErrorBoundary>
   );

@@ -53,6 +53,10 @@ export default function Overtime({
     name: Yup.string().required(),
     settings: Yup.object().shape({
       shiftsPerWeek: Yup.number().required(),
+      checkInOut: Yup.object().shape({
+        minutesBeforeShiftStart: Yup.number(),
+        minutesAfterShiftEnd: Yup.number(),
+      }),
       lottery: Yup.object().shape({
         open: Yup.object().shape({
           time: Yup.string().required(),
@@ -121,6 +125,9 @@ export default function Overtime({
             name: formData.name,
             settings: {
               ...formData.settings,
+              checkInOut: {
+                ...formData.settings.checkInOut,
+              },
               lottery: {
                 ...formData.settings.lottery,
                 open: {
@@ -168,6 +175,42 @@ export default function Overtime({
             </Stack>
           </Card>
         </Grid>
+
+        {
+          organization?.features?.eventCheckIn && (
+            <>
+              {mdUp && (
+                <Grid md={4}>
+                  <Typography variant="h6" sx={{ mb: 0.5 }}>
+                    Check In/Out
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Change the time before and after a shift start the check in and out button will be available
+                  </Typography>
+                </Grid>
+              )}
+              <Grid xs={12} md={8} sx={{ mb: 2 }}>
+                <Card>
+                  {!mdUp && <CardHeader title="Check In/Out" />}
+                  <Stack spacing={3} sx={{ p: 3 }}>
+                    <RHFTextField
+                      type="number"
+                      name="settings.checkInOut.minutesBeforeShiftStart"
+                      label="Minutes before shift start"
+                      helperText="The number of minutes before a shift starts that the check in button will be available"
+                    />
+                    <RHFTextField
+                      type="number"
+                      name="settings.checkInOut.minutesAfterShiftEnd"
+                      label="Minutes after shift end"
+                      helperText="The number of minutes after a shift ends that the check out button will be available"
+                    />
+                  </Stack>
+                </Card>
+              </Grid>
+            </>
+          )
+        }
 
         {mdUp && (
           <Grid md={4}>

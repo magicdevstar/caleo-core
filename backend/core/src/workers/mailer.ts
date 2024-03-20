@@ -1788,6 +1788,165 @@ const sendEmail = async (input: MailerEvent) => {
         title,
         body,
       });
+    } else if (input.template === MailerEvents.OfficerShiftAutoCheckout) {
+      let {
+        shiftIds,
+        organization,
+      } = input.data;
+
+      const shifts = await context.shifts.collection.find({
+        _id: { $in: shiftIds.map((id: string) => new ObjectId(id)) },
+      }).toArray();
+
+      if (shifts.length === 0) {
+        logger.warn('No shifts found', { input });
+        return;
+      }
+
+      const assignments = await context.assignments.collection.find({
+        _id: { $in: uniq(shifts.map((s: any) => new ObjectId(s.assignmentId))) },
+      }).toArray();
+
+      if (assignments.length === 0) {
+        logger.warn('No assignments found', { input });
+        return;
+      }
+      const assignmentMap = assignments.reduce((obj, assignment) => {
+        return {
+          ...obj,
+          [assignment._id.toString()]: assignment,
+        };
+      }, {});
+
+      const userIds = uniq(shifts.map((s: any) => s.userId));
+      const users = await context.users.collection.find({
+        _id: { $in: userIds.map((id: string) => new ObjectId(id)) },
+      }).toArray();
+
+      if (users.length === 0) {
+        logger.warn('No users found', { input });
+        return;
+      }
+      const userMap = users.reduce((obj, user) => {
+        return {
+          ...obj,
+          [user._id.toString()]: user,
+        };
+      }, {});
+
+      const inAppPromises: Promise<any>[] = [];
+      for(const shift of shifts) {
+        const { date, time } = convertDate(shift.endTime as any, organization);
+        const user = userMap[shift.userId];
+        const assignment = assignmentMap[shift.assignmentId];
+        if (!user) {
+          logger.warn('User not found', { input, shift });
+          continue;
+        }
+        if (!assignment) {
+          logger.warn('Assignment not found', { input, shift });
+          continue;
+        }
+        if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+          Addresses = {
+            ...Addresses,
+            [user.member.contactInfo!.primaryEmail.address]: {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "shift.name": [assignment.name],
+                "system.metro_name": [organization.name],
+                "user.first_name": [user.firstName],
+                "shift.end_time": [`${date} ${time}`],
+              },
+            },
+          };
+        }
+
+        const { title, body } = InAppTemplates[input.template]({
+          shiftName: shift.name,
+          endTime: `${date} ${time}`,
+        });
+        inAppPromises.push(sendInAppNotification({
+          context,
+          userId: user._id.toString(),
+          templateName: input.template,
+          orgId: organization.id,
+          title,
+          body,
+          meta: {
+            eventId: new ObjectId(shift.eventId) as any,
+            shiftId: shift.shiftId,
+            assignmentId: new ObjectId(shift.assignmentId) as any,
+          }
+        }));
+      }
+      await Promise.all(inAppPromises);
+    } else if (input.template === MailerEvents.OfficerShiftCheckInOutEdited) {
+      let {
+        originalShift,
+        shift,
+        organization,
+      }: {
+        originalShift: Shift,
+        shift: Shift,
+        organization: Organization,
+      } = input.data as any;
+
+      const user = await context.users.get(shift.userId!);
+      if (!user) {
+        logger.warn('User not found', { input });
+        return;
+      }
+
+      const event = await context.events.get(shift.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, shift });
+        return;
+      }
+
+      const assignment = await context.assignments.get(shift.assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, shift });
+        return;
+      }
+
+      let oldOutTime;
+      let newOutTime;
+      let oldInTime;
+      let newInTime;
+
+      if (originalShift.shiftCheckInOut?.checkOutTime !== shift.shiftCheckInOut?.checkOutTime) {
+        oldOutTime = convertDate(originalShift.shiftCheckInOut?.checkOutTime as any, organization);
+        newOutTime = convertDate(shift.shiftCheckInOut?.checkOutTime as any, organization);
+      }
+
+      if (originalShift.shiftCheckInOut?.checkInTime !== shift.shiftCheckInOut?.checkInTime) {
+        oldInTime = convertDate(originalShift.shiftCheckInOut?.checkInTime as any, organization);
+        newInTime = convertDate(shift.shiftCheckInOut?.checkInTime as any, organization);
+      }
+      const { title, body } = InAppTemplates[input.template]({
+        eventName: event.name,
+        shiftName: assignment.name,
+        oldOutTime,
+        newOutTime,
+        oldInTime,
+        newInTime,
+        notes: shift.shiftCheckInOut?.adminNotes,
+      });
+
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+        meta: {
+          eventId: new ObjectId(shift.eventId) as any,
+          shiftId: shift.shiftId,
+          assignmentId: new ObjectId(shift.assignmentId) as any,
+        }
+      });
     }
 
     if (Object.keys(Addresses).length === 0) {

@@ -1,11 +1,13 @@
 import { format, setHours } from "date-fns";
+import merge from 'lodash.merge';
 import { Context } from "../../utils/createContext";
-import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from "../../__generated__/resolvers-types";
+import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { commonResolvers } from "../../utils/common.resolvers";
 import { ScheduleEvent } from "../../models/scheduler";
 import { dayMap } from "../../utils/dayMap";
 import { utcToZonedTime } from "date-fns-tz";
+import logger from "../../utils/logger";
 
 export const organization = {
   Query: {
@@ -25,21 +27,7 @@ export const organization = {
 
       const existingOrg = await organizations.get(user?.member.orgId || '');
 
-      const mergedOrg = {
-        ...existingOrg,
-        ...org,
-        contact: {
-          ...existingOrg?.contact,
-          ...(org.contact || {}),
-        },
-        settings: {
-          ...existingOrg?.settings,
-          ...(org.settings || {}),
-        },
-        features: {
-          ...existingOrg?.features,
-        }
-      };
+      const mergedOrg = merge(existingOrg, org);
 
       if (!mergedOrg.id && !mergedOrg.settings) {
         mergedOrg.settings = {
@@ -79,7 +67,7 @@ export const organization = {
         }
       };
 
-      const res = await organizations.upsert(mergedOrg as any);
+      const res = await organizations.update(mergedOrg as any, { skipMerge: true });
 
       await users.collection.updateMany({
         'member.orgId': mergedOrg.id,
@@ -139,6 +127,22 @@ export const organization = {
   fields: {
     Organization: {
       ...commonResolvers,
+    },
+    OrganizationOvertimeSettings: {
+      // Setting defaults for check in/out
+      checkInOut: ({ checkInOut }: any) => {
+        const {
+          minutesAfterShiftEnd = 60 * 6,
+          minutesBeforeShiftStart = 15
+        }: CheckInOutSetting = checkInOut || {
+          minutesAfterShiftEnd: 60 * 6,
+          minutesBeforeShiftStart: 15,
+        };
+        return {
+          minutesAfterShiftEnd,
+          minutesBeforeShiftStart,
+        };
+      },
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

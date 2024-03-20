@@ -12,6 +12,42 @@ export const REMOVE_SHIFTS = gql`
   }
 `;
 
+export const CHECK_IN = gql`
+  mutation CheckIn($input: ShiftCheckInOutEvent!) {
+    checkIn(input: $input) {
+      id
+      shiftCheckInOut {
+        checkInTime
+        checkOutTime
+      }
+    }
+  }
+`;
+
+export const EDIT_CHECK_IN_OUT = gql`
+  mutation EditCheckInOut($input: ShiftAdminCheckInOutEvent!) {
+    editCheckInOut(input: $input) {
+      id
+      shiftCheckInOut {
+        checkInTime
+        checkOutTime
+      }
+    }
+  }
+`;
+
+export const CHECK_OUT = gql`
+  mutation CheckOut($input: ShiftCheckInOutEvent!) {
+    checkOut(input: $input) {
+      id
+      shiftCheckInOut {
+        checkInTime
+        checkOutTime
+      }
+    }
+  }
+`;
+
 export const REMOVE_LOTTERY_SHIFT_REQUEST = gql`
   mutation RemoveLotteryShiftRequest($id: String!) {
     removeShiftLotteryRequest(id: $id)
@@ -256,6 +292,10 @@ export const GET_ALL_SHIFTS = gql`
         endTime
         status
         refNumber
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+        }
         event {
           id
           referenceId
@@ -412,6 +452,28 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         startTime
         endTime
         status
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+          checkInCoords {
+            accuracy
+            altitude
+            altitudeAccuracy
+            heading
+            latitude
+            longitude
+            speed
+          }
+          checkOutCoords {
+            accuracy
+            altitude
+            altitudeAccuracy
+            heading
+            latitude
+            longitude
+            speed
+          }
+        }
         createdBy {
           id
           member {
@@ -466,6 +528,32 @@ export const GET_GROUPED_SHIFTS = gql`
       status
       locked
       userId
+
+      shiftCheckInOut {
+        checkInTime
+        checkOutTime
+        checkInNote
+        checkOutNote
+        adminNotes
+        checkInCoords {
+          accuracy
+          altitude
+          altitudeAccuracy
+          heading
+          latitude
+          longitude
+          speed
+        }
+        checkOutCoords {
+          accuracy
+          altitude
+          altitudeAccuracy
+          heading
+          latitude
+          longitude
+          speed
+        }
+      }
 
       assignment {
         id

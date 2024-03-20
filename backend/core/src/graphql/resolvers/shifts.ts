@@ -3,7 +3,6 @@ import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   addDays,
-  format,
   setMilliseconds,
   setSeconds,
 } from "date-fns";
@@ -13,8 +12,11 @@ import {
   AvailableShiftsSearchInput,
   EventStatus,
   MemberRole,
-  MemberTier,
   Shift,
+  ShiftAdminCheckInOutEvent,
+  ShiftCheckInOut,
+  ShiftCheckInOutCoordinates,
+  ShiftCheckInOutEvent,
   ShiftSearchInput,
   ShiftStatus,
   UpsertShift,
@@ -23,7 +25,6 @@ import {
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
-import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import {
   NotificationType,
   ShiftNotificationAction,
@@ -111,6 +112,127 @@ export const shift = {
     }
   },
   Mutation: {
+    editCheckInOut: async (
+      _parent: unknown,
+      {
+        input: {
+          id,
+          checkInTime,
+          checkOutTime,
+          adminNotes,
+        }
+      }: {
+        input: {
+          id: string,
+          checkInTime?: string,
+          checkOutTime?: string,
+          adminNotes?: string,
+        }
+      },
+      { shifts, user, organization }: Context
+    ): Promise<Shift> => {
+      adminOnly(user);
+      const shift = await shifts.get(id);
+      if (!shift) {
+        throw new GraphQLError("Shift not found");
+      }
+
+      await shifts.editCheckInOut({
+        id,
+        checkInTime,
+        checkOutTime,
+        adminNotes,
+      });
+      const response = await shifts.get(id);
+
+      // Send mailer event
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerShiftCheckInOutEdited,
+          data: {
+            originalShift: shift,
+            shift: response!,
+            organization,
+          }
+        } as MailerEvent),
+      }));
+
+      return response!;
+    },
+    checkIn: async (
+      _parent: unknown,
+      {
+        input: {
+          id,
+          coords,
+          time,
+          note,
+          adminNotes,
+        }
+      }: { input: ShiftCheckInOutEvent },
+      { shifts, user }: Context
+    ): Promise<Shift> => {
+      const shift = await shifts.get(id);
+      if (!shift) {
+        throw new GraphQLError("Shift not found");
+      }
+      adminOrOwnerOnly(shift.userId!, user);
+      let finalTime: string | undefined;
+      let finalAdminNote: string | undefined;
+      let checkInNote: string | undefined = note || undefined;
+      if (userIsAdmin(user)) {
+        finalTime = time || undefined;
+        finalAdminNote = adminNotes || undefined;
+      }
+
+      await shifts.checkIn({
+        id,
+        coords: coords || undefined,
+        time: finalTime,
+        checkInNote,
+        adminNotes: finalAdminNote,
+      });
+
+      return (await shifts.get(id))!;
+    },
+    checkOut: async (
+      _parent: unknown,
+      {
+        input: {
+          id,
+          coords,
+          time,
+          note,
+          adminNotes,
+        }
+      }: { input: ShiftCheckInOutEvent },
+      { shifts, user }: Context
+    ): Promise<Shift> => {
+      const shift = await shifts.get(id);
+      if (!shift) {
+        throw new GraphQLError("Shift not found");
+      }
+      adminOrOwnerOnly(shift.userId!, user);
+      let finalTime: string | undefined;
+      let finalAdminNote: string | undefined;
+      let checkOutNote: string | undefined = note || undefined;
+      if (userIsAdmin(user)) {
+        finalTime = time || undefined;
+        finalAdminNote = adminNotes || undefined;
+      }
+      await shifts.checkOut({
+        id,
+        coords: coords || undefined,
+        time: finalTime,
+        checkOutNote,
+        adminNotes: finalAdminNote,
+      });
+
+      return (await shifts.get(id))!;
+    },
     notifyUsersOfShift: async (
       _parent: unknown,
       { shiftId }: { shiftId: string },
@@ -507,5 +629,9 @@ export const shift = {
         { shifts }: Context
       ) => shifts.loadOtherShiftSlots.load(shift.shiftId),
     },
+    ShiftCheckInOut: {
+      checkInTime: (item: ShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
+      checkOutTime: (item: ShiftCheckInOut) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
+    }
   },
 };

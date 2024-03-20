@@ -18,9 +18,14 @@ query ORGANIZATION {
     features {
       lottery
       venueContractDates
+      eventCheckIn
     }
     settings {
       shiftsPerWeek
+      checkInOut {
+        minutesBeforeShiftStart
+        minutesAfterShiftEnd
+      }
       lottery {
         open {
           time

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { capitalize } from 'lodash';
 import PhoneNumberFormatter from 'phone-number-formats';
 import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
@@ -10,9 +11,14 @@ import GQLTable from "src/components/table/gql/table";
 import { TableConfig } from "src/components/table/table-config";
 import { client } from "src/utils/apollo";
 import { paths } from 'src/routes/paths';
-
+import { useAuthContext } from 'src/auth/hooks';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 
 export default function DynamicShiftFilter() {
+  const { user } = useAuthContext();
+  const editCheckInOutModal = useBoolean();
+  const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const shiftHasBeenRemoved = (shift: Shift) =>
     shift.event?.removedAt ||
     shift.assignment?.removedAt ||
@@ -47,7 +53,7 @@ export default function DynamicShiftFilter() {
         label: 'Shift Ref #',
         columnType: 'string',
         width: 150,
-        getHref: (row) =>
+        getHref: (row: any) =>
           shiftHasBeenRemoved(row)
             ? ''
             : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
@@ -60,7 +66,7 @@ export default function DynamicShiftFilter() {
         label: 'Start',
         columnType: 'date',
         width: 10,
-        getHref: (row) =>
+        getHref: (row: any) =>
           shiftHasBeenRemoved(row)
             ? ''
             : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
@@ -73,7 +79,7 @@ export default function DynamicShiftFilter() {
         label: 'End',
         columnType: 'date',
         width: 10,
-        getHref: (row) =>
+        getHref: (row: any) =>
           shiftHasBeenRemoved(row)
             ? ''
             : paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
@@ -116,8 +122,8 @@ export default function DynamicShiftFilter() {
         id: 'status',
         label: 'Status',
         columnType: 'string',
-        renderValue: (shiftStatus) => capitalize(shiftStatus),
-        getLabelColor: (row) => {
+        renderValue: (shiftStatus: any) => capitalize(shiftStatus),
+        getLabelColor: (row: any) => {
           switch(row.status) {
             case ShiftStatus.Assigned:
               return 'success';
@@ -141,7 +147,7 @@ export default function DynamicShiftFilter() {
         columnType: 'string',
         width: 100,
         noSort: true,
-        renderValue(_value, _index, row) {
+        renderValue(_value: any, _index: any, row: any) {
           if (row.user) {
             let phoneNumber = row.user?.member?.contactInfo?.primaryPhone?.number;
             try {
@@ -157,11 +163,25 @@ export default function DynamicShiftFilter() {
       {
         id: 'createdBy.member.pNumber',
         label: 'Created By',
-        width: 100,
+        width: 150,
         columnType: 'string',
         noSort: true,
-      }
+      },
+      ...(user.member.org?.features?.eventCheckIn ? [{ id: '', width: '5%', columnType: 'action', label: '' }] : []) as any,
     ],
+    ...(user.member.org?.features?.eventCheckIn ? {
+      rowActions: [
+        {
+          getName: () => 'View Check In/Out',
+          getDisabled: (row: Shift) => !row.shiftCheckInOut,
+          getIcon: () => 'solar:stopwatch-bold-duotone',
+          onClick: (row: Shift) => {
+            setEditCheckInOut(row);
+            editCheckInOutModal.onTrue();
+          },
+        }
+      ]
+    } : {}),
     filters: [
       {
         id: 'includeRemoved',
@@ -373,5 +393,19 @@ export default function DynamicShiftFilter() {
     ]
   };
 
-  return <GQLTable config={config} />
+  return (
+    <>
+      <GQLTable config={config} />
+      <EditCheckInOut
+        shift={editCheckInOut!}
+        editCheckInOutModal={editCheckInOutModal}
+        handleClose={() => {
+          editCheckInOutModal.onFalse();
+          setTimeout(() => {
+            setEditCheckInOut(null);
+          }, 200);
+        }}
+      />
+    </>
+  )
 }

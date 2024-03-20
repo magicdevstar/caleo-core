@@ -166,4 +166,23 @@ export const InAppTemplates = {
     title: 'Shift Secured',
     body: `You have been assigned to ${shiftName} for ${eventName} at ${venueName}.`,
   }),
+  [MailerEvents.OfficerShiftAutoCheckout]: ({
+    shiftName,
+    endTime,
+  }) => ({
+    title: 'You have been checked out of your shift',
+    body: `You have been automatically checked out of shift ${shiftName} because this event ended at ${endTime}.`,
+  }),
+  [MailerEvents.OfficerShiftCheckInOutEdited]: ({
+    eventName,
+    shiftName,
+    oldOutTime,
+    newOutTime,
+    oldInTime,
+    newInTime,
+    notes,
+  }) => ({
+    title: `${eventName} - ${shiftName} check in/out time has been updated!`,
+    body: `${oldInTime ? `Check in changed from ${oldInTime.date} ${oldInTime.time} to ${newInTime.date} ${newInTime.time}. ` : ''}${oldOutTime ? `Check out changed from ${oldOutTime.date} ${oldOutTime.time} to ${newOutTime.date} ${newOutTime.time}.` : ''} ${notes ? `Note: ${notes}` : ''}`,
+  }),
 };

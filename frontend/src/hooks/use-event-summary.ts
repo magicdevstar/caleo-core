@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import prettyMilliseconds from 'pretty-ms';
 import { useSnackbar } from "notistack";
 import { useAuthContext } from "src/auth/hooks";
 import { client } from "src/utils/apollo";
@@ -43,26 +44,41 @@ export const useEventSummary = () => {
         ];
       }, []);
 
-      const formattedJson = shifts.map((shift: Shift) => ({
-        'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
-        'Event Ref. #': shift.event.referenceId,
-        'Event Name': shift.event.name,
-        'Venue Name': shift.event.venue?.name || '',
-        'Event Start Date': shift.event.startTime ? convertDate({date: event.startTime, user}).format(dateFormat) : '',
-        'Event End Date': shift.event.endTime ? convertDate({date: event.endTime, user}).format(dateFormat) : '',
-        'Assignment Name': shift.assignment.name,
-        'Shift Start': shift.startTime ? convertDate({date: shift.startTime, user}).format(dateTimeFormat) : '',
-        'Shift End': shift.endTime ? convertDate({date: shift.endTime, user}).format(dateTimeFormat) : '',
-        'Status': shift.status,
-        'Required Skills': (shift.assignment.requiredSkills || [])?.map(({ name }: any) => name).join(','),
-        'Ranks': (shift.assignment.ranks || [])?.map(({ name }: any) => name).join(','),
-        'Equipment Needed': shift.assignment.bwNeeded ? 'yes' : 'no',
-        'Assignee Officer P#': shift.user?.member?.pNumber || '',
-        'Assignee Officer First Name': shift.user?.firstName || '',
-        'Assignee Officer Last Name': shift.user?.lastName || '',
-        'Assignee Primary Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
-        'Assignee Officer Primary Email Address': shift.user?.member?.contactInfo?.primaryEmail?.address || '',
-      }));
+      const formattedJson = shifts.map((shift: Shift) => {
+        const checkInData: any = {};
+        if (user.member.org?.features?.eventCheckIn) {
+          const checkInTime = shift.shiftCheckInOut?.checkInTime ? convertDate({date: shift.shiftCheckInOut?.checkInTime, user}) : undefined;
+          const checkOutTime = shift.shiftCheckInOut?.checkOutTime ? convertDate({date: shift.shiftCheckInOut?.checkOutTime, user}) : undefined;
+          checkInData['Shift check in time'] = checkInTime ? checkInTime.format(dateTimeFormat) : '-';
+          checkInData['Shift check out time'] = checkOutTime ? checkOutTime.format(dateTimeFormat) : '-';
+          checkInData['Shift duration'] = checkOutTime && checkInTime ? prettyMilliseconds(checkOutTime.diff(checkInTime, 'milliseconds')) : '-';
+
+          checkInData['Shift check in lat'] = shift.shiftCheckInOut?.checkInCoords?.latitude ? shift.shiftCheckInOut?.checkInCoords?.latitude : '-';
+          checkInData['Shift check in long'] = shift.shiftCheckInOut?.checkInCoords?.longitude ? shift.shiftCheckInOut?.checkInCoords?.longitude : '-';
+        }
+
+        return {
+          'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
+          'Event Ref. #': shift.event.referenceId,
+          'Event Name': shift.event.name,
+          'Venue Name': shift.event.venue?.name || '',
+          'Event Start Date': shift.event.startTime ? convertDate({date: event.startTime, user}).format(dateFormat) : '',
+          'Event End Date': shift.event.endTime ? convertDate({date: event.endTime, user}).format(dateFormat) : '',
+          'Assignment Name': shift.assignment.name,
+          'Shift Start': shift.startTime ? convertDate({date: shift.startTime, user}).format(dateTimeFormat) : '',
+          'Shift End': shift.endTime ? convertDate({date: shift.endTime, user}).format(dateTimeFormat) : '',
+          'Status': shift.status,
+          'Required Skills': (shift.assignment.requiredSkills || [])?.map(({ name }: any) => name).join(','),
+          'Ranks': (shift.assignment.ranks || [])?.map(({ name }: any) => name).join(','),
+          'Equipment Needed': shift.assignment.bwNeeded ? 'yes' : 'no',
+          'Assignee Officer P#': shift.user?.member?.pNumber || '',
+          'Assignee Officer First Name': shift.user?.firstName || '',
+          'Assignee Officer Last Name': shift.user?.lastName || '',
+          'Assignee Primary Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
+          'Assignee Officer Primary Email Address': shift.user?.member?.contactInfo?.primaryEmail?.address || '',
+          ...checkInData,
+        };
+      });
       download(formattedJson);
     } catch(error) {
       enqueueSnackbar('Error creating report', { variant: 'error', autoHideDuration: 3000 });

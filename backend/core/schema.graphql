@@ -497,6 +497,26 @@
     modifiedBy: User
   }
 
+  type ShiftCheckInOutCoordinates {
+    accuracy: Float
+    altitude: Float
+    altitudeAccuracy: Float
+    heading: Float
+    latitude: Float!
+    longitude: Float!
+    speed: Float
+  }
+
+  type ShiftCheckInOut {
+    checkInTime: String
+    checkInNote: String
+    checkInCoords: ShiftCheckInOutCoordinates
+    checkOutTime: String
+    checkOutNote: String
+    checkOutCoords: ShiftCheckInOutCoordinates
+    adminNotes: String
+  }
+
   type Shift {
     id: ID!
     shiftId: String!
@@ -518,6 +538,7 @@
     modifiedById: String
     availability: ShiftAvailabilityTime
     notificationId: String
+    shiftCheckInOut: ShiftCheckInOut
 
     # This will be included when searching for shifts
     shiftBufferShift: Shift
@@ -531,6 +552,31 @@
     org: Organization!
     createdBy: User
     modifiedBy: User
+  }
+
+  input ShiftCheckInOutEvent {
+    id: String!
+    time: String,
+    coords: CheckInOutCoordinates
+    note: String
+    adminNotes: String
+  }
+
+  input ShiftAdminCheckInOutEvent {
+    id: String!
+    checkInTime: String
+    checkOutTime: String
+    adminNotes: String
+  }
+
+  input CheckInOutCoordinates {
+    accuracy: Float
+    altitude: Float
+    altitudeAccuracy: Float
+    heading: Float
+    latitude: Float!
+    longitude: Float!
+    speed: Float
   }
 
   input UpsertEvent {
@@ -807,6 +853,7 @@
   type OrganizationFeatures {
     lottery: Boolean!
     venueContractDates: Boolean!
+    eventCheckIn: Boolean!
   }
 
   type OrganizationOvertimeSettings {
@@ -815,6 +862,12 @@
     shiftBuffer: ShiftBuffer!
     userRelinquishShift: UserRelinquishShift!
     shiftReminder: ShiftReminder!
+    checkInOut: CheckInOutSetting
+  }
+
+  type CheckInOutSetting {
+    minutesBeforeShiftStart: Int!
+    minutesAfterShiftEnd: Int!
   }
 
   type UserRelinquishShift {
@@ -886,6 +939,12 @@
     shiftBuffer: UpsertShiftBuffer!
     userRelinquishShift: UpsertUserRelinquishShift!
     shiftReminder: UpsertShiftReminder!
+    checkInOut: UpsertCheckInOutSetting
+  }
+
+  input UpsertCheckInOutSetting {
+    minutesBeforeShiftStart: Int!
+    minutesAfterShiftEnd: Int!
   }
 
   input UpsertUserRelinquishShift {
@@ -1358,6 +1417,9 @@ type Mutation {
   removeShiftLotteryRequest(id: String): ID!
   notifyUsersOfShift(shiftId: String!): Boolean
   removeShiftBufferRequest(id: String!): ID!
+  checkIn(input: ShiftCheckInOutEvent!): Shift!
+  checkOut(input: ShiftCheckInOutEvent!): Shift!
+  editCheckInOut(input: ShiftAdminCheckInOutEvent!): Shift!
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

@@ -208,7 +208,6 @@ export default function GQLTableRow({
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-        sx={{ width: 140 }}
       >
         {config.rowActions.map((action) => (
           !(action.getHidden?.(row) || false) &&

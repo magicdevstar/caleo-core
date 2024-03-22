@@ -353,7 +353,11 @@ export class ShiftModel extends BaseModel<Shift> {
     orgId: string;
     shiftBufferTime?: number;
   }) {
-    const res = {
+    const res: {
+      canSignUpForShift: boolean;
+      requiresShiftBuffer: boolean;
+      shiftBuffer?: Shift;
+    } = {
       canSignUpForShift: false,
       requiresShiftBuffer: false,
     }
@@ -447,19 +451,14 @@ export class ShiftModel extends BaseModel<Shift> {
       foundOverlap &&
       !(
         (foundOverlap.startTime > shift.startTime && foundOverlap.startTime < shift.endTime) ||
-        (foundOverlap.endTime > shift.startTime && foundOverlap.endTime < shift.endTime + 1)
+        (foundOverlap.endTime > shift.startTime && foundOverlap.endTime < shift.endTime + 1) ||
+        (foundOverlap.startTime === shift.startTime && foundOverlap.endTime === shift.endTime)
       )
     ) {
       res.requiresShiftBuffer = true;
+      foundOverlap.id = foundOverlap._id.toString();
+      res.shiftBuffer = foundOverlap as any;
     }
-
-    logger.info('Found overlap', {
-      foundOverlap,
-      shift,
-      bufferOffset,
-      query,
-      res,
-    });
 
     return res;
   }

@@ -15,6 +15,7 @@ import {
   Organization,
   ProfilePhotoAttachmentUpload,
   Shift,
+  ShiftBufferRequest,
   ShiftBufferRequestStatus,
   ShiftStatus,
   User
@@ -95,46 +96,22 @@ export class UserModel extends BaseModel<User> {
     }
   }
 
-  async findOpenShifts({
+  async availableShifts({
     user,
-    // Specific shift to filter for
-    shiftId,
-    // Specific group to filter for
-    shiftGroupId,
-    limit,
-    skip,
-    orgId,
     organization,
-    defaultEventIds,
     upcoming,
     eventTypes = [EventStatus.FirstComeFirstServe],
   }: {
     user: User;
     organization: Organization;
-    shiftId?: string;
-    shiftGroupId?: string;
     upcoming?: boolean;
-    limit: number;
-    skip: number;
-    orgId: string;
     eventTypes?: EventStatus[];
-    defaultEventIds?: string[];
   }) {
-    let skillIds: string[] = [];
-    if ((user.member.memberSkillIds || []).length > 0) {
-      const skillList = await this.memberSkillsCollection.find({
-        orgId,
-        _id: {
-          $in: (user.member.memberSkillIds || []).map((id) => new ObjectId(id as string)),
-        },
-        removedAt: { $exists: false },
-      }).toArray();
-      skillIds = skillList.map(({ skillId }) => skillId);
-    }
-
-    let eventQuery: any = {
-      orgId,
-      status: EventStatus.FirstComeFirstServe,
+    let query: any = {
+      orgId: organization.id,
+      status: {
+        $in: eventTypes
+      },
       endTime: {
         $gte: Date.now(),
       },
@@ -145,20 +122,20 @@ export class UserModel extends BaseModel<User> {
       ],
     };
     if (eventTypes && eventTypes.length === 1 && eventTypes[0] === EventStatus.ReadyForLottery) {
-      const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
-      eventQuery = {
-        orgId,
+      const lotteryCounterDoc = await this.lotteryCounter.get(organization.id);
+      query = {
+        orgId: organization.id,
         status: EventStatus.ReadyForLottery,
         lotteryNumber: lotteryCounterDoc.counter,
       };
     } else if (upcoming) {
-      const lotteryCounterDoc = await this.lotteryCounter.get(orgId);
+      const lotteryCounterDoc = await this.lotteryCounter.get(organization.id);
       let key = '$gte';
       if ((lotteryCounterDoc.start as any) < Date.now()) {
         key = '$gt';
       }
-      eventQuery = {
-        orgId,
+      query = {
+        orgId: organization.id,
         $or: [
           {
             status: EventStatus.FirstComeFirstServe,
@@ -180,214 +157,162 @@ export class UserModel extends BaseModel<User> {
       };
     }
 
-    // Find first come first serve events
-    const {
-      items: eventList,
-    } = await this.events.search(eventQuery);
-    const eventIds = defaultEventIds || eventList.map(({ id }) => id);
-    logger.info('Event ids', { eventIds, eventQuery });
+    // Find all open events
+    const events = await this.events.search(query);
 
-    // Find assignments that are attached to those events
-    const assignmentSearch = {
-      eventId: {
-        $in: eventIds,
-      },
-      rankIds: {
-        $in: [user.member.rankId],
-      },
-    };
-    const {items: assignmentList} = await this.assignments.search(assignmentSearch);
-
-    // Filter assignments that are not compatible with the user
-    const assignmentIds = assignmentList.filter(({ requiredSkillIds }) => {
-      if (!Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0) {
-        return true;
-      }
-      const hasRequiredSkills = (requiredSkillIds || [])?.reduce((hasAllSkills, skillId) => {
-        if (!(skillIds.includes(skillId as string))) {
-          return false;
-        }
-        return hasAllSkills;
-      }, true);
-      return hasRequiredSkills;
-    }).map(({ id }) => id);
-
-    // Filter shifts already assigned to me
-    const maxEndTime = Date.now();
-    const myShifts = (await this.shifts.collection.find({
-      orgId: organization.id,
-      userId: user.id,
-      endTime: {
-        $gte: maxEndTime,
-      },
-      removedAt: { $exists: false },
-    }).toArray() as any[]) as Shift[];
-    const shiftRanges = myShifts.map(({ startTime, endTime }) => ({
-      startTime,
-      endTime,
-    }));
-    const shiftIds = myShifts.map(({ shiftId }) => shiftId);
-    // Filter shifts that I have submitted a request for
-    const myShiftBufferRequests = await this.shiftBufferRequests.collection.find({
-      userId: user.id,
-      status: ShiftBufferRequestStatus.Pending,
-      endTime: {
-        $gte: maxEndTime,
-      },
-      removedAt: { $exists: false },
-    }).toArray();
-    shiftIds.push(...myShiftBufferRequests.map(({ shiftGroupId }) => shiftGroupId));
-
-    const availability = Object.keys(user.member.availability).reduce((acc, day) => {
-      const { available, times } = user.member.availability[day] as DayAvailability;
-      if (!available) {
-        return [
-          ...acc,
-          {[`availability.${day}.startTime`]: {$exists: false}},
-        ];
-      }
-
-      const overlap = (times || []).map(({ startTime, endTime }) => {
-        const originalStartTime = new Date(startTime);
-        const originalEndTime = new Date(endTime);
-
-        const start = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalStartTime)), getMinutes(originalStartTime)), 0), 0);
-        const end = setSeconds(setMilliseconds(setMinutes(setHours(new Date(0), getHours(originalEndTime)), getMinutes(originalEndTime)), 999), 59);
-
-        return {
-          $and: [
-            {
-              $or: [
-                {[`availability.${day}.startTime`]: {$exists: false}},
-                {[`availability.${day}.startTime`]: {$gte: start}},
-              ],
-            },
-            {
-              $or: [
-                {[`availability.${day}.endTime`]: {$exists: false}},
-                {[`availability.${day}.endTime`]: {$lte: end}},
-              ],
-            },
-          ]
-        };
-      });
-
-      return [
-        ...acc,
-        ...(overlap.length > 0 ? [{$or: overlap}] : []),
-      ];
-    }, [] as any);
-
-    const $and: any[] = [];
-    if (availability.length > 0) {
-      $and.push(...availability);
-    }
-    if (shiftRanges.length > 0) {
-      $and.push(...shiftRanges.map(({ startTime, endTime }) => ({
-        $or: [
-          { startTime: { $gte: endTime } },
-          { endTime: { $lte: startTime } },
-        ],
-      })));
+    if (events.total === 0) {
+      return {
+        total: 0,
+        items: [],
+      };
     }
 
-    // Empty user or unlocked shifts
-    $and.push(
-      {
-        $or: [
-          { userId: null },
-          { userId: { $exists: false } },
-        ],
-      },
-      {
-        $or: [
-          { locked: false },
-          { locked: { $exists: false } },
-        ],
-      }
-    )
+    logger.info('Events', { events, query });
 
+    // Find all open shifts joined with their assignments
     const pipeline = [
-      // Select only shift docs that are attached to compatible open assignments and are unassigned
       {
         $match: {
-          endTime: { $gte: maxEndTime },
-          ...(shiftId ? { _id: new ObjectId(shiftId) } : {}),
-          shiftId: {
-            ...(shiftGroupId ? { $in: [shiftGroupId] } : {}),
-            $nin: shiftIds,
+          eventId: {
+            $in: events.items.map(({ id }) => id),
           },
-          assignmentId: {
-            $in: assignmentIds,
-          },
-          removedAt: { $exists: false },
-          // Handles shift ranges and user availability
-          ...($and.length > 0 ? { $and } : {}),
+          status: ShiftStatus.Available,
         },
       },
-      // Group by shiftId
       {
         $group: {
           _id: '$shiftId',
-          shifts: { $push: '$$ROOT' },
+          shift: { $push: "$$ROOT" }
         }
+      },
+      {
+        $addFields: {
+          shift: {
+            $first: "$shift"
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shift",
+        },
+      },
+      {
+        $addFields: {
+          assignmentId: {
+            $toObjectId: "$assignmentId",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "assignments",
+          localField: "assignmentId",
+          foreignField: "_id",
+          as: "assignment",
+        },
+      },
+      {
+        $addFields: {
+          assignment: {
+            $first: "$assignment",
+          },
+        },
       },
     ];
-
-    logger.info('Pipeline', { pipeline });
-
-    const res = await this.shifts.aggregate<{
-      _id: ObjectId;
-      shifts: Shift[];
-    }>([
-      ...pipeline,
-      // Skip results
-      {
-        $skip: skip,
-      },
-      // Limit results
-      {
-        $limit: limit,
-      }
-    ]);
-
-    logger.info('Shift Res', { res, myShifts });
-
-    const enabledShiftBuffer = organization?.settings?.shiftBuffer?.enabled;
-    const minuteBuffer = organization?.settings?.shiftBuffer?.minuteShiftBuffer;
-    const firstShifts = res.map(({ shifts }) => {
-      const {_id, ...shift} = shifts[0] as any;
-
-      // Check if the shift should be a shiftBuffer
-      let shiftBufferShift;
-      if (enabledShiftBuffer && typeof minuteBuffer === 'number') {
-        shiftBufferShift = myShifts.find((existingShift: Shift) => {
-          const newStart = (existingShift.startTime as any) - (1000 * 60 * minuteBuffer);
-          const newEnd = (existingShift.endTime as any) + (1000 * 60 * minuteBuffer);
-          if (
-            (shift.endTime >= newStart && shift.startTime <= newStart) ||
-            (shift.endTime >= newEnd && shift.startTime <= newEnd)
-          ) {
-            return existingShift;
-          }
-        });
-        if (shiftBufferShift) {
-          shiftBufferShift.id = shiftBufferShift._id || shiftBufferShift.id;
-          delete shiftBufferShift._id;
-        }
-      }
-
+    const shifts = await this.shifts.aggregate<Shift>(pipeline);
+    if (shifts.length === 0) {
       return {
-        id: _id.toString(),
-        ...shift,
-        shiftBufferShift,
+        total: 0,
+        items: [],
       };
+    }
+
+    logger.info('Available Shifts', { shifts, pipeline });
+
+    // Fetch member skills
+    let skillIds: string[] = [];
+    if ((user.member.memberSkillIds || []).length > 0) {
+      const skillList = await this.memberSkillsCollection.find({
+        orgId: organization.id,
+        _id: {
+          $in: (user.member.memberSkillIds || []).map((id) => new ObjectId(id as string)),
+        },
+        removedAt: { $exists: false },
+      }).toArray();
+      skillIds = skillList.map(({ skillId }) => skillId);
+    }
+
+    logger.info('Skills Ids', { skillIds });
+
+    // Filter shifts that the user does not have a proper rank and skill for
+    const filteredShifts = shifts.filter((shift) => {
+      const { requiredSkillIds, rankIds } = shift.assignment;
+      const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!);
+      let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
+      if (!hasQualifiedRank) {
+        hasQualifiedSkills = (requiredSkillIds || [])?.reduce((hasAllSkills, skillId) => {
+          if (!(skillIds.includes(skillId as string))) {
+            return false;
+          }
+          return hasAllSkills;
+        }, true);
+      }
+      return hasQualifiedRank && hasQualifiedSkills;
     });
 
+    if (filteredShifts.length === 0) {
+      return {
+        total: 0,
+        items: [],
+      };
+    }
+
+    logger.info('Filtered Skills', { filteredShifts });
+
+    const myShiftBuffers = await this.shiftBufferRequests.collection.find<ShiftBufferRequest>({
+      userId: user.id,
+      status: ShiftBufferRequestStatus.Pending,
+    }).toArray();
+    
+    const onlyAvailableShifts: Shift[] = [];
+    const now = Date.now();
+    for(const shift of filteredShifts) {
+      const foundShiftBufferRequest = myShiftBuffers.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
+      if (foundShiftBufferRequest) {
+        continue;
+      }
+      const hasMaxShifts = await this.hasMaxShifts({
+        user,
+        shift,
+        organization,
+      });
+      if (hasMaxShifts) {
+        continue;
+      }
+      const res = await this.shifts.canSignUpForShift({
+        shift,
+        user,
+        orgId: organization.id,
+        shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
+      });
+      shift.shiftBufferShift = res.shiftBuffer;
+      if ((res.canSignUpForShift || res.requiresShiftBuffer) && (shift.endTime as any) >= now) {
+        onlyAvailableShifts.push(shift);
+      }
+    }
+
+    const sorted = onlyAvailableShifts.sort((a: any, b: any) => a.startTime - b.startTime);
+    logger.info('Only available', { onlyAvailableShifts, sorted });
+
     return {
-      total: firstShifts.length,
-      items: firstShifts.sort((a, b) => a.startTime - b.startTime)
-    };
+      total: sorted.length,
+      items: sorted.map(({ _id, assignmentId, ...rest }: any) => ({
+        id: _id.toString(),
+        assignmentId: assignmentId.toString(),
+        ...rest,
+      })),
+    }
   }
 
   async hasMaxShifts({

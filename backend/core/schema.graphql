@@ -324,6 +324,9 @@
     DRAFT
     # Event that assigned to a lottery run
     READY_FOR_LOTTERY
+    # Event is going to allow users to express interest for the event shifts
+    # and will be assigned manually by the admin
+    INTEREST_LIST
     # Event where shifts are available to sign up for whenever
     FIRST_COME_FIRST_SERVE
     # Event has removedAt set

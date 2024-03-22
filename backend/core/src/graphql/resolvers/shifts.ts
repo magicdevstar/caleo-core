@@ -43,12 +43,9 @@ export const shift = {
       { input: {limit, skip, upcoming } }: {input: AvailableShiftsSearchInput},
       { users, user, organization }: Context
     ): Promise<SearchResults<Shift>> =>
-      users.findOpenShifts({
+      users.availableShifts({
         user: user!,
         organization: organization!,
-        orgId: user?.member.orgId!,
-        limit: limit || 10,
-        skip: skip || 0,
         upcoming: !!upcoming,
       }),
     shift: async (
@@ -73,12 +70,10 @@ export const shift = {
       _parent: unknown,
       _: unknown,
       { users, user, organization }: Context
-    ): Promise<SearchResults<Shift>> => users.findOpenShifts({
+    ): Promise<SearchResults<Shift>> => users.availableShifts({
       user: user!,
       organization: organization!,
-      orgId: user?.member.orgId!,
-      limit: 100000,
-      skip: 0,
+      upcoming: false,
       eventTypes: [EventStatus.ReadyForLottery],
     }),
     shifts: async (

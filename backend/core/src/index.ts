@@ -30,6 +30,9 @@ export const handler = startServerAndCreateLambdaHandler(
     context: async ({ event, context }): Promise<Context> => {
       try {
         logger.addContext(context);
+        logger.setPersistentLogAttributes({
+          apiGatewayRequestId: event.requestContext.requestId,
+        });
         const classContext = await createContext();
         classContext.user = event.requestContext?.authorizer?.lambda?.user;
         classContext.lambdaEvent = event;

@@ -17,7 +17,7 @@ import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useResponsive } from 'src/hooks/use-responsive';
 // types
-import Label, { LabelVariant } from 'src/components/label';
+import Label, { LabelColor, LabelVariant } from 'src/components/label';
 import { EventStatus, Shift, ShiftBufferRequest } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { DayMap } from 'src/types/day';
@@ -107,7 +107,8 @@ export default function OvertimeShifts() {
   const {
     currentShifts,
     loading: currentShiftsLoading,
-    total: totalCurrentShifts,
+    shiftTotals,
+    visited,
   } = useCurrentShifts({
     type: currentTab,
     ...filters,
@@ -306,7 +307,7 @@ export default function OvertimeShifts() {
           <ShiftItems
             emptyMessage={`No ${capitalize(currentTab.toLowerCase())} Shifts`}
             compact={mdDown}
-            total={totalCurrentShifts || 0}
+            total={shiftTotals[currentTab]}
             pageSize={table.rowsPerPage}
             setPage={(page: number) => {
               table.onChangePage(null, page - 1);
@@ -355,7 +356,7 @@ export default function OvertimeShifts() {
     mdDown,
     shiftView,
     table,
-    totalCurrentShifts,
+    shiftTotals,
     user?.member?.org?.timezone,
     user?.member?.org?.weekBegins,
     getShiftColor,
@@ -379,22 +380,37 @@ export default function OvertimeShifts() {
               justifyContent: { xs: 'space-between', sm: 'initial' },
             }}
           >
-            {Object.keys(CurrentShiftType).map((tab) => (
-              <Tab
-                key={tab}
-                iconPosition="end"
-                value={tab.toUpperCase()}
-                label={tab === 'Secured' ? 'Past' : tab}
-                icon={
-                  currentTab !== tab.toUpperCase() || currentShiftsLoading ? (
-                    <Label sx={{ width: 24 }}>-</Label>
-                  ) : (
-                    <Label color="info">{totalCurrentShifts}</Label>
-                  )
-                }
-                sx={{ mr: '4px !important', px: 1 }}
-              />
-            ))}
+            {Object.keys(CurrentShiftType).map((tab) => {
+              let color: LabelColor = 'info';
+              switch(tab.toUpperCase()) {
+                case CurrentShiftType.Assigned:
+                  color = 'primary';
+                  break;
+                case CurrentShiftType.Secured:
+                  color = 'warning';
+                  break;
+                case CurrentShiftType.Upcoming:
+                  color = 'success';
+                  break;
+                default:
+                  color = 'info';
+                  break;
+              }
+              return (
+                <Tab
+                  key={tab}
+                  iconPosition="end"
+                  value={tab.toUpperCase()}
+                  label={tab === 'Secured' ? 'Past' : tab}
+                  icon={
+                    visited[tab.toUpperCase() as CurrentShiftType] ?
+                      (<Label color={color}>{shiftTotals[tab.toUpperCase() as CurrentShiftType]}</Label>) :
+                      (<Label sx={{ width: 24 }}>-</Label>)
+                  }
+                  sx={{ mr: '4px !important', px: 1 }}
+                />
+              )
+            })}
           </Tabs>
           <ToggleButtonGroup
             sx={{ backgroundColor: 'transparent' }}
@@ -419,7 +435,7 @@ export default function OvertimeShifts() {
             onFilters={handleUIFilters}
             canReset={canReset}
             onResetFilters={handleResetFilters}
-            results={totalCurrentShifts || 0}
+            results={shiftTotals[currentTab]}
             user={user}
             sx={{
               px: 3,

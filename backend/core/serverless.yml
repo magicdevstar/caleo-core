@@ -126,6 +126,7 @@ functions:
   graphql:
     handler: src/index.handler
     memorySize: 2048
+    timeout: 15
     events:
       - httpApi:
           path: /

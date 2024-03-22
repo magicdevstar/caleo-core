@@ -34,6 +34,18 @@ export function useCurrentShifts({
   range,
 }: CurrentShiftProps = {}) {
   const { user } = useAuthContext();
+  const [visited, setVisited] = useState({
+    [CurrentShiftType.Assigned]: true,
+    [CurrentShiftType.Secured]: false,
+    [CurrentShiftType.Available]: false,
+    [CurrentShiftType.Upcoming]: false,
+  });
+  const [shiftTotals, setShiftTotals] = useState({
+    [CurrentShiftType.Assigned]: 0,
+    [CurrentShiftType.Secured]: 0,
+    [CurrentShiftType.Available]: 0,
+    [CurrentShiftType.Upcoming]: 0,
+  });
   const [currentTime] = useState(new Date().toISOString());
   const dateRange = useMemo(
     () =>
@@ -42,13 +54,6 @@ export function useCurrentShifts({
         : undefined,
     [range]
   );
-  const sharedInputValues = useMemo(
-    () => ({
-      orderBy,
-      order,
-    }),
-    [orderBy, order]
-  );
 
   const {
     data: assignedShiftsData,
@@ -56,35 +61,47 @@ export function useCurrentShifts({
     error: assignedShiftsError,
     refetch: refetchAssignedShifts,
   } = useQuery(GET_ALL_SHIFTS, {
-    skip: ![CurrentShiftType.Assigned, CurrentShiftType.Secured].includes(type),
+    skip: !visited[CurrentShiftType.Assigned],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
-        ...sharedInputValues,
         userId: user?.id,
-        startTime: type === CurrentShiftType.Secured ? undefined : currentTime,
-        endTime: type === CurrentShiftType.Secured ? currentTime : undefined,
+        startTime: currentTime,
       },
     },
   });
+  const {
+    data: pastAssignedShiftsData,
+    loading: pastAssignedShiftsLoading,
+    error: pastAssignedShiftsError,
+    refetch: refetchPastAssignedShifts,
+  } = useQuery(GET_ALL_SHIFTS, {
+    skip: !visited[CurrentShiftType.Secured],
+    fetchPolicy: 'no-cache', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        userId: user?.id,
+        endTime: currentTime
+      },
+    },
+  });
+
   const {
     data: shiftBufferRequestsData,
     loading: shiftBufferRequestsLoading,
     error: shiftBufferRequestsError,
     refetch: refetchShiftBufferRequests,
   } = useQuery(GET_SHIFT_BUFFER_REQUESTS, {
-    skip: ![CurrentShiftType.Assigned, CurrentShiftType.Secured].includes(type),
+    skip: !visited[CurrentShiftType.Assigned],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
-        ...sharedInputValues,
         userId: user?.id,
-        startTime: type === CurrentShiftType.Secured ? undefined : currentTime,
-        endTime: type === CurrentShiftType.Secured ? currentTime : undefined,
+        startTime: currentTime,
         status: ShiftBufferRequestStatus.Pending,
-        order,
       },
     },
   });
@@ -94,14 +111,11 @@ export function useCurrentShifts({
     error: availableShiftsError,
     refetch: refetchAvailableShifts,
   } = useQuery(GET_AVAILABLE_SHIFTS, {
-    skip: ![CurrentShiftType.Available].includes(type),
+    skip: !visited[CurrentShiftType.Available],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
-      input: {
-        ...sharedInputValues,
-        order,
-      },
+      input: {},
     },
   });
   const {
@@ -110,43 +124,47 @@ export function useCurrentShifts({
     error: upcomingShiftsError,
     refetch: refetchUpcomingShifts,
   } = useQuery(GET_AVAILABLE_SHIFTS, {
-    skip: ![CurrentShiftType.Upcoming].includes(type),
+    skip: !visited[CurrentShiftType.Upcoming],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
-        ...sharedInputValues,
         upcoming: true,
-        order,
       },
     },
   });
 
-  const currentShiftTotal = useMemo(() => {
-    switch (type) {
-      case CurrentShiftType.Assigned:
-      case CurrentShiftType.Secured: {
-        const assignedTotal = assignedShiftsData?.shifts?.total || 0;
-        const shiftBufferRequestTotal = shiftBufferRequestsData?.shiftBufferRequests?.total || 0;
-        return assignedTotal + shiftBufferRequestTotal;
-      }
-      case CurrentShiftType.Available:
-        return availableShiftsData?.availableShifts?.total || 0;
-      case CurrentShiftType.Upcoming:
-        return upcomingShiftsData?.availableShifts?.total || 0;
-      default:
-        return 0;
-    }
-  }, [type, assignedShiftsData, shiftBufferRequestsData, availableShiftsData, upcomingShiftsData]);
+  useMemo(() => {
+    setShiftTotals((c) => {
+      const shiftBufferRequestTotal = shiftBufferRequestsData?.shiftBufferRequests?.total || 0;
+      const assignedShiftTotal = assignedShiftsData?.shifts?.total || 0;
+      const assigned = assignedShiftTotal + shiftBufferRequestTotal;
+      
+      const secured = pastAssignedShiftsData?.shifts?.total || 0;
+
+      const available = availableShiftsData?.availableShifts?.total || 0;
+
+      const upcoming = upcomingShiftsData?.availableShifts?.total || 0;
+
+      return {
+        [CurrentShiftType.Assigned]: assigned || c[CurrentShiftType.Assigned],
+        [CurrentShiftType.Secured]: secured || c[CurrentShiftType.Secured],
+        [CurrentShiftType.Available]: available || c[CurrentShiftType.Available],
+        [CurrentShiftType.Upcoming]: upcoming || c[CurrentShiftType.Upcoming],
+      };
+    })
+  }, [assignedShiftsData, pastAssignedShiftsData, shiftBufferRequestsData, availableShiftsData, upcomingShiftsData]);
 
   const currentShiftsLoading = useMemo(
     () =>
       assignedShiftsLoading ||
+      pastAssignedShiftsLoading ||
       shiftBufferRequestsLoading ||
       availableShiftsLoading ||
       upcomingShiftsLoading,
     [
       assignedShiftsLoading,
+      pastAssignedShiftsLoading,
       shiftBufferRequestsLoading,
       availableShiftsLoading,
       upcomingShiftsLoading,
@@ -155,18 +173,29 @@ export function useCurrentShifts({
   const currentShiftsError = useMemo(
     () =>
       assignedShiftsError ||
+      pastAssignedShiftsError ||
       shiftBufferRequestsError ||
       availableShiftsError ||
       upcomingShiftsError,
-    [assignedShiftsError, shiftBufferRequestsError, availableShiftsError, upcomingShiftsError]
+    [
+      assignedShiftsError,
+      pastAssignedShiftsError,
+      shiftBufferRequestsError,
+      availableShiftsError,
+      upcomingShiftsError
+    ]
   );
 
-  const refetchCurrentShifts = useCallback(() => {
+  // Refresh data when we move tabs
+  useMemo(() => {
+    setVisited((c) => ({ ...c, [type]: true }));
     switch (type) {
       case CurrentShiftType.Assigned:
-      case CurrentShiftType.Secured:
-        refetchAssignedShifts();
         refetchShiftBufferRequests();
+        refetchAssignedShifts();
+        break;
+      case CurrentShiftType.Secured:
+        refetchPastAssignedShifts();
         break;
       case CurrentShiftType.Available:
         refetchAvailableShifts();
@@ -178,6 +207,35 @@ export function useCurrentShifts({
         break;
     }
   }, [
+    setVisited,
+    refetchPastAssignedShifts,
+    refetchAssignedShifts,
+    refetchShiftBufferRequests,
+    refetchAvailableShifts,
+    refetchUpcomingShifts,
+    type,
+  ]);
+
+  const refetchCurrentShifts = useCallback(() => {
+    switch (type) {
+      case CurrentShiftType.Assigned:
+        refetchShiftBufferRequests();
+        refetchAssignedShifts();
+        break;
+      case CurrentShiftType.Secured:
+        refetchPastAssignedShifts();
+        break;
+      case CurrentShiftType.Available:
+        refetchAvailableShifts();
+        break;
+      case CurrentShiftType.Upcoming:
+        refetchUpcomingShifts();
+        break;
+      default:
+        break;
+    }
+  }, [
+    refetchPastAssignedShifts,
     refetchAssignedShifts,
     refetchShiftBufferRequests,
     refetchAvailableShifts,
@@ -187,6 +245,7 @@ export function useCurrentShifts({
 
   const shiftList = useMemo(() => {
     const assignedShifts = assignedShiftsData?.shifts?.items || [];
+    const pastAssignedShifts = pastAssignedShiftsData?.shifts?.items || [];
     const shiftBufferRequests = shiftBufferRequestsData?.shiftBufferRequests?.items || [];
     const availableShifts = availableShiftsData?.availableShifts?.items || [];
     const upcomingShifts = upcomingShiftsData?.availableShifts?.items || [];
@@ -196,12 +255,10 @@ export function useCurrentShifts({
     }
 
     const results = [
-      ...([CurrentShiftType.Assigned, CurrentShiftType.Secured].includes(type)
-        ? assignedShifts
+      ...([CurrentShiftType.Assigned].includes(type)
+        ? [...assignedShifts, ...shiftBufferRequests]
         : []),
-      ...([CurrentShiftType.Assigned, CurrentShiftType.Secured].includes(type)
-        ? shiftBufferRequests
-        : []),
+      ...([CurrentShiftType.Secured].includes(type) ? pastAssignedShifts : []),
       ...([CurrentShiftType.Available].includes(type) ? availableShifts : []),
       ...([CurrentShiftType.Upcoming].includes(type) ? upcomingShifts : []),
     ];
@@ -243,6 +300,7 @@ export function useCurrentShifts({
     return results.slice(skip, skip + limit);
   }, [
     assignedShiftsData,
+    pastAssignedShiftsData,
     shiftBufferRequestsData,
     availableShiftsData,
     upcomingShiftsData,
@@ -260,9 +318,10 @@ export function useCurrentShifts({
   return {
     currentShifts: shiftList,
     // Use shift list length when filters are applied since filters are local
-    total: skillIds?.length || dateRange ? shiftList.length : currentShiftTotal,
+    shiftTotals,
     loading: currentShiftsLoading,
     error: currentShiftsError,
+    visited,
     refetch: refetchCurrentShifts,
   };
 }

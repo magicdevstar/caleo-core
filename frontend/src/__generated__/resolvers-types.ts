@@ -246,6 +246,7 @@ export enum EventStatus {
   Complete = 'COMPLETE',
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
+  InterestList = 'INTEREST_LIST',
   PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
   PreLottery = 'PRE_LOTTERY',
   ReadyForLottery = 'READY_FOR_LOTTERY',

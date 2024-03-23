@@ -122,6 +122,14 @@ export default function ShiftCalendar({ shifts, loading = false, timezone, start
             initialView={view}
             firstDay={startDay}
             dayMaxEventRows={3}
+            views={{
+              timeGridDay: {
+                eventMaxStack: 10,
+              },
+              timeGridWeek: {
+                eventMaxStack: 3,
+              }
+            }}
             eventDisplay="block"
             events={formattedShifts}
             headerToolbar={false}

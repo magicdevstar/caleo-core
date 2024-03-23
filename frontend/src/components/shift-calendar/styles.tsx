@@ -100,6 +100,8 @@ export const StyledCalendar = styled('div')(({ theme }) => ({
   },
   '& .fc .fc-more-popover .fc-popover-body': {
     padding: theme.spacing(1),
+    overflowY: 'auto',
+    maxHeight: '100%',
   },
   '& .fc .fc-popover-body': {
     '& .fc-daygrid-event.fc-event-start, & .fc-daygrid-event.fc-event-end': {

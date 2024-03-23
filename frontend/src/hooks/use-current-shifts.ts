@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Dayjs } from 'dayjs';
 // hooks
@@ -134,12 +134,12 @@ export function useCurrentShifts({
     },
   });
 
-  useMemo(() => {
+  useEffect(() => {
     setShiftTotals((c) => {
       const shiftBufferRequestTotal = shiftBufferRequestsData?.shiftBufferRequests?.total || 0;
       const assignedShiftTotal = assignedShiftsData?.shifts?.total || 0;
       const assigned = assignedShiftTotal + shiftBufferRequestTotal;
-      
+
       const secured = pastAssignedShiftsData?.shifts?.total || 0;
 
       const available = availableShiftsData?.availableShifts?.total || 0;
@@ -296,8 +296,7 @@ export function useCurrentShifts({
         return true;
       });
     }
-
-    return results.slice(skip, skip + limit);
+    return results;
   }, [
     assignedShiftsData,
     pastAssignedShiftsData,
@@ -311,14 +310,15 @@ export function useCurrentShifts({
     orderBy,
     skillIds,
     dateRange,
-    skip,
-    limit,
   ]);
 
+  // Paged Shifts
+  const currentShifts = useMemo(() => shiftList.slice(skip, skip + limit), [shiftList, skip, limit]);
+
   return {
-    currentShifts: shiftList,
-    // Use shift list length when filters are applied since filters are local
-    shiftTotals,
+    allCurrentShifts: shiftList, // All currently loaded shifts without paging
+    currentShifts, // paged shifts (if paging is enabled)
+    shiftTotals, // length of all currently loaded shifts since filters are local
     loading: currentShiftsLoading,
     error: currentShiftsError,
     visited,

@@ -105,6 +105,7 @@ export default function OvertimeShifts() {
   }, [assignConfirm, setEditShift, showDialogShift, closeShiftDialog]);
 
   const {
+    allCurrentShifts,
     currentShifts,
     loading: currentShiftsLoading,
     shiftTotals,
@@ -336,7 +337,7 @@ export default function OvertimeShifts() {
       case ShiftViewType.Calendar:
         return (
           <ShiftCalendar
-            shifts={currentShifts.map((shift) => ({...shift, color: getShiftColor(shift) }))}
+            shifts={allCurrentShifts.map((shift) => ({...shift, color: getShiftColor(shift) }))}
             loading={currentShiftsLoading}
             timezone={user?.member?.org?.timezone}
             startDay={DayMap[user?.member?.org?.weekBegins?.toLowerCase() || 'sunday']}
@@ -351,6 +352,7 @@ export default function OvertimeShifts() {
     currentShiftActions,
     currentShiftLabels,
     currentShifts,
+    allCurrentShifts,
     currentShiftsLoading,
     currentTab,
     mdDown,

@@ -250,7 +250,7 @@ export class UserModel extends BaseModel<User> {
       const { requiredSkillIds, rankIds } = shift.assignment;
       const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!);
       let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
-      if (!hasQualifiedRank) {
+      if (!hasQualifiedSkills) {
         hasQualifiedSkills = (requiredSkillIds || [])?.reduce((hasAllSkills, skillId) => {
           if (!(skillIds.includes(skillId as string))) {
             return false;

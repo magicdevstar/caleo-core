@@ -18,6 +18,7 @@ import { CHECK_IN, CHECK_OUT, GET_ALL_SHIFTS } from "src/api/shifts";
 import { useAuthContext } from "src/auth/hooks";
 import { convertDate, getNow } from "src/hooks/use-datejs";
 import { client } from "src/utils/apollo";
+import { useFeatures } from "src/hooks/use-features";
 // Components
 import Iconify from "src/components/iconify";
 import { getLocation } from "src/utils/get-location";
@@ -27,6 +28,7 @@ import { ConfirmDialog } from "../custom-dialog";
 export default function CheckInOut() {
   const theme = useTheme();
   const { user } = useAuthContext();
+  const { eventCheckIn } = useFeatures();
   const confirm = useBoolean();
   const [checkInOutConfirm, setCheckInOutConfirm] = useState<Shift | null>(null);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
@@ -65,7 +67,7 @@ export default function CheckInOut() {
       endTime,
       shiftCheckInOut
     }) => {
-      if (user.member.org?.features?.eventCheckIn) {
+      if (eventCheckIn) {
         if (shiftCheckInOut?.checkInTime && shiftCheckInOut.checkOutTime) {
           return false;
         }
@@ -84,7 +86,7 @@ export default function CheckInOut() {
     });
 
     return runningShifts;
-  }, [shifts, user, minutesAfterEndTime, minutesBeforeStartTime]);
+  }, [shifts, user, minutesAfterEndTime, minutesBeforeStartTime, eventCheckIn]);
 
   const handleCheckInOut = useCallback(async (shift: Shift) => {
     try {

@@ -5,18 +5,20 @@ import { useQuery } from '@apollo/client';
 import Container from '@mui/material/Container';
 // hooks
 import { useParams } from 'src/routes/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 // types
 import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { GET_GROUPED_SHIFTS } from 'src/api/shifts';
+import { GET_GROUPED_SHIFTS, SHIFT_INTEREST_REQUESTS } from 'src/api/shifts';
 import QueryView from 'src/components/query-view';
 import EditShift from '../events/edit-shift';
 
 // ----------------------------------------------------------------------
 
 export default function ShiftDetail() {
+  const { interestLists } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
 
@@ -27,6 +29,17 @@ export default function ShiftDetail() {
       shiftId: params.shiftId,
     },
     skip: !params.shiftId || params.shiftId === 'new',
+  });
+
+  const { data: shiftInterestRequests } = useQuery(SHIFT_INTEREST_REQUESTS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        shiftGroupId: params.shiftId,
+      }
+    },
+    skip: !params.shiftId || params.shiftId === 'new' || !interestLists,
   });
 
   const assignmentLink = useMemo(() =>
@@ -67,6 +80,7 @@ export default function ShiftDetail() {
           assignmentId={params.assignmentId!}
           currentShifts={data?.groupedShifts || []}
           backLink={assignmentLink}
+          shiftInterestRequests={shiftInterestRequests?.shiftInterestRequests?.items || []}
           shiftId={params.shiftId === 'new' ? undefined : params.shiftId}
         />
       </QueryView>

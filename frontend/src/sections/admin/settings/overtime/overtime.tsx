@@ -22,6 +22,7 @@ import { TimePicker } from '@mui/x-date-pickers';
 // Hooks
 import { useSnackbar } from 'notistack';
 import FormProvider, { FormFooter, RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
+import { useFeatures } from 'src/hooks/use-features';
 // Components
 import { useResponsive } from 'src/hooks/use-responsive';
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
@@ -40,6 +41,7 @@ export default function Overtime({
 }: {
   organization: Organization;
 }) {
+  const { eventCheckIn, interestLists } = useFeatures();
   const mdUp = useResponsive('up', 'md');
 
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION, {
@@ -53,6 +55,10 @@ export default function Overtime({
     name: Yup.string().required(),
     settings: Yup.object().shape({
       shiftsPerWeek: Yup.number().required(),
+      interestList: Yup.object().shape({
+        defaultHoursBeforeShift: Yup.number(),
+        defaultNotificationTime: Yup.number(),
+      }),
       checkInOut: Yup.object().shape({
         minutesBeforeShiftStart: Yup.number(),
         minutesAfterShiftEnd: Yup.number(),
@@ -128,6 +134,9 @@ export default function Overtime({
               checkInOut: {
                 ...formData.settings.checkInOut,
               },
+              interestList: {
+                ...formData.settings.interestList,
+              },
               lottery: {
                 ...formData.settings.lottery,
                 open: {
@@ -177,7 +186,7 @@ export default function Overtime({
         </Grid>
 
         {
-          organization?.features?.eventCheckIn && (
+          eventCheckIn && (
             <>
               {mdUp && (
                 <Grid md={4}>
@@ -204,6 +213,42 @@ export default function Overtime({
                       name="settings.checkInOut.minutesAfterShiftEnd"
                       label="Minutes after shift end"
                       helperText="The number of minutes after a shift ends that the check out button will be available"
+                    />
+                  </Stack>
+                </Card>
+              </Grid>
+            </>
+          )
+        }
+
+        {
+          interestLists && (
+            <>
+              {mdUp && (
+                <Grid md={4}>
+                  <Typography variant="h6" sx={{ mb: 0.5 }}>
+                    Interest Lists
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Set the default hours before a shift that an interest list will no longer accept new submissions and when to notify officers
+                  </Typography>
+                </Grid>
+              )}
+              <Grid xs={12} md={8} sx={{ mb: 2 }}>
+                <Card>
+                  {!mdUp && <CardHeader title="Check In/Out" />}
+                  <Stack spacing={3} sx={{ p: 3 }}>
+                    <RHFTextField
+                      type="number"
+                      name="settings.interestList.defaultHoursBeforeShift"
+                      label="Hours Before Shift"
+                      helperText="The default number of hours before a shift starts that officers wil no longer be able to submit interest. This is configurable per event."
+                    />
+                    <RHFTextField
+                      type="number"
+                      name="settings.interestList.defaultNotificationTime"
+                      label="Notify Hours Before End"
+                      helperText="Hours to before the interests list end to notify eligible officers."
                     />
                   </Stack>
                 </Card>

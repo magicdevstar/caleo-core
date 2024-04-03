@@ -16,6 +16,7 @@
     SITE_LOCK
     SHIFT_BUFFER_REQUEST
     SHIFT_LOTTERY_REQUEST
+    SHIFT_INTEREST_REQUEST
     LOTTERY_STATE
     BROWSER_NOTIFICATION_SETTING
     USER_ANALYTICS
@@ -358,6 +359,9 @@
     orgId: String!
     status: EventStatus!
     lotteryNumber: Int
+    scheduledInterestList: String
+    scheduledCloseInterestList: String
+    interestListTransition: EventStatus
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean
@@ -470,6 +474,34 @@
     modifiedBy: User
   }
 
+  enum ShiftInterestRequestStatus {
+    APPROVED
+    REJECTED
+    PENDING
+    REMOVED
+  }
+
+  type ShiftInterestRequest {
+    id: ID!
+    shiftGroupId: String!
+    eventId: String!
+    assignmentId: String!
+    orgId: String!
+    userId: String!
+    status: ShiftInterestRequestStatus
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    user(shiftStart: String, timezoneOffset: Int): User
+    event: Event!
+    assignment: Assignment!
+    org: Organization!
+    shift: Shift
+    modifiedBy: User
+  }
+
   enum ShiftLotteryRequestStatus {
     APPROVED
     REJECTED
@@ -545,6 +577,8 @@
 
     # This will be included when searching for shifts
     shiftBufferShift: Shift
+    # This will be included with available shifts so that we can show existing requests
+    shiftInterestRequest: ShiftInterestRequest
     # This field will only be included on otherShiftSlots
     order: Int
     lotteryRequest: ShiftLotteryRequest
@@ -588,6 +622,9 @@
     attachmentPaths: [String]
     status: EventStatus
     lotteryNumber: Int
+    interestListTransition: EventStatus
+    scheduledInterestList: String
+    scheduledCloseInterestList: String
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notes: String
@@ -609,6 +646,13 @@
     shiftGroupId: String!
     userId: String!
     order: Int
+  }
+
+  input UpsertShiftInterestRequest {
+    id: String
+    shiftGroupId: String!
+    userId: String!
+    status: ShiftInterestRequestStatus
   }
 
   input UpsertAssignment {
@@ -854,9 +898,10 @@
   }
 
   type OrganizationFeatures {
-    lottery: Boolean!
-    venueContractDates: Boolean!
-    eventCheckIn: Boolean!
+    lottery: Boolean
+    venueContractDates: Boolean
+    eventCheckIn: Boolean
+    interestLists: Boolean
   }
 
   type OrganizationOvertimeSettings {
@@ -866,6 +911,12 @@
     userRelinquishShift: UserRelinquishShift!
     shiftReminder: ShiftReminder!
     checkInOut: CheckInOutSetting
+    interestList: InterestListSetting
+  }
+
+  type InterestListSetting {
+    defaultHoursBeforeShift: Int
+    defaultNotificationTime: Int
   }
 
   type CheckInOutSetting {
@@ -943,6 +994,12 @@
     userRelinquishShift: UpsertUserRelinquishShift!
     shiftReminder: UpsertShiftReminder!
     checkInOut: UpsertCheckInOutSetting
+    interestList: UpsertInterestListSetting
+  }
+
+  input UpsertInterestListSetting {
+    defaultHoursBeforeShift: Int
+    defaultNotificationTime: Int
   }
 
   input UpsertCheckInOutSetting {
@@ -1261,6 +1318,15 @@
     includeRemoved: Boolean
   }
 
+  input ShiftInterestRequestsSearchInput {
+    shiftGroupId: String!
+    limit: Int
+    skip: Int
+    orderBy: String
+    order: String
+    includeRemoved: Boolean
+  }
+
   input ShiftLottoRequestsSearchInput {
     limit: Int
     skip: Int
@@ -1277,6 +1343,11 @@
 
   type ShiftLotteryRequestsSearchResult {
     items: [ShiftLotteryRequest]
+    total: Int!
+  }
+
+  type ShiftInterestRequestsSearchResult {
+    items: [ShiftInterestRequest]
     total: Int!
   }
 
@@ -1365,6 +1436,7 @@ type Query {
   shiftBufferRequests(input: ShiftBufferRequestsSearchInput): ShiftBufferRequestsSearchResult
   shiftLotteryRequests(input: ShiftLotteryRequestsSearchInput): ShiftLotteryRequestsSearchResult
   shiftLottoRequests(input: ShiftLottoRequestsSearchInput!): ShiftLotteryRequestsSearchResult
+  shiftInterestRequests(input: ShiftInterestRequestsSearchInput): ShiftInterestRequestsSearchResult
 
   lotteryCounter(counter: Int): LotteryCounter
   lotteryCounters(input: SearchInput): LotteryCounterSearchResult
@@ -1417,7 +1489,9 @@ type Mutation {
   shiftBufferRequest(shiftBufferRequest: CreateShiftBufferRequest): ShiftBufferRequest
   setShiftBufferStatus(id: String!, status: ShiftBufferRequestStatus!, reason: String): ShiftBufferRequest
   shiftLotteryRequest(shiftLotteryRequest: UpsertShiftLotteryRequest): ShiftLotteryRequest
+  shiftInterestRequest(shiftInterestRequest: UpsertShiftInterestRequest): ShiftInterestRequest
   removeShiftLotteryRequest(id: String): ID!
+  removeShiftInterestRequest(id: String): ID!
   notifyUsersOfShift(shiftId: String!): Boolean
   removeShiftBufferRequest(id: String!): ID!
   checkIn(input: ShiftCheckInOutEvent!): Shift!

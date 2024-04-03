@@ -1,0 +1,235 @@
+import { GraphQLError } from "graphql";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { Context } from "../../utils/createContext";
+import {
+  ShiftLotteryRequest,
+  ShiftLotteryRequestStatus,
+  ShiftInterestRequestsSearchInput,
+  UpsertShiftInterestRequest,
+  ShiftInterestRequestStatus,
+  ShiftStatus,
+  Shift
+} from "../../__generated__/resolvers-types";
+import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
+import { ObjectId } from "mongodb";
+import { IShiftInterestRequest, IUpsertShiftInterestRequest } from "../../models/shiftInterestRequest";
+import logger from "../../utils/logger";
+import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+
+const lambda = new LambdaClient();
+
+export const shiftInterestRequests = {
+  Query: {
+    shiftInterestRequests: async (
+      _parent: unknown,
+      { input }: { input: ShiftInterestRequestsSearchInput },
+      {
+        shiftInterestRequests,
+        user,
+      }: Context
+    ): Promise<SearchResults<IShiftInterestRequest>> => {
+      adminOnly(user);
+      const searchInput: any = {
+        orgId: new ObjectId(user?.member.orgId!),
+        shiftGroupId: input.shiftGroupId,
+        status: {
+          $in: [
+            ShiftInterestRequestStatus.Pending,
+            ShiftInterestRequestStatus.Approved,
+            ShiftInterestRequestStatus.Rejected,
+          ]
+        },
+        includeRemoved: true,
+        queryField: 'shiftGroupId',
+        order: 'asc',
+        orderBy: 'createdAt',
+      };
+      return shiftInterestRequests.search(searchInput);
+    },
+  },
+  Mutation: {
+    removeShiftInterestRequest: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { shiftInterestRequests, user }: Context
+    ): Promise<string> => {
+      const foundRequest = await shiftInterestRequests.get(id);
+      if (!foundRequest) {
+        throw new GraphQLError('Shift Request not found. Please try again.');
+      }
+      adminOrOwnerOnly(foundRequest.userId.toString(), user);
+      await shiftInterestRequests.remove(id, { modifiedById: user?.id, status: ShiftLotteryRequestStatus.Removed });
+      return id;
+    },
+    shiftInterestRequest: async (
+      _parent: unknown,
+      { shiftInterestRequest }: { shiftInterestRequest: UpsertShiftInterestRequest },
+      {
+        shiftInterestRequests,
+        shifts,
+        users,
+        user,
+        organization,
+      }: Context
+    ): Promise<ShiftLotteryRequest> => {
+      adminOrOwnerOnly(shiftInterestRequest.userId, user);
+
+      const shift = await shifts.findOne({
+        shiftId: shiftInterestRequest.shiftGroupId,
+        removedAt: { $exists: false },
+      });
+      if (!shift) {
+        throw new GraphQLError('Shift not found');
+      }
+
+      let notificationData: {
+        template: MailerEvents;
+        data: any;
+      } | undefined;
+      if (shiftInterestRequest.id) {
+        // If the status is approved then ensure we add the user to the shift group
+        if (shiftInterestRequest.status === ShiftInterestRequestStatus.Approved) {
+          try {
+            const availableShifts = await shifts.findAllUnassignedShiftsByGroupId({ shiftGroupId: shiftInterestRequest.shiftGroupId });
+            let interestUser = user!;
+            if (user!.id !== shiftInterestRequest.userId) {
+              const foundUser = await users.get(shiftInterestRequest.userId);
+              if (!foundUser) {
+                throw new GraphQLError('User not found');
+              }
+              interestUser = foundUser;
+            }
+            if (availableShifts.length > 0) {
+              const slot = availableShifts[0];
+
+              const { canSignUpForShift } = await shifts.canSignUpForShift({
+                user: interestUser,
+                shift: slot,
+                orgId: organization!.id,
+                shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
+              });
+              const hasMaxShifts = await users.hasMaxShifts({ user: interestUser, shift: slot, organization: organization! })
+              if (!canSignUpForShift || hasMaxShifts) {
+                throw new GraphQLError('User cannot sign up for this shift');
+              }
+
+              const updatedShift = {
+                ...slot,
+                userId: interestUser.id,
+                status: ShiftStatus.Assigned,
+              };
+
+              await shifts.update(updatedShift, { skipMerge: true });
+
+              notificationData = {
+                template: MailerEvents.OfficerAdminAssignedShift,
+                data: {
+                  adminAssignedShift: true,
+                  shift: updatedShift,
+                  organization,
+                }
+              };
+            }
+          } catch(error) {
+            logger.error('Failed to assign user to shift', { error, shiftInterestRequest });
+            throw new GraphQLError('Cannot assign user to this shift');
+          }
+        }
+
+        // If the status is rejected then ensure we attempt to remove the user from the shift group
+        if (shiftInterestRequest.status === ShiftInterestRequestStatus.Rejected) {
+          try {
+            let interestUser = user!;
+            if (user!.id !== shiftInterestRequest.userId) {
+              const foundUser = await users.get(shiftInterestRequest.userId);
+              if (!foundUser) {
+                throw new GraphQLError('User not found');
+              }
+              interestUser = foundUser;
+            }
+
+            const slot = await shifts.findOne({
+              userId: interestUser.id,
+              shiftId: shiftInterestRequest.shiftGroupId,
+              status: ShiftStatus.Assigned,
+            });
+            if (slot) {
+              notificationData = {
+                template: MailerEvents.OfficerRemovedFromShift,
+                data: {
+                  shift: slot!,
+                  existingUserId: slot.userId,
+                  removeUser: user,
+                  organization,
+                }
+              }
+              const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
+              await shifts.create({
+                ...createShift,
+                status: ShiftStatus.Unassigned,
+                modifiedById: user?.id!,
+                removedAt: Date.now(),
+                userId: interestUser.id,
+              }) as any;
+              await shifts.update({
+                ...slot,
+                userId: null,
+                status: ShiftStatus.Available,
+              }, { skipMerge: true });
+            } else {
+              throw new GraphQLError('User is not assigned to this shift');
+            }
+          } catch(error) {
+            throw new GraphQLError('Cannot remove user from this shift');
+          }
+        }
+      }
+
+      const upsert: IUpsertShiftInterestRequest = {
+        ...(shiftInterestRequest.id ? { id: shiftInterestRequest.id } : {}),
+        shiftGroupId: shiftInterestRequest.shiftGroupId,
+        ...(shiftInterestRequest.status && {status: shiftInterestRequest.status}),
+        ...(shiftInterestRequest.id ? {} : { status: ShiftInterestRequestStatus.Pending }),
+        orgId: new ObjectId(user?.member.orgId!),
+        eventId: new ObjectId(shift.eventId),
+        assignmentId: new ObjectId(shift.assignmentId),
+        modifiedById: new ObjectId(user?.id!),
+        userId: new ObjectId(shiftInterestRequest.userId),
+      }
+      const res = await shiftInterestRequests.upsert(upsert as any);
+
+      // TODO: Send notification to user if the status changed from pending to approved or rejected?
+      if (notificationData) {
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.MAILER_LAMBDA!,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            action: Action.Email,
+            template: notificationData.template,
+            data: notificationData.data,
+          } as MailerEvent),
+        }));
+      }
+
+      return res;
+    },
+  },
+  fields: {
+    ShiftInterestRequest: {
+      ...commonResolvers,
+      org: (item: IShiftInterestRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId.toString()),
+      event: (item: IShiftInterestRequest, _, { events }: Context) => events.loader.load(item.eventId.toString()),
+      assignment: (item: IShiftInterestRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId.toString()),
+      user: async (item: IShiftInterestRequest, {shiftStart, timezoneOffset}: {shiftStart: string; timezoneOffset: number;}, { users }: Context) => {
+        const user = await users.loader.load(item.userId.toString());
+        return {
+          ...user,
+          shiftStart,
+          timezoneOffset,
+        };
+      },
+      shift: (item: IShiftInterestRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
+    },
+  },
+};

@@ -32,7 +32,7 @@ import { RouterLink } from 'src/routes/components';
 import { GET_ALL_VENUES, GET_VENUE, UPSERT_VENUE } from 'src/api/venues';
 import { states } from 'src/utils/states';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
-import { useAuthContext } from 'src/auth/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ type Props = {
 };
 
 export default function EditVenue({ currentVenue }: Props) {
-  const { user } = useAuthContext();
+  const { venueContractDates } = useFeatures();
   const router = useRouter();
 
   const [upsertVenue] = useMutation(UPSERT_VENUE, {
@@ -51,8 +51,6 @@ export default function EditVenue({ currentVenue }: Props) {
   const mdUp = useResponsive('up', 'md');
 
   const { enqueueSnackbar } = useSnackbar();
-
-  const showContractFields = user.member.org?.features?.venueContractDates;
 
   const NewVenueSchema = Yup.object().shape({
     id: Yup.string(),
@@ -131,7 +129,7 @@ export default function EditVenue({ currentVenue }: Props) {
             zip: data.zip,
             phone: data.phone,
             notes: data.notes,
-            ...(data.contract && showContractFields && {
+            ...(data.contract && venueContractDates && {
               contract: data.contract,
             }),
             contact: {
@@ -192,7 +190,7 @@ export default function EditVenue({ currentVenue }: Props) {
             </Stack>
 
             {
-              showContractFields && (
+              venueContractDates && (
                 <Stack direction="row" spacing={2}>
                   <RHFTextField name="contract.name" label="Contract/Insurance Name" />
                   <RHFDatePicker name="contract.expirationDate" label="Contract/Insurance Expiration" />

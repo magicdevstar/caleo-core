@@ -27,9 +27,14 @@ const userDetailProperties = `
         lottery
         venueContractDates
         eventCheckIn
+        interestLists
       }
       settings {
         shiftsPerWeek
+        interestList {
+          defaultHoursBeforeShift
+          defaultHoursBeforeShift
+        }
         checkInOut {
           minutesBeforeShiftStart
           minutesAfterShiftEnd

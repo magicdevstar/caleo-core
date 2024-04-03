@@ -20,20 +20,20 @@ import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
 import { convertDate, dateFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
+  const { venueContractDates } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
   const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
     refetchQueries: [GET_ALL_EVENTS],
   });
-
-  const enabledVenueContractField = user.member.org?.features?.venueContractDates;
 
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const deleteConfirm = useBoolean();
@@ -131,7 +131,7 @@ export default function EventsTable() {
         columnType: 'string',
         noSort: true,
       },
-      (enabledVenueContractField && {
+      (venueContractDates && {
         id: 'venue.contract.expirationDate',
         label: 'Venue Contract Exp',
         width: 210,
@@ -152,6 +152,8 @@ export default function EventsTable() {
               return 'Lottery';
             case EventStatus.FirstComeFirstServe:
               return 'First Come First Serve';
+            case EventStatus.InterestList:
+              return 'Interest List';
             case EventStatus.Complete:
               return 'Complete';
             case EventStatus.Removed:
@@ -165,6 +167,7 @@ export default function EventsTable() {
             case EventStatus.ReadyForLottery:
               return 'success';
             case EventStatus.FirstComeFirstServe:
+            case EventStatus.InterestList:
               return 'primary';
             case EventStatus.Removed:
               return 'error';

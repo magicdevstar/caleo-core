@@ -64,6 +64,7 @@ import GQLTable from 'src/components/table/gql/table';
 import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
 import { client } from 'src/utils/apollo';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -76,6 +77,7 @@ const eventStatusNames = {
   [EventStatus.Removed]: 'Removed',
   [EventStatus.Draft]: 'Draft',
   [EventStatus.ReadyForLottery]: 'Lottery',
+  [EventStatus.InterestList]: 'Interest List',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
 }
 
@@ -92,6 +94,9 @@ const NewEventSchema = Yup.object().shape({
     .transform((value: Venue) => value?.id)
     .test('venue-required', 'Venue is Required', (value) => !!value),
   scheduledFirstComeFirstServe: Yup.string(),
+  interestListTransition: Yup.string().nullable(),
+  scheduledInterestList: Yup.string(),
+  scheduledCloseInterestList: Yup.string(),
   createdById: Yup.string(),
   assignments: Yup.array(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
@@ -103,17 +108,29 @@ dayjs.extend(timezone);
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
-  const enabledVenueContractField = user.member.org?.features?.venueContractDates;
-  const showVenueContractWarning = useMemo(() => {
-    if (!enabledVenueContractField) {
-      return false;
+  const { venueContractDates, interestLists, lottery } = useFeatures();
+
+  const eventStatuses = useMemo(() => {
+    const statuses = [
+      EventStatus.Draft,
+    ];
+    if (
+      lottery &&
+      user.member.org?.settings?.lottery?.enabled
+    ) {
+      statuses.push(EventStatus.ReadyForLottery);
     }
-    const convertedDate = convertDate({ date: new Date(currentEvent?.venue?.contract?.expirationDate || 0), user });
-    if (!currentEvent?.venue?.contract?.expirationDate || convertedDate.isBefore(dayjs())) {
-      return true;
+    if (interestLists) {
+      statuses.push(EventStatus.InterestList);
     }
-    return false;
-  }, [enabledVenueContractField, currentEvent?.venue?.contract?.expirationDate, user]);
+    return [
+      ...statuses,
+      EventStatus.FirstComeFirstServe,
+      EventStatus.Complete,
+      EventStatus.Removed,
+    ];
+  }, [user, lottery, interestLists]);
+
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
     countValue: currentEvent?.lotteryCounter as LotteryCounter,
@@ -176,7 +193,10 @@ export default function EditEvent({ currentEvent }: Props) {
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
+      interestListTransition: currentEvent?.interestListTransition,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
+      scheduledInterestList: currentEvent?.scheduledInterestList || '',
+      scheduledCloseInterestList: currentEvent?.scheduledCloseInterestList || '',
       assignments: currentEvent?.assignments || [],
       createdById: currentEvent?.createdById || user?.id,
     }),
@@ -231,6 +251,17 @@ export default function EditEvent({ currentEvent }: Props) {
 
   // venueId is initially a venue object until it is transformed after form submit through schema
   const selectedVenue = values.venueId as Venue | null;
+
+  const showVenueContractWarning = useMemo(() => {
+    if (!venueContractDates) {
+      return false;
+    }
+    const convertedDate = convertDate({ date: new Date(selectedVenue?.contract?.expirationDate || 0), user });
+    if (!selectedVenue?.contract?.expirationDate || convertedDate.isBefore(dayjs())) {
+      return true;
+    }
+    return false;
+  }, [venueContractDates, selectedVenue, user]);
 
   useEffect(() => {
     if (currentEvent) {
@@ -300,7 +331,10 @@ export default function EditEvent({ currentEvent }: Props) {
             notes: formData?.notes,
             status: formData?.status,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
+            ...(formData?.interestListTransition && { interestListTransition: formData?.interestListTransition }),
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
+            scheduledInterestList: formData?.scheduledInterestList,
+            scheduledCloseInterestList: formData?.scheduledCloseInterestList,
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
             attachmentPaths: [
@@ -363,7 +397,7 @@ export default function EditEvent({ currentEvent }: Props) {
     deleteConfirm.onFalse();
   }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
 
-  const onSubmit = handleSubmit(async (formData) => {
+  const onSubmit = handleSubmit(async (formData: any) => {
     await formSubmit(formData);
   });
 
@@ -600,7 +634,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   {showVenueContractWarning && (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Typography variant='caption' color="grey">⚠️ Venue contract is is expired. Please update the contract or replace the venue.</Typography>
-                      <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${currentEvent?.venue?.id}`}>Edit venue</Button>
+                      <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${(values?.venueId as any)?.id}`}>Edit venue</Button>
                     </Box>
                   )}
                 </Box>
@@ -618,13 +652,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   InputLabelProps={{ shrink: true }}
                   PaperPropsSx={{ textTransform: 'capitalize' }}
                 >
-                  {[
-                    EventStatus.Draft,
-                    EventStatus.ReadyForLottery,
-                    EventStatus.FirstComeFirstServe,
-                    EventStatus.Complete,
-                    EventStatus.Removed,
-                  ].map((option) => (
+                  {eventStatuses.map((option) => (
                     <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed].includes(option)} key={option} value={option}>
                       {(eventStatusNames as any)[option]}
                     </MenuItem>
@@ -653,6 +681,84 @@ export default function EditEvent({ currentEvent }: Props) {
 
                     <RHFSwitch disabled={allDisabled || isComplete} name="notifyOnFirstComeFirstServe" label="Notify when first come first serve is available" />
                   </Box>
+                )}
+
+                {currentFormValues && currentFormValues.status === EventStatus.InterestList && (
+                  <>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <DateTimePicker
+                        label="Interest list start time"
+                        ampm={false}
+                        disabled={allDisabled || isComplete}
+                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                        timezone={user.member.org?.timezone}
+                        value={
+                          currentFormValues?.scheduledInterestList ?
+                          dayjs(new Date(currentFormValues?.scheduledInterestList)) :
+                          dayjs(
+                            currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+                          ).subtract(
+                            user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
+                            'hours'
+                          )
+                        }
+                        onChange={(date) => {
+                          setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            margin: 'normal',
+                          },
+                        }}
+                      />
+                      <Typography variant="body1">-</Typography>
+                      <DateTimePicker
+                        label="Interest list end time"
+                        ampm={false}
+                        disabled={allDisabled || isComplete}
+                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                        timezone={user.member.org?.timezone}
+                        minDate={currentFormValues?.scheduledInterestList ? dayjs(new Date(currentFormValues?.scheduledInterestList)) : dayjs(new Date())}
+                        value={
+                          currentFormValues?.scheduledCloseInterestList ?
+                          dayjs(new Date(currentFormValues?.scheduledCloseInterestList)) :
+                          dayjs(
+                            currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+                          ).subtract(
+                            user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
+                            'hours'
+                          )
+                        }
+                        onChange={(date) => {
+                          setValue('scheduledCloseInterestList', date ? dayjs(date).toISOString() : '')
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            margin: 'normal',
+                          },
+                        }}
+                      />
+                    </Stack>
+                    <RHFSelect
+                      fullWidth
+                      name="interestListTransition"
+                      label="Event status after interest list closes"
+                      PaperPropsSx={{ textTransform: 'capitalize' }}
+                    >
+                      <MenuItem value=''>Clear</MenuItem>
+                      {eventStatuses.filter((status) => ![
+                        EventStatus.Complete,
+                        EventStatus.Removed,
+                        EventStatus.InterestList,
+                      ].includes(status)).map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {(eventStatusNames as any)[option]}
+                        </MenuItem>
+                      ))}
+                    </RHFSelect>
+                  </>
                 )}
 
                 {currentFormValues && currentFormValues.status === EventStatus.ReadyForLottery && (

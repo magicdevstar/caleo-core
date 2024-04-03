@@ -185,4 +185,18 @@ export const InAppTemplates = {
     title: `${eventName} - ${shiftName} check in/out time has been updated!`,
     body: `${oldInTime ? `Check in changed from ${oldInTime.date} ${oldInTime.time} to ${newInTime.date} ${newInTime.time}. ` : ''}${oldOutTime ? `Check out changed from ${oldOutTime.date} ${oldOutTime.time} to ${newOutTime.date} ${newOutTime.time}.` : ''} ${notes ? `Note: ${notes}` : ''}`,
   }),
+  [MailerEvents.OfficerInterestListOpening]: ({
+    eventName,
+    interestClosingTime,
+  }) => ({
+    title: `Show your interest in working ${eventName} shifts!`,
+    body: `You can express your interest in working shifts for ${eventName} until ${interestClosingTime.date} ${interestClosingTime.time}.`,
+  }),
+  [MailerEvents.OfficerInterestListClosing]: ({
+    eventName,
+    interestClosingTime,
+  }) => ({
+    title: `Last chance to show your interest in working ${eventName} shifts!`,
+    body: `You can express your interest in working shifts for ${eventName} until ${interestClosingTime.date} ${interestClosingTime.time}.`,
+  }),
 };

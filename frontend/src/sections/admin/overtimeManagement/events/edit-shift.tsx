@@ -16,14 +16,16 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { client } from 'src/utils/apollo';
+import { useFeatures } from 'src/hooks/use-features';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { EventStatus, Shift } from 'src/__generated__/resolvers-types';
+import { EventStatus, Shift, ShiftInterestRequest } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import { RouterLink } from 'src/routes/components';
@@ -44,6 +46,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
+import { InterestList } from 'src/components/interest-list/interest-list';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -54,6 +57,7 @@ type Props = {
   currentShifts: Shift[];
   backLink: string;
   shiftId?: string;
+  shiftInterestRequests?: ShiftInterestRequest[];
 };
 
 dayjs.extend(utc);
@@ -63,17 +67,20 @@ export default function EditShift({
   eventId,
   assignmentId,
   currentShifts,
+  shiftInterestRequests,
   backLink,
   shiftId,
 }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
+  const { eventCheckIn, interestLists } = useFeatures();
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const editCheckInOutModal = useBoolean();
   const deleteConfirm = useBoolean();
   const unassignConfirm = useBoolean();
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
+  const showInterestList = useBoolean();
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
@@ -226,36 +233,49 @@ export default function EditShift({
   const config: TableConfig<Shift> = {
     header: {
       title: 'Shifts Slots',
-      button: {
-        text: 'Add Shift Slot',
-        icon: 'ic:baseline-add',
-        loading: isSubmitting,
-        disabled: !startTime || !endTime || allDisabled || isComplete,
-        onClick: async () => {
-          const groupId = shiftId || uuid();
-          await upsertShifts({
-            variables: {
-              input: [
-                {
-                  startTime: startTime?.toISOString(),
-                  endTime: endTime?.toISOString(),
-                  assignmentId,
-                  eventId,
-                  shiftId: groupId,
-                }
-              ],
+      buttons: [
+        ...(interestLists ? [{
+          key: 'showInterestList',
+          render: (arg: any) => (
+            <Tooltip key={arg.key} title="Show Interest List">
+              <IconButton onClick={() => showInterestList.onTrue()} color='default'>
+                <Iconify icon="ic:round-front-hand" />
+              </IconButton>
+            </Tooltip>
+          )
+        }]: []),
+        {
+          key: 'addShifts',
+          text: 'Add Shift Slot',
+          icon: 'ic:baseline-add',
+          loading: isSubmitting,
+          disabled: !startTime || !endTime || allDisabled || isComplete,
+          onClick: async () => {
+            const groupId = shiftId || uuid();
+            await upsertShifts({
+              variables: {
+                input: [
+                  {
+                    startTime: startTime?.toISOString(),
+                    endTime: endTime?.toISOString(),
+                    assignmentId,
+                    eventId,
+                    shiftId: groupId,
+                  }
+                ],
+              }
+            });
+            if (!shiftId) {
+              router.push(
+                paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                .replace(':eventId', eventId!)
+                .replace(':assignmentId', assignmentId!)
+                .replace(':shiftId', groupId)
+              );
             }
-          });
-          if (!shiftId) {
-            router.push(
-              paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
-              .replace(':eventId', eventId!)
-              .replace(':assignmentId', assignmentId!)
-              .replace(':shiftId', groupId)
-            );
           }
-        }
-      }
+        },
+      ]
     },
     table: {
       sx: {
@@ -301,7 +321,7 @@ export default function EditShift({
           openRemoveShift(row.id);
         },
       },
-      ...(user.member.org?.features?.eventCheckIn ? [{
+      ...(eventCheckIn ? [{
         getName: () => 'View Check In/Out',
         getDisabled: (row: Shift) => !row.shiftCheckInOut,
         getIcon: () => 'solar:stopwatch-bold-duotone',
@@ -595,6 +615,8 @@ export default function EditShift({
           </LoadingButton>
         }
       />
+
+      <InterestList open={showInterestList} interestList={shiftInterestRequests || []} />
 
       <EditCheckInOut
         shift={editCheckInOut!}

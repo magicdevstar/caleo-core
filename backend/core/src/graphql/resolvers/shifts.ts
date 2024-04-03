@@ -13,9 +13,7 @@ import {
   EventStatus,
   MemberRole,
   Shift,
-  ShiftAdminCheckInOutEvent,
   ShiftCheckInOut,
-  ShiftCheckInOutCoordinates,
   ShiftCheckInOutEvent,
   ShiftSearchInput,
   ShiftStatus,
@@ -47,6 +45,10 @@ export const shift = {
         user: user!,
         organization: organization!,
         upcoming: !!upcoming,
+        eventTypes: [
+          EventStatus.FirstComeFirstServe,
+          EventStatus.InterestList,
+        ],
       }),
     shift: async (
       _parent: unknown,
@@ -612,6 +614,12 @@ export const shift = {
       startTime: (item: Shift) => new Date(item.startTime).toISOString(),
       endTime: (item: Shift) => new Date(item.endTime).toISOString(),
       user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
+      shiftInterestRequest: (shift: Shift, _, { shiftInterestRequests, user, organization }: Context) =>
+        shiftInterestRequests.requestLoader.load({
+          userId: user?.id!,
+          orgId: organization?.id!,
+          shiftGroupId: shift.shiftId,
+        }),
       lotteryRequest: (shift: Shift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
           userId: user?.id!,

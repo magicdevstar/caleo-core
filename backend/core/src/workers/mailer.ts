@@ -1947,6 +1947,122 @@ const sendEmail = async (input: MailerEvent) => {
           assignmentId: new ObjectId(shift.assignmentId) as any,
         }
       });
+    } else if (input.template === MailerEvents.OfficerInterestListClosing || input.template === MailerEvents.OfficerInterestListOpening) {
+      const { eventId, organization } = input.data;
+
+      const event = await context.events.get(eventId);
+      if (!event) {
+        logger.error('Event not found', { input, event });
+        return;
+      }
+
+      const assignmentDetails: Assignment[] = await context.assignments.collection.find({
+        orgId: organization.id,
+        eventId: event.id,
+        removedAt: { $exists: false },
+      }).project({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray() as unknown as Assignment[];
+
+      const shiftIds = await context.shifts.collection.find({
+        orgId: organization.id,
+        eventId: event.id,
+        assignmentId: { $in: assignmentDetails.map((a: any) => a._id.toString()) },
+        removedAt: { $exists: false },
+        $and: [
+          {
+            $or: [
+              { userId: null },
+              { userId: { $exists: false } },
+            ],
+          },
+          {
+            $or: [
+              { locked: false },
+              {
+                locked: {
+                  $exists: false,
+                },
+              },
+            ],
+          }
+        ]
+      }).project({ shiftId: 1 }).toArray();
+      const uniqShiftIds = uniq(shiftIds.map((s: any) => s.shiftId));
+      const uniqRanksIds = uniq(assignmentDetails.map((a: any) => a.rankIds).flat());
+
+      const interestClosingTime = convertDate(event.scheduledCloseInterestList as any, organization);
+
+      const allUsers = await context.users.collection.find({
+        'member.orgId': organization.id,
+        'member.status': MemberStatus.Active,
+        'member.rankId': { $in: uniqRanksIds },
+        removedAt: { $exists: false },
+      });
+
+      let user: User | null;
+      do {
+        user = await allUsers.next() as any;
+        if (user) {
+          let skillIds: string[] | undefined = undefined;
+          let canSignUpForAShift = false;
+          for(const shiftId of uniqShiftIds) {
+            const shift = await context.shifts.findOne({
+              shiftId,
+              orgId: organization.id,
+              $or: [
+                { userId: null },
+                { userId: { $exists: false } },
+              ],
+            });
+            if (!shift) {
+              continue;
+            }
+
+            // Verify user has required skills
+            const assignment = assignmentDetails.find((a: any) => a._id.toString() === shift.assignmentId);
+            if (assignment && assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
+              if (!skillIds && (user?.member?.memberSkillIds || []).length > 0) {
+                const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []).map((id) => new ObjectId(id as any)));
+                skillIds = mSkills.map(({ skillId }) => skillId);
+              }
+              if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
+                continue;
+              }
+            }
+
+            const { canSignUpForShift } = await context.shifts.canSignUpForShift({
+              user: {
+                ...user,
+                id: (user as any)._id.toString(),
+              },
+              shift,
+              orgId: organization.id,
+            });
+            if (!canSignUpForShift) {
+              continue;
+            }
+            canSignUpForAShift = true;
+            break;
+          }
+          if (!canSignUpForAShift) {
+            continue;
+          }
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            interestClosingTime,
+          });
+          await sendInAppNotification({
+            context,
+            userId: (user as any)._id.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+            }
+          });
+        }
+      } while(user);
     }
 
     if (Object.keys(Addresses).length === 0) {

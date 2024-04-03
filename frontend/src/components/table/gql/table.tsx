@@ -62,7 +62,7 @@ export default function GQLTable({
   });
 
   const loading = config.search.loading || gqlLoading;
-  const { items, total: apiTotal } = config.search.processResult(data || config.search.data);
+  const { items, total: apiTotal } = config.search.processResult(data || config.search.data, filters);
   const tableData = useMemo(() => items, [items]);
   const total = useMemo(() => apiTotal, [apiTotal]);
   const isEmpty = total === 0;
@@ -158,12 +158,13 @@ export default function GQLTable({
           >{config.header.button.text}</LoadingButton>}
           {config.header.buttons &&
             config.header.buttons.map((buttonConfig) => (
+              buttonConfig.render ? buttonConfig.render(buttonConfig) :
               <LoadingButton
                 key={buttonConfig.key}
                 loading={buttonConfig.loading}
                 variant={(buttonConfig.variant || 'contained' as any)}
                 disabled={buttonConfig.disabled}
-                startIcon={<Iconify icon={buttonConfig.icon}/>}
+                startIcon={<Iconify icon={buttonConfig.icon || ''}/>}
                 onClick={buttonConfig.onClick}
               >{buttonConfig.text}</LoadingButton>
             ))

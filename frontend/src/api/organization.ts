@@ -19,9 +19,14 @@ query ORGANIZATION {
       lottery
       venueContractDates
       eventCheckIn
+      interestLists
     }
     settings {
       shiftsPerWeek
+      interestList {
+        defaultHoursBeforeShift
+        defaultNotificationTime
+      }
       checkInOut {
         minutesBeforeShiftStart
         minutesAfterShiftEnd

@@ -44,6 +44,7 @@ export const GET_ALL_EVENTS = gql`
         startTime
         endTime
         availableShifts
+        scheduledInterestList
         scheduledFirstComeFirstServe
         status
         createdBy {
@@ -216,6 +217,8 @@ export const GET_EVENT = gql`
       attachmentPaths
       lotteryNumber
       notifyWhenFullyStaffed
+      scheduledInterestList
+      scheduledCloseInterestList
       scheduledFirstComeFirstServe
       notifyOnFirstComeFirstServe
       startTime

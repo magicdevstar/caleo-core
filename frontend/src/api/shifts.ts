@@ -62,6 +62,23 @@ export const ASSIGN_SHIFT = gql`
   }
 `;
 
+export const REMOVE_SHIFT_INTEREST_REQUEST = gql`
+  mutation ShiftInterestRequest($id: String) {
+    removeShiftInterestRequest(id: $id)
+  }
+`;
+
+export const SHIFT_INTEREST_REQUEST = gql`
+  mutation ShiftInterestRequest($shiftInterestRequest: UpsertShiftInterestRequest) {
+    shiftInterestRequest(shiftInterestRequest: $shiftInterestRequest) {
+      id
+    }
+  }
+`;
+
+export const REVOKE_SHIFT_INTEREST_REQUEST = SHIFT_INTEREST_REQUEST;
+export const UPSERT_SHIFT_INTEREST_REQUEST = SHIFT_INTEREST_REQUEST;
+
 export const REMOVE_SHIFT_BUFFER_REQUEST = gql`
   mutation RemoveShiftBufferRequests($id: String!) {
     removeShiftBufferRequest(id: $id)
@@ -89,6 +106,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
     availableShifts(input: $input) {
       items {
         id
+        shiftId
         startTime
         endTime
         refNumber
@@ -99,6 +117,8 @@ export const GET_AVAILABLE_SHIFTS = gql`
           attachments
           notes
           status
+          scheduledInterestList
+          scheduledCloseInterestList
           scheduledFirstComeFirstServe
           lotteryNumber
           lotteryCounter {
@@ -145,6 +165,10 @@ export const GET_AVAILABLE_SHIFTS = gql`
               pNumber
             }
           }
+        }
+
+        shiftInterestRequest {
+          id
         }
 
         shiftBufferShift {
@@ -510,6 +534,27 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
             id
             name
           }
+        }
+      }
+      total
+    }
+  }
+`;
+
+export const SHIFT_INTEREST_REQUESTS = gql`
+  query GetShiftInterestRequests($input: ShiftInterestRequestsSearchInput!) {
+    shiftInterestRequests(input: $input) {
+      items {
+        id
+        shiftGroupId
+        eventId
+        assignmentId
+        status
+        createdAt
+
+        user {
+          id
+          name
         }
       }
       total

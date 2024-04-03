@@ -28,7 +28,7 @@ type ShiftDialogProps = {
   }[];
   shiftActions: {
     key: string;
-    color?: string;
+    color?: string | ((shift: any) => string);
     disabled: (shift: any) => boolean;
     onClick: (shift: any) => void;
     getIcon: (shift: any) => string;

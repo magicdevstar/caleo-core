@@ -7,10 +7,12 @@ import { GET_EVENT_FOR_SUMMARY } from "src/api/event";
 import { Assignment, Shift } from "src/__generated__/resolvers-types";
 import { useDownloadCsv } from "./use-download-csv";
 import { convertDate, dateFormat, dateTimeFormat } from "./use-datejs";
+import { useFeatures } from "./use-features";
 
 export const useEventSummary = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuthContext();
+  const { eventCheckIn } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'event-summary',
@@ -46,7 +48,7 @@ export const useEventSummary = () => {
 
       const formattedJson = shifts.map((shift: Shift) => {
         const checkInData: any = {};
-        if (user.member.org?.features?.eventCheckIn) {
+        if (eventCheckIn) {
           const checkInTime = shift.shiftCheckInOut?.checkInTime ? convertDate({date: shift.shiftCheckInOut?.checkInTime, user}) : undefined;
           const checkOutTime = shift.shiftCheckInOut?.checkOutTime ? convertDate({date: shift.shiftCheckInOut?.checkOutTime, user}) : undefined;
           checkInData['Shift check in time'] = checkInTime ? checkInTime.format(dateTimeFormat) : '-';
@@ -86,7 +88,7 @@ export const useEventSummary = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, enqueueSnackbar, download]);
+  }, [user, eventCheckIn, enqueueSnackbar, download]);
 
   return {
     generateEventDownload,

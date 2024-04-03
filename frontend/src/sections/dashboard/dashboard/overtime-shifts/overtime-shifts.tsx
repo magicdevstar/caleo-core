@@ -10,14 +10,14 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useTheme } from '@mui/material/styles';
 // hooks
-import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
 import { CurrentShiftType, useCurrentShifts } from 'src/hooks/use-current-shifts';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useUpcomingOvertimeLabels } from 'src/hooks/use-upcoming-overtime-labels';
+import { useAvailableOvertimeLabels } from 'src/hooks/use-available-overtime-labels';
 // types
-import Label, { LabelColor, LabelVariant } from 'src/components/label';
+import Label, { LabelColor } from 'src/components/label';
 import { EventStatus, Shift, ShiftBufferRequest } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { DayMap } from 'src/types/day';
@@ -33,6 +33,7 @@ import SignUpDialog from './sign-up-dialog';
 import ShiftFilters, { ShiftFilterValues } from './shift-filters';
 import ShiftFilterResults from './shift-filter-results';
 import ShiftDialog from './shift-dialog';
+import InterestDialog from './interest-dialog';
 
 const defaultUIFilters: ShiftFilterValues = {
   range: [null, null],
@@ -47,6 +48,8 @@ enum ShiftViewType {
 export default function OvertimeShifts() {
   const theme = useTheme();
   const { user } = useAuthContext();
+  const { labels: upcomingOvertimeLabels } = useUpcomingOvertimeLabels();
+  const { labels: availableOvertimeLabels } = useAvailableOvertimeLabels();
   const mdDown = useResponsive('down', 'md');
   const smDown = useResponsive('down', 'sm');
   const [currentTab, setCurrentTab] = useState<CurrentShiftType>(CurrentShiftType.Assigned);
@@ -104,6 +107,15 @@ export default function OvertimeShifts() {
     }
   }, [assignConfirm, setEditShift, showDialogShift, closeShiftDialog]);
 
+  // interest properties
+  const interestConfirm = useBoolean();
+  const closeInterest = useCallback(() => {
+    setTimeout(() => {
+      setEditShift(null);
+    }, 200);
+    interestConfirm.onFalse();
+  }, [interestConfirm, setEditShift]);
+
   const {
     allCurrentShifts,
     currentShifts,
@@ -125,10 +137,6 @@ export default function OvertimeShifts() {
     () => organizationData?.organization?.settings?.userRelinquishShift,
     [organizationData]
   );
-
-  const { options: lotteryCounterOptions } = useLotteryCounterOptions({
-    org: user.member.org!,
-  });
 
   const getShiftColor = useCallback((shift: Shift | ShiftBufferRequest) => {
     if (shift.__typename === 'ShiftBufferRequest') {
@@ -221,85 +229,58 @@ export default function OvertimeShifts() {
           {
             key: 'signUp',
             disabled: (shift: Shift) => false,
-            color: 'info',
+            color: (shift: Shift) =>
+              shift.shiftInterestRequest?.id ? 'error' : 'info',
             onClick: (shift: Shift) => {
               setEditShift(shift);
-              assignConfirm.onTrue();
+              if (shift.event.status === EventStatus.InterestList) {
+                interestConfirm.onTrue();
+              } else {
+                assignConfirm.onTrue();
+              }
             },
-            getIcon: () => 'mdi:clipboard-check',
-            getName: () => 'Sign Up',
+            getIcon: (shift: Shift) => {
+              if (shift.event.status === EventStatus.InterestList) {
+                if (shift.shiftInterestRequest?.id) {
+                  return 'ic:round-cancel';
+                }
+                return 'ic:round-front-hand';
+              }
+              return 'mdi:clipboard-check';
+            },
+            getName: (shift: Shift) => {
+              if (shift.event.status === EventStatus.InterestList) {
+                return shift.shiftInterestRequest?.id ? 'Remove Interest' : 'Show Interest';
+              }
+              return 'Sign Up';
+            },
           },
         ];
       case CurrentShiftType.Upcoming:
       default:
         return [];
     }
-  }, [currentTab, relinquishConfirm, organizationData, assignConfirm]);
+  }, [
+    currentTab,
+    relinquishConfirm,
+    organizationData,
+    assignConfirm,
+    interestConfirm,
+  ]);
 
   const currentShiftLabels = useMemo(() => {
     if (currentTab === CurrentShiftType.Upcoming) {
-      return [
-        {
-          key: 'shift-post-date',
-          variant: 'soft' as LabelVariant,
-          sx: {
-            border: 'none',
-            background: 'none',
-          },
-          getHidden: (shift: Shift) =>
-            ![EventStatus.ReadyForLottery, EventStatus.FirstComeFirstServe].includes(
-              shift?.event?.status
-            ),
-          getLabel: (shift: Shift) => {
-            if (shift?.event?.status === EventStatus.ReadyForLottery) {
-              const foundCounter = lotteryCounterOptions.find(
-                (c) => c.counter === shift?.event?.lotteryNumber
-              );
-              if (!foundCounter) {
-                return '';
-              }
-              return foundCounter?.time;
-            }
-            if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
-              const fcfsDate = convertDate({
-                date: shift?.event?.scheduledFirstComeFirstServe || '',
-                user,
-              });
-              return `${fcfsDate.format(dateTimeFormat)}`;
-            }
-            return '';
-          },
-        },
-        {
-          key: 'shift-event-status',
-          variant: 'soft' as LabelVariant,
-          getHidden: (shift: Shift) =>
-            ![EventStatus.ReadyForLottery, EventStatus.FirstComeFirstServe].includes(
-              shift?.event?.status
-            ),
-          getColor: (shift: Shift) => {
-            if (shift?.event?.status === EventStatus.ReadyForLottery) {
-              return 'success';
-            }
-            if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
-              return 'primary';
-            }
-            return 'default';
-          },
-          getLabel: (shift: Shift) => {
-            if (shift?.event?.status === EventStatus.ReadyForLottery) {
-              return 'Pre-Lottery';
-            }
-            if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
-              return 'Pre-First Come First Serve';
-            }
-            return '';
-          },
-        },
-      ];
+      return upcomingOvertimeLabels;
+    }
+    if (currentTab === CurrentShiftType.Available) {
+      return availableOvertimeLabels;
     }
     return undefined;
-  }, [currentTab, lotteryCounterOptions, user]);
+  }, [
+    currentTab,
+    availableOvertimeLabels,
+    upcomingOvertimeLabels,
+  ]);
 
   const currentView = useMemo(() => {
     switch (shiftView) {
@@ -453,6 +434,12 @@ export default function OvertimeShifts() {
         relinquishNoteRequired={
           userRelinquishShift?.enabled && userRelinquishShift?.requireNoteWhenRelinquishing
         }
+      />
+      <InterestDialog
+        open={interestConfirm.value}
+        onClose={closeInterest}
+        editShift={editShift as Shift}
+        user={user}
       />
       <SignUpDialog
         open={assignConfirm.value}

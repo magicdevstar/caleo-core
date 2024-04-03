@@ -38,6 +38,8 @@ export enum MailerEvents {
   OfficerUserAccountReactivated = 'OfficerUserAccountReactivated',
   OfficerShiftAutoCheckout = 'OfficerShiftAutoCheckout',
   OfficerShiftCheckInOutEdited = 'OfficerShiftCheckInOutEdited',
+  OfficerInterestListOpening = 'OfficerInterestListOpening',
+  OfficerInterestListClosing = 'OfficerInterestListClosing',
 };
 
 export enum SMSEvents {

@@ -22,6 +22,7 @@ import { reader } from "src/layouts/_common/notifications-popover/notification-i
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useFeatures } from "src/hooks/use-features";
 
 const labelSx = {
   whiteSpace: 'break-spaces',
@@ -71,7 +72,7 @@ export default function ShiftItem({
   }[];
   shiftActions: {
     key: string;
-    color?: string;
+    color?: string | ((shift: any) => string);
     disabled: (shift: any) => boolean;
     onClick: (shift: any) => void;
     getIcon: (shift: any) => string;
@@ -97,6 +98,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
+  const { eventCheckIn } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
@@ -256,7 +258,7 @@ export default function ShiftItem({
             shiftActions[0].onClick(inputShift)
           }}
           sx={{ flex: '0 0 auto' }}
-          color={shiftActions[0].color as any}
+          color={typeof (shiftActions[0].color as any) === 'string' ? (shiftActions[0].color as any) : (shiftActions[0].color as any)?.(shift)}
           variant="outlined"
         >{shiftActions[0].getName(inputShift)}</Button>
       );
@@ -283,7 +285,7 @@ export default function ShiftItem({
     }).format(dateTimeFormat),
   };
 
-  const hasCheckInOutData = user.member.org?.features?.eventCheckIn && shift.shiftCheckInOut;
+  const hasCheckInOutData = eventCheckIn && shift.shiftCheckInOut;
   const checkIn = shift.shiftCheckInOut?.checkInTime;
   const checkOut = shift.shiftCheckInOut?.checkOutTime;
   const firstRowSize = hasCheckInOutData ? 3 : 4;
@@ -559,7 +561,7 @@ export default function ShiftItem({
           <MenuItem
             disabled={disabled(inputShift)}
             key={key}
-            sx={{ color: color && !disabled(inputShift) ? `${color}.main` : null}}
+            sx={{ color: color && !disabled(inputShift) ? `${typeof color === 'string' ? color : color(inputShift)}.main` : null}}
             onClick={() => {
               onClick(inputShift);
               popover.onClose();

@@ -11,12 +11,12 @@ import GQLTable from "src/components/table/gql/table";
 import { TableConfig } from "src/components/table/table-config";
 import { client } from "src/utils/apollo";
 import { paths } from 'src/routes/paths';
-import { useAuthContext } from 'src/auth/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 
 export default function DynamicShiftFilter() {
-  const { user } = useAuthContext();
+  const { eventCheckIn } = useFeatures();
   const editCheckInOutModal = useBoolean();
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const shiftHasBeenRemoved = (shift: Shift) =>
@@ -167,9 +167,9 @@ export default function DynamicShiftFilter() {
         columnType: 'string',
         noSort: true,
       },
-      ...(user.member.org?.features?.eventCheckIn ? [{ id: '', width: '5%', columnType: 'action', label: '' }] : []) as any,
+      ...(eventCheckIn ? [{ id: '', width: '5%', columnType: 'action', label: '' }] : []) as any,
     ],
-    ...(user.member.org?.features?.eventCheckIn ? {
+    ...(eventCheckIn ? {
       rowActions: [
         {
           getName: () => 'View Check In/Out',

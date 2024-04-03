@@ -10,8 +10,9 @@ import {
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
-import { format, setMilliseconds, addMinutes, setSeconds, isAfter } from "date-fns";
+import { format, setMilliseconds, addMinutes, setSeconds, isAfter, subHours } from "date-fns";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
+import { MailerEvents } from "../../types/mailer";
 
 export const event = {
   Query: {
@@ -183,6 +184,8 @@ export const event = {
         event: {
           notifyOnFirstComeFirstServe,
           scheduledFirstComeFirstServe: scheduledFCFS,
+          scheduledInterestList: scheduledInterest,
+          scheduledCloseInterestList: scheduledCloseInterest,
           ...event
         }
       }: { event: UpsertEvent },
@@ -199,14 +202,14 @@ export const event = {
       adminOnly(user);
 
       let currentEvent: any = {};
+      
       if (event.id) {
         currentEvent = await events.get(event.id);
-        // Remove this so it will be set as long as we pass in a first come first serve event
-        delete currentEvent.notifyOnFirstComeFirstServe;
-        delete currentEvent.scheduledFirstComeFirstServe;
         if (!currentEvent) {
           throw new GraphQLError('Could not find event');
         }
+        // Remove this so it will be set as long as we pass in a first come first serve event
+        delete currentEvent.notifyOnFirstComeFirstServe;
       } else {
         (event as any).createdById = user!.id;
         (event as any).status = EventStatus.Draft;
@@ -219,6 +222,19 @@ export const event = {
       } else if (event.status === EventStatus.FirstComeFirstServe && !scheduledFCFS) {
         scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(), 0), 0);
       }
+      let scheduledInterestList;
+      if (event.status === EventStatus.InterestList && scheduledInterest) {
+        scheduledInterestList = setMilliseconds(setSeconds(new Date(scheduledInterest), 0), 0);
+      } else if (event.status === EventStatus.InterestList && !scheduledInterest) {
+        scheduledInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
+      }
+      let scheduledCloseInterestList;
+      if (event.status === EventStatus.InterestList && scheduledCloseInterest) {
+        scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(scheduledCloseInterest), 0), 0);
+      } else if (event.status === EventStatus.InterestList && !scheduledCloseInterest) {
+        // TODO: Use organization default
+        scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
+      }
       const inputEvent = {
         ...currentEvent,
         ...event,
@@ -229,6 +245,17 @@ export const event = {
           } : {
             scheduledFirstComeFirstServe: null,
             notifyOnFirstComeFirstServe: false
+          }
+        ),
+        ...(
+          event.status === EventStatus.InterestList ? {
+            interestListTransition: event.interestListTransition ? event.interestListTransition : null,
+            scheduledInterestList: scheduledInterestList.getTime(),
+            scheduledCloseInterestList: scheduledCloseInterestList.getTime(),
+          } : {
+            interestListTransition: null,
+            scheduledInterestList: null,
+            scheduledCloseInterestList: null,
           }
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
@@ -275,14 +302,113 @@ export const event = {
             }),
           });
         }
+      } else if (
+          (currentEvent.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
+          (inputEvent.status === EventStatus.InterestList && currentEvent.scheduledInterestList !== inputEvent.scheduledInterestList)
+      ) {
+        logger.info('Interest list opening', { inputEvent, currentEvent });
+        if (isAfter(new Date(), addMinutes(scheduledInterestList, -1))) {
+          await scheduler.removeSchedule({
+            event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
+            orgId: user?.member.orgId!,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
+            ignoreError: true,
+          });
+          await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListOpening);
+        } else {
+          await scheduler.updateScheduledEvent({
+            event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
+            orgId: user?.member.orgId!,
+            eventTime: `at(${format(scheduledInterestList, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTimeZone: Timezone.UTC,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
+            eventInput: JSON.stringify({
+              action: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
+              orgId: user?.member.orgId!,
+              eventId: currentEvent.id,
+            }),
+          });
+        }
+      } else if (
+        (currentEvent.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
+        (inputEvent.status === EventStatus.InterestList && currentEvent.scheduledCloseInterestList !== inputEvent.scheduledCloseInterestList) ||
+        (inputEvent.status === EventStatus.InterestList && inputEvent.interestListTransition !== currentEvent.interestListTransition)
+      ) {
+        const closingEvents = subHours(
+          scheduledCloseInterestList,
+          organization?.settings?.interestList?.defaultNotificationTime || 24
+        );
+        if (isAfter(new Date(), addMinutes(scheduledCloseInterestList, -1))) {
+          await scheduler.removeSchedule({
+            event: ScheduleEvent.EVENT_INTEREST_CLOSE,
+            orgId: user?.member.orgId!,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent.id}`,
+            ignoreError: true,
+          });
+          await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListClosing);
+        } else {
+          await scheduler.updateScheduledEvent({
+            event: ScheduleEvent.EVENT_INTEREST_CLOSE,
+            orgId: user?.member.orgId!,
+            eventTime: `at(${format(scheduledCloseInterestList, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTimeZone: Timezone.UTC,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent.id}`,
+            eventInput: JSON.stringify({
+              action: ScheduleEvent.EVENT_INTEREST_CLOSE,
+              orgId: user?.member.orgId!,
+              eventId: currentEvent.id,
+              transition: inputEvent.interestListTransition,
+            }),
+          });
+
+          if (isAfter(new Date(), addMinutes(closingEvents, -1))) {
+            await scheduler.removeSchedule({
+              event: ScheduleEvent.EVENT_INTEREST_CLOSING,
+              orgId: user?.member.orgId!,
+              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
+              ignoreError: true,
+            });
+            await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListClosing);
+          } else {
+            await scheduler.updateScheduledEvent({
+              event: ScheduleEvent.EVENT_INTEREST_CLOSING,
+              orgId: user?.member.orgId!,
+              eventTime: `at(${format(closingEvents, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+              eventTimeZone: Timezone.UTC,
+              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
+              eventInput: JSON.stringify({
+                action: ScheduleEvent.EVENT_INTEREST_CLOSING,
+                orgId: user?.member.orgId!,
+                eventId: currentEvent.id,
+                transition: inputEvent.interestListTransition,
+              }),
+            });
+          }
+        }
       }
 
       // Clean up scheduled event if we are not going to FCFS
-      if (inputEvent.status !== EventStatus.FirstComeFirstServe) {
+      if (inputEvent.status !== EventStatus.FirstComeFirstServe && currentEvent.status === EventStatus.FirstComeFirstServe) {
         await scheduler.removeSchedule({
           event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
           orgId: user?.member.orgId!,
           customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+          ignoreError: true,
+        });
+      }
+
+      // Clean up scheduled event if we are not going to Interest List
+      if (inputEvent.status !== EventStatus.InterestList && currentEvent.status === EventStatus.InterestList) {
+        await scheduler.removeSchedule({
+          event: ScheduleEvent.EVENT_INTEREST_CLOSING,
+          orgId: user?.member.orgId!,
+          customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
+          ignoreError: true,
+        });
+        await scheduler.removeSchedule({
+          event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
+          orgId: user?.member.orgId!,
+          customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
           ignoreError: true,
         });
       }
@@ -308,6 +434,8 @@ export const event = {
       startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
       endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
+      scheduledInterestList: (item: Event) => item.scheduledInterestList ? new Date(item.scheduledInterestList).toISOString() : null,
+      scheduledCloseInterestList: (item: Event) => item.scheduledCloseInterestList ? new Date(item.scheduledCloseInterestList).toISOString() : null,
       lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load(item.lotteryNumber!) : null,
       attachments: async (item: Event, _arg: unknown, { events }: Context) => {
         if (!item.attachmentPaths) {

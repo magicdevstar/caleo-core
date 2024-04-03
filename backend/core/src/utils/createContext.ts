@@ -24,10 +24,12 @@ import { LotteryStateModel } from "../models/lotteryState";
 import { BrowserNotificationSubscription } from "../models/browserNotificationSubscription";
 import { InAppNotificationModel } from "../models/inAppNotifications";
 import { UserAnalyticsModel } from "../models/analytics";
+import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 
 let db: Db;
 
 export interface Context {
+  shiftInterestRequests: ShiftInterestRequestModel;
   analytics: UserAnalyticsModel;
   inAppNotifications: InAppNotificationModel;
   lotteryState: LotteryStateModel;
@@ -60,6 +62,7 @@ export const createContext = async (): Promise<Context> => {
     db = await mongodb.db(process.env.MONGODB_NAME!);
   }
 
+  const shiftInterestRequests = new ShiftInterestRequestModel(db);
   const lotteryState = new LotteryStateModel(db);
   const siteLock = new SiteLockModel(db);
   const organizations = new OrganizationModel(db);
@@ -76,7 +79,16 @@ export const createContext = async (): Promise<Context> => {
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
   const shiftLotteryRequests = new ShiftLotteryRequestModel(db, lotteryCounter);
   const events = new EventModel(db, document, shifts);
-  const users = new UserModel(db, assignments, shifts, events, shiftBufferRequests, document, lotteryCounter);
+  const users = new UserModel(
+    db,
+    assignments,
+    shifts,
+    events,
+    shiftBufferRequests,
+    document,
+    lotteryCounter,
+    shiftInterestRequests
+  );
   const memberSkills = new MemberSkillModel(db, users, document, skills);
   const memberNotifications = new MemberNotificationModel(db, notifications);
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
@@ -105,5 +117,6 @@ export const createContext = async (): Promise<Context> => {
     browserNotificationSubscriptions,
     inAppNotifications,
     analytics,
+    shiftInterestRequests,
   };
 };

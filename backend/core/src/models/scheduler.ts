@@ -24,6 +24,9 @@ export enum ScheduleEvent {
   SHIFT_REMINDER = 'shift_reminder',
   EVENT_COMPLETE = 'event_complete',
   EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE = 'event_fcfs_live',
+  EVENT_INTEREST_GO_LIVE = 'event_int_live',
+  EVENT_INTEREST_CLOSE = 'event_int_close',
+  EVENT_INTEREST_CLOSING = 'event_int_closing',
   USER_TIER_RETURN = 'user_tier_return',
   USER_INACTIVE_RETURN = 'user_inactive_return',
 }

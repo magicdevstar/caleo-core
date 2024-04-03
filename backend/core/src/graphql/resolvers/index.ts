@@ -14,6 +14,7 @@ import { lotteryCounter } from './lotteryCounter';
 import { siteLock } from './siteLock';
 import { browserNotificationSubscriptions } from './browserNotificationSubscriptions';
 import { lotteryAnalytics } from './lotteryAnalytics';
+import { shiftInterestRequests } from './shiftInterestRequests';
 
 export default {
   Query: {
@@ -33,6 +34,7 @@ export default {
     ...siteLock.Query,
     ...browserNotificationSubscriptions.Query,
     ...lotteryAnalytics.Query,
+    ...shiftInterestRequests.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -51,6 +53,7 @@ export default {
     ...siteLock.Mutation,
     ...browserNotificationSubscriptions.Mutation,
     ...lotteryAnalytics.Mutation,
+    ...shiftInterestRequests.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -68,4 +71,5 @@ export default {
   ...siteLock.fields,
   ...browserNotificationSubscriptions.fields,
   ...lotteryAnalytics.fields,
+  ...shiftInterestRequests.fields,
 };

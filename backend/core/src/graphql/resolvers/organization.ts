@@ -129,6 +129,7 @@ export const organization = {
       ...commonResolvers,
     },
     OrganizationOvertimeSettings: {
+      interestList: (parent: any) => parent.interestList || {},
       // Setting defaults for check in/out
       checkInOut: ({ checkInOut }: any) => {
         const {
@@ -143,6 +144,16 @@ export const organization = {
           minutesBeforeShiftStart,
         };
       },
+    },
+    InterestListSetting: {
+      defaultHoursBeforeShift: (parent: any) => parent.defaultHoursBeforeShift || 24,
+      defaultNotificationTime: (parent: any) => parent.defaultNotificationTime || 24,
+    },
+    OrganizationFeatures: {
+      lottery: (parent: boolean) => !!parent,
+      venueContractDates: (parent: boolean) => !!parent,
+      eventCheckIn: (parent: boolean) => !!parent,
+      interestLists: (parent: boolean) => !!parent,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

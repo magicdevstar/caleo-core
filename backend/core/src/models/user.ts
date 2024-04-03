@@ -41,6 +41,7 @@ import { ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
+import { ShiftInterestRequestModel } from './shiftInterestRequest';
 
 const cognito = new CognitoIdentityProviderClient({});
 
@@ -56,6 +57,7 @@ export class UserModel extends BaseModel<User> {
     private shiftBufferRequests: ShiftBufferRequestModel,
     private document: DocumentModel,
     private lotteryCounter: LotteryCounterModel,
+    private shiftInterestRequests: ShiftInterestRequestModel,
   ) {
     super(db, DocType.User, 'users');
     this.memberSkillsCollection = this.db.collection('memberSkills');
@@ -110,15 +112,29 @@ export class UserModel extends BaseModel<User> {
     let query: any = {
       orgId: organization.id,
       status: {
-        $in: eventTypes
+        $in: eventTypes,
       },
       endTime: {
         $gte: Date.now(),
       },
       $or: [
-        { scheduledFirstComeFirstServe: null},
-        { scheduledFirstComeFirstServe: { $exists: false }},
-        { scheduledFirstComeFirstServe: { $lte: Date.now() }},
+        {
+          status: EventStatus.FirstComeFirstServe,
+          scheduledFirstComeFirstServe: null
+        },
+        {
+          status: EventStatus.FirstComeFirstServe,
+          scheduledFirstComeFirstServe: { $exists: false }
+        },
+        {
+          status: EventStatus.FirstComeFirstServe,
+          scheduledFirstComeFirstServe: { $lte: Date.now() }
+        },
+        {
+          status: EventStatus.InterestList,
+          scheduledInterestList: { $lte: Date.now() },
+          scheduledCloseInterestList: { $gte: Date.now() }
+        },
       ],
     };
     if (eventTypes && eventTypes.length === 1 && eventTypes[0] === EventStatus.ReadyForLottery) {
@@ -142,6 +158,16 @@ export class UserModel extends BaseModel<User> {
             $or: [
               {
                 scheduledFirstComeFirstServe: {
+                  $gte: Date.now(),
+                },
+              },
+            ]
+          },
+          {
+            status: EventStatus.InterestList,
+            $or: [
+              {
+                scheduledInterestList: {
                   $gte: Date.now(),
                 },
               },
@@ -274,12 +300,21 @@ export class UserModel extends BaseModel<User> {
       userId: user.id,
       status: ShiftBufferRequestStatus.Pending,
     }).toArray();
+
+    const rejectedInterestRequests = await this.shiftInterestRequests.collection.find({
+      userId: new ObjectId(user.id),
+      status: ShiftBufferRequestStatus.Rejected,
+      shiftGroupId: {
+        $in: filteredShifts.map(({ shiftId }) => shiftId),
+      },
+    }).project({ _id: 1, shiftGroupId: 1 }).toArray();
     
     const onlyAvailableShifts: Shift[] = [];
     const now = Date.now();
     for(const shift of filteredShifts) {
+      const foundRejectedInterest = await rejectedInterestRequests.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       const foundShiftBufferRequest = myShiftBuffers.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
-      if (foundShiftBufferRequest) {
+      if (foundShiftBufferRequest || foundRejectedInterest) {
         continue;
       }
       const hasMaxShifts = await this.hasMaxShifts({

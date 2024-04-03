@@ -8,5 +8,5 @@ export const commonResolvers = {
   createdAt: (item) => new Date(item.createdAt).toISOString(),
   updatedAt: (item) => new Date(item.updatedAt).toISOString(),
   removedAt: (item) => item.removedAt && new Date(item.removedAt).toISOString(),
-  modifiedBy: (item, _, { users }) => item.modifiedById ? users.loader.load(item.modifiedById) : null,
+  modifiedBy: (item, _, { users }) => item.modifiedById ? users.loader.load(item.modifiedById.toString()) : null,
 }

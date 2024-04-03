@@ -166,6 +166,7 @@ export enum DocType {
   Rank = 'RANK',
   Shift = 'SHIFT',
   ShiftBufferRequest = 'SHIFT_BUFFER_REQUEST',
+  ShiftInterestRequest = 'SHIFT_INTEREST_REQUEST',
   ShiftLotteryRequest = 'SHIFT_LOTTERY_REQUEST',
   SiteLock = 'SITE_LOCK',
   Skill = 'SKILL',
@@ -193,6 +194,7 @@ export type Event = {
   docType: DocType;
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  interestListTransition?: Maybe<EventStatus>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryNumber?: Maybe<Scalars['Int']['output']>;
   modifiedBy?: Maybe<User>;
@@ -205,7 +207,9 @@ export type Event = {
   orgId: Scalars['String']['output'];
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
+  scheduledCloseInterestList?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
+  scheduledInterestList?: Maybe<Scalars['String']['output']>;
   searchAttribute: Scalars['String']['output'];
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
@@ -331,6 +335,12 @@ export type InputUserAvailability = {
   thursday: InputDayAvailability;
   tuesday: InputDayAvailability;
   wednesday: InputDayAvailability;
+};
+
+export type InterestListSetting = {
+  __typename?: 'InterestListSetting';
+  defaultHoursBeforeShift?: Maybe<Scalars['Int']['output']>;
+  defaultNotificationTime?: Maybe<Scalars['Int']['output']>;
 };
 
 export type InviteMember = {
@@ -530,6 +540,7 @@ export type Mutation = {
   removeRank: Scalars['ID']['output'];
   removeShift: Scalars['ID']['output'];
   removeShiftBufferRequest: Scalars['ID']['output'];
+  removeShiftInterestRequest: Scalars['ID']['output'];
   removeShiftLotteryRequest: Scalars['ID']['output'];
   removeShifts: Array<Maybe<Scalars['String']['output']>>;
   removeSkill: Scalars['ID']['output'];
@@ -540,6 +551,7 @@ export type Mutation = {
   setShiftBufferStatus?: Maybe<ShiftBufferRequest>;
   shiftAssign?: Maybe<Shift>;
   shiftBufferRequest?: Maybe<ShiftBufferRequest>;
+  shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   shiftLotteryRequest?: Maybe<ShiftLotteryRequest>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
   siteLock?: Maybe<SiteLock>;
@@ -682,6 +694,11 @@ export type MutationRemoveShiftBufferRequestArgs = {
 };
 
 
+export type MutationRemoveShiftInterestRequestArgs = {
+  id?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationRemoveShiftLotteryRequestArgs = {
   id?: InputMaybe<Scalars['String']['input']>;
 };
@@ -733,6 +750,11 @@ export type MutationShiftAssignArgs = {
 
 export type MutationShiftBufferRequestArgs = {
   shiftBufferRequest?: InputMaybe<CreateShiftBufferRequest>;
+};
+
+
+export type MutationShiftInterestRequestArgs = {
+  shiftInterestRequest?: InputMaybe<UpsertShiftInterestRequest>;
 };
 
 
@@ -886,14 +908,16 @@ export type OrganizationContact = {
 
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
-  eventCheckIn: Scalars['Boolean']['output'];
-  lottery: Scalars['Boolean']['output'];
-  venueContractDates: Scalars['Boolean']['output'];
+  eventCheckIn?: Maybe<Scalars['Boolean']['output']>;
+  interestLists?: Maybe<Scalars['Boolean']['output']>;
+  lottery?: Maybe<Scalars['Boolean']['output']>;
+  venueContractDates?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type OrganizationOvertimeSettings = {
   __typename?: 'OrganizationOvertimeSettings';
   checkInOut?: Maybe<CheckInOutSetting>;
+  interestList?: Maybe<InterestListSetting>;
   lottery: LotterySettings;
   shiftBuffer: ShiftBuffer;
   shiftReminder: ShiftReminder;
@@ -937,6 +961,7 @@ export type Query = {
   ranks?: Maybe<RankSearchResult>;
   shift?: Maybe<Shift>;
   shiftBufferRequests?: Maybe<ShiftBufferRequestsSearchResult>;
+  shiftInterestRequests?: Maybe<ShiftInterestRequestsSearchResult>;
   shiftLotteryRequests?: Maybe<ShiftLotteryRequestsSearchResult>;
   shiftLottoRequests?: Maybe<ShiftLotteryRequestsSearchResult>;
   shiftUsers?: Maybe<UserSearchResult>;
@@ -1038,6 +1063,11 @@ export type QueryShiftArgs = {
 
 export type QueryShiftBufferRequestsArgs = {
   input?: InputMaybe<ShiftBufferRequestsSearchInput>;
+};
+
+
+export type QueryShiftInterestRequestsArgs = {
+  input?: InputMaybe<ShiftInterestRequestsSearchInput>;
 };
 
 
@@ -1171,6 +1201,7 @@ export type Shift = {
   shiftBufferShift?: Maybe<Shift>;
   shiftCheckInOut?: Maybe<ShiftCheckInOut>;
   shiftId: Scalars['String']['output'];
+  shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   startTime: Scalars['String']['output'];
   status: ShiftStatus;
   updatedAt: Scalars['String']['output'];
@@ -1289,6 +1320,55 @@ export type ShiftDayTime = {
   __typename?: 'ShiftDayTime';
   endTime: Scalars['String']['output'];
   startTime: Scalars['String']['output'];
+};
+
+export type ShiftInterestRequest = {
+  __typename?: 'ShiftInterestRequest';
+  assignment: Assignment;
+  assignmentId: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  event: Event;
+  eventId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  org: Organization;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  shift?: Maybe<Shift>;
+  shiftGroupId: Scalars['String']['output'];
+  status?: Maybe<ShiftInterestRequestStatus>;
+  updatedAt: Scalars['String']['output'];
+  user?: Maybe<User>;
+  userId: Scalars['String']['output'];
+};
+
+
+export type ShiftInterestRequestUserArgs = {
+  shiftStart?: InputMaybe<Scalars['String']['input']>;
+  timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum ShiftInterestRequestStatus {
+  Approved = 'APPROVED',
+  Pending = 'PENDING',
+  Rejected = 'REJECTED',
+  Removed = 'REMOVED'
+}
+
+export type ShiftInterestRequestsSearchInput = {
+  includeRemoved?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  shiftGroupId: Scalars['String']['input'];
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ShiftInterestRequestsSearchResult = {
+  __typename?: 'ShiftInterestRequestsSearchResult';
+  items?: Maybe<Array<Maybe<ShiftInterestRequest>>>;
+  total: Scalars['Int']['output'];
 };
 
 export type ShiftLotteryRequest = {
@@ -1498,14 +1578,22 @@ export type UpsertEvent = {
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  interestListTransition?: InputMaybe<EventStatus>;
   lotteryNumber?: InputMaybe<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
   notifyOnFirstComeFirstServe?: InputMaybe<Scalars['Boolean']['input']>;
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
+  scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
+  scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
   venueId: Scalars['String']['input'];
+};
+
+export type UpsertInterestListSetting = {
+  defaultHoursBeforeShift?: InputMaybe<Scalars['Int']['input']>;
+  defaultNotificationTime?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpsertLotteryDate = {
@@ -1560,6 +1648,7 @@ export type UpsertOrganizationContact = {
 
 export type UpsertOrganizationOvertimeSettings = {
   checkInOut?: InputMaybe<UpsertCheckInOutSetting>;
+  interestList?: InputMaybe<UpsertInterestListSetting>;
   lottery: UpsertLotterySettings;
   shiftBuffer: UpsertShiftBuffer;
   shiftReminder: UpsertShiftReminder;
@@ -1591,6 +1680,13 @@ export type UpsertShiftBuffer = {
   adminOverrideShiftBuffer: Scalars['Boolean']['input'];
   enabled: Scalars['Boolean']['input'];
   minuteShiftBuffer: Scalars['Int']['input'];
+};
+
+export type UpsertShiftInterestRequest = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  shiftGroupId: Scalars['String']['input'];
+  status?: InputMaybe<ShiftInterestRequestStatus>;
+  userId: Scalars['String']['input'];
 };
 
 export type UpsertShiftLotteryRequest = {
@@ -1884,6 +1980,7 @@ export type ResolversTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  InterestListSetting: ResolverTypeWrapper<InterestListSetting>;
   InviteMember: InviteMember;
   InviteUser: InviteUser;
   LotteryCounter: ResolverTypeWrapper<LotteryCounter>;
@@ -1936,6 +2033,10 @@ export type ResolversTypes = ResolversObject<{
   ShiftCheckInOutCoordinates: ResolverTypeWrapper<ShiftCheckInOutCoordinates>;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
+  ShiftInterestRequest: ResolverTypeWrapper<ShiftInterestRequest>;
+  ShiftInterestRequestStatus: ShiftInterestRequestStatus;
+  ShiftInterestRequestsSearchInput: ShiftInterestRequestsSearchInput;
+  ShiftInterestRequestsSearchResult: ResolverTypeWrapper<ShiftInterestRequestsSearchResult>;
   ShiftLotteryRequest: ResolverTypeWrapper<ShiftLotteryRequest>;
   ShiftLotteryRequestStatus: ShiftLotteryRequestStatus;
   ShiftLotteryRequestsSearchInput: ShiftLotteryRequestsSearchInput;
@@ -1957,6 +2058,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertAssignment: UpsertAssignment;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertEvent: UpsertEvent;
+  UpsertInterestListSetting: UpsertInterestListSetting;
   UpsertLotteryDate: UpsertLotteryDate;
   UpsertLotterySettings: UpsertLotterySettings;
   UpsertMemberSkill: UpsertMemberSkill;
@@ -1967,6 +2069,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftInterestRequest: UpsertShiftInterestRequest;
   UpsertShiftLotteryRequest: UpsertShiftLotteryRequest;
   UpsertShiftReminder: UpsertShiftReminder;
   UpsertSiteLock: UpsertSiteLock;
@@ -2023,6 +2126,7 @@ export type ResolversParentTypes = ResolversObject<{
   InputDayAvailability: InputDayAvailability;
   InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
+  InterestListSetting: InterestListSetting;
   InviteMember: InviteMember;
   InviteUser: InviteUser;
   LotteryCounter: LotteryCounter;
@@ -2070,6 +2174,9 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftCheckInOutCoordinates: ShiftCheckInOutCoordinates;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftDayTime: ShiftDayTime;
+  ShiftInterestRequest: ShiftInterestRequest;
+  ShiftInterestRequestsSearchInput: ShiftInterestRequestsSearchInput;
+  ShiftInterestRequestsSearchResult: ShiftInterestRequestsSearchResult;
   ShiftLotteryRequest: ShiftLotteryRequest;
   ShiftLotteryRequestsSearchInput: ShiftLotteryRequestsSearchInput;
   ShiftLotteryRequestsSearchResult: ShiftLotteryRequestsSearchResult;
@@ -2087,6 +2194,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertAssignment: UpsertAssignment;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertEvent: UpsertEvent;
+  UpsertInterestListSetting: UpsertInterestListSetting;
   UpsertLotteryDate: UpsertLotteryDate;
   UpsertLotterySettings: UpsertLotterySettings;
   UpsertMemberSkill: UpsertMemberSkill;
@@ -2097,6 +2205,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftInterestRequest: UpsertShiftInterestRequest;
   UpsertShiftLotteryRequest: UpsertShiftLotteryRequest;
   UpsertShiftReminder: UpsertShiftReminder;
   UpsertSiteLock: UpsertSiteLock;
@@ -2226,6 +2335,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType>;
   lotteryNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -2238,7 +2348,9 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  scheduledCloseInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  scheduledInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   searchAttribute?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
@@ -2293,6 +2405,12 @@ export type InAppNotificationsResolvers<ContextType = any, ParentType extends Re
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterestListSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['InterestListSetting'] = ResolversParentTypes['InterestListSetting']> = ResolversObject<{
+  defaultHoursBeforeShift?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  defaultNotificationTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2455,6 +2573,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
   removeShift?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftArgs, 'id'>>;
   removeShiftBufferRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftBufferRequestArgs, 'id'>>;
+  removeShiftInterestRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, Partial<MutationRemoveShiftInterestRequestArgs>>;
   removeShiftLotteryRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, Partial<MutationRemoveShiftLotteryRequestArgs>>;
   removeShifts?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType, RequireFields<MutationRemoveShiftsArgs, 'shiftId'>>;
   removeSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'id'>>;
@@ -2465,6 +2584,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setShiftBufferStatus?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, RequireFields<MutationSetShiftBufferStatusArgs, 'id' | 'status'>>;
   shiftAssign?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<MutationShiftAssignArgs, 'id'>>;
   shiftBufferRequest?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, Partial<MutationShiftBufferRequestArgs>>;
+  shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType, Partial<MutationShiftInterestRequestArgs>>;
   shiftLotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType, Partial<MutationShiftLotteryRequestArgs>>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType, Partial<MutationSiteLockArgs>>;
@@ -2533,14 +2653,16 @@ export type OrganizationContactResolvers<ContextType = any, ParentType extends R
 }>;
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
-  eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  eventCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  interestLists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  lottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  venueContractDates?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
   checkInOut?: Resolver<Maybe<ResolversTypes['CheckInOutSetting']>, ParentType, ContextType>;
+  interestList?: Resolver<Maybe<ResolversTypes['InterestListSetting']>, ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
   shiftBuffer?: Resolver<ResolversTypes['ShiftBuffer'], ParentType, ContextType>;
   shiftReminder?: Resolver<ResolversTypes['ShiftReminder'], ParentType, ContextType>;
@@ -2584,6 +2706,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<QueryShiftArgs, 'id'>>;
   shiftBufferRequests?: Resolver<Maybe<ResolversTypes['ShiftBufferRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftBufferRequestsArgs>>;
+  shiftInterestRequests?: Resolver<Maybe<ResolversTypes['ShiftInterestRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftInterestRequestsArgs>>;
   shiftLotteryRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftLotteryRequestsArgs>>;
   shiftLottoRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftLottoRequestsArgs, 'input'>>;
   shiftUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftUsersArgs, 'id'>>;
@@ -2645,6 +2768,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftCheckInOut?: Resolver<Maybe<ResolversTypes['ShiftCheckInOut']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ShiftStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2730,6 +2854,33 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
 export type ShiftDayTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftDayTime'] = ResolversParentTypes['ShiftDayTime']> = ResolversObject<{
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftInterestRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequest'] = ResolversParentTypes['ShiftInterestRequest']> = ResolversObject<{
+  assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
+  assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
+  eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
+  shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['ShiftInterestRequestStatus']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, Partial<ShiftInterestRequestUserArgs>>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftInterestRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequestsSearchResult'] = ResolversParentTypes['ShiftInterestRequestsSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftInterestRequest']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2923,6 +3074,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
   InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;
   InAppNotifications?: InAppNotificationsResolvers<ContextType>;
+  InterestListSetting?: InterestListSettingResolvers<ContextType>;
   LotteryCounter?: LotteryCounterResolvers<ContextType>;
   LotteryCounterSearchResult?: LotteryCounterSearchResultResolvers<ContextType>;
   LotteryDate?: LotteryDateResolvers<ContextType>;
@@ -2954,6 +3106,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftCheckInOut?: ShiftCheckInOutResolvers<ContextType>;
   ShiftCheckInOutCoordinates?: ShiftCheckInOutCoordinatesResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
+  ShiftInterestRequest?: ShiftInterestRequestResolvers<ContextType>;
+  ShiftInterestRequestsSearchResult?: ShiftInterestRequestsSearchResultResolvers<ContextType>;
   ShiftLotteryRequest?: ShiftLotteryRequestResolvers<ContextType>;
   ShiftLotteryRequestsSearchResult?: ShiftLotteryRequestsSearchResultResolvers<ContextType>;
   ShiftReminder?: ShiftReminderResolvers<ContextType>;

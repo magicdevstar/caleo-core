@@ -20,13 +20,14 @@ import { client } from 'src/utils/apollo';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { useAuthContext } from 'src/auth/hooks';
 import { convertDate } from 'src/hooks/use-datejs';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
 export default function VenuesTable() {
   const { user } = useAuthContext();
+  const { venueContractDates } = useFeatures();
   const navigate = useNavigate();
-  const venueContractEnabled = user.member.org?.features?.venueContractDates;
 
   const { download } = useDownloadCsv({ fileName: 'venues', ext: 'csv' });
   const [loadingCSV, setLoadingCSV] = useState(false);
@@ -175,7 +176,7 @@ export default function VenuesTable() {
           }
         }
       },
-      (venueContractEnabled && {
+      (venueContractDates && {
         id: 'contract.expirationDate',
         label: 'Contract Exp',
         width: 110,

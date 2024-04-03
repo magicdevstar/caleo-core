@@ -64,6 +64,10 @@ export const GET_VENUE_LIST = gql`
         state
         zip
         notes
+
+        contract {
+          expirationDate
+        }
       }
       total
     }

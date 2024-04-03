@@ -14,13 +14,15 @@ import { useSettingsContext } from 'src/components/settings';
 import { useAuthContext } from 'src/auth/hooks';
 import { useTable } from 'src/components/table';
 import { ASSIGN_SHIFT, CREATE_SHIFT_BUFFER, GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS } from 'src/api/shifts';
-import { MemberRole, Shift } from 'src/__generated__/resolvers-types';
+import { EventStatus, MemberRole, Shift } from 'src/__generated__/resolvers-types';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftItems from 'src/components/shifts/shift-items';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useWeeklyShifts } from 'src/hooks/use-weekly-shift-count';
 import { useResponsive } from 'src/hooks/use-responsive';
+import InterestDialog from 'src/sections/dashboard/dashboard/overtime-shifts/interest-dialog';
+import { useAvailableOvertimeLabels } from 'src/hooks/use-available-overtime-labels';
 
 // ----------------------------------------------------------------------
 
@@ -30,11 +32,20 @@ export default function AvailableOvertimeView() {
   const { enqueueSnackbar } = useSnackbar();
   const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT);
   const [createShiftBuffer, { loading: createShiftBufferLoading }] = useMutation(CREATE_SHIFT_BUFFER);
+  const { labels } = useAvailableOvertimeLabels();
   const mdDown = useResponsive('down', 'md');
 
   const [note, setNote] = useState<string>('');
   const [editShift, setEditShift] = useState<Shift | null>(null);
   const assignConfirm = useBoolean();
+  const interestConfirm = useBoolean();
+
+  const closeInterest = useCallback(() => {
+    setTimeout(() => {
+      setEditShift(null);
+    }, 200);
+    interestConfirm.onFalse();
+  }, [interestConfirm, setEditShift]);
 
   const isAdmin = useMemo(() => user?.member?.role === MemberRole.Admin, [user]);
 
@@ -74,13 +85,31 @@ export default function AvailableOvertimeView() {
     {
       key: 'signUp',
       disabled: (shift: Shift) => false,
-      color: 'info',
+      color: (shift: Shift) =>
+        shift.shiftInterestRequest?.id ? 'error' : 'info',
       onClick: (shift: Shift) => {
         setEditShift(shift);
-        assignConfirm.onTrue();
+        if (shift.event.status === EventStatus.InterestList) {
+          interestConfirm.onTrue();
+        } else {
+          assignConfirm.onTrue();
+        }
       },
-      getIcon: () => 'mdi:clipboard-check',
-      getName: () => 'Sign Up',
+      getIcon: (shift: Shift) => {
+        if (shift.event.status === EventStatus.InterestList) {
+          if (shift.shiftInterestRequest?.id) {
+            return 'ic:round-cancel';
+          }
+          return 'ic:round-front-hand';
+        }
+        return 'mdi:clipboard-check';
+      },
+      getName: (shift: Shift) => {
+        if (shift.event.status === EventStatus.InterestList) {
+          return shift.shiftInterestRequest?.id ? 'Remove Interest' : 'Show Interest';
+        }
+        return 'Sign Up';
+      },
     }
   ];
 
@@ -180,6 +209,7 @@ export default function AvailableOvertimeView() {
         currentPage={table.page + 1}
         shifts={items}
         shiftActions={shiftActions}
+        shiftLabels={labels}
         loading={loading}
       />
 
@@ -244,6 +274,13 @@ export default function AvailableOvertimeView() {
             Sign up for overtime
           </LoadingButton>
         }
+      />
+
+      <InterestDialog
+        open={interestConfirm.value}
+        onClose={closeInterest}
+        editShift={editShift as Shift}
+        user={user}
       />
     </Container>
   );

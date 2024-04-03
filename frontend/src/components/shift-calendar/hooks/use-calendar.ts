@@ -28,14 +28,11 @@ export default function useCalendar() {
           if (popoverBodyEl && calendarEl) {
             const popoverPos = popoverBodyEl.getBoundingClientRect();
             const calendarPos = calendarEl.getBoundingClientRect();
-            console.log(popoverPos, calendarPos);
 
             if (popoverPos.bottom > calendarPos.bottom) {
-              console.log('bottom set');
               popoverBodyEl.style.bottom = '0';
             }
             if (popoverPos.right > calendarPos.right) {
-              console.log('right set');
               popoverBodyEl.style.right = '0';
             }
           }
@@ -44,7 +41,6 @@ export default function useCalendar() {
     }
     window.addEventListener('click', forceScrollOnPopover);
     return () => {
-      console.log('cleanup');
       window.removeEventListener('click', forceScrollOnPopover);
     }
   });

@@ -59,7 +59,7 @@ export const venue = {
       org: (venue: Venue, _, { organizations }: Context) => organizations.loader.load(venue.orgId),
     },
     VenueContract: {
-      expirationDate: (contract: IVenueContract) => new Date(contract.expirationDate).toISOString(),
+      expirationDate: (contract: IVenueContract) => contract.expirationDate ? new Date(contract.expirationDate).toISOString() : null,
     },
   },
 };

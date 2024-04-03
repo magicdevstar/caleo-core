@@ -11,6 +11,7 @@ export { default as RHFRadioGroup } from './rhf-radio-group';
 export { default as RHFAutocomplete } from './rhf-autocomplete';
 export { default as RHFDatePicker } from './rhf-date-picker';
 export { default as RHFDateTimePicker } from './rhf-date-time-picker';
+export { default as RHFDateRangePicker } from './rhf-date-range';
 export { FormFooter } from './form-footer';
 
 export { default } from './form-provider';

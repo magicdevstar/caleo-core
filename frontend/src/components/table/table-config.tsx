@@ -6,12 +6,13 @@ export interface TableConfig<T> {
     title: string;
     buttons?: {
       key: string;
-      text: string;
-      icon: string;
+      text?: string;
+      icon?: string;
       variant?: string;
       loading?: boolean;
       disabled?: boolean;
-      onClick: () => void;
+      render?: (arg: any) => JSX.Element;
+      onClick?: () => void;
     }[],
     button?: {
       text: string;
@@ -43,7 +44,7 @@ export interface TableConfig<T> {
       defaultOrderBy?: string;
       defaultOrder?: 'asc' | 'desc';
     }
-    processResult: (value: any) => {
+    processResult: (value: any, filters?: any) => {
       items: T[];
       total: number;
     };

@@ -485,6 +485,9 @@ export const shift = {
         if (!userIsAdmin(user) && await users.hasMaxShifts({ user: assignUser, shift, organization: organization! })) {
           throw new GraphQLError("The user has reached their maximum shifts for that week");
         }
+        if (!userIsAdmin(user) && await users.hasMaxHours({ user: assignUser, shift, organization: organization! })) {
+          throw new GraphQLError("The user has reached their maximum hours for the month");
+        }
       }
 
       shift.userId = userId ? userId : null;

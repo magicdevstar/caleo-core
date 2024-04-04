@@ -18,6 +18,7 @@ import { client } from "src/utils/apollo";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { get } from "lodash";
+import { useFeatures } from "src/hooks/use-features";
 
 interface Props {
   open: UseBooleanReturnType;
@@ -41,6 +42,7 @@ export function InterestList({
   open,
   interestList
 }: Props) {
+  const { monthlyMaxHours } = useFeatures();
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
@@ -59,6 +61,7 @@ export function InterestList({
         return {
           'Name': interest.user?.name,
           'Status': formatStatus(interest.status),
+          ...(monthlyMaxHours && { 'Hours/month': interest.user?.numberOfHoursThisMonth }),
           'Created Date': createdAtTime.format(dateTimeFormat),
         };
       });
@@ -70,6 +73,7 @@ export function InterestList({
       setDownloadingSummary(false);
     }
   }, [
+    monthlyMaxHours,
     user,
     interestList,
     enqueueSnackbar,
@@ -123,8 +127,14 @@ export function InterestList({
         id: 'user.name',
         label: 'Name',
         columnType: 'string',
-        width: '60%',
+        width: '40%',
       },
+      ...(monthlyMaxHours ? [{
+        id: 'user.numberOfHoursThisMonth',
+        label: 'Hours/month',
+        columnType: 'string',
+        width: '20%',
+      }]: []) as any,
       {
         id: 'status',
         label: 'Type',

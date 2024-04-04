@@ -109,8 +109,9 @@ export const shiftInterestRequests = {
                 orgId: organization!.id,
                 shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
               });
-              const hasMaxShifts = await users.hasMaxShifts({ user: interestUser, shift: slot, organization: organization! })
-              if (!canSignUpForShift || hasMaxShifts) {
+              const hasMaxHours = await users.hasMaxHours({ user: interestUser, shift: slot, organization: organization! });
+              const hasMaxShifts = await users.hasMaxShifts({ user: interestUser, shift: slot, organization: organization! });
+              if (!canSignUpForShift || hasMaxShifts || hasMaxHours) {
                 throw new GraphQLError('User cannot sign up for this shift');
               }
 

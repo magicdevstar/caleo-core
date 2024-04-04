@@ -911,12 +911,14 @@ export type OrganizationFeatures = {
   eventCheckIn?: Maybe<Scalars['Boolean']['output']>;
   interestLists?: Maybe<Scalars['Boolean']['output']>;
   lottery?: Maybe<Scalars['Boolean']['output']>;
+  monthlyMaxHours?: Maybe<Scalars['Boolean']['output']>;
   venueContractDates?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type OrganizationOvertimeSettings = {
   __typename?: 'OrganizationOvertimeSettings';
   checkInOut?: Maybe<CheckInOutSetting>;
+  hoursPerMonth: Scalars['Int']['output'];
   interestList?: Maybe<InterestListSetting>;
   lottery: LotterySettings;
   shiftBuffer: ShiftBuffer;
@@ -1648,6 +1650,7 @@ export type UpsertOrganizationContact = {
 
 export type UpsertOrganizationOvertimeSettings = {
   checkInOut?: InputMaybe<UpsertCheckInOutSetting>;
+  hoursPerMonth?: InputMaybe<Scalars['Int']['input']>;
   interestList?: InputMaybe<UpsertInterestListSetting>;
   lottery: UpsertLotterySettings;
   shiftBuffer: UpsertShiftBuffer;
@@ -1764,6 +1767,7 @@ export type User = {
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  numberOfHoursThisMonth?: Maybe<Scalars['Int']['output']>;
   numberOfShiftsThisWeek?: Maybe<Scalars['Int']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   shiftsThisWeek?: Maybe<Array<Maybe<Shift>>>;
@@ -2656,12 +2660,14 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   eventCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   interestLists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  monthlyMaxHours?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   venueContractDates?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
   checkInOut?: Resolver<Maybe<ResolversTypes['CheckInOutSetting']>, ParentType, ContextType>;
+  hoursPerMonth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   interestList?: Resolver<Maybe<ResolversTypes['InterestListSetting']>, ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
   shiftBuffer?: Resolver<ResolversTypes['ShiftBuffer'], ParentType, ContextType>;
@@ -2980,6 +2986,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  numberOfHoursThisMonth?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   numberOfShiftsThisWeek?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftsThisWeek?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;

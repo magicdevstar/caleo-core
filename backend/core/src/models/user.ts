@@ -5,7 +5,6 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuid } from 'uuid';
 import {
-  DayAvailability,
   DocType,
   EventStatus,
   InputAdminResetPassword,
@@ -22,18 +21,14 @@ import {
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { AssignmentModel } from './assignment';
-import { ShiftModel } from './shift';
+import { IShift, ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
 import {
+  endOfMonth,
   endOfWeek,
-  getHours,
-  getMinutes,
-  setHours,
-  setMilliseconds,
-  setMinutes,
-  setSeconds,
+  startOfMonth,
   startOfWeek,
 } from 'date-fns';
 import { DocumentModel } from './document';
@@ -317,12 +312,17 @@ export class UserModel extends BaseModel<User> {
       if (foundShiftBufferRequest || foundRejectedInterest) {
         continue;
       }
+      const hasMaxHours = await this.hasMaxHours({
+        user,
+        shift,
+        organization,
+      });
       const hasMaxShifts = await this.hasMaxShifts({
         user,
         shift,
         organization,
       });
-      if (hasMaxShifts) {
+      if (hasMaxShifts || hasMaxHours) {
         continue;
       }
       const res = await this.shifts.canSignUpForShift({
@@ -350,6 +350,50 @@ export class UserModel extends BaseModel<User> {
     }
   }
 
+  async hasMaxHours({
+    user,
+    shift,
+    organization,
+  }: {
+    user: User;
+    shift: Shift;
+    organization: Organization
+  }) {
+    if (!organization?.settings?.hoursPerMonth) {
+      return false;
+    }
+    const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
+    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
+    const startOfShiftMonth = startOfMonth(shiftStartTime);
+    const endOfShiftMonth = endOfMonth(shiftStartTime);
+    const allShifts: IShift[] = await this.shifts.collection.find({
+      userId: user.id,
+      orgId: organization.id,
+      status: ShiftStatus.Assigned,
+      startTime: {
+        $gte: zonedTimeToUtc(startOfShiftMonth, orgTimezone).valueOf(),
+        $lte: zonedTimeToUtc(endOfShiftMonth, orgTimezone).valueOf(),
+      }
+    }).toArray() as any;
+
+    const totalMilliseconds = allShifts.reduce((total, {
+      startTime,
+      endTime,
+      shiftCheckInOut
+    }) => {
+      let milliseconds = endTime - startTime;
+      if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
+        milliseconds = shiftCheckInOut.checkOutTime.getTime() - shiftCheckInOut.checkInTime.getTime();
+      }
+
+      return total + milliseconds;
+    }, 0);
+
+    const totalHours = Math.floor(totalMilliseconds / 3600000);
+
+    return totalHours >= (organization?.settings?.hoursPerMonth || 100);
+  }
+
   async hasMaxShifts({
     user,
     shift,
@@ -364,7 +408,7 @@ export class UserModel extends BaseModel<User> {
     const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
     const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });
     const endOfShiftWeek = endOfWeek(shiftStartTime, { weekStartsOn });
-    const numOfShifts = (await this.shifts.collection.countDocuments({
+    const numOfShifts = await this.shifts.collection.countDocuments({
       userId: user.id,
       orgId: organization.id,
       status: ShiftStatus.Assigned,
@@ -372,7 +416,7 @@ export class UserModel extends BaseModel<User> {
         $gte: zonedTimeToUtc(startOfShiftWeek, orgTimezone).valueOf(),
         $lte: zonedTimeToUtc(endOfShiftWeek, orgTimezone).valueOf(),
       }
-    }));
+    });
 
     return (
       numOfShifts >= (user.member?.maxShifts || Number.POSITIVE_INFINITY) ||

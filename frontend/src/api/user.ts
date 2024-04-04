@@ -28,9 +28,11 @@ const userDetailProperties = `
         venueContractDates
         eventCheckIn
         interestLists
+        monthlyMaxHours
       }
       settings {
         shiftsPerWeek
+        hoursPerMonth
         interestList {
           defaultHoursBeforeShift
           defaultHoursBeforeShift

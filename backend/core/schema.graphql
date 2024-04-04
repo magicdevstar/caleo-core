@@ -185,6 +185,8 @@
 
     image: String
     modifiedBy: User
+    # Only used when getting interest list requests
+    numberOfHoursThisMonth: Int
     # Only used when getting lotto requests
     # for the admin site. We could expand this later
     # but for now 🤷‍♂️
@@ -902,10 +904,12 @@
     venueContractDates: Boolean
     eventCheckIn: Boolean
     interestLists: Boolean
+    monthlyMaxHours: Boolean
   }
 
   type OrganizationOvertimeSettings {
     shiftsPerWeek: Int!
+    hoursPerMonth: Int!
     lottery: LotterySettings!
     shiftBuffer: ShiftBuffer!
     userRelinquishShift: UserRelinquishShift!
@@ -989,6 +993,7 @@
 
   input UpsertOrganizationOvertimeSettings {
     shiftsPerWeek: Int!
+    hoursPerMonth: Int
     lottery: UpsertLotterySettings!
     shiftBuffer: UpsertShiftBuffer!
     userRelinquishShift: UpsertUserRelinquishShift!

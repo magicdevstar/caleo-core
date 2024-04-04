@@ -153,12 +153,17 @@ const assignShift = async ({
         continue;
       }
       const shift = shifts[0];
+      const hasMaxHours = await users.hasMaxHours({
+        user,
+        shift,
+        organization,
+      });
       const hasMaxShifts = await users.hasMaxShifts({
         user,
         shift,
         organization,
       });
-      if (hasMaxShifts) {
+      if (hasMaxShifts || hasMaxHours) {
         continue;
       }
       // Remove shift from list

@@ -1,13 +1,12 @@
 import { format, setHours } from "date-fns";
 import merge from 'lodash.merge';
 import { Context } from "../../utils/createContext";
-import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting } from "../../__generated__/resolvers-types";
+import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting, OrganizationFeatures } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { commonResolvers } from "../../utils/common.resolvers";
 import { ScheduleEvent } from "../../models/scheduler";
 import { dayMap } from "../../utils/dayMap";
 import { utcToZonedTime } from "date-fns-tz";
-import logger from "../../utils/logger";
 
 export const organization = {
   Query: {
@@ -129,6 +128,7 @@ export const organization = {
       ...commonResolvers,
     },
     OrganizationOvertimeSettings: {
+      hoursPerMonth: (parent: any) => parent.hoursPerMonth || 100,
       interestList: (parent: any) => parent.interestList || {},
       // Setting defaults for check in/out
       checkInOut: ({ checkInOut }: any) => {
@@ -150,10 +150,11 @@ export const organization = {
       defaultNotificationTime: (parent: any) => parent.defaultNotificationTime || 24,
     },
     OrganizationFeatures: {
-      lottery: (parent: boolean) => !!parent,
-      venueContractDates: (parent: boolean) => !!parent,
-      eventCheckIn: (parent: boolean) => !!parent,
-      interestLists: (parent: boolean) => !!parent,
+      lottery: (parent: OrganizationFeatures) => !!parent?.lottery,
+      venueContractDates: (parent: OrganizationFeatures) => !!parent.venueContractDates,
+      eventCheckIn: (parent: OrganizationFeatures) => !!parent.eventCheckIn,
+      interestLists: (parent: OrganizationFeatures) => !!parent.interestLists,
+      monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

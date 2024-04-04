@@ -542,7 +542,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
 `;
 
 export const SHIFT_INTEREST_REQUESTS = gql`
-  query GetShiftInterestRequests($input: ShiftInterestRequestsSearchInput!) {
+  query GetShiftInterestRequests($input: ShiftInterestRequestsSearchInput!, $shiftStart: String, $timezoneOffset: Int) {
     shiftInterestRequests(input: $input) {
       items {
         id
@@ -552,9 +552,10 @@ export const SHIFT_INTEREST_REQUESTS = gql`
         status
         createdAt
 
-        user {
+        user(shiftStart: $shiftStart, timezoneOffset: $timezoneOffset) {
           id
           name
+          numberOfHoursThisMonth
         }
       }
       total

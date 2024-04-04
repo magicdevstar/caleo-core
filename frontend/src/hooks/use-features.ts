@@ -6,6 +6,7 @@ const defaultFeatures: OrganizationFeatures = {
   lottery: false,
   interestLists: false,
   venueContractDates: false,
+  monthlyMaxHours: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

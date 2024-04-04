@@ -20,9 +20,11 @@ query ORGANIZATION {
       venueContractDates
       eventCheckIn
       interestLists
+      monthlyMaxHours
     }
     settings {
       shiftsPerWeek
+      hoursPerMonth
       interestList {
         defaultHoursBeforeShift
         defaultNotificationTime

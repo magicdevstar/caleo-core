@@ -41,7 +41,11 @@ export default function Overtime({
 }: {
   organization: Organization;
 }) {
-  const { eventCheckIn, interestLists } = useFeatures();
+  const {
+    eventCheckIn,
+    interestLists,
+    monthlyMaxHours,
+  } = useFeatures();
   const mdUp = useResponsive('up', 'md');
 
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION, {
@@ -55,6 +59,7 @@ export default function Overtime({
     name: Yup.string().required(),
     settings: Yup.object().shape({
       shiftsPerWeek: Yup.number().required(),
+      hoursPerMonth: Yup.number().required(),
       interestList: Yup.object().shape({
         defaultHoursBeforeShift: Yup.number(),
         defaultNotificationTime: Yup.number(),
@@ -181,6 +186,17 @@ export default function Overtime({
                 label="Max shifts per week"
                 helperText="The maximum number of overtime shifts a user can sign up for in a week"
               />
+
+              {
+                monthlyMaxHours && (
+                  <RHFTextField
+                    type="number"
+                    name="settings.hoursPerMonth"
+                    label="Max hours per month"
+                    helperText="The maximum number of overtime hours a user can work per month"
+                  />
+                )
+              }
             </Stack>
           </Card>
         </Grid>

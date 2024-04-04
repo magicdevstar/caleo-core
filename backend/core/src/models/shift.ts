@@ -26,7 +26,9 @@ export interface ShiftSearchExtended extends ShiftSearchInput {
   requestingUser: User;
 }
 
-export interface IShift extends Omit<Shift, 'shiftCheckInOut'> {
+export interface IShift extends Omit<Shift, 'shiftCheckInOut' | 'startTime' | 'endTime'> {
+  startTime: number;
+  endTime: number;
   shiftCheckInOut: {
     checkInTime: Date;
     checkOutTime: Date;
@@ -181,6 +183,62 @@ export class ShiftModel extends BaseModel<Shift> {
     ]).toArray();
     
     return keys.map((key) => res.find((item: any) => item._id.toString() === key.id) || { count: 0 }).map(({ count }: any) => count);
+  });
+
+  public shiftHoursLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfMonth: Date; endOfMonth: Date;}[]) => {
+    const beginningOfMonth = keys[0].beginningOfMonth.getTime();
+    const endOfMonth = keys[0].endOfMonth.getTime();
+    const orgId = keys[0].orgId;
+    const userIds = keys.map(({ id }) => id);
+    const query = {
+      userId: {
+        $in: userIds,
+      },
+      orgId,
+      status: ShiftStatus.Assigned,
+      startTime: {
+        $gte: beginningOfMonth,
+        $lte: endOfMonth,
+      }
+    };
+    const allShifts: IShift[] = await this.collection.find(query).toArray() as any;
+    const shiftsGroupedByUser = allShifts.reduce((acc, shift) => {
+      if (shift.userId) {
+        acc[shift.userId] = acc[shift.userId] || [];
+        acc[shift.userId].push(shift);
+      }
+      return acc;
+    }, {} as any);
+    const res: any = {};
+    for (const key of Object.keys(shiftsGroupedByUser)) {
+      const allShifts = shiftsGroupedByUser[key];
+      const totalMilliseconds = allShifts.reduce((total, {
+        startTime,
+        endTime,
+        shiftCheckInOut
+      }) => {
+        let milliseconds = endTime - startTime;
+        if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
+          milliseconds = shiftCheckInOut.checkOutTime.getTime() - shiftCheckInOut.checkInTime.getTime();
+        }
+  
+        return total + milliseconds;
+      }, 0);
+  
+      const totalHours = Math.floor(totalMilliseconds / 3600000);
+      res[key] = totalHours;
+    }
+
+    logger.info('Shift Hours Grouped by User', {
+      shiftsGroupedByUser,
+      res,
+      beginningOfMonth,
+      endOfMonth,
+      query,
+      keys,
+    });
+    
+    return keys.map((key) => res[key.id] || 0);
   });
 
   public weekShiftsLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {

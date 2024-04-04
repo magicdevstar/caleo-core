@@ -388,6 +388,19 @@ export const user = {
           endOfWeek: endOfTheWeek,
         });
       },
+      numberOfHoursThisMonth: (parent: any, _args: any, { shifts }: Context) => {
+        if (!parent.shiftStart || !parent.timezoneOffset) {
+          return null;
+        }
+        const beginningOfMonth = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        const endOfTheMonth = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+        return shifts.shiftHoursLoader.load({
+          id: parent.id,
+          orgId: parent.member.orgId,
+          beginningOfMonth,
+          endOfMonth: endOfTheMonth,
+        });
+      },
       numberOfShiftsThisWeek: (parent: any, _args: any, { shifts }: Context) => {
         if (!parent.shiftStart || !parent.timezoneOffset) {
           return null;

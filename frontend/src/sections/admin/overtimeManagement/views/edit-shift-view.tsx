@@ -6,6 +6,7 @@ import Container from '@mui/material/Container';
 // hooks
 import { useParams } from 'src/routes/hooks';
 import { useFeatures } from 'src/hooks/use-features';
+import { useAuthContext } from 'src/auth/hooks/use-auth-context';
 // types
 import { paths } from 'src/routes/paths';
 // components
@@ -17,7 +18,15 @@ import EditShift from '../events/edit-shift';
 
 // ----------------------------------------------------------------------
 
+const timezoneValues: Record<string, number> = {
+  'America/New_York': 5,
+  'America/Chicago': 6,
+  'America/Denver': 7,
+  'America/Los_Angeles': 8
+}
+
 export default function ShiftDetail() {
+  const { user } = useAuthContext();
   const { interestLists } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
@@ -31,15 +40,19 @@ export default function ShiftDetail() {
     skip: !params.shiftId || params.shiftId === 'new',
   });
 
+  const shiftStart = data?.groupedShifts?.[0]?.startTime ? new Date(data?.groupedShifts?.[0]?.startTime) : 0;
+
   const { data: shiftInterestRequests } = useQuery(SHIFT_INTEREST_REQUESTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         shiftGroupId: params.shiftId,
-      }
+      },
+      shiftStart,
+      timezoneOffset: timezoneValues[user?.member?.org?.timezone || 'America/Los_Angeles'],
     },
-    skip: !params.shiftId || params.shiftId === 'new' || !interestLists,
+    skip: !params.shiftId || params.shiftId === 'new' || !interestLists || !shiftStart,
   });
 
   const assignmentLink = useMemo(() =>

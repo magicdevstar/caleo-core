@@ -30,6 +30,7 @@ import Router from 'src/routes/sections';
 import ThemeProvider from 'src/theme';
 // hooks
 import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
+import { useIosScrollFix } from 'src/hooks/use-ios-scroll-fix';
 // components
 import ProgressBar from 'src/components/progress-bar';
 import MotionLazy from 'src/components/animate/motion-lazy';
@@ -58,6 +59,7 @@ export default function App() {
   console.info(`%c${charAt}`, 'color: #5BE49B');
 
   useScrollToTop();
+  useIosScrollFix();
 
 
   return (

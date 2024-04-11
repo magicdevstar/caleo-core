@@ -19,7 +19,7 @@ import {
   InviteUser,
   MemberStatus,
 } from "../../__generated__/resolvers-types";
-import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
@@ -213,6 +213,12 @@ export const user = {
         scheduler,
       }: Context
     ): Promise<User> => {
+      adminOrOwnerOnly(user.id, reqUser);
+
+      if (!userIsAdmin(reqUser) && user?.member?.startDate) {
+        delete user?.member?.startDate;
+      }
+
       const existingUser = await users.get(user.id);
 
       if (!existingUser) {
@@ -417,6 +423,7 @@ export const user = {
       browserNotificationSettings: (user: User, _, { browserNotificationSubscriptions }: Context) => browserNotificationSubscriptions.userIdLoader.load(new ObjectId(user.id)),
     },
     Member: {
+      startDate: (member: Member) => member.startDate ? new Date(member.startDate).toISOString() : null,
       rank: (member: Member, _, { ranks }: Context) =>
         member.rankId ? ranks.loader.load(member.rankId) : null,
       memberSkills: (member: Member, _, { memberSkills }: Context) => {

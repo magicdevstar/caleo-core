@@ -436,6 +436,7 @@ export type Member = {
   rank?: Maybe<Rank>;
   rankId?: Maybe<Scalars['String']['output']>;
   role?: Maybe<MemberRole>;
+  startDate?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MemberStatus>;
   tier?: Maybe<MemberTier>;
   tierResetOnNextLottery?: Maybe<Scalars['Boolean']['output']>;
@@ -817,6 +818,7 @@ export type NewMember = {
   pNumber: Scalars['String']['input'];
   rankId?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<MemberRole>;
+  startDate?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MemberStatus>;
   tier?: InputMaybe<MemberTier>;
   tierUntil?: InputMaybe<Scalars['String']['input']>;
@@ -2499,6 +2501,7 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType>;
   rankId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   role?: Resolver<Maybe<ResolversTypes['MemberRole']>, ParentType, ContextType>;
+  startDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['MemberStatus']>, ParentType, ContextType>;
   tier?: Resolver<Maybe<ResolversTypes['MemberTier']>, ParentType, ContextType>;
   tierResetOnNextLottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

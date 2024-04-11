@@ -493,6 +493,7 @@ export const shift = {
       shift.userId = userId ? userId : null;
       // shift.relinquishNote = note || shift.relinquishNote;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
+      shift.modifiedById = user?.id!;
 
       const removingShiftUser = !userId && existingUserId;
 

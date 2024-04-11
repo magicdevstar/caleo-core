@@ -379,14 +379,20 @@ export class UserModel extends BaseModel<User> {
     const totalMilliseconds = allShifts.reduce((total, {
       startTime,
       endTime,
-      shiftCheckInOut
+      shiftCheckInOut,
+      ...shift
     }) => {
       let milliseconds = endTime - startTime;
-      if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
-        milliseconds = shiftCheckInOut.checkOutTime.getTime() - shiftCheckInOut.checkInTime.getTime();
+      try {
+        if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
+          milliseconds = new Date(shiftCheckInOut.checkOutTime).getTime() - new Date(shiftCheckInOut.checkInTime).getTime();
+        }
+  
+        return total + milliseconds;
+      } catch(error) {
+        logger.error('Error calculating total hours', { error, shiftCheckInOut, shift });
       }
-
-      return total + milliseconds;
+      return total;
     }, 0);
 
     const totalHours = Math.floor(totalMilliseconds / 3600000);

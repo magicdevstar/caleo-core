@@ -149,6 +149,7 @@
     tier: MemberTier
     tierUntil: String
     tierResetOnNextLottery: Boolean
+    startDate: String
     inactivateUntil: String
     inactivationNote: String
     rankId: String
@@ -268,6 +269,7 @@
     orgId: String!
     pNumber: String!
     role: MemberRole
+    startDate: String
     tier: MemberTier
     tierUntil: String
     inactivateUntil: String

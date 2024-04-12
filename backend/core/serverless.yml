@@ -188,6 +188,9 @@ functions:
     timeout: 300
 
   # Data sync functions
+  memberStatusSync:
+    handler: src/steps/memberStatusSync.handler
+    timeout: 300
   tierResetSync:
     handler: src/steps/tierResetSync.handler
     timeout: 300
@@ -296,6 +299,13 @@ stepFunctions:
             Type: Parallel
             End: true
             Branches:
+              - StartAt: MemberStatusSync
+                States:
+                  MemberStatusSync:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [memberStatusSync, Arn]
+                    End: true
               - StartAt: TierResetSync
                 States:
                   TierResetSync:

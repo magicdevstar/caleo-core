@@ -1,9 +1,10 @@
 import { format, setHours } from "date-fns";
+import { ObjectId } from "mongodb";
 import merge from 'lodash.merge';
 import { Context } from "../../utils/createContext";
-import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting, OrganizationFeatures } from "../../__generated__/resolvers-types";
-import { adminOnly } from "../../utils/access";
-import { commonResolvers } from "../../utils/common.resolvers";
+import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting, OrganizationFeatures, OrganizationSearchInput } from "../../__generated__/resolvers-types";
+import { adminOnly, superAdminOnly } from "../../utils/access";
+import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ScheduleEvent } from "../../models/scheduler";
 import { dayMap } from "../../utils/dayMap";
 import { utcToZonedTime } from "date-fns-tz";
@@ -15,6 +16,23 @@ export const organization = {
       _args: unknown,
       { organizations, user }: Context
     ): Promise<Organization | null> => organizations.get(user?.member.orgId || ''),
+    organizations: async (
+      _parent: unknown,
+      { input }: { input: OrganizationSearchInput},
+      { organizations, user }: Context
+    ): Promise<SearchResults<Organization>> => {
+      superAdminOnly(user);
+
+      return organizations.search({
+        limit: input.limit,
+        skip: input.skip,
+        queryField: input.queryField || 'name',
+        order: input.order,
+        orderBy: input.orderBy,
+        query: input.query,
+        ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
+      });
+    }
   },
   Mutation: {
     organization: async (

@@ -1408,12 +1408,29 @@
     orderBy: String
     order: String
   }
+
+  input OrganizationSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    queryField: String
+    excludeIds: [String]
+    orderBy: String
+    order: String
+  }
+
+  type OrganizationSearchResult {
+    items: [Organization]
+    total: Int!
+  }
 ###### END Pagination ######
 
 type Query {
   health: String
   me: User
+
   organization: Organization
+  organizations(input: OrganizationSearchInput): OrganizationSearchResult
 
   users(input: UserSearchInput): UserSearchResult
   user(id: String!, shiftStart: String, timezoneOffset: Int): User

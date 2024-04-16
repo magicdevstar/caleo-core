@@ -929,6 +929,22 @@ export type OrganizationOvertimeSettings = {
   userRelinquishShift: UserRelinquishShift;
 };
 
+export type OrganizationSearchInput = {
+  excludeIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  queryField?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type OrganizationSearchResult = {
+  __typename?: 'OrganizationSearchResult';
+  items?: Maybe<Array<Maybe<Organization>>>;
+  total: Scalars['Int']['output'];
+};
+
 export type Phone = {
   __typename?: 'Phone';
   number: Scalars['String']['output'];
@@ -961,6 +977,7 @@ export type Query = {
   notification?: Maybe<Notification>;
   notifications?: Maybe<NotificationSearchResult>;
   organization?: Maybe<Organization>;
+  organizations?: Maybe<OrganizationSearchResult>;
   rank?: Maybe<Rank>;
   ranks?: Maybe<RankSearchResult>;
   shift?: Maybe<Shift>;
@@ -1047,6 +1064,11 @@ export type QueryNotificationArgs = {
 
 export type QueryNotificationsArgs = {
   input?: InputMaybe<NotificationSearchInput>;
+};
+
+
+export type QueryOrganizationsArgs = {
+  input?: InputMaybe<OrganizationSearchInput>;
 };
 
 
@@ -2018,6 +2040,8 @@ export type ResolversTypes = ResolversObject<{
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
   OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
+  OrganizationSearchInput: OrganizationSearchInput;
+  OrganizationSearchResult: ResolverTypeWrapper<OrganizationSearchResult>;
   Phone: ResolverTypeWrapper<Phone>;
   ProfilePhotoAttachmentUpload: ResolverTypeWrapper<ProfilePhotoAttachmentUpload>;
   Query: ResolverTypeWrapper<{}>;
@@ -2160,6 +2184,8 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationContact: OrganizationContact;
   OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
+  OrganizationSearchInput: OrganizationSearchInput;
+  OrganizationSearchResult: OrganizationSearchResult;
   Phone: Phone;
   ProfilePhotoAttachmentUpload: ProfilePhotoAttachmentUpload;
   Query: {};
@@ -2680,6 +2706,12 @@ export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type OrganizationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationSearchResult'] = ResolversParentTypes['OrganizationSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Organization']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type PhoneResolvers<ContextType = any, ParentType extends ResolversParentTypes['Phone'] = ResolversParentTypes['Phone']> = ResolversObject<{
   number?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   receiveTexts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -2711,6 +2743,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QueryNotificationArgs, 'id'>>;
   notifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryNotificationsArgs>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  organizations?: Resolver<Maybe<ResolversTypes['OrganizationSearchResult']>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<QueryShiftArgs, 'id'>>;
@@ -3103,6 +3136,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
   OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
+  OrganizationSearchResult?: OrganizationSearchResultResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
   ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

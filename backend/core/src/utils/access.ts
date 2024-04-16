@@ -10,6 +10,12 @@ export const adminOnly = (user?: User) => {
 export const userIsAdmin = (user?: User) =>
   user?.member?.role && user?.member?.role === MemberRole.Admin;
 
+export const superAdminOnly = (user?: User) => {
+  if (!user?.superAdmin) {
+    throw new GraphQLError("Unauthorized");
+  }
+};
+
 export const adminOrOwnerOnly = (userId: string, user?: User) => {
   if (
     userId === user?.id ||

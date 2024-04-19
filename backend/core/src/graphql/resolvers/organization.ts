@@ -2,7 +2,16 @@ import { format, setHours } from "date-fns";
 import { ObjectId } from "mongodb";
 import merge from 'lodash.merge';
 import { Context } from "../../utils/createContext";
-import { UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit, CheckInOutSetting, OrganizationFeatures, OrganizationSearchInput } from "../../__generated__/resolvers-types";
+import {
+  UpsertOrganization,
+  Organization,
+  DayOfWeek,
+  MemberTier,
+  ShiftReminderUnit,
+  CheckInOutSetting,
+  OrganizationFeatures,
+  OrganizationSearchInput
+} from "../../__generated__/resolvers-types";
 import { adminOnly, superAdminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ScheduleEvent } from "../../models/scheduler";

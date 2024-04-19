@@ -371,9 +371,9 @@ export const shift = {
 
       const updatedShifts = shifts.map((shift, index) => {
         const { startTime, endTime, ...rest } = shift;
-        let status = rest.status;
-        let createdById = rest.createdById;
         const foundShift = existingShifts.items.find(({ id }) => id === rest.id);
+        let status = foundShift?.status || rest.status;
+        let createdById = rest.createdById;
         if (!shift.id) {
           createdById = user?.id!;
           status = ShiftStatus.Available;

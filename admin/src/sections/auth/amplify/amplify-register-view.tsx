@@ -1,0 +1,276 @@
+import * as Yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+// @mui
+import LoadingButton from '@mui/lab/LoadingButton';
+import Link from '@mui/material/Link';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
+// hooks
+import { useBoolean } from 'src/hooks/use-boolean';
+// routes
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
+// auth
+import { useAuthContext } from 'src/auth/hooks';
+// components
+import Iconify from 'src/components/iconify';
+import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
+
+// ----------------------------------------------------------------------
+
+const incomingSearchParams = new URLSearchParams(window.location.search);
+
+const paramEmail = incomingSearchParams.get('email')
+  ? window.location.search.split('&').reduce((email, param) => {
+      if (/email=/.test(param)) {
+        return param.split('=')[1];
+      }
+      return email;
+    }, '')
+  : '';
+
+export default function AmplifyRegisterView() {
+  const { register } = useAuthContext();
+
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const router = useRouter();
+
+  const password = useBoolean();
+
+  const RegisterSchema = Yup.object().shape({
+    firstName: Yup.string().required('First name required'),
+    lastName: Yup.string().required('Last name required'),
+    pNumber: Yup.string().required('P# required'),
+    phoneNumber: Yup.string().required('Phone number required'),
+    email: Yup.string().required('Email is required').email('Email must be a valid email address'),
+    password: Yup.string().required('Password is required'),
+    orgId: Yup.string(),
+  });
+
+  useEffect(() => {
+    if (!incomingSearchParams.get('orgId')) {
+      router.replace('/auth/login');
+    }
+  }, [router]);
+
+  const defaultValues = {
+    firstName: '',
+    lastName: '',
+    pNumber: '',
+    phoneNumber: '',
+    email: paramEmail || '',
+    password: '',
+    orgId: incomingSearchParams.get('orgId') || '',
+  };
+
+  const methods = useForm({
+    resolver: yupResolver(RegisterSchema),
+    defaultValues,
+  });
+
+  const {
+    handleSubmit,
+    watch,
+    getFieldState,
+    formState: { isSubmitting },
+  } = methods;
+
+  const passwordState = getFieldState('password');
+  const currentPassword = watch('password');
+  const passwordValidation = [
+    {
+      key: 'eightCharacters',
+      isValid: currentPassword?.length >= 8,
+      message: '8 characters',
+    },
+    {
+      key: 'oneNumber',
+      isValid: /\d/.test(currentPassword),
+      message: '1 number',
+    },
+    {
+      key: 'oneLowerCase',
+      isValid: /[a-z]/.test(currentPassword),
+      message: '1 lowercase letter',
+    },
+    {
+      key: 'oneUpperCase',
+      isValid: /[A-Z]/.test(currentPassword),
+      message: '1 uppercase letter',
+    },
+    {
+      key: 'oneSpecialChar',
+      // eslint-disable-next-line no-useless-escape
+      isValid: /[\^\$\*\.\[\]\{\}\(\)\?\-"\!@#%&\/\\,><':;|_~`\+=]/.test(currentPassword),
+      message: '1 special character',
+    },
+  ];
+  const passwordIsValid =
+    passwordValidation.filter((item) => item.isValid).length === passwordValidation.length;
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      const orgId = incomingSearchParams.get('orgId');
+      if (!orgId) {
+        return;
+      }
+      await register?.(
+        data.email,
+        data.password,
+        data.firstName,
+        data.lastName,
+        data.phoneNumber,
+        data.pNumber,
+        orgId
+      );
+
+      const searchParams = new URLSearchParams({
+        email: data.email,
+      }).toString();
+
+      const href = `${paths.auth.amplify.verify}?${searchParams}`;
+
+      router.push(href);
+    } catch (error) {
+      console.error(error);
+      // reset();
+      setErrorMsg(typeof error === 'string' ? error : error.message);
+    }
+  });
+
+  const renderHead = (
+    <Stack spacing={2} sx={{ mb: 5, position: 'relative' }}>
+      <Typography variant="h4">Create your account</Typography>
+
+      <Stack direction="row" spacing={0.5}>
+        <Typography variant="body2"> Already have an account? </Typography>
+
+        <Link href={paths.auth.amplify.login} component={RouterLink} variant="subtitle2">
+          Sign in
+        </Link>
+      </Stack>
+    </Stack>
+  );
+
+  const renderTerms = (
+    <Typography
+      component="div"
+      sx={{
+        color: 'text.secondary',
+        mt: 2.5,
+        typography: 'caption',
+        textAlign: 'center',
+      }}
+    >
+      {'By signing up, I agree to '}
+      <Link underline="always" color="text.primary">
+        Terms of Service
+      </Link>
+      {' and '}
+      <Link underline="always" color="text.primary">
+        Privacy Policy
+      </Link>
+      .
+    </Typography>
+  );
+
+  const renderForm = (
+    <Stack spacing={2.5}>
+      {!!errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <RHFTextField name="firstName" label="First name" />
+        <RHFTextField name="lastName" label="Last name" />
+      </Stack>
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <RHFTextField name="pNumber" label="P#" />
+        <RHFTextField
+          name="email"
+          disabled={!!incomingSearchParams.get('email')}
+          label="Email address"
+        />
+      </Stack>
+
+      <RHFPhoneField
+        name="phoneNumber"
+        label="Primary Phone"
+        country="us"
+        onlyCountries={['us']}
+        countryCodeEditable={false}
+      />
+
+      <Stack direction="column">
+        <RHFTextField
+          name="password"
+          label="Password"
+          type={password.value ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={password.onToggle} edge="end">
+                  <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Stack sx={{ mt: 1 }}>
+          {passwordValidation.map((item) => (
+            <Stack direction="row" key={item.key}>
+              <Iconify
+                icon={item.isValid ? 'carbon:checkmark' : 'carbon:close'}
+                color={
+                  (!passwordState.isDirty && !passwordState.isTouched) || item.isValid
+                    ? 'text.disabled'
+                    : 'error.main'
+                }
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color:
+                    (!passwordState.isDirty && !passwordState.isTouched) || item.isValid
+                      ? 'text.disabled'
+                      : 'error.main',
+                }}
+              >
+                {item.message}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Stack>
+
+      <LoadingButton
+        fullWidth
+        disabled={!passwordIsValid}
+        color="inherit"
+        size="large"
+        type="submit"
+        variant="contained"
+        loading={isSubmitting}
+      >
+        Create account
+      </LoadingButton>
+    </Stack>
+  );
+
+  return (
+    <FormProvider methods={methods} onSubmit={onSubmit}>
+      {renderHead}
+
+      {renderForm}
+
+      {renderTerms}
+    </FormProvider>
+  );
+}

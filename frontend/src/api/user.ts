@@ -323,6 +323,7 @@ export const UPDATE_USER = gql`
 export interface FrontendUser extends User {
   displayName: string;
   email: string;
+  family_name: string;
   photoURL: string;
   role: string;
 }

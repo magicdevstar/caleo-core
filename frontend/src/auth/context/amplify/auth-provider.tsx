@@ -103,6 +103,7 @@ export function AuthProvider({ children }: Props) {
               id: me.id,
               displayName: `${me.firstName} ${me.lastName}`,
               email: currentUser.attributes.email,
+              family_name: currentUser.attributes.family_name,
               photoURL: me.image || _mock.image.avatar(24),
               role: me.member.role?.toLowerCase(),
             },
@@ -149,6 +150,7 @@ export function AuthProvider({ children }: Props) {
           id: me.id,
           displayName: `${me.firstName} ${me.lastName}`,
           email: currentUser.attributes.email,
+          family_name: currentUser.attributes.family_name,
           photoURL: me.image || _mock.image.avatar(24),
           role: me.member.role?.toLowerCase(),
         },
@@ -227,6 +229,7 @@ export function AuthProvider({ children }: Props) {
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
+      impersonatingUser: !!state.user?.family_name?.startsWith?.('t:'),
       //
       login,
       logout,

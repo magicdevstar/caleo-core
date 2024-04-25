@@ -9,10 +9,12 @@ import { bgBlur } from 'src/theme/css';
 // hooks
 import { useOffSetTop } from 'src/hooks/use-off-set-top';
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useAuthContext } from 'src/auth/hooks';
 // components
 import Logo from 'src/components/logo';
 import SvgColor from 'src/components/svg-color';
 import { useSettingsContext } from 'src/components/settings';
+import Label from 'src/components/label';
 //
 import { HEADER, NAV } from '../config-layout';
 import {
@@ -31,6 +33,8 @@ export default function Header({ onOpenNav }: Props) {
   const theme = useTheme();
 
   const settings = useSettingsContext();
+
+  const { impersonatingUser, user } = useAuthContext();
 
   const isNavHorizontal = settings.themeLayout === 'horizontal';
 
@@ -53,6 +57,22 @@ export default function Header({ onOpenNav }: Props) {
       )}
 
       {/* <Searchbar /> */}
+
+      {impersonatingUser && (
+        <Label
+          color="error"
+          variant="filled"
+          sx={{
+            height: 'auto',
+            fontSize: '14px',
+            p: 1,
+            textWrap: 'wrap',
+            lineHeight: '14px'
+          }}
+        >
+          {`Impersonating User: ${user.name}`}
+        </Label>
+      )}
 
       <Stack
         flexGrow={1}

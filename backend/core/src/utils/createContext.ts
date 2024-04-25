@@ -65,12 +65,12 @@ export const createContext = async (): Promise<Context> => {
   const shiftInterestRequests = new ShiftInterestRequestModel(db);
   const lotteryState = new LotteryStateModel(db);
   const siteLock = new SiteLockModel(db);
-  const organizations = new OrganizationModel(db);
+  const scheduler = new SchedulerModel();
+  const organizations = new OrganizationModel(db, scheduler);
   const lotteryCounter = new LotteryCounterModel(db, organizations);
   const eventReferenceNumber = new EventReferenceNumber(db);
   const document = new DocumentModel();
   const notifications = new NotificationModel(db);
-  const scheduler = new SchedulerModel();
   const venues = new VenueModel(db);
   const shifts = new ShiftModel(db, lotteryCounter);
   const assignments = new AssignmentModel(db);

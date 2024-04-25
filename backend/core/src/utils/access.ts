@@ -16,6 +16,8 @@ export const superAdminOnly = (user?: User) => {
   }
 };
 
+export const isSuperAdmin = (user?: User) => user?.superAdmin;
+
 export const adminOrOwnerOnly = (userId: string, user?: User) => {
   if (
     userId === user?.id ||

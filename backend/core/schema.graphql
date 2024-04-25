@@ -980,6 +980,19 @@
     email: String!
   }
 
+  input CreateOrganization {
+    name: String!
+    address: String
+    state: String
+    city: String
+    zip: String
+    weekBegins: DayOfWeek
+    timezone: String
+    contact: UpsertOrganizationContact
+    settings: UpsertOrganizationOvertimeSettings
+    features: UpsertOrganizationFeatures
+  }
+
   input UpsertOrganization {
     id: String
     name: String
@@ -991,6 +1004,7 @@
     timezone: String
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
+    features: UpsertOrganizationFeatures
   }
 
   input UpsertOrganizationOvertimeSettings {
@@ -1002,6 +1016,14 @@
     shiftReminder: UpsertShiftReminder!
     checkInOut: UpsertCheckInOutSetting
     interestList: UpsertInterestListSetting
+  }
+
+  input UpsertOrganizationFeatures {
+    lottery: Boolean
+    venueContractDates: Boolean
+    eventCheckIn: Boolean
+    interestLists: Boolean
+    monthlyMaxHours: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1495,6 +1517,7 @@ type Query {
 }
 
 type Mutation {
+  createOrganization(organization: CreateOrganization! ): Organization
   organization(organization: UpsertOrganization!): Organization
 
   newUser(user: NewUser!): User

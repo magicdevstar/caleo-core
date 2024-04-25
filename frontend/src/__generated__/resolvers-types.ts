@@ -148,6 +148,19 @@ export type ContactInfo = {
   secondaryPhone?: Maybe<Phone>;
 };
 
+export type CreateOrganization = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  contact?: InputMaybe<UpsertOrganizationContact>;
+  features?: InputMaybe<UpsertOrganizationFeatures>;
+  name: Scalars['String']['input'];
+  settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
+  state?: InputMaybe<Scalars['String']['input']>;
+  timezone?: InputMaybe<Scalars['String']['input']>;
+  weekBegins?: InputMaybe<DayOfWeek>;
+  zip?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateShiftBufferRequest = {
   note?: InputMaybe<Scalars['String']['input']>;
   shiftBufferShiftId: Scalars['String']['input'];
@@ -539,6 +552,7 @@ export type Mutation = {
   browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
   checkIn: Shift;
   checkOut: Shift;
+  createOrganization?: Maybe<Organization>;
   editCheckInOut: Shift;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
@@ -612,6 +626,11 @@ export type MutationCheckInArgs = {
 
 export type MutationCheckOutArgs = {
   input: ShiftCheckInOutEvent;
+};
+
+
+export type MutationCreateOrganizationArgs = {
+  organization: CreateOrganization;
 };
 
 
@@ -1683,6 +1702,7 @@ export type UpsertOrganization = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   contact?: InputMaybe<UpsertOrganizationContact>;
+  features?: InputMaybe<UpsertOrganizationFeatures>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
@@ -1695,6 +1715,14 @@ export type UpsertOrganization = {
 export type UpsertOrganizationContact = {
   email: Scalars['String']['input'];
   phone: Scalars['String']['input'];
+};
+
+export type UpsertOrganizationFeatures = {
+  eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  interestLists?: InputMaybe<Scalars['Boolean']['input']>;
+  lottery?: InputMaybe<Scalars['Boolean']['input']>;
+  monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
+  venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpsertOrganizationOvertimeSettings = {
@@ -2011,6 +2039,7 @@ export type ResolversTypes = ResolversObject<{
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: ResolverTypeWrapper<CheckInOutSetting>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
+  CreateOrganization: CreateOrganization;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: ResolverTypeWrapper<DayAvailability>;
   DayOfWeek: DayOfWeek;
@@ -2121,6 +2150,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertNotification: UpsertNotification;
   UpsertOrganization: UpsertOrganization;
   UpsertOrganizationContact: UpsertOrganizationContact;
+  UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
@@ -2163,6 +2193,7 @@ export type ResolversParentTypes = ResolversObject<{
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: CheckInOutSetting;
   ContactInfo: ContactInfo;
+  CreateOrganization: CreateOrganization;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: DayAvailability;
   Email: Email;
@@ -2260,6 +2291,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertNotification: UpsertNotification;
   UpsertOrganization: UpsertOrganization;
   UpsertOrganizationContact: UpsertOrganizationContact;
+  UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
@@ -2612,6 +2644,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
   checkIn?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckInArgs, 'input'>>;
   checkOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
+  createOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationCreateOrganizationArgs, 'organization'>>;
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;

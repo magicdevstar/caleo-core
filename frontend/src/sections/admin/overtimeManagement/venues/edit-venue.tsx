@@ -64,6 +64,7 @@ export default function EditVenue({ currentVenue }: Props) {
     contract: Yup.object().shape({
       expirationDate: Yup.date().optional(),
       name: Yup.string(),
+      insuranceName: Yup.string().optional(),
     }).optional(),
     contact: Yup.object().shape({
       firstName: Yup.string(),
@@ -87,6 +88,7 @@ export default function EditVenue({ currentVenue }: Props) {
       contract: currentVenue?.contract ? {
         expirationDate: currentVenue?.contract?.expirationDate ? new Date(currentVenue?.contract?.expirationDate) : undefined,
         name: currentVenue?.contract?.name || '',
+        insuranceName: currentVenue?.contract?.insuranceName || '',
       } : undefined,
       contact: {
         firstName: currentVenue?.contact?.firstName || '',
@@ -191,10 +193,13 @@ export default function EditVenue({ currentVenue }: Props) {
 
             {
               venueContractDates && (
-                <Stack direction="row" spacing={2}>
-                  <RHFTextField name="contract.name" label="Contract/Insurance Name" />
-                  <RHFDatePicker name="contract.expirationDate" label="Contract/Insurance Expiration" />
-                </Stack>
+                <>
+                  <Stack direction="row" spacing={2}>
+                    <RHFTextField name="contract.name" label="Contract Name" />
+                    <RHFDatePicker name="contract.expirationDate" label="Contract/Insurance Expiration" />
+                  </Stack>
+                  <RHFTextField name="contract.insuranceName" label="Insurance Name" />
+                </>
               )}
 
             <Stack spacing={1.5}>

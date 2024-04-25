@@ -1826,6 +1826,7 @@ export type UpsertVenueContact = {
 
 export type UpsertVenueContract = {
   expirationDate?: InputMaybe<Scalars['String']['input']>;
+  insuranceName?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1929,6 +1930,7 @@ export type VenueContact = {
 export type VenueContract = {
   __typename?: 'VenueContract';
   expirationDate?: Maybe<Scalars['String']['output']>;
+  insuranceName?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
 };
 
@@ -3150,6 +3152,7 @@ export type VenueContactResolvers<ContextType = any, ParentType extends Resolver
 
 export type VenueContractResolvers<ContextType = any, ParentType extends ResolversParentTypes['VenueContract'] = ResolversParentTypes['VenueContract']> = ResolversObject<{
   expirationDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  insuranceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

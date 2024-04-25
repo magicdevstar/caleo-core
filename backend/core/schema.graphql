@@ -1409,6 +1409,25 @@
     order: String
   }
 
+  input AllUsersSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    queryField: String
+    pNumber: String
+    phone: String
+    email: String
+    excludeIds: [String]
+    rankIds: [String]
+    statuses: [MemberStatus]
+    skillIds: [String]
+    tiers: [MemberTier]
+    admin: Boolean
+    orderBy: String
+    order: String
+    orgIds: [String]
+  }
+
   input OrganizationSearchInput {
     limit: Int
     skip: Int
@@ -1432,6 +1451,7 @@ type Query {
   organization: Organization
   organizations(input: OrganizationSearchInput): OrganizationSearchResult
 
+  allUsers(input: AllUsersSearchInput): UserSearchResult
   users(input: UserSearchInput): UserSearchResult
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
 

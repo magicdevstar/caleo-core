@@ -22,6 +22,25 @@ export type AfterShiftRemove = {
   tier: MemberTier;
 };
 
+export type AllUsersSearchInput = {
+  admin?: InputMaybe<Scalars['Boolean']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  excludeIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orgIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  pNumber?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  queryField?: InputMaybe<Scalars['String']['input']>;
+  rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  skillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  statuses?: InputMaybe<Array<InputMaybe<MemberStatus>>>;
+  tiers?: InputMaybe<Array<InputMaybe<MemberTier>>>;
+};
+
 export type Assignment = {
   __typename?: 'Assignment';
   availableShifts?: Maybe<Scalars['Int']['output']>;
@@ -960,6 +979,7 @@ export type ProfilePhotoAttachmentUpload = {
 export type Query = {
   __typename?: 'Query';
   activeNotifications?: Maybe<NotificationSearchResult>;
+  allUsers?: Maybe<UserSearchResult>;
   assignment?: Maybe<Assignment>;
   assignments?: Maybe<AssignmentSearchResult>;
   availableShifts?: Maybe<ShiftSearchResult>;
@@ -999,6 +1019,11 @@ export type Query = {
 
 export type QueryActiveNotificationsArgs = {
   input?: InputMaybe<SearchInput>;
+};
+
+
+export type QueryAllUsersArgs = {
+  input?: InputMaybe<AllUsersSearchInput>;
 };
 
 
@@ -1973,6 +1998,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   AfterShiftRemove: ResolverTypeWrapper<AfterShiftRemove>;
+  AllUsersSearchInput: AllUsersSearchInput;
   Assignment: ResolverTypeWrapper<Assignment>;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: ResolverTypeWrapper<AssignmentSearchResult>;
@@ -2124,6 +2150,7 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   AfterShiftRemove: AfterShiftRemove;
+  AllUsersSearchInput: AllUsersSearchInput;
   Assignment: Assignment;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: AssignmentSearchResult;
@@ -2726,6 +2753,7 @@ export type ProfilePhotoAttachmentUploadResolvers<ContextType = any, ParentType 
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   activeNotifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryActiveNotificationsArgs>>;
+  allUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryAllUsersArgs>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<QueryAssignmentArgs, 'id'>>;
   assignments?: Resolver<Maybe<ResolversTypes['AssignmentSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentsArgs>>;
   availableShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryAvailableShiftsArgs>>;

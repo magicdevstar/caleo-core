@@ -18,8 +18,9 @@ import {
   MemberRole,
   InviteUser,
   MemberStatus,
+  AllUsersSearchInput,
 } from "../../__generated__/resolvers-types";
-import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
+import { adminOnly, adminOrOwnerOnly, superAdminOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
@@ -85,6 +86,40 @@ export const user = {
       ...('admin' in input ? {'member.role': input.admin ? MemberRole.Admin : MemberRole.Member} : {}),
       'member.orgId': user?.member.orgId!,
     }),
+    allUsers: async (
+      _parent: unknown,
+      { input }: { input: AllUsersSearchInput },
+      { users, user }: Context
+    ): Promise<SearchResults<User>> => {
+      superAdminOnly(user);
+
+      return users.search({
+        limit: input.limit,
+        skip: input.skip,
+        queryField: input.queryField || 'name',
+        order: input.order,
+        orderBy: input.orderBy,
+        query: input.query,
+        ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
+        ...(input.pNumber ? {'member.pNumber': {
+          $regex: input.pNumber,
+          $options: 'i',
+        }} : {}),
+        ...(input.phone ? {'member.contactInfo.primaryPhone.number': {
+          $regex: input.phone,
+          $options: 'i',
+        }} : {}),
+        ...(input.email ? {'member.contactInfo.primaryEmail.address': {
+          $regex: input.email,
+          $options: 'i',
+        }} : {}),
+        ...(input.rankIds ? {'member.rankId': { $in: input.rankIds }} : {}),
+        ...(input.statuses ? {'member.status': { $in: input.statuses }} : {}),
+        ...(input.tiers ? {'member.tier': { $in: input.tiers }} : {}),
+        ...('admin' in input ? {'member.role': input.admin ? MemberRole.Admin : MemberRole.Member} : {}),
+        ...(input.orgIds ? {'member.orgId': { $in: input.orgIds }} : {}),
+      });
+    }
   },
   Mutation: {
     inviteUser: async (

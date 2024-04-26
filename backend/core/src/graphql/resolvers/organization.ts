@@ -114,7 +114,7 @@ export const organization = {
 
       await lotteryCounter.updateLotteryDates(res);
 
-      organizations.scheduleLotteryEvents(orgId!, mergedOrg);
+      await organizations.scheduleLotteryEvents(orgId!, mergedOrg);
 
       return res;
     },

@@ -20,6 +20,14 @@ export const organization = {
       _args: unknown,
       { organizations, user }: Context
     ): Promise<Organization | null> => organizations.get(user?.member.orgId || ''),
+    organizationById: async (
+      _parent: unknown,
+      { orgId }: { orgId: string },
+      { organizations, user }: Context
+    ): Promise<Organization | null> => {
+      superAdminOnly(user);
+      return organizations.get(orgId || '');
+    },
     organizations: async (
       _parent: unknown,
       { input }: { input: OrganizationSearchInput},

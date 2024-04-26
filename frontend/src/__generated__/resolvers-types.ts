@@ -1016,6 +1016,7 @@ export type Query = {
   notification?: Maybe<Notification>;
   notifications?: Maybe<NotificationSearchResult>;
   organization?: Maybe<Organization>;
+  organizationById?: Maybe<Organization>;
   organizations?: Maybe<OrganizationSearchResult>;
   rank?: Maybe<Rank>;
   ranks?: Maybe<RankSearchResult>;
@@ -1108,6 +1109,11 @@ export type QueryNotificationArgs = {
 
 export type QueryNotificationsArgs = {
   input?: InputMaybe<NotificationSearchInput>;
+};
+
+
+export type QueryOrganizationByIdArgs = {
+  orgId: Scalars['String']['input'];
 };
 
 
@@ -2806,6 +2812,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QueryNotificationArgs, 'id'>>;
   notifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryNotificationsArgs>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  organizationById?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<QueryOrganizationByIdArgs, 'orgId'>>;
   organizations?: Resolver<Maybe<ResolversTypes['OrganizationSearchResult']>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;

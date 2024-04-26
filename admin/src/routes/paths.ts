@@ -24,6 +24,7 @@ export const paths = {
   admin: {
     organizations: {
       root: `${ROOTS.ADMIN}/organizations`,
+      details: (id: string) => `${ROOTS.ADMIN}/organizations/${id}`,
     },
   },
 };

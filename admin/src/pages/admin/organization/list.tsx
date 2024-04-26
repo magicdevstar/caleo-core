@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 // sections
-import { OrganizationsView } from 'src/sections/organizations/view';
+import { OrganizationListView } from 'src/sections/organization/view';
 
 // ----------------------------------------------------------------------
 
-export default function Page() {
+export default function OrganizationsListPage() {
   return (
     <>
       <Helmet>
         <title> Caleo Admin: Organizations</title>
       </Helmet>
 
-      <OrganizationsView />
+      <OrganizationListView />
     </>
   );
 }

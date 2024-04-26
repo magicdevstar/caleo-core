@@ -10,7 +10,8 @@ import { paths } from '../paths';
 
 // ----------------------------------------------------------------------
 
-const Organizations = lazyWithRetry(() => import('src/pages/admin/organizations'));
+const OrganizationListView = lazyWithRetry(() => import('src/pages/admin/organization/list'));
+const OrganizationDetailsView = lazyWithRetry(() => import('src/pages/admin/organization/details'));
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +31,10 @@ export const adminRoutes = [
       { element: <Navigate replace to={paths.admin.organizations.root} />, index: true },
       {
         path: 'organizations',
-        children: [{ element: <Organizations />, index: true }],
+        children: [
+          { element: <OrganizationListView />, index: true },
+          { path: ':orgId', element: <OrganizationDetailsView /> },
+        ],
       },
     ],
   },

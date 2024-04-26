@@ -4,16 +4,20 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = {
+  [_ in K]?: never;
+};
+export type Incremental<T> =
+  | T
+  | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
 };
 
 export type AfterShiftRemove = {
@@ -149,7 +153,7 @@ export enum DayOfWeek {
   Sunday = 'SUNDAY',
   Thursday = 'THURSDAY',
   Tuesday = 'TUESDAY',
-  Wednesday = 'WEDNESDAY'
+  Wednesday = 'WEDNESDAY',
 }
 
 export enum DocType {
@@ -172,7 +176,7 @@ export enum DocType {
   Skill = 'SKILL',
   User = 'USER',
   UserAnalytics = 'USER_ANALYTICS',
-  Venue = 'VENUE'
+  Venue = 'VENUE',
 }
 
 export type Email = {
@@ -254,7 +258,7 @@ export enum EventStatus {
   PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
   PreLottery = 'PRE_LOTTERY',
   ReadyForLottery = 'READY_FOR_LOTTERY',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
 }
 
 export type InAppNotificationMeta = {
@@ -455,7 +459,7 @@ export type MemberNotification = {
 
 export enum MemberRole {
   Admin = 'ADMIN',
-  Member = 'MEMBER'
+  Member = 'MEMBER',
 }
 
 export type MemberSkill = {
@@ -503,12 +507,12 @@ export enum MemberStatus {
   Inactive = 'INACTIVE',
   Invited = 'INVITED',
   Pending = 'PENDING',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
 }
 
 export enum MemberTier {
   Tier_1 = 'TIER_1',
-  Tier_2 = 'TIER_2'
+  Tier_2 = 'TIER_2',
 }
 
 export type Mutation = {
@@ -562,11 +566,9 @@ export type Mutation = {
   venue?: Maybe<Venue>;
 };
 
-
 export type MutationAdminEditPasswordArgs = {
   input: InputAdminResetPassword;
 };
-
 
 export type MutationApproveLottoAssignmentArgs = {
   id: Scalars['String']['input'];
@@ -574,77 +576,62 @@ export type MutationApproveLottoAssignmentArgs = {
   userId: Scalars['String']['input'];
 };
 
-
 export type MutationAssignmentArgs = {
   assignment: UpsertAssignment;
 };
-
 
 export type MutationBrowserNotificationSubscriptionArgs = {
   input: InputBrowserNotificationSubscription;
 };
 
-
 export type MutationCheckInArgs = {
   input: ShiftCheckInOutEvent;
 };
-
 
 export type MutationCheckOutArgs = {
   input: ShiftCheckInOutEvent;
 };
 
-
 export type MutationEditCheckInOutArgs = {
   input: ShiftAdminCheckInOutEvent;
 };
-
 
 export type MutationEventArgs = {
   event: UpsertEvent;
 };
 
-
 export type MutationInviteUserArgs = {
   user: InviteUser;
 };
-
 
 export type MutationNewUserArgs = {
   user: NewUser;
 };
 
-
 export type MutationNotificationArgs = {
   notification: UpsertNotification;
 };
-
 
 export type MutationNotifyUsersOfEventArgs = {
   eventId: Scalars['String']['input'];
 };
 
-
 export type MutationNotifyUsersOfShiftArgs = {
   shiftId: Scalars['String']['input'];
 };
-
 
 export type MutationOrganizationArgs = {
   organization: UpsertOrganization;
 };
 
-
 export type MutationRankArgs = {
   rank: UpsertRank;
 };
-
 
 export type MutationReadInAppNotificationsArgs = {
   ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   readAll?: InputMaybe<Scalars['Boolean']['input']>;
 };
-
 
 export type MutationRejectLottoAssignmentArgs = {
   id: Scalars['String']['input'];
@@ -652,87 +639,70 @@ export type MutationRejectLottoAssignmentArgs = {
   userId: Scalars['String']['input'];
 };
 
-
 export type MutationRemoveAssignmentArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveBrowserNotificationSubscriptionArgs = {
   endpoint?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type MutationRemoveEventArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveInAppNotificationsArgs = {
   ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   removeAll?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
-
 export type MutationRemoveNotificationArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveRankArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type MutationRemoveShiftArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveShiftBufferRequestArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type MutationRemoveShiftInterestRequestArgs = {
   id?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type MutationRemoveShiftLotteryRequestArgs = {
   id?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type MutationRemoveShiftsArgs = {
   shiftId: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveSkillArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type MutationRemoveUserArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type MutationRemoveUserSkillArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type MutationRemoveVenueArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type MutationSeenNotificationsArgs = {
   notificationIds: Array<InputMaybe<Scalars['String']['input']>>;
 };
-
 
 export type MutationSetShiftBufferStatusArgs = {
   id: Scalars['String']['input'];
@@ -740,53 +710,43 @@ export type MutationSetShiftBufferStatusArgs = {
   status: ShiftBufferRequestStatus;
 };
 
-
 export type MutationShiftAssignArgs = {
   id: Scalars['String']['input'];
   note?: InputMaybe<Scalars['String']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type MutationShiftBufferRequestArgs = {
   shiftBufferRequest?: InputMaybe<CreateShiftBufferRequest>;
 };
-
 
 export type MutationShiftInterestRequestArgs = {
   shiftInterestRequest?: InputMaybe<UpsertShiftInterestRequest>;
 };
 
-
 export type MutationShiftLotteryRequestArgs = {
   shiftLotteryRequest?: InputMaybe<UpsertShiftLotteryRequest>;
 };
-
 
 export type MutationShiftsArgs = {
   shifts: Array<InputMaybe<UpsertShift>>;
 };
 
-
 export type MutationSiteLockArgs = {
   input?: InputMaybe<UpsertSiteLock>;
 };
-
 
 export type MutationSkillArgs = {
   skill: UpsertSkill;
 };
 
-
 export type MutationUserArgs = {
   user: UpdateUser;
 };
 
-
 export type MutationUserSkillArgs = {
   userSkill: UpsertMemberSkill;
 };
-
 
 export type MutationVenueArgs = {
   venue: UpsertVenue;
@@ -861,7 +821,7 @@ export type Notification = {
 export enum NotificationFrequency {
   Always = 'ALWAYS',
   Once = 'ONCE',
-  UntilExpire = 'UNTIL_EXPIRE'
+  UntilExpire = 'UNTIL_EXPIRE',
 }
 
 export type NotificationSearchInput = {
@@ -977,132 +937,106 @@ export type Query = {
   venues?: Maybe<VenueSearchResult>;
 };
 
-
 export type QueryActiveNotificationsArgs = {
   input?: InputMaybe<SearchInput>;
 };
-
 
 export type QueryAssignmentArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type QueryAssignmentsArgs = {
   input?: InputMaybe<AssignmentSearchInput>;
 };
-
 
 export type QueryAvailableShiftsArgs = {
   input?: InputMaybe<AvailableShiftsSearchInput>;
 };
 
-
 export type QueryEventArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type QueryEventsArgs = {
   input?: InputMaybe<EventSearchInput>;
 };
 
-
 export type QueryGroupedShiftsArgs = {
   shiftId: Scalars['String']['input'];
 };
-
 
 export type QueryInAppNotificationsArgs = {
   input?: InputMaybe<InAppNotificationSearchInput>;
 };
 
-
 export type QueryLotteryCounterArgs = {
   counter?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 export type QueryLotteryCountersArgs = {
   input?: InputMaybe<SearchInput>;
 };
 
-
 export type QueryLottoAnalyticsArgs = {
   userId?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type QueryMemberSkillsArgs = {
   input?: InputMaybe<MemberSkillSearchInput>;
 };
 
-
 export type QueryNotificationArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type QueryNotificationsArgs = {
   input?: InputMaybe<NotificationSearchInput>;
 };
 
-
 export type QueryRankArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type QueryRanksArgs = {
   input?: InputMaybe<RankSearchInput>;
 };
 
-
 export type QueryShiftArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type QueryShiftBufferRequestsArgs = {
   input?: InputMaybe<ShiftBufferRequestsSearchInput>;
 };
 
-
 export type QueryShiftInterestRequestsArgs = {
   input?: InputMaybe<ShiftInterestRequestsSearchInput>;
 };
-
 
 export type QueryShiftLotteryRequestsArgs = {
   input?: InputMaybe<ShiftLotteryRequestsSearchInput>;
 };
 
-
 export type QueryShiftLottoRequestsArgs = {
   input: ShiftLottoRequestsSearchInput;
 };
-
 
 export type QueryShiftUsersArgs = {
   id: Scalars['String']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryShiftsArgs = {
   input?: InputMaybe<ShiftSearchInput>;
 };
-
 
 export type QuerySkillArgs = {
   id: Scalars['String']['input'];
 };
 
-
 export type QuerySkillsArgs = {
   input?: InputMaybe<SkillSearchInput>;
 };
-
 
 export type QueryUserArgs = {
   id: Scalars['String']['input'];
@@ -1110,16 +1044,13 @@ export type QueryUserArgs = {
   timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
 };
 
-
 export type QueryUsersArgs = {
   input?: InputMaybe<UserSearchInput>;
 };
 
-
 export type QueryVenueArgs = {
   id: Scalars['String']['input'];
 };
-
 
 export type QueryVenuesArgs = {
   input?: InputMaybe<VenueSearchInput>;
@@ -1267,7 +1198,7 @@ export type ShiftBufferRequest = {
 export enum ShiftBufferRequestStatus {
   Approved = 'APPROVED',
   Pending = 'PENDING',
-  Rejected = 'REJECTED'
+  Rejected = 'REJECTED',
 }
 
 export type ShiftBufferRequestsSearchInput = {
@@ -1345,7 +1276,6 @@ export type ShiftInterestRequest = {
   userId: Scalars['String']['output'];
 };
 
-
 export type ShiftInterestRequestUserArgs = {
   shiftStart?: InputMaybe<Scalars['String']['input']>;
   timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
@@ -1355,7 +1285,7 @@ export enum ShiftInterestRequestStatus {
   Approved = 'APPROVED',
   Pending = 'PENDING',
   Rejected = 'REJECTED',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
 }
 
 export type ShiftInterestRequestsSearchInput = {
@@ -1396,7 +1326,6 @@ export type ShiftLotteryRequest = {
   userId: Scalars['String']['output'];
 };
 
-
 export type ShiftLotteryRequestUserArgs = {
   shiftStart?: InputMaybe<Scalars['String']['input']>;
   timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
@@ -1406,7 +1335,7 @@ export enum ShiftLotteryRequestStatus {
   Approved = 'APPROVED',
   Pending = 'PENDING',
   Rejected = 'REJECTED',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
 }
 
 export type ShiftLotteryRequestsSearchInput = {
@@ -1444,7 +1373,7 @@ export type ShiftReminder = {
 export enum ShiftReminderUnit {
   Day = 'DAY',
   Hour = 'HOUR',
-  Minute = 'MINUTE'
+  Minute = 'MINUTE',
 }
 
 export type ShiftSearchInput = {
@@ -1483,7 +1412,7 @@ export enum ShiftStatus {
   Locked = 'LOCKED',
   Relinquished = 'RELINQUISHED',
   Removed = 'REMOVED',
-  Unassigned = 'UNASSIGNED'
+  Unassigned = 'UNASSIGNED',
 }
 
 export type SiteLock = {
@@ -1541,7 +1470,7 @@ export type SkillSearchResult = {
 export enum SkillStatus {
   Approved = 'APPROVED',
   Denied = 'DENIED',
-  Pending = 'PENDING'
+  Pending = 'PENDING',
 }
 
 export type UpdateUser = {
@@ -1873,7 +1802,7 @@ export type VenueSearchResult = {
 export enum VenueStatus {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
 }
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -1881,11 +1810,12 @@ export type ResolversObject<TObject> = WithIndex<TObject>;
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
-
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -1908,7 +1838,13 @@ export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
 
-export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> {
   subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>;
   resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>;
 }
@@ -1922,7 +1858,13 @@ export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, 
   | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
   | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
 
-export type SubscriptionResolver<TResult, TKey extends string, TParent = {}, TContext = {}, TArgs = {}> =
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = {},
+  TContext = {},
+  TArgs = {},
+> =
   | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
   | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
 
@@ -1932,7 +1874,11 @@ export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
   info: GraphQLResolveInfo
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<T = {}, TContext = {}> = (
+  obj: T,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
@@ -1943,8 +1889,6 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
   context: TContext,
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
-
-
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
@@ -2230,13 +2174,20 @@ export type ResolversParentTypes = ResolversObject<{
   VenueSearchResult: VenueSearchResult;
 }>;
 
-export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends ResolversParentTypes['AfterShiftRemove'] = ResolversParentTypes['AfterShiftRemove']> = ResolversObject<{
+export type AfterShiftRemoveResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['AfterShiftRemove'] = ResolversParentTypes['AfterShiftRemove'],
+> = ResolversObject<{
   days?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   tier?: Resolver<ResolversTypes['MemberTier'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
+export type AssignmentResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment'],
+> = ResolversObject<{
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2254,7 +2205,11 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  requiredSkillIds?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['String']>>>,
+    ParentType,
+    ContextType
+  >;
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   shiftIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
@@ -2262,25 +2217,41 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type AssignmentSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentSearchResult'] = ResolversParentTypes['AssignmentSearchResult']> = ResolversObject<{
+export type AssignmentSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['AssignmentSearchResult'] = ResolversParentTypes['AssignmentSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Assignment']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type AvailabilityTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailabilityTime'] = ResolversParentTypes['AvailabilityTime']> = ResolversObject<{
+export type AvailabilityTimeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['AvailabilityTime'] = ResolversParentTypes['AvailabilityTime'],
+> = ResolversObject<{
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type BrowserNotificationKeysResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationKeys'] = ResolversParentTypes['BrowserNotificationKeys']> = ResolversObject<{
+export type BrowserNotificationKeysResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BrowserNotificationKeys'] = ResolversParentTypes['BrowserNotificationKeys'],
+> = ResolversObject<{
   auth?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   p256dh?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type BrowserNotificationSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationSetting'] = ResolversParentTypes['BrowserNotificationSetting']> = ResolversObject<{
+export type BrowserNotificationSettingResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BrowserNotificationSetting'] = ResolversParentTypes['BrowserNotificationSetting'],
+> = ResolversObject<{
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -2288,26 +2259,41 @@ export type BrowserNotificationSettingResolvers<ContextType = any, ParentType ex
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  subscription?: Resolver<ResolversTypes['BrowserNotificationSubscription'], ParentType, ContextType>;
+  subscription?: Resolver<
+    ResolversTypes['BrowserNotificationSubscription'],
+    ParentType,
+    ContextType
+  >;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type BrowserNotificationSubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationSubscription'] = ResolversParentTypes['BrowserNotificationSubscription']> = ResolversObject<{
+export type BrowserNotificationSubscriptionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BrowserNotificationSubscription'] = ResolversParentTypes['BrowserNotificationSubscription'],
+> = ResolversObject<{
   endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   expirationTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   keys?: Resolver<ResolversTypes['BrowserNotificationKeys'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type CheckInOutSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['CheckInOutSetting'] = ResolversParentTypes['CheckInOutSetting']> = ResolversObject<{
+export type CheckInOutSettingResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['CheckInOutSetting'] = ResolversParentTypes['CheckInOutSetting'],
+> = ResolversObject<{
   minutesAfterShiftEnd?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   minutesBeforeShiftStart?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ContactInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContactInfo'] = ResolversParentTypes['ContactInfo']> = ResolversObject<{
+export type ContactInfoResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ContactInfo'] = ResolversParentTypes['ContactInfo'],
+> = ResolversObject<{
   primaryEmail?: Resolver<ResolversTypes['Email'], ParentType, ContextType>;
   primaryPhone?: Resolver<ResolversTypes['Phone'], ParentType, ContextType>;
   secondaryEmail?: Resolver<Maybe<ResolversTypes['Email']>, ParentType, ContextType>;
@@ -2315,22 +2301,36 @@ export type ContactInfoResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type DayAvailabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['DayAvailability'] = ResolversParentTypes['DayAvailability']> = ResolversObject<{
+export type DayAvailabilityResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['DayAvailability'] = ResolversParentTypes['DayAvailability'],
+> = ResolversObject<{
   available?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   times?: Resolver<Maybe<Array<ResolversTypes['AvailabilityTime']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Email'] = ResolversParentTypes['Email']> = ResolversObject<{
+export type EmailResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Email'] = ResolversParentTypes['Email'],
+> = ResolversObject<{
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   receiveEmails?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
+export type EventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event'],
+> = ResolversObject<{
   assignmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
-  attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  attachmentPaths?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['String']>>>,
+    ParentType,
+    ContextType
+  >;
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2364,19 +2364,31 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventAttachmentUpload'] = ResolversParentTypes['EventAttachmentUpload']> = ResolversObject<{
+export type EventAttachmentUploadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['EventAttachmentUpload'] = ResolversParentTypes['EventAttachmentUpload'],
+> = ResolversObject<{
   attachmentPath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EventSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventSearchResult'] = ResolversParentTypes['EventSearchResult']> = ResolversObject<{
+export type EventSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['EventSearchResult'] = ResolversParentTypes['EventSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Event']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type InAppNotificationMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotificationMeta'] = ResolversParentTypes['InAppNotificationMeta']> = ResolversObject<{
+export type InAppNotificationMetaResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['InAppNotificationMeta'] = ResolversParentTypes['InAppNotificationMeta'],
+> = ResolversObject<{
   assignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   rankId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2387,14 +2399,26 @@ export type InAppNotificationMetaResolvers<ContextType = any, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type InAppNotificationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotificationSearchResult'] = ResolversParentTypes['InAppNotificationSearchResult']> = ResolversObject<{
-  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['InAppNotifications']>>>, ParentType, ContextType>;
+export type InAppNotificationSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['InAppNotificationSearchResult'] = ResolversParentTypes['InAppNotificationSearchResult'],
+> = ResolversObject<{
+  items?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['InAppNotifications']>>>,
+    ParentType,
+    ContextType
+  >;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   unreadCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type InAppNotificationsResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotifications'] = ResolversParentTypes['InAppNotifications']> = ResolversObject<{
+export type InAppNotificationsResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['InAppNotifications'] = ResolversParentTypes['InAppNotifications'],
+> = ResolversObject<{
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2412,13 +2436,21 @@ export type InAppNotificationsResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type InterestListSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['InterestListSetting'] = ResolversParentTypes['InterestListSetting']> = ResolversObject<{
+export type InterestListSettingResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['InterestListSetting'] = ResolversParentTypes['InterestListSetting'],
+> = ResolversObject<{
   defaultHoursBeforeShift?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   defaultNotificationTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LotteryCounterResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotteryCounter'] = ResolversParentTypes['LotteryCounter']> = ResolversObject<{
+export type LotteryCounterResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LotteryCounter'] = ResolversParentTypes['LotteryCounter'],
+> = ResolversObject<{
   counter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2434,19 +2466,30 @@ export type LotteryCounterResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LotteryCounterSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotteryCounterSearchResult'] = ResolversParentTypes['LotteryCounterSearchResult']> = ResolversObject<{
+export type LotteryCounterSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LotteryCounterSearchResult'] = ResolversParentTypes['LotteryCounterSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['LotteryCounter']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LotteryDateResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotteryDate'] = ResolversParentTypes['LotteryDate']> = ResolversObject<{
+export type LotteryDateResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['LotteryDate'] = ResolversParentTypes['LotteryDate'],
+> = ResolversObject<{
   dayOfWeek?: Resolver<ResolversTypes['DayOfWeek'], ParentType, ContextType>;
   time?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LotterySettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LotterySettings'] = ResolversParentTypes['LotterySettings']> = ResolversObject<{
+export type LotterySettingsResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LotterySettings'] = ResolversParentTypes['LotterySettings'],
+> = ResolversObject<{
   close?: Resolver<ResolversTypes['LotteryDate'], ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   fcfsShiftsDelay?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2455,14 +2498,22 @@ export type LotterySettingsResolvers<ContextType = any, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LottoAnalyticsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LottoAnalytics'] = ResolversParentTypes['LottoAnalytics']> = ResolversObject<{
+export type LottoAnalyticsResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LottoAnalytics'] = ResolversParentTypes['LottoAnalytics'],
+> = ResolversObject<{
   approved?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lotteryCounter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   rejected?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  requests?: Resolver<Maybe<Array<Maybe<ResolversTypes['LottoRequests']>>>, ParentType, ContextType>;
+  requests?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['LottoRequests']>>>,
+    ParentType,
+    ContextType
+  >;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalShifts?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -2470,7 +2521,10 @@ export type LottoAnalyticsResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type LottoRequestsResolvers<ContextType = any, ParentType extends ResolversParentTypes['LottoRequests'] = ResolversParentTypes['LottoRequests']> = ResolversObject<{
+export type LottoRequestsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['LottoRequests'] = ResolversParentTypes['LottoRequests'],
+> = ResolversObject<{
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType>;
@@ -2483,7 +2537,10 @@ export type LottoRequestsResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member']> = ResolversObject<{
+export type MemberResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member'],
+> = ResolversObject<{
   adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
   contactInfo?: Resolver<Maybe<ResolversTypes['ContactInfo']>, ParentType, ContextType>;
@@ -2492,7 +2549,11 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   inactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   maxShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
-  memberSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['MemberSkill']>>>, ParentType, ContextType>;
+  memberSkills?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MemberSkill']>>>,
+    ParentType,
+    ContextType
+  >;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   pNumber?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2506,7 +2567,11 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MemberNotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['MemberNotification'] = ResolversParentTypes['MemberNotification']> = ResolversObject<{
+export type MemberNotificationResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['MemberNotification'] = ResolversParentTypes['MemberNotification'],
+> = ResolversObject<{
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastSeen?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2517,7 +2582,10 @@ export type MemberNotificationResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MemberSkillResolvers<ContextType = any, ParentType extends ResolversParentTypes['MemberSkill'] = ResolversParentTypes['MemberSkill']> = ResolversObject<{
+export type MemberSkillResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['MemberSkill'] = ResolversParentTypes['MemberSkill'],
+> = ResolversObject<{
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2537,69 +2605,315 @@ export type MemberSkillResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MemberSkillAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['MemberSkillAttachmentUpload'] = ResolversParentTypes['MemberSkillAttachmentUpload']> = ResolversObject<{
+export type MemberSkillAttachmentUploadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['MemberSkillAttachmentUpload'] = ResolversParentTypes['MemberSkillAttachmentUpload'],
+> = ResolversObject<{
   imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MemberSkillSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['MemberSkillSearchResult'] = ResolversParentTypes['MemberSkillSearchResult']> = ResolversObject<{
+export type MemberSkillSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['MemberSkillSearchResult'] = ResolversParentTypes['MemberSkillSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['MemberSkill']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
-  approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
-  assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
-  browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
-  checkIn?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckInArgs, 'input'>>;
-  checkOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
-  editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
-  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
-  eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
-  inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
-  newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
-  notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
-  notifyUsersOfEvent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfEventArgs, 'eventId'>>;
-  notifyUsersOfShift?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>>;
-  organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
-  profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
-  rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
-  readInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationReadInAppNotificationsArgs>>;
-  rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
-  removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
-  removeBrowserNotificationSubscription?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveBrowserNotificationSubscriptionArgs>>;
-  removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
-  removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
-  removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
-  removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
-  removeShift?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftArgs, 'id'>>;
-  removeShiftBufferRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftBufferRequestArgs, 'id'>>;
-  removeShiftInterestRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, Partial<MutationRemoveShiftInterestRequestArgs>>;
-  removeShiftLotteryRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, Partial<MutationRemoveShiftLotteryRequestArgs>>;
-  removeShifts?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType, RequireFields<MutationRemoveShiftsArgs, 'shiftId'>>;
-  removeSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'id'>>;
-  removeUser?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserArgs, 'id'>>;
-  removeUserSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserSkillArgs, 'id'>>;
-  removeVenue?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveVenueArgs, 'id'>>;
-  seenNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSeenNotificationsArgs, 'notificationIds'>>;
-  setShiftBufferStatus?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, RequireFields<MutationSetShiftBufferStatusArgs, 'id' | 'status'>>;
-  shiftAssign?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<MutationShiftAssignArgs, 'id'>>;
-  shiftBufferRequest?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, Partial<MutationShiftBufferRequestArgs>>;
-  shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType, Partial<MutationShiftInterestRequestArgs>>;
-  shiftLotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType, Partial<MutationShiftLotteryRequestArgs>>;
-  shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
-  siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType, Partial<MutationSiteLockArgs>>;
-  skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSkillArgs, 'skill'>>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUserArgs, 'user'>>;
-  userSkill?: Resolver<Maybe<ResolversTypes['MemberSkill']>, ParentType, ContextType, RequireFields<MutationUserSkillArgs, 'userSkill'>>;
-  userSkillAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['MemberSkillAttachmentUpload']>, ParentType, ContextType>;
-  venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<MutationVenueArgs, 'venue'>>;
+export type MutationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation'],
+> = ResolversObject<{
+  adminEditPassword?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationAdminEditPasswordArgs, 'input'>
+  >;
+  approveLottoAssignment?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>
+  >;
+  assignment?: Resolver<
+    Maybe<ResolversTypes['Assignment']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationAssignmentArgs, 'assignment'>
+  >;
+  browserNotificationSubscription?: Resolver<
+    Maybe<ResolversTypes['BrowserNotificationSetting']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>
+  >;
+  checkIn?: Resolver<
+    ResolversTypes['Shift'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationCheckInArgs, 'input'>
+  >;
+  checkOut?: Resolver<
+    ResolversTypes['Shift'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationCheckOutArgs, 'input'>
+  >;
+  editCheckInOut?: Resolver<
+    ResolversTypes['Shift'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationEditCheckInOutArgs, 'input'>
+  >;
+  event?: Resolver<
+    Maybe<ResolversTypes['Event']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationEventArgs, 'event'>
+  >;
+  eventAttachmentUploadUrl?: Resolver<
+    Maybe<ResolversTypes['EventAttachmentUpload']>,
+    ParentType,
+    ContextType
+  >;
+  inviteUser?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationInviteUserArgs, 'user'>
+  >;
+  newUser?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationNewUserArgs, 'user'>
+  >;
+  notification?: Resolver<
+    Maybe<ResolversTypes['Notification']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationNotificationArgs, 'notification'>
+  >;
+  notifyUsersOfEvent?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationNotifyUsersOfEventArgs, 'eventId'>
+  >;
+  notifyUsersOfShift?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>
+  >;
+  organization?: Resolver<
+    Maybe<ResolversTypes['Organization']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationOrganizationArgs, 'organization'>
+  >;
+  profilePhotoUploadUrl?: Resolver<
+    Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>,
+    ParentType,
+    ContextType
+  >;
+  rank?: Resolver<
+    Maybe<ResolversTypes['Rank']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationRankArgs, 'rank'>
+  >;
+  readInAppNotifications?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    Partial<MutationReadInAppNotificationsArgs>
+  >;
+  rejectLottoAssignment?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>
+  >;
+  removeAssignment?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveAssignmentArgs, 'id'>
+  >;
+  removeBrowserNotificationSubscription?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    Partial<MutationRemoveBrowserNotificationSubscriptionArgs>
+  >;
+  removeEvent?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveEventArgs, 'id'>
+  >;
+  removeInAppNotifications?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    Partial<MutationRemoveInAppNotificationsArgs>
+  >;
+  removeNotification?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveNotificationArgs, 'id'>
+  >;
+  removeRank?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveRankArgs, 'id'>
+  >;
+  removeShift?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveShiftArgs, 'id'>
+  >;
+  removeShiftBufferRequest?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveShiftBufferRequestArgs, 'id'>
+  >;
+  removeShiftInterestRequest?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    Partial<MutationRemoveShiftInterestRequestArgs>
+  >;
+  removeShiftLotteryRequest?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    Partial<MutationRemoveShiftLotteryRequestArgs>
+  >;
+  removeShifts?: Resolver<
+    Array<Maybe<ResolversTypes['String']>>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveShiftsArgs, 'shiftId'>
+  >;
+  removeSkill?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveSkillArgs, 'id'>
+  >;
+  removeUser?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveUserArgs, 'id'>
+  >;
+  removeUserSkill?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveUserSkillArgs, 'id'>
+  >;
+  removeVenue?: Resolver<
+    ResolversTypes['ID'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveVenueArgs, 'id'>
+  >;
+  seenNotifications?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationSeenNotificationsArgs, 'notificationIds'>
+  >;
+  setShiftBufferStatus?: Resolver<
+    Maybe<ResolversTypes['ShiftBufferRequest']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationSetShiftBufferStatusArgs, 'id' | 'status'>
+  >;
+  shiftAssign?: Resolver<
+    Maybe<ResolversTypes['Shift']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationShiftAssignArgs, 'id'>
+  >;
+  shiftBufferRequest?: Resolver<
+    Maybe<ResolversTypes['ShiftBufferRequest']>,
+    ParentType,
+    ContextType,
+    Partial<MutationShiftBufferRequestArgs>
+  >;
+  shiftInterestRequest?: Resolver<
+    Maybe<ResolversTypes['ShiftInterestRequest']>,
+    ParentType,
+    ContextType,
+    Partial<MutationShiftInterestRequestArgs>
+  >;
+  shiftLotteryRequest?: Resolver<
+    Maybe<ResolversTypes['ShiftLotteryRequest']>,
+    ParentType,
+    ContextType,
+    Partial<MutationShiftLotteryRequestArgs>
+  >;
+  shifts?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Shift']>>>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationShiftsArgs, 'shifts'>
+  >;
+  siteLock?: Resolver<
+    Maybe<ResolversTypes['SiteLock']>,
+    ParentType,
+    ContextType,
+    Partial<MutationSiteLockArgs>
+  >;
+  skill?: Resolver<
+    Maybe<ResolversTypes['Skill']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationSkillArgs, 'skill'>
+  >;
+  user?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUserArgs, 'user'>
+  >;
+  userSkill?: Resolver<
+    Maybe<ResolversTypes['MemberSkill']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUserSkillArgs, 'userSkill'>
+  >;
+  userSkillAttachmentUploadUrl?: Resolver<
+    Maybe<ResolversTypes['MemberSkillAttachmentUpload']>,
+    ParentType,
+    ContextType
+  >;
+  venue?: Resolver<
+    Maybe<ResolversTypes['Venue']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationVenueArgs, 'venue'>
+  >;
 }>;
 
-export type NotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{
+export type NotificationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification'],
+> = ResolversObject<{
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2609,7 +2923,11 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   expiration?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   frequency?: Resolver<ResolversTypes['NotificationFrequency'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  memberNotification?: Resolver<Maybe<ResolversTypes['MemberNotification']>, ParentType, ContextType>;
+  memberNotification?: Resolver<
+    Maybe<ResolversTypes['MemberNotification']>,
+    ParentType,
+    ContextType
+  >;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
@@ -2623,13 +2941,20 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type NotificationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotificationSearchResult'] = ResolversParentTypes['NotificationSearchResult']> = ResolversObject<{
+export type NotificationSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NotificationSearchResult'] = ResolversParentTypes['NotificationSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Notification']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type OrganizationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = ResolversObject<{
+export type OrganizationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization'],
+> = ResolversObject<{
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['OrganizationContact']>, ParentType, ContextType>;
@@ -2641,7 +2966,11 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
+  settings?: Resolver<
+    Maybe<ResolversTypes['OrganizationOvertimeSettings']>,
+    ParentType,
+    ContextType
+  >;
   state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2650,13 +2979,21 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type OrganizationContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationContact'] = ResolversParentTypes['OrganizationContact']> = ResolversObject<{
+export type OrganizationContactResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['OrganizationContact'] = ResolversParentTypes['OrganizationContact'],
+> = ResolversObject<{
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+export type OrganizationFeaturesResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures'],
+> = ResolversObject<{
   eventCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   interestLists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -2665,7 +3002,11 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
+export type OrganizationOvertimeSettingsResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings'],
+> = ResolversObject<{
   checkInOut?: Resolver<Maybe<ResolversTypes['CheckInOutSetting']>, ParentType, ContextType>;
   hoursPerMonth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   interestList?: Resolver<Maybe<ResolversTypes['InterestListSetting']>, ParentType, ContextType>;
@@ -2677,56 +3018,214 @@ export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type PhoneResolvers<ContextType = any, ParentType extends ResolversParentTypes['Phone'] = ResolversParentTypes['Phone']> = ResolversObject<{
+export type PhoneResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Phone'] = ResolversParentTypes['Phone'],
+> = ResolversObject<{
   number?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   receiveTexts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ProfilePhotoAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProfilePhotoAttachmentUpload'] = ResolversParentTypes['ProfilePhotoAttachmentUpload']> = ResolversObject<{
+export type ProfilePhotoAttachmentUploadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ProfilePhotoAttachmentUpload'] = ResolversParentTypes['ProfilePhotoAttachmentUpload'],
+> = ResolversObject<{
   imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  activeNotifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryActiveNotificationsArgs>>;
-  assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<QueryAssignmentArgs, 'id'>>;
-  assignments?: Resolver<Maybe<ResolversTypes['AssignmentSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentsArgs>>;
-  availableShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryAvailableShiftsArgs>>;
-  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventArgs, 'id'>>;
-  events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
-  groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
+export type QueryResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
+> = ResolversObject<{
+  activeNotifications?: Resolver<
+    Maybe<ResolversTypes['NotificationSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryActiveNotificationsArgs>
+  >;
+  assignment?: Resolver<
+    Maybe<ResolversTypes['Assignment']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryAssignmentArgs, 'id'>
+  >;
+  assignments?: Resolver<
+    Maybe<ResolversTypes['AssignmentSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryAssignmentsArgs>
+  >;
+  availableShifts?: Resolver<
+    Maybe<ResolversTypes['ShiftSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryAvailableShiftsArgs>
+  >;
+  event?: Resolver<
+    Maybe<ResolversTypes['Event']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryEventArgs, 'id'>
+  >;
+  events?: Resolver<
+    Maybe<ResolversTypes['EventSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryEventsArgs>
+  >;
+  groupedShifts?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Shift']>>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryGroupedShiftsArgs, 'shiftId'>
+  >;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  inAppNotifications?: Resolver<Maybe<ResolversTypes['InAppNotificationSearchResult']>, ParentType, ContextType, Partial<QueryInAppNotificationsArgs>>;
-  lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
-  lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;
+  inAppNotifications?: Resolver<
+    Maybe<ResolversTypes['InAppNotificationSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryInAppNotificationsArgs>
+  >;
+  lotteryCounter?: Resolver<
+    Maybe<ResolversTypes['LotteryCounter']>,
+    ParentType,
+    ContextType,
+    Partial<QueryLotteryCounterArgs>
+  >;
+  lotteryCounters?: Resolver<
+    Maybe<ResolversTypes['LotteryCounterSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryLotteryCountersArgs>
+  >;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
-  lottoAnalytics?: Resolver<Maybe<ResolversTypes['LottoAnalytics']>, ParentType, ContextType, Partial<QueryLottoAnalyticsArgs>>;
+  lottoAnalytics?: Resolver<
+    Maybe<ResolversTypes['LottoAnalytics']>,
+    ParentType,
+    ContextType,
+    Partial<QueryLottoAnalyticsArgs>
+  >;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  memberSkills?: Resolver<Maybe<ResolversTypes['MemberSkillSearchResult']>, ParentType, ContextType, Partial<QueryMemberSkillsArgs>>;
-  notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QueryNotificationArgs, 'id'>>;
-  notifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryNotificationsArgs>>;
+  memberSkills?: Resolver<
+    Maybe<ResolversTypes['MemberSkillSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryMemberSkillsArgs>
+  >;
+  notification?: Resolver<
+    Maybe<ResolversTypes['Notification']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNotificationArgs, 'id'>
+  >;
+  notifications?: Resolver<
+    Maybe<ResolversTypes['NotificationSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryNotificationsArgs>
+  >;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
-  rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
-  ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
-  shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<QueryShiftArgs, 'id'>>;
-  shiftBufferRequests?: Resolver<Maybe<ResolversTypes['ShiftBufferRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftBufferRequestsArgs>>;
-  shiftInterestRequests?: Resolver<Maybe<ResolversTypes['ShiftInterestRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftInterestRequestsArgs>>;
-  shiftLotteryRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftLotteryRequestsArgs>>;
-  shiftLottoRequests?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftLottoRequestsArgs, 'input'>>;
-  shiftUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftUsersArgs, 'id'>>;
-  shifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryShiftsArgs>>;
+  rank?: Resolver<
+    Maybe<ResolversTypes['Rank']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryRankArgs, 'id'>
+  >;
+  ranks?: Resolver<
+    Maybe<ResolversTypes['RankSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryRanksArgs>
+  >;
+  shift?: Resolver<
+    Maybe<ResolversTypes['Shift']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryShiftArgs, 'id'>
+  >;
+  shiftBufferRequests?: Resolver<
+    Maybe<ResolversTypes['ShiftBufferRequestsSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryShiftBufferRequestsArgs>
+  >;
+  shiftInterestRequests?: Resolver<
+    Maybe<ResolversTypes['ShiftInterestRequestsSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryShiftInterestRequestsArgs>
+  >;
+  shiftLotteryRequests?: Resolver<
+    Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryShiftLotteryRequestsArgs>
+  >;
+  shiftLottoRequests?: Resolver<
+    Maybe<ResolversTypes['ShiftLotteryRequestsSearchResult']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryShiftLottoRequestsArgs, 'input'>
+  >;
+  shiftUsers?: Resolver<
+    Maybe<ResolversTypes['UserSearchResult']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryShiftUsersArgs, 'id'>
+  >;
+  shifts?: Resolver<
+    Maybe<ResolversTypes['ShiftSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryShiftsArgs>
+  >;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType>;
-  skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
-  skills?: Resolver<Maybe<ResolversTypes['SkillSearchResult']>, ParentType, ContextType, Partial<QuerySkillsArgs>>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
-  users?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
-  venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<QueryVenueArgs, 'id'>>;
-  venues?: Resolver<Maybe<ResolversTypes['VenueSearchResult']>, ParentType, ContextType, Partial<QueryVenuesArgs>>;
+  skill?: Resolver<
+    Maybe<ResolversTypes['Skill']>,
+    ParentType,
+    ContextType,
+    RequireFields<QuerySkillArgs, 'id'>
+  >;
+  skills?: Resolver<
+    Maybe<ResolversTypes['SkillSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QuerySkillsArgs>
+  >;
+  user?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryUserArgs, 'id'>
+  >;
+  users?: Resolver<
+    Maybe<ResolversTypes['UserSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryUsersArgs>
+  >;
+  venue?: Resolver<
+    Maybe<ResolversTypes['Venue']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryVenueArgs, 'id'>
+  >;
+  venues?: Resolver<
+    Maybe<ResolversTypes['VenueSearchResult']>,
+    ParentType,
+    ContextType,
+    Partial<QueryVenuesArgs>
+  >;
 }>;
 
-export type RankResolvers<ContextType = any, ParentType extends ResolversParentTypes['Rank'] = ResolversParentTypes['Rank']> = ResolversObject<{
+export type RankResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Rank'] = ResolversParentTypes['Rank'],
+> = ResolversObject<{
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2741,13 +3240,20 @@ export type RankResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type RankSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RankSearchResult'] = ResolversParentTypes['RankSearchResult']> = ResolversObject<{
+export type RankSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['RankSearchResult'] = ResolversParentTypes['RankSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftResolvers<ContextType = any, ParentType extends ResolversParentTypes['Shift'] = ResolversParentTypes['Shift']> = ResolversObject<{
+export type ShiftResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Shift'] = ResolversParentTypes['Shift'],
+> = ResolversObject<{
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   availability?: Resolver<Maybe<ResolversTypes['ShiftAvailabilityTime']>, ParentType, ContextType>;
@@ -2774,7 +3280,11 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftCheckInOut?: Resolver<Maybe<ResolversTypes['ShiftCheckInOut']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType>;
+  shiftInterestRequest?: Resolver<
+    Maybe<ResolversTypes['ShiftInterestRequest']>,
+    ParentType,
+    ContextType
+  >;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ShiftStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2783,7 +3293,11 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftAvailabilityTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftAvailabilityTime'] = ResolversParentTypes['ShiftAvailabilityTime']> = ResolversObject<{
+export type ShiftAvailabilityTimeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftAvailabilityTime'] = ResolversParentTypes['ShiftAvailabilityTime'],
+> = ResolversObject<{
   friday?: Resolver<Maybe<ResolversTypes['ShiftDayTime']>, ParentType, ContextType>;
   monday?: Resolver<Maybe<ResolversTypes['ShiftDayTime']>, ParentType, ContextType>;
   saturday?: Resolver<Maybe<ResolversTypes['ShiftDayTime']>, ParentType, ContextType>;
@@ -2794,14 +3308,21 @@ export type ShiftAvailabilityTimeResolvers<ContextType = any, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftBufferResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftBuffer'] = ResolversParentTypes['ShiftBuffer']> = ResolversObject<{
+export type ShiftBufferResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ShiftBuffer'] = ResolversParentTypes['ShiftBuffer'],
+> = ResolversObject<{
   adminOverrideShiftBuffer?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   minuteShiftBuffer?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftBufferRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftBufferRequest'] = ResolversParentTypes['ShiftBufferRequest']> = ResolversObject<{
+export type ShiftBufferRequestResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftBufferRequest'] = ResolversParentTypes['ShiftBufferRequest'],
+> = ResolversObject<{
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2829,24 +3350,48 @@ export type ShiftBufferRequestResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftBufferRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftBufferRequestsSearchResult'] = ResolversParentTypes['ShiftBufferRequestsSearchResult']> = ResolversObject<{
-  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftBufferRequest']>>>, ParentType, ContextType>;
+export type ShiftBufferRequestsSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftBufferRequestsSearchResult'] = ResolversParentTypes['ShiftBufferRequestsSearchResult'],
+> = ResolversObject<{
+  items?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['ShiftBufferRequest']>>>,
+    ParentType,
+    ContextType
+  >;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftCheckInOutResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOut'] = ResolversParentTypes['ShiftCheckInOut']> = ResolversObject<{
+export type ShiftCheckInOutResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftCheckInOut'] = ResolversParentTypes['ShiftCheckInOut'],
+> = ResolversObject<{
   adminNotes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  checkInCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkInCoords?: Resolver<
+    Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>,
+    ParentType,
+    ContextType
+  >;
   checkInNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkInTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  checkOutCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkOutCoords?: Resolver<
+    Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>,
+    ParentType,
+    ContextType
+  >;
   checkOutNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOutCoordinates'] = ResolversParentTypes['ShiftCheckInOutCoordinates']> = ResolversObject<{
+export type ShiftCheckInOutCoordinatesResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftCheckInOutCoordinates'] = ResolversParentTypes['ShiftCheckInOutCoordinates'],
+> = ResolversObject<{
   accuracy?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   altitude?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   altitudeAccuracy?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -2857,13 +3402,20 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftDayTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftDayTime'] = ResolversParentTypes['ShiftDayTime']> = ResolversObject<{
+export type ShiftDayTimeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ShiftDayTime'] = ResolversParentTypes['ShiftDayTime'],
+> = ResolversObject<{
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftInterestRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequest'] = ResolversParentTypes['ShiftInterestRequest']> = ResolversObject<{
+export type ShiftInterestRequestResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftInterestRequest'] = ResolversParentTypes['ShiftInterestRequest'],
+> = ResolversObject<{
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2879,18 +3431,35 @@ export type ShiftInterestRequestResolvers<ContextType = any, ParentType extends 
   shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['ShiftInterestRequestStatus']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, Partial<ShiftInterestRequestUserArgs>>;
+  user?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    Partial<ShiftInterestRequestUserArgs>
+  >;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftInterestRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequestsSearchResult'] = ResolversParentTypes['ShiftInterestRequestsSearchResult']> = ResolversObject<{
-  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftInterestRequest']>>>, ParentType, ContextType>;
+export type ShiftInterestRequestsSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftInterestRequestsSearchResult'] = ResolversParentTypes['ShiftInterestRequestsSearchResult'],
+> = ResolversObject<{
+  items?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['ShiftInterestRequest']>>>,
+    ParentType,
+    ContextType
+  >;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftLotteryRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftLotteryRequest'] = ResolversParentTypes['ShiftLotteryRequest']> = ResolversObject<{
+export type ShiftLotteryRequestResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftLotteryRequest'] = ResolversParentTypes['ShiftLotteryRequest'],
+> = ResolversObject<{
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2908,31 +3477,54 @@ export type ShiftLotteryRequestResolvers<ContextType = any, ParentType extends R
   shiftGroupId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequestStatus']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, Partial<ShiftLotteryRequestUserArgs>>;
+  user?: Resolver<
+    Maybe<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    Partial<ShiftLotteryRequestUserArgs>
+  >;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftLotteryRequestsSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftLotteryRequestsSearchResult'] = ResolversParentTypes['ShiftLotteryRequestsSearchResult']> = ResolversObject<{
-  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShiftLotteryRequest']>>>, ParentType, ContextType>;
+export type ShiftLotteryRequestsSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftLotteryRequestsSearchResult'] = ResolversParentTypes['ShiftLotteryRequestsSearchResult'],
+> = ResolversObject<{
+  items?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['ShiftLotteryRequest']>>>,
+    ParentType,
+    ContextType
+  >;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftReminderResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftReminder'] = ResolversParentTypes['ShiftReminder']> = ResolversObject<{
+export type ShiftReminderResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ShiftReminder'] = ResolversParentTypes['ShiftReminder'],
+> = ResolversObject<{
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   time?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   unit?: Resolver<ResolversTypes['ShiftReminderUnit'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ShiftSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftSearchResult'] = ResolversParentTypes['ShiftSearchResult']> = ResolversObject<{
+export type ShiftSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ShiftSearchResult'] = ResolversParentTypes['ShiftSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type SiteLockResolvers<ContextType = any, ParentType extends ResolversParentTypes['SiteLock'] = ResolversParentTypes['SiteLock']> = ResolversObject<{
+export type SiteLockResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SiteLock'] = ResolversParentTypes['SiteLock'],
+> = ResolversObject<{
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2947,7 +3539,10 @@ export type SiteLockResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type SkillResolvers<ContextType = any, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = ResolversObject<{
+export type SkillResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill'],
+> = ResolversObject<{
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2966,14 +3561,25 @@ export type SkillResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type SkillSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SkillSearchResult'] = ResolversParentTypes['SkillSearchResult']> = ResolversObject<{
+export type SkillSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['SkillSearchResult'] = ResolversParentTypes['SkillSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
-  browserNotificationSettings?: Resolver<Maybe<Array<Maybe<ResolversTypes['BrowserNotificationSetting']>>>, ParentType, ContextType>;
+export type UserResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User'],
+> = ResolversObject<{
+  browserNotificationSettings?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['BrowserNotificationSetting']>>>,
+    ParentType,
+    ContextType
+  >;
   cognitoId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
@@ -2995,7 +3601,11 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type UserAvailabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserAvailability'] = ResolversParentTypes['UserAvailability']> = ResolversObject<{
+export type UserAvailabilityResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['UserAvailability'] = ResolversParentTypes['UserAvailability'],
+> = ResolversObject<{
   friday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
   monday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
   saturday?: Resolver<ResolversTypes['DayAvailability'], ParentType, ContextType>;
@@ -3006,7 +3616,11 @@ export type UserAvailabilityResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type UserRelinquishShiftResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserRelinquishShift'] = ResolversParentTypes['UserRelinquishShift']> = ResolversObject<{
+export type UserRelinquishShiftResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['UserRelinquishShift'] = ResolversParentTypes['UserRelinquishShift'],
+> = ResolversObject<{
   afterShiftRemove?: Resolver<ResolversTypes['AfterShiftRemove'], ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   numberOfHoursBeforeShift?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -3014,13 +3628,20 @@ export type UserRelinquishShiftResolvers<ContextType = any, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type UserSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserSearchResult'] = ResolversParentTypes['UserSearchResult']> = ResolversObject<{
+export type UserSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['UserSearchResult'] = ResolversParentTypes['UserSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type VenueResolvers<ContextType = any, ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue']> = ResolversObject<{
+export type VenueResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue'],
+> = ResolversObject<{
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['VenueContact']>, ParentType, ContextType>;
@@ -3043,7 +3664,10 @@ export type VenueResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type VenueContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['VenueContact'] = ResolversParentTypes['VenueContact']> = ResolversObject<{
+export type VenueContactResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['VenueContact'] = ResolversParentTypes['VenueContact'],
+> = ResolversObject<{
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3051,13 +3675,20 @@ export type VenueContactResolvers<ContextType = any, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type VenueContractResolvers<ContextType = any, ParentType extends ResolversParentTypes['VenueContract'] = ResolversParentTypes['VenueContract']> = ResolversObject<{
+export type VenueContractResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['VenueContract'] = ResolversParentTypes['VenueContract'],
+> = ResolversObject<{
   expirationDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type VenueSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['VenueSearchResult'] = ResolversParentTypes['VenueSearchResult']> = ResolversObject<{
+export type VenueSearchResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['VenueSearchResult'] = ResolversParentTypes['VenueSearchResult'],
+> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Venue']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -3131,4 +3762,3 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   VenueContract?: VenueContractResolvers<ContextType>;
   VenueSearchResult?: VenueSearchResultResolvers<ContextType>;
 }>;
-

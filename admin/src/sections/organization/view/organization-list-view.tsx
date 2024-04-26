@@ -4,6 +4,9 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 // __generated__
 import { Organization } from 'src/__generated__/resolvers-types';
+// routes
+import { RouterLink } from 'src/routes/components';
+import { paths } from 'src/routes/paths';
 // api
 import { ORGANIZATIONS } from 'src/api/organization';
 // components
@@ -13,7 +16,7 @@ import { TableConfig } from 'src/components/table/table-config';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import Iconify from 'src/components/iconify';
 
-export default function OrganizationsView() {
+export default function OrganizationListView() {
   const settings = useSettingsContext();
   const config: TableConfig<Organization> = useMemo(
     () => ({
@@ -51,12 +54,13 @@ export default function OrganizationsView() {
           id: 'name',
           label: 'Name',
           columnType: 'string',
+          getHref: (row: Organization) => paths.admin.organizations.details(row.id),
         },
         {
           id: 'city',
           label: 'Location',
           columnType: 'string',
-          renderValue: (city: string, index: number, row: Organization) => `${city}, ${row.state}`,
+          renderValue: (city: string, index: number, row: Organization) => `${city ? city.concat(',') : ''} ${row.state}`,
         },
         {
           id: 'createdAt',
@@ -77,7 +81,12 @@ export default function OrganizationsView() {
           mb: { xs: 3, md: 3 },
         }}
         action={
-          <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
+          <Button
+            component={RouterLink}
+            href={paths.admin.organizations.details('new')}
+            variant="contained"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+          >
             Create Organization
           </Button>
         }

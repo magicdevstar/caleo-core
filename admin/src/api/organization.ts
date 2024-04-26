@@ -70,6 +70,28 @@ export const ORGANIZATION = gql`
   }
 `;
 
+export const ORGANIZATION_BY_ID = gql`
+  query ORGANIZATION_BY_ID($orgId: String!) {
+    organizationById(orgId: $orgId) {
+      id
+      name
+      address
+      city
+      zip
+      state
+      timezone
+      weekBegins
+      features {
+        lottery
+        venueContractDates
+        eventCheckIn
+        interestLists
+        monthlyMaxHours
+      }
+    }
+  }
+`;
+
 export const ORGANIZATIONS = gql`
   query ORGANIZATIONS($input: OrganizationSearchInput!) {
     organizations(input: $input) {
@@ -90,6 +112,42 @@ export const UPDATE_ORGANIZATION = gql`
   mutation UPDATE_ORGANIZATION($organization: UpsertOrganization!) {
     organization(organization: $organization) {
       id
+      name
+      address
+      city
+      zip
+      state
+      timezone
+      weekBegins
+      features {
+        lottery
+        venueContractDates
+        eventCheckIn
+        interestLists
+        monthlyMaxHours
+      }
+    }
+  }
+`;
+
+export const CREATE_ORGANIZATION = gql`
+  mutation CREATE_ORGANIZATION($organization: CreateOrganization!) {
+    createOrganization(organization: $organization) {
+      id
+      name
+      address
+      city
+      zip
+      state
+      timezone
+      weekBegins
+      features {
+        lottery
+        venueContractDates
+        eventCheckIn
+        interestLists
+        monthlyMaxHours
+      }
     }
   }
 `;

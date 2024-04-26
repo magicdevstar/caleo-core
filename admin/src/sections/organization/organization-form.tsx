@@ -1,0 +1,302 @@
+import { useMemo } from 'react';
+import * as Yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { capitalize } from 'lodash';
+import { useMutation } from '@apollo/client';
+import { useSnackbar } from 'notistack';
+import { useNavigate } from 'react-router';
+// @mui
+import Grid from '@mui/material/Unstable_Grid2';
+import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import MenuItem from '@mui/material/MenuItem';
+import CardHeader from '@mui/material/CardHeader';
+import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
+// __generated__
+import { DayOfWeek, Organization } from 'src/__generated__/resolvers-types';
+// hooks
+import { useResponsive } from 'src/hooks/use-responsive';
+// utils
+import { states } from 'src/utils/states';
+// api
+import { CREATE_ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
+// routes
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+// components
+import FormProvider from 'src/components/hook-form/form-provider';
+import { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
+
+const OrganizationSchema = Yup.object().shape({
+  id: Yup.string().optional(),
+  name: Yup.string().required('Name is required'),
+  address: Yup.string(),
+  state: Yup.string(),
+  city: Yup.string(),
+  weekBegins: Yup.string(),
+  timezone: Yup.string(),
+  zip: Yup.string(),
+  features: Yup.object().shape({
+    lottery: Yup.boolean(),
+    venueContractDates: Yup.boolean(),
+    eventCheckIn: Yup.boolean(),
+    interestLists: Yup.boolean(),
+    monthlyMaxHours: Yup.boolean(),
+  }),
+});
+
+type Props = {
+  currentOrganization?: Organization;
+};
+
+export default function OrganizationForm({ currentOrganization }: Props) {
+  const mdUp = useResponsive('up', 'md');
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+
+  const [createOrg] = useMutation(CREATE_ORGANIZATION);
+
+  const [updateOrg] = useMutation(UPDATE_ORGANIZATION);
+
+  const defaultValues = useMemo(
+    () => ({
+      id: currentOrganization?.id,
+      name: currentOrganization?.name || '',
+      address: currentOrganization?.address || '',
+      state: currentOrganization?.state || '',
+      city: currentOrganization?.city || '',
+      zip: currentOrganization?.zip || '',
+      weekBegins: currentOrganization?.weekBegins || 'SUNDAY',
+      timezone: currentOrganization?.timezone || 'America/Los_Angeles',
+      features: {
+        lottery: !!currentOrganization?.features?.lottery,
+        venueContractDates: !!currentOrganization?.features?.venueContractDates,
+        eventCheckIn: !!currentOrganization?.features?.eventCheckIn,
+        interestLists: !!currentOrganization?.features?.interestLists,
+        monthlyMaxHours: !!currentOrganization?.features?.monthlyMaxHours,
+      },
+    }),
+    [currentOrganization]
+  );
+
+  const methods = useForm({
+    resolver: yupResolver(OrganizationSchema),
+    mode: 'onChange',
+    values: defaultValues,
+  });
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting, isDirty },
+  } = methods;
+
+  const onSubmit = handleSubmit(async (values) => {
+    if (currentOrganization) {
+      try {
+        await updateOrg({
+          variables: {
+            organization: values,
+          },
+        });
+        enqueueSnackbar('Organization updated successfully!');
+      } catch (error) {
+        enqueueSnackbar('Failed to update organization. Please try again.', { variant: 'error' });
+        console.error(error);
+      }
+    } else {
+      try {
+        const createOrgResponse = await createOrg({
+          variables: {
+            organization: values,
+          },
+        });
+        enqueueSnackbar('Organization created successfully!');
+        navigate(
+          paths.admin.organizations.details(createOrgResponse?.data?.createOrganization?.id)
+        );
+      } catch (error) {
+        enqueueSnackbar('Failed to create organization. Please try again.', { variant: 'error' });
+        console.error(error);
+      }
+    }
+  });
+
+  const renderDetails = (
+    <>
+      {mdUp && (
+        <Grid md={4}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            Details
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Name and location details
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid xs={12} md={8}>
+        <Card>
+          {!mdUp && <CardHeader title="Details" />}
+
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <RHFTextField name="name" label="Name *" disabled={isSubmitting} />
+
+            <RHFTextField name="address" label="Address" disabled={isSubmitting} />
+
+            <Stack spacing={3} direction={{ xs: 'column', md: 'row' }}>
+              <RHFTextField name="city" label="City" disabled={isSubmitting} />
+
+              <RHFSelect name="state" label="State" disabled={isSubmitting}>
+                {states.map(({ abbreviation: option }) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
+              <RHFTextField name="zip" label="Zip Code" disabled={isSubmitting} />
+            </Stack>
+
+            <Stack spacing={3} direction={{ xs: 'column', md: 'row' }}>
+              <RHFSelect name="timezone" label="Timezone" disabled={isSubmitting}>
+                {[
+                  'America/New_York',
+                  'America/Chicago',
+                  'America/Denver',
+                  'America/Los_Angeles',
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
+              <RHFSelect name="weekBegins" label="Week Start" disabled={isSubmitting}>
+                {[
+                  DayOfWeek.Monday,
+                  DayOfWeek.Tuesday,
+                  DayOfWeek.Wednesday,
+                  DayOfWeek.Thursday,
+                  DayOfWeek.Friday,
+                  DayOfWeek.Saturday,
+                  DayOfWeek.Sunday,
+                ].map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {capitalize(option)}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+            </Stack>
+          </Stack>
+        </Card>
+      </Grid>
+    </>
+  );
+
+  const renderFeatures = (
+    <>
+      {mdUp && (
+        <Grid md={4}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            Features
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Feature flags
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid xs={12} md={8}>
+        <Card>
+          {!mdUp && <CardHeader title="Features" />}
+
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <Grid container spacing={2} sx={{ '.MuiGrid2-root': { xl: { flexGrow: '1' } } }}>
+              <Grid xs={12} md={6} lg={4} xl={2}>
+                <RHFSwitch name="features.lottery" label="Lottery" disabled={isSubmitting} />
+              </Grid>
+
+              <Grid xs={12} md={6} lg={4} xl={2}>
+                <RHFSwitch
+                  name="features.venueContractDates"
+                  label="Venue Contract Dates"
+                  disabled={isSubmitting}
+                />
+              </Grid>
+
+              <Grid xs={12} md={6} lg={4} xl={2}>
+                <RHFSwitch
+                  name="features.eventCheckIn"
+                  label="Event Check In"
+                  disabled={isSubmitting}
+                />
+              </Grid>
+
+              <Grid xs={12} md={6} lg={4} xl={2}>
+                <RHFSwitch
+                  name="features.interestLists"
+                  label="Interest Lists"
+                  disabled={isSubmitting}
+                />
+              </Grid>
+
+              <Grid xs={12} md={6} lg={4} xl={2}>
+                <RHFSwitch
+                  name="features.monthlyMaxHours"
+                  label="Monthly Max Hours"
+                  disabled={isSubmitting}
+                />
+              </Grid>
+            </Grid>
+          </Stack>
+        </Card>
+      </Grid>
+    </>
+  );
+
+  const renderActions = (
+    <>
+      {mdUp && <Grid md={4} />}
+      <Grid
+        xs={12}
+        md={8}
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+      >
+        <Button
+          component={RouterLink}
+          disabled={isSubmitting}
+          variant="outlined"
+          size="large"
+          href={paths.admin.organizations.root}
+        >
+          Cancel
+        </Button>
+        <LoadingButton
+          type="submit"
+          loading={isSubmitting}
+          disabled={!isDirty}
+          variant="contained"
+          size="large"
+          sx={{ ml: 2 }}
+        >
+          {!currentOrganization ? 'Create Organization' : 'Save Changes'}
+        </LoadingButton>
+      </Grid>
+    </>
+  );
+
+  return (
+    <FormProvider methods={methods} onSubmit={onSubmit}>
+      <Grid container spacing={3}>
+        {renderDetails}
+
+        {renderFeatures}
+
+        {renderActions}
+      </Grid>
+    </FormProvider>
+  );
+}

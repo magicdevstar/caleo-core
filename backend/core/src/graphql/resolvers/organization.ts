@@ -82,7 +82,9 @@ export const organization = {
     ): Promise<Organization> => {
       adminOnly(user);
 
-      const existingOrg = await organizations.get(user?.member.orgId || '');
+      const orgId = isSuperAdmin(user) && org?.id ? org?.id : user?.member?.orgId;
+
+      const existingOrg = await organizations.get(orgId || '');
 
       if (!isSuperAdmin(user)) {
         delete org.features;
@@ -112,7 +114,7 @@ export const organization = {
 
       await lotteryCounter.updateLotteryDates(res);
 
-      organizations.scheduleLotteryEvents(user?.member.orgId!, mergedOrg);
+      organizations.scheduleLotteryEvents(orgId!, mergedOrg);
 
       return res;
     },

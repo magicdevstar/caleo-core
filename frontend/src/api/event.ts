@@ -225,6 +225,14 @@ export const GET_EVENT = gql`
       endTime
       createdById
 
+      requestDetails {
+        startTime
+        endTime
+        newVenue
+        numberOfOfficers
+        estimatedAttendees
+      }
+
       lotteryCounter {
         id
         counter

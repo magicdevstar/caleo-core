@@ -21,6 +21,7 @@ query ORGANIZATION {
       eventCheckIn
       interestLists
       monthlyMaxHours
+      externalEventRequests
     }
     settings {
       shiftsPerWeek

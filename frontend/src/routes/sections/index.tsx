@@ -6,6 +6,7 @@ import { mainRoutes } from './main';
 
 import { authRoutes } from './auth';
 import { dashboardRoutes } from './dashboard';
+import { externalRequestRoutes } from './externalRequests';
 
 // ----------------------------------------------------------------------
 
@@ -15,6 +16,9 @@ export default function Router() {
       path: '/',
       element: <Navigate to={PATH_AFTER_LOGIN} replace />,
     },
+
+    // External requests
+    ...externalRequestRoutes,
 
     // Auth routes
     ...authRoutes,

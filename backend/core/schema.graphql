@@ -325,6 +325,8 @@
 
 ###### START Events ######
   enum EventStatus {
+    # Event that has been requested via form or otherwise
+    REQUESTED
     # Event that is being built and not ready for assignments
     DRAFT
     # Event that assigned to a lottery run
@@ -369,6 +371,7 @@
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean
+    requestDetails: EventRequestDetails
     docType: DocType!
     venueId: String!
     assignmentIds: [String]
@@ -386,6 +389,14 @@
     availableShifts: Int
     modifiedBy: User
     lotteryCounter: LotteryCounter
+  }
+
+  type EventRequestDetails {
+    startTime: String
+    endTime: String
+    newVenue: Boolean
+    numberOfOfficers: Int
+    estimatedAttendees: Int
   }
 
   type Assignment {
@@ -631,11 +642,20 @@
     scheduledCloseInterestList: String
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
+    requestDetails: InputEventRequestDetails
     notes: String
     venueId: String!
     notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
     createdById: String
+  }
+
+  input InputEventRequestDetails {
+    startTime: String
+    endTime: String
+    newVenue: Boolean
+    numberOfOfficers: Int
+    estimatedAttendees: Int
   }
 
   input CreateShiftBufferRequest {
@@ -909,6 +929,8 @@
     eventCheckIn: Boolean
     interestLists: Boolean
     monthlyMaxHours: Boolean
+    externalEventRequests: Boolean
+    eventRequests: Boolean
   }
 
   type OrganizationOvertimeSettings {
@@ -1026,6 +1048,8 @@
     eventCheckIn: Boolean
     interestLists: Boolean
     monthlyMaxHours: Boolean
+    externalEventRequests: Boolean
+    eventRequests: Boolean
   }
 
   input UpsertInterestListSetting {

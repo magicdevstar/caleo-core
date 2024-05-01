@@ -239,6 +239,7 @@ export type Event = {
   orgId: Scalars['String']['output'];
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
+  requestDetails?: Maybe<EventRequestDetails>;
   scheduledCloseInterestList?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   scheduledInterestList?: Maybe<Scalars['String']['output']>;
@@ -254,6 +255,15 @@ export type EventAttachmentUpload = {
   __typename?: 'EventAttachmentUpload';
   attachmentPath: Scalars['String']['output'];
   uploadUrl: Scalars['String']['output'];
+};
+
+export type EventRequestDetails = {
+  __typename?: 'EventRequestDetails';
+  endTime?: Maybe<Scalars['String']['output']>;
+  estimatedAttendees?: Maybe<Scalars['Int']['output']>;
+  newVenue?: Maybe<Scalars['Boolean']['output']>;
+  numberOfOfficers?: Maybe<Scalars['Int']['output']>;
+  startTime?: Maybe<Scalars['String']['output']>;
 };
 
 export type EventSearchInput = {
@@ -286,7 +296,8 @@ export enum EventStatus {
   PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
   PreLottery = 'PRE_LOTTERY',
   ReadyForLottery = 'READY_FOR_LOTTERY',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
+  Requested = 'REQUESTED'
 }
 
 export type InAppNotificationMeta = {
@@ -357,6 +368,14 @@ export type InputBrowserNotificationSubscription = {
 export type InputDayAvailability = {
   available: Scalars['Boolean']['input'];
   times?: InputMaybe<Array<InputAvailabilityTime>>;
+};
+
+export type InputEventRequestDetails = {
+  endTime?: InputMaybe<Scalars['String']['input']>;
+  estimatedAttendees?: InputMaybe<Scalars['Int']['input']>;
+  newVenue?: InputMaybe<Scalars['Boolean']['input']>;
+  numberOfOfficers?: InputMaybe<Scalars['Int']['input']>;
+  startTime?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type InputUserAvailability = {
@@ -949,6 +968,8 @@ export type OrganizationContact = {
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
   eventCheckIn?: Maybe<Scalars['Boolean']['output']>;
+  eventRequests?: Maybe<Scalars['Boolean']['output']>;
+  externalEventRequests?: Maybe<Scalars['Boolean']['output']>;
   interestLists?: Maybe<Scalars['Boolean']['output']>;
   lottery?: Maybe<Scalars['Boolean']['output']>;
   monthlyMaxHours?: Maybe<Scalars['Boolean']['output']>;
@@ -1660,6 +1681,7 @@ export type UpsertEvent = {
   notes?: InputMaybe<Scalars['String']['input']>;
   notifyOnFirstComeFirstServe?: InputMaybe<Scalars['Boolean']['input']>;
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
+  requestDetails?: InputMaybe<InputEventRequestDetails>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -1725,6 +1747,8 @@ export type UpsertOrganizationContact = {
 
 export type UpsertOrganizationFeatures = {
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  eventRequests?: InputMaybe<Scalars['Boolean']['input']>;
+  externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2055,6 +2079,7 @@ export type ResolversTypes = ResolversObject<{
   Email: ResolverTypeWrapper<Email>;
   Event: ResolverTypeWrapper<Event>;
   EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
+  EventRequestDetails: ResolverTypeWrapper<EventRequestDetails>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
@@ -2069,6 +2094,7 @@ export type ResolversTypes = ResolversObject<{
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
   InputBrowserNotificationSubscription: InputBrowserNotificationSubscription;
   InputDayAvailability: InputDayAvailability;
+  InputEventRequestDetails: InputEventRequestDetails;
   InputUserAvailability: InputUserAvailability;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   InterestListSetting: ResolverTypeWrapper<InterestListSetting>;
@@ -2207,6 +2233,7 @@ export type ResolversParentTypes = ResolversObject<{
   Email: Email;
   Event: Event;
   EventAttachmentUpload: EventAttachmentUpload;
+  EventRequestDetails: EventRequestDetails;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   Float: Scalars['Float']['output'];
@@ -2220,6 +2247,7 @@ export type ResolversParentTypes = ResolversObject<{
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
   InputBrowserNotificationSubscription: InputBrowserNotificationSubscription;
   InputDayAvailability: InputDayAvailability;
+  InputEventRequestDetails: InputEventRequestDetails;
   InputUserAvailability: InputUserAvailability;
   Int: Scalars['Int']['output'];
   InterestListSetting: InterestListSetting;
@@ -2447,6 +2475,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
   scheduledCloseInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2462,6 +2491,15 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
 export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventAttachmentUpload'] = ResolversParentTypes['EventAttachmentUpload']> = ResolversObject<{
   attachmentPath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventRequestDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventRequestDetails'] = ResolversParentTypes['EventRequestDetails']> = ResolversObject<{
+  endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  estimatedAttendees?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  newVenue?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  numberOfOfficers?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2755,6 +2793,8 @@ export type OrganizationContactResolvers<ContextType = any, ParentType extends R
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
   eventCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  eventRequests?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  externalEventRequests?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   interestLists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   monthlyMaxHours?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -3184,6 +3224,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Email?: EmailResolvers<ContextType>;
   Event?: EventResolvers<ContextType>;
   EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
+  EventRequestDetails?: EventRequestDetailsResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
   InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;

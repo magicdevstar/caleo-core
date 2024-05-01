@@ -54,6 +54,7 @@ export const getDefaultOrgFeatures = () => ({
   eventCheckIn: false,
   interestLists: false,
   monthlyMaxHours: false,
+  externalEventRequests: false,
 });
 
 export class OrganizationModel extends BaseModel<Organization> {

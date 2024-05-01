@@ -29,6 +29,7 @@ const userDetailProperties = `
         eventCheckIn
         interestLists
         monthlyMaxHours
+        externalEventRequests
       }
       settings {
         shiftsPerWeek

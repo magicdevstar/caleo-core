@@ -151,6 +151,8 @@ export const organization = {
       eventCheckIn: (parent: OrganizationFeatures) => !!parent.eventCheckIn,
       interestLists: (parent: OrganizationFeatures) => !!parent.interestLists,
       monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
+      externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
+      eventRequests: (parent: OrganizationFeatures) => !!parent.eventRequests,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

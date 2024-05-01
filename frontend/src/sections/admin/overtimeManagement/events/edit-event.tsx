@@ -79,6 +79,7 @@ const eventStatusNames = {
   [EventStatus.ReadyForLottery]: 'Lottery',
   [EventStatus.InterestList]: 'Interest List',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
+  [EventStatus.Requested]: 'Requested',
 }
 
 const NewEventSchema = Yup.object().shape({
@@ -108,7 +109,12 @@ dayjs.extend(timezone);
 export default function EditEvent({ currentEvent }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
-  const { venueContractDates, interestLists, lottery } = useFeatures();
+  const {
+    venueContractDates,
+    interestLists,
+    lottery,
+    externalEventRequests,
+  } = useFeatures();
 
   const eventStatuses = useMemo(() => {
     const statuses = [
@@ -123,13 +129,16 @@ export default function EditEvent({ currentEvent }: Props) {
     if (interestLists) {
       statuses.push(EventStatus.InterestList);
     }
+    if (externalEventRequests) {
+      statuses.push(EventStatus.Requested);
+    }
     return [
       ...statuses,
       EventStatus.FirstComeFirstServe,
       EventStatus.Complete,
       EventStatus.Removed,
     ];
-  }, [user, lottery, interestLists]);
+  }, [user, lottery, interestLists, externalEventRequests]);
 
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
@@ -600,6 +609,7 @@ export default function EditEvent({ currentEvent }: Props) {
               options={venues}
               filterOptions={(x: any) => x}
               loading={venuesLoading}
+              helperText={currentEvent?.requestDetails?.estimatedAttendees ? `Estimated attendees: ${currentEvent?.requestDetails?.estimatedAttendees}` : ''}
               loadingText={
                 <>
                   Loading...
@@ -630,6 +640,8 @@ export default function EditEvent({ currentEvent }: Props) {
                     <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
                     <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
                   </Stack>
+                  {currentEvent?.requestDetails?.estimatedAttendees && <Typography variant="subtitle2">Estimated Attendees: {currentEvent?.requestDetails?.estimatedAttendees}</Typography>}
+                  {currentEvent?.requestDetails?.numberOfOfficers && <Typography variant="subtitle2">Requested number of officers: {currentEvent?.requestDetails?.numberOfOfficers}</Typography>}
                   <Markdown children={selectedVenue?.notes || ''} />
                   {showVenueContractWarning && (
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -674,7 +686,7 @@ export default function EditEvent({ currentEvent }: Props) {
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          margin: 'normal',
+                          margin: 'normal'
                         },
                       }}
                     />
@@ -795,6 +807,9 @@ export default function EditEvent({ currentEvent }: Props) {
                         textField: {
                           fullWidth: true,
                           margin: 'normal',
+                          ...(currentEvent.requestDetails?.startTime ? {
+                            helperText: `Suggested start time: ${convertDate({ date: currentEvent.requestDetails?.startTime, user }).format(dateTimeFormat)}`
+                          } : {}),
                         },
                       }}
                     />
@@ -809,6 +824,9 @@ export default function EditEvent({ currentEvent }: Props) {
                         textField: {
                           fullWidth: true,
                           margin: 'normal',
+                          ...(currentEvent.requestDetails?.endTime ? {
+                            helperText: `Suggested end time: ${convertDate({ date: currentEvent.requestDetails?.endTime, user }).format(dateTimeFormat)}`
+                          } : {}),
                         },
                       }}
                     />

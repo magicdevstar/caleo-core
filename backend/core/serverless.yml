@@ -136,6 +136,20 @@ functions:
       - httpApi:
           path: /
           method: GET
+  getVenues:
+    handler: src/public/getVenues.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /public/venues
+          method: GET
+  eventRequest:
+    handler: src/public/eventRequest.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /public/event
+          method: POST
 
   uiErrors:
     handler: src/uiErrors.handler

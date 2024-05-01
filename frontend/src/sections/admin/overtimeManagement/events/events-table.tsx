@@ -158,6 +158,8 @@ export default function EventsTable() {
               return 'Complete';
             case EventStatus.Removed:
               return 'Removed';
+            case EventStatus.Requested:
+              return 'Requested';
             default:
               return 'N/A';
           }
@@ -168,6 +170,7 @@ export default function EventsTable() {
               return 'success';
             case EventStatus.FirstComeFirstServe:
             case EventStatus.InterestList:
+            case EventStatus.Requested:
               return 'primary';
             case EventStatus.Removed:
               return 'error';
@@ -233,6 +236,10 @@ export default function EventsTable() {
             {
               label: 'Pre First Come First Serve',
               value: EventStatus.PreFirstComeFirstServe,
+            },
+            {
+              label: 'Requested',
+              value: EventStatus.Requested,
             },
             {
               label: 'First Come First Serve',

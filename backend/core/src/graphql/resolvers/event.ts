@@ -5,7 +5,8 @@ import {
   Event,
   UpsertEvent,
   EventStatus,
-  EventAttachmentUpload
+  EventAttachmentUpload,
+  VenueStatus
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -177,6 +178,81 @@ export const event = {
         modifiedById: user!.id,
       });
       return id;
+    },
+    approveEvent: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { events, venues, user, organization }: Context
+    ): Promise<Event> => {
+      adminOnly(user);
+      const event = await events.get(id);
+      if (!event) {
+        throw new GraphQLError('Could not find event');
+      }
+      if (event.status !== EventStatus.Requested) {
+        throw new GraphQLError('Event not up for approval');
+      }
+
+      event.status = EventStatus.Draft;
+      await events.update(event, { skipMerge: true });
+
+      if (event.venueId) {
+        const venue = await venues.get(event.venueId);
+        if (venue && venue.status === VenueStatus.Requested) {
+          venue.status = VenueStatus.Active;
+          await venues.update(venue, { skipMerge: true });
+        }
+      }
+
+      await events.sendEventRequestMailerEvent({
+        event,
+        orgId: organization!.id,
+        template: MailerEvents.EventRequestedApproved
+      });
+
+      return event;
+    },
+    rejectEvent: async (
+      _parent: unknown,
+      { id, reason }: { id: string, reason?: string },
+      { events, venues, user, organization }: Context
+    ): Promise<Event> => {
+      adminOnly(user);
+      const event = await events.get(id);
+      if (!event) {
+        throw new GraphQLError('Could not find event');
+      }
+      if (event.status !== EventStatus.Requested) {
+        throw new GraphQLError('Event not up for approval');
+      }
+
+      await events.remove(event.id, {
+        modifiedById: user!.id,
+        status: EventStatus.Removed,
+        'requestDetails.adminNote': reason || 'N/A',
+      });
+
+      if (event.requestDetails?.newVenue) {
+        const venue = await venues.get(event.venueId);
+        if (venue && venue.status === VenueStatus.Requested) {
+          venue.status = VenueStatus.Inactive;
+          await venues.update(venue, { skipMerge: true });
+        }
+      }
+
+      await events.sendEventRequestMailerEvent({
+        event: {
+          ...event,
+          requestDetails: {
+            ...event.requestDetails,
+            adminNote: reason || 'N/A',
+          },
+        },
+        orgId: organization!.id,
+        template: MailerEvents.EventRequestedRejected
+      });
+
+      return event;
     },
     event: async (
       _parent: unknown,

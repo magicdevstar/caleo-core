@@ -7,6 +7,7 @@ import {
   EventAttachmentUpload,
   EventStatus,
   Organization,
+  Venue,
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { DocumentModel } from './document';
@@ -56,6 +57,32 @@ export class EventModel extends BaseModel<Event> {
           event,
           organization,
           modifiedById,
+        }
+      } as MailerEvent),
+    }));
+  }
+
+  async sendEventRequestMailerEvent({
+    event,
+    venueId,
+    orgId,
+    template
+  } : {
+    event: Event;
+    venueId?: string;
+    orgId: string;
+    template: MailerEvents.EventRequestedApproved | MailerEvents.EventRequestedRejected | MailerEvents.EventRequestedConfirm | MailerEvents.AdminEventRequested;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template,
+        data: {
+          event,
+          venueId,
+          orgId,
         }
       } as MailerEvent),
     }));

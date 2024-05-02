@@ -11,7 +11,7 @@ import logger from "../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../types/mailer";
 import { Context, createContext } from "../utils/createContext";
-import { Assignment, EventStatus, InAppNotificationMeta, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
+import { Event, Assignment, EventStatus, InAppNotificationMeta, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
 import { InAppTemplates } from "../types/inAppTemplates";
 
 const pinpoint = new PinpointClient({});
@@ -2063,6 +2063,130 @@ const sendEmail = async (input: MailerEvent) => {
           });
         }
       } while(user);
+    } else if (input.template === MailerEvents.AdminEventRequested) {
+      const { event, venueId, orgId } = input.data;
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+
+      const venue = await context.venues.get(venueId);
+      if (!venue) {
+        logger.error('Venue not found', { input, venueId });
+        return;
+      }
+
+      if (!(event as Event).requestDetails?.startTime || !(event as Event).requestDetails?.endTime) {
+        logger.error('Requested event start/end time not found', { input, event });
+        return;
+      }
+
+      const eventStart = convertDate(event.requestDetails.startTime as any, organization);
+      const eventEnd = convertDate(event.requestDetails.endTime as any, organization);
+
+      const allAdmins = await context.users.getAllAdmins({
+        orgId,
+      }) as any[];
+      
+      const inAppPromises: Promise<any>[] = [];
+
+      Addresses = (allAdmins || [])
+        .filter((admin: User) => {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            eventRefNumber: event.referenceId,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: (admin as any)?._id?.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              eventId: new ObjectId(event.id) as any,
+            }
+          }));
+          return admin.member.contactInfo?.primaryEmail.receiveEmails
+        })
+        .reduce((obj, admin) => {
+          const Substitutions: Record<string, string[]> = {
+            "user.first_name": [admin.firstName],
+            "event.name": [event.name],
+            "event.reference_number": [event.referenceId],
+            "venue.name": [venue.name],
+            "event.start_date": [eventStart.date],
+            "event.start_time": [eventStart.time],
+            "event.end_date": [eventEnd.date],
+            "event.end_time": [eventEnd.time],
+            "system.metro_name": [organization.name],
+            "system.login_url": [`${process.env.APP_URL || ''}/dashboard/admin/overtime/events`],
+          };
+          const email = admin.member.contactInfo!.primaryEmail.address || '';
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
+    } else if ([
+      MailerEvents.EventRequestedConfirm,
+      MailerEvents.EventRequestedApproved,
+      MailerEvents.EventRequestedRejected
+    ].includes(input.template as MailerEvents)) {
+      const { event, orgId } = input.data;
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+
+      const venue = await context.venues.get(event.venueId);
+      if (!venue) {
+        logger.error('Venues not found', { input, event, organization });
+        return;
+      }
+
+      if (!(event as Event).requestDetails?.requestorEmail) {
+        logger.error('Requestor email not found', { input, event });
+        return;
+      }
+
+      if (!(event as Event).requestDetails?.startTime || !(event as Event).requestDetails?.endTime) {
+        logger.error('Requested event start/end time not found', { input, event });
+        return;
+      }
+
+      const eventStart = convertDate(event.requestDetails.startTime as any, organization);
+      const eventEnd = convertDate(event.requestDetails.endTime as any, organization);
+      const includeRejectReason = input.template === MailerEvents.EventRequestedRejected && event.requestDetails.adminNote;
+
+      Addresses = {
+        ...Addresses,
+        [event.requestDetails.requestorEmail]: {
+          ChannelType: 'EMAIL',
+          Substitutions: {
+            "event.name": [event.name],
+            "event.reference_number": [event.referenceId],
+            "venue.name": [venue.name],
+            "event.start_date": [eventStart.date],
+            "event.start_time": [eventStart.time],
+            "event.end_date": [eventEnd.date],
+            "event.end_time": [eventEnd.time],
+            "system.metro_name": [organization.name],
+            ...(includeRejectReason ? {
+              "reject_reason": [event.requestDetails.adminNote],
+            } : {}),
+          },
+        },
+      };
     }
 
     if (Object.keys(Addresses).length === 0) {

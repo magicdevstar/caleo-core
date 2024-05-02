@@ -199,4 +199,11 @@ export const InAppTemplates = {
     title: `Last chance to show your interest in working ${eventName} shifts!`,
     body: `You can express your interest in working shifts for ${eventName} until ${interestClosingTime.date} ${interestClosingTime.time}.`,
   }),
+  [MailerEvents.AdminEventRequested]: ({
+    eventName,
+    eventRefNumber,
+  }) => ({
+    title: 'An event request has been submitted!',
+    body: `Please review the new event request for ${eventName} #${eventRefNumber}.`,
+  }),
 };

@@ -289,6 +289,22 @@ export const UPSERT_EVENT = gql`
   }
 `;
 
+export const APPROVE_EVENT = gql`
+  mutation ApproveEvent($id: String!) {
+    approveEvent(id: $id) {
+      id
+    }
+  }
+`;
+
+export const REJECT_EVENT = gql`
+  mutation RejectEvent($id: String!, $reason: String) {
+    rejectEvent(id: $id, reason: $reason) {
+      id
+    }
+  }
+`;
+
 export type EventTableFilters = {
   name: string;
 };

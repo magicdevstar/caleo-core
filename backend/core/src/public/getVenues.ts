@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import difference from 'lodash.difference';
 import uniq from 'lodash.uniq';
-import { Assignment } from "../__generated__/resolvers-types";
+import { Assignment, VenueStatus } from "../__generated__/resolvers-types";
 import { createContext } from "../utils/createContext";
 import logger from "../utils/logger";
 import { APIGatewayEvent } from "aws-lambda";
@@ -36,6 +36,7 @@ export const handler = async (event: APIGatewayEvent) => {
       skip: params?.skip ? parseInt(params.skip) : 0,
       limit: params?.limit ? parseInt(params.limit) : 10,
       query: params?.query,
+      status: VenueStatus.Active,
     });
     
     return {

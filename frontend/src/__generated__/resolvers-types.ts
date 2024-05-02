@@ -259,10 +259,12 @@ export type EventAttachmentUpload = {
 
 export type EventRequestDetails = {
   __typename?: 'EventRequestDetails';
+  adminNote?: Maybe<Scalars['String']['output']>;
   endTime?: Maybe<Scalars['String']['output']>;
   estimatedAttendees?: Maybe<Scalars['Int']['output']>;
   newVenue?: Maybe<Scalars['Boolean']['output']>;
   numberOfOfficers?: Maybe<Scalars['Int']['output']>;
+  requestorEmail?: Maybe<Scalars['String']['output']>;
   startTime?: Maybe<Scalars['String']['output']>;
 };
 
@@ -371,10 +373,12 @@ export type InputDayAvailability = {
 };
 
 export type InputEventRequestDetails = {
+  adminNote?: InputMaybe<Scalars['String']['input']>;
   endTime?: InputMaybe<Scalars['String']['input']>;
   estimatedAttendees?: InputMaybe<Scalars['Int']['input']>;
   newVenue?: InputMaybe<Scalars['Boolean']['input']>;
   numberOfOfficers?: InputMaybe<Scalars['Int']['input']>;
+  requestorEmail?: InputMaybe<Scalars['String']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -566,6 +570,7 @@ export enum MemberTier {
 export type Mutation = {
   __typename?: 'Mutation';
   adminEditPassword?: Maybe<Scalars['Boolean']['output']>;
+  approveEvent?: Maybe<Event>;
   approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
   browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
@@ -584,6 +589,7 @@ export type Mutation = {
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
   readInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
+  rejectEvent?: Maybe<Event>;
   rejectLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   removeAssignment: Scalars['ID']['output'];
   removeBrowserNotificationSubscription?: Maybe<Scalars['Boolean']['output']>;
@@ -618,6 +624,11 @@ export type Mutation = {
 
 export type MutationAdminEditPasswordArgs = {
   input: InputAdminResetPassword;
+};
+
+
+export type MutationApproveEventArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -701,6 +712,12 @@ export type MutationRankArgs = {
 export type MutationReadInAppNotificationsArgs = {
   ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   readAll?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type MutationRejectEventArgs = {
+  id: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1982,7 +1999,8 @@ export type VenueSearchResult = {
 export enum VenueStatus {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE',
-  Removed = 'REMOVED'
+  Removed = 'REMOVED',
+  Requested = 'REQUESTED'
 }
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -2495,10 +2513,12 @@ export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends
 }>;
 
 export type EventRequestDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventRequestDetails'] = ResolversParentTypes['EventRequestDetails']> = ResolversObject<{
+  adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   estimatedAttendees?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   newVenue?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   numberOfOfficers?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  requestorEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2685,6 +2705,7 @@ export type MemberSkillSearchResultResolvers<ContextType = any, ParentType exten
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
+  approveEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationApproveEventArgs, 'id'>>;
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
@@ -2703,6 +2724,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
   readInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationReadInAppNotificationsArgs>>;
+  rejectEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationRejectEventArgs, 'id'>>;
   rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
   removeBrowserNotificationSubscription?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveBrowserNotificationSubscriptionArgs>>;

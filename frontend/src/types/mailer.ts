@@ -36,6 +36,14 @@ export enum MailerEvents {
   OfficerUserAccountInvitation = 'OfficerUserAccountInvitation',
   OfficerUserAccountDeactivated = 'OfficerUserAccountDeactivated',
   OfficerUserAccountReactivated = 'OfficerUserAccountReactivated',
+  OfficerShiftAutoCheckout = 'OfficerShiftAutoCheckout',
+  OfficerShiftCheckInOutEdited = 'OfficerShiftCheckInOutEdited',
+  OfficerInterestListOpening = 'OfficerInterestListOpening',
+  OfficerInterestListClosing = 'OfficerInterestListClosing',
+  AdminEventRequested = 'AdminEventRequested',
+  EventRequestedConfirm = 'EventRequestedConfirm',
+  EventRequestedApproved = 'EventRequestedApproved',
+  EventRequestedRejected = 'EventRequestedRejected',
 };
 
 export enum SMSEvents {

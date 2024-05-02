@@ -13,6 +13,7 @@ export const notificationRouterPath = (template: string, meta?: InAppNotificatio
         path: '/dashboard/admin/users/request/buffer',
         buttonText: 'View Buffer Requests',
       };
+    case MailerEvents.AdminEventRequested:
     case MailerEvents.AdminEventFullyStaffed:
       if (meta?.eventId) {
         return {

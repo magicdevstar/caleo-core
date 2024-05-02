@@ -397,6 +397,8 @@
     newVenue: Boolean
     numberOfOfficers: Int
     estimatedAttendees: Int
+    requestorEmail: String
+    adminNote: String
   }
 
   type Assignment {
@@ -656,6 +658,8 @@
     newVenue: Boolean
     numberOfOfficers: Int
     estimatedAttendees: Int
+    requestorEmail: String
+    adminNote: String
   }
 
   input CreateShiftBufferRequest {
@@ -735,6 +739,7 @@
 
   enum VenueStatus {
     ACTIVE
+    REQUESTED
     INACTIVE
     REMOVED
   }
@@ -1569,6 +1574,8 @@ type Mutation {
   removeVenue(id: String!): ID!
 
   event(event: UpsertEvent!): Event
+  approveEvent(id: String!): Event
+  rejectEvent(id: String!, reason: String): Event
   eventAttachmentUploadUrl: EventAttachmentUpload
   removeEvent(id: String!): ID!
   notifyUsersOfEvent(eventId: String!): Boolean

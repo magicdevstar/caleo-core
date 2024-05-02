@@ -1,4 +1,5 @@
-import { Venue } from "../__generated__/resolvers-types";
+import { Event, Venue, VenueStatus } from "../__generated__/resolvers-types";
+import { MailerEvents } from "../types/mailer";
 import { createContext } from "../utils/createContext";
 import logger from "../utils/logger";
 import { APIGatewayEvent } from "aws-lambda";
@@ -33,6 +34,7 @@ export const handler = async (inputEvent: APIGatewayEvent) => {
     let venueId = event.venueId;
     if (!venueId) {
       venue.orgId = orgId;
+      venue.status = VenueStatus.Requested;
       const finalVenue: Venue = await context.venues.create(venue);
       venueId = finalVenue.id;
     }
@@ -42,6 +44,21 @@ export const handler = async (inputEvent: APIGatewayEvent) => {
     event.searchAttribute = `${event.referenceId} ${event.name}`;
     event.venueId = venueId;
     const finalEvent: Event = await context.events.create(event);
+
+    Promise.all([
+      await context.events.sendEventRequestMailerEvent({
+        event: finalEvent,
+        venueId,
+        orgId,
+        template: MailerEvents.EventRequestedConfirm,
+      }),
+      await context.events.sendEventRequestMailerEvent({
+        event: finalEvent,
+        venueId,
+        orgId,
+        template: MailerEvents.AdminEventRequested,
+      })
+    ]);
     
     return {
       event: finalEvent

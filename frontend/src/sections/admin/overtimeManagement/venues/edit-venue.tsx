@@ -96,7 +96,7 @@ export default function EditVenue({ currentVenue }: Props) {
         email: currentVenue?.contact?.email || '',
         phone: currentVenue?.contact?.phone || '',
       },
-      status: !(currentVenue?.status === VenueStatus.Inactive),
+      status: ![VenueStatus.Inactive, VenueStatus.Requested].includes(currentVenue?.status || '' as any),
     }),
     [currentVenue]
   );

@@ -23,6 +23,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
+import TextField from '@mui/material/TextField';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -45,7 +46,7 @@ import {
   Venue,
   VenueStatus,
 } from 'src/__generated__/resolvers-types';
-import { GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
+import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } from 'src/api/event';
 import { GET_VENUE_LIST } from 'src/api/venues';
 import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 // components
@@ -147,7 +148,7 @@ export default function EditEvent({ currentEvent }: Props) {
   });
 
   const allDisabled = useMemo(() => {
-    const hasInvalidStatus = [EventStatus.Removed].includes(currentEvent?.status || '' as any);
+    const hasInvalidStatus = [EventStatus.Removed, EventStatus.Requested].includes(currentEvent?.status || '' as any);
     const isRemoved = currentEvent?.removedAt;
     return Boolean(hasInvalidStatus || isRemoved);
   }, [currentEvent?.status, currentEvent?.removedAt]);
@@ -173,6 +174,19 @@ export default function EditEvent({ currentEvent }: Props) {
       },
     },
   });
+  const [approveEvent, { loading: approveEventLoading }] = useMutation(APPROVE_EVENT, {
+    refetchQueries: [GET_ALL_EVENTS, {
+      query: GET_EVENT,
+      variables: {
+        id: currentEvent?.id,
+      },
+    }],
+  });
+  const [rejectEvent, { loading: rejectEventLoading }] = useMutation(REJECT_EVENT, {
+    refetchQueries: [GET_ALL_EVENTS, {
+      query: GET_EVENT,
+    }],
+  });
   const [removeAssignment, { loading: removeAssignmentLoading }] = useMutation(REMOVE_ASSIGNMENT, {
     refetchQueries: [GET_ALL_EVENTS, {
       query: GET_EVENT,
@@ -188,8 +202,33 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>();
   const deleteConfirm = useBoolean();
+  const rejectEventConfirm = useBoolean();
   const showAttachments = useBoolean(false);
+  const [rejectEventNote, setRejectEventNote] = useState('');
   const { enqueueSnackbar } = useSnackbar();
+
+  const submitEventRejection = useCallback(async () => {
+    try {
+      if (!rejectEventNote || !currentEvent?.id) {
+        return;
+      }
+      await rejectEvent({
+        variables: {
+          id: currentEvent?.id,
+          reason: rejectEventNote,
+        },
+      });
+      router.push('/dashboard/admin/overtime/events');
+    } catch(error) {
+      enqueueSnackbar('Failed to reject event', { variant: 'error', autoHideDuration: 5000 });
+    }
+  }, [
+    router,
+    currentEvent,
+    rejectEventNote,
+    rejectEvent,
+    enqueueSnackbar,
+  ]);
 
   const defaultValues = useMemo(
     () => ({
@@ -606,6 +645,7 @@ export default function EditEvent({ currentEvent }: Props) {
               openOnFocus
               name="venueId"
               label="Venue Name *"
+              disabled={allDisabled}
               options={venues}
               filterOptions={(x: any) => x}
               loading={venuesLoading}
@@ -656,20 +696,47 @@ export default function EditEvent({ currentEvent }: Props) {
             {
               currentEvent &&
               <>
-                <RHFSelect
-                  fullWidth
-                  name="status"
-                  label="Posting type"
-                  disabled={allDisabled || isComplete}
-                  InputLabelProps={{ shrink: true }}
-                  PaperPropsSx={{ textTransform: 'capitalize' }}
-                >
-                  {eventStatuses.map((option) => (
-                    <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed].includes(option)} key={option} value={option}>
-                      {(eventStatusNames as any)[option]}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+                <Stack spacing={2} direction="row">
+                  <RHFSelect
+                    fullWidth
+                    name="status"
+                    label="Posting type"
+                    disabled={allDisabled || isComplete}
+                    InputLabelProps={{ shrink: true }}
+                    PaperPropsSx={{ textTransform: 'capitalize' }}
+                  >
+                    {eventStatuses.map((option) => (
+                      <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed].includes(option)} key={option} value={option}>
+                        {(eventStatusNames as any)[option]}
+                      </MenuItem>
+                    ))}
+                  </RHFSelect>
+                  {
+                    currentEvent.status === EventStatus.Requested && (
+                      <>
+                        <Button
+                          sx={{ minWidth: '150px' }}
+                          color="error"
+                          variant="outlined"
+                          onClick={rejectEventConfirm.onTrue as any}
+                          startIcon={<Iconify icon="mdi:shield-remove" />}
+                        >Reject</Button>
+                        <LoadingButton
+                          sx={{ minWidth: '150px' }}
+                          color="primary"
+                          variant="contained"
+                          loading={approveEventLoading}
+                          onClick={() => approveEvent({
+                            variables: {
+                              id: currentEvent?.id,
+                            },
+                          })}
+                          startIcon={<Iconify icon="mdi:shield-check" />}
+                        >Approve</LoadingButton>
+                      </>
+                    )
+                  }
+                </Stack>
 
                 {currentFormValues && currentFormValues.status === EventStatus.FirstComeFirstServe && (
                   <Box>
@@ -968,6 +1035,36 @@ export default function EditEvent({ currentEvent }: Props) {
           action={
             <LoadingButton loading={removeAssignmentLoading} variant="contained" color="error" onClick={handleRemoveAssignment}>
               Delete
+            </LoadingButton>
+          }
+        />
+        <ConfirmDialog
+          open={rejectEventConfirm.value}
+          onClose={rejectEventConfirm.onFalse}
+          title="Reject Event"
+          content={(
+            <>
+              <Typography variant='body1' sx={{ mb: 1 }}>Are you sure want to reject this event?</Typography>
+              <TextField
+                label="Reason for rejection"
+                multiline
+                fullWidth
+                sx={{ mt: 1 }}
+                rows={4}
+                onBlur={(event) => {
+                  setRejectEventNote(event.target.value)
+                }}
+              />
+            </>
+          )}
+          action={
+            <LoadingButton
+              loading={rejectEventLoading}
+              variant="contained"
+              color="error"
+              onClick={submitEventRejection}
+            >
+              Reject Event
             </LoadingButton>
           }
         />

@@ -170,6 +170,7 @@ export default function EventRequest() {
             startTime: formData.startTime,
             endTime: formData.endTime,
             newVenue: formData.venueId === NEW_VENUE_ID,
+            requestorEmail: formData.contact.email,
           },
         },
       };
@@ -185,10 +186,6 @@ export default function EventRequest() {
         }
         if (!formData.contact.lastName) {
           setError('contact.lastName', { type: 'custom', message: 'Last name is required when creating a new venue.' });
-          hasError = true;
-        }
-        if (!formData.contact.email) {
-          setError('contact.email', { type: 'custom', message: 'Email is required when creating a new venue.' });
           hasError = true;
         }
         if (!formData.contact.phone) {
@@ -226,6 +223,10 @@ export default function EventRequest() {
         };
       } else {
         submitData.event.venueId = formData.venueId;
+      }
+      if (!formData.contact.email) {
+        setError('contact.email', { type: 'custom', message: 'Contact email is required.' });
+        hasError = true;
       }
       if (!formData.startTime) {
         setError('startTime', { type: 'custom', message: 'Must have a start time set for this event.' });
@@ -370,18 +371,27 @@ export default function EventRequest() {
             />
 
             {selectedVenue && selectedVenue.id !== NEW_VENUE_ID && (
-              <Box sx={{ mb: 1 }}>
-                <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
-                  <Stack direction="row" spacing={1.5}>
-                    <Typography variant="subtitle2">Address: </Typography>
-                    <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
-                    <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
-                    <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
-                    <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
-                  </Stack>
-                  <Markdown children={selectedVenue?.notes || ''} />
+              <>
+                <Box sx={{ mb: 1 }}>
+                  <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
+                    <Stack direction="row" spacing={1.5}>
+                      <Typography variant="subtitle2">Address: </Typography>
+                      <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
+                      <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
+                      <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
+                      <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
+                    </Stack>
+                    <Markdown children={selectedVenue?.notes || ''} />
+                  </Box>
                 </Box>
-              </Box>
+                <Stack spacing={2}>
+                  <RHFTextField
+                    name="contact.email"
+                    label="Contact Email"
+                    helperText="You will receive request notifications to this email address"
+                  />
+                </Stack>
+              </>
             )}
 
             {
@@ -417,7 +427,11 @@ export default function EventRequest() {
                       <RHFTextField name="contact.lastName" label="Last Name" />
                     </Stack>
                     <Stack direction="row" spacing={2}>
-                      <RHFTextField name="contact.email" label="Email" />
+                      <RHFTextField
+                        name="contact.email"
+                        label="Email"
+                        helperText="You will receive request notifications to this email address"
+                      />
                       <RHFPhoneField name="contact.phone" label="Phone" />
                     </Stack>
                   </Stack>

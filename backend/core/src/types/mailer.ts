@@ -40,6 +40,10 @@ export enum MailerEvents {
   OfficerShiftCheckInOutEdited = 'OfficerShiftCheckInOutEdited',
   OfficerInterestListOpening = 'OfficerInterestListOpening',
   OfficerInterestListClosing = 'OfficerInterestListClosing',
+  AdminEventRequested = 'AdminEventRequested',
+  EventRequestedConfirm = 'EventRequestedConfirm',
+  EventRequestedApproved = 'EventRequestedApproved',
+  EventRequestedRejected = 'EventRequestedRejected',
 };
 
 export enum SMSEvents {

@@ -61,6 +61,7 @@
     lotteryCounter: Int!
     createdAt: String!
     total: Int!
+    totalUnassignedShifts: Int
     totalShifts: Int!
     approved: Int!
     rejected: Int!

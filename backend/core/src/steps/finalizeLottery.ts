@@ -17,6 +17,7 @@ export interface FinalizeOutput {
   dryRun: boolean;
   fcfsDelay: string;
   previousCounter?: number;
+  totalUnassignedShifts: number;
 }
 
 const formatDate = (d: Date) => `${d.toISOString().split('.')[0]}Z`;
@@ -29,9 +30,16 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
     return {
       dryRun: !!dryRun,
       fcfsDelay: formatDate(addSeconds(new Date(), 15)),
+      totalUnassignedShifts: 0,
     };
   }
-  const { users, organizations, lotteryCounter, events } = await createContext();
+  const {
+    users,
+    organizations,
+    lotteryCounter,
+    events,
+    shifts,
+  } = await createContext();
   const organization = await organizations.get(orgId);
   if (!organization) {
     throw new Error(`Organization ${orgId} not found`);
@@ -64,6 +72,12 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
     },
   });
 
+  // Get all unassigned shifts
+  const totalUnassignedShifts = await shifts.getTotalEmptyShiftsPostLottery({
+    counter: counter - 1,
+    orgId,
+  });
+
   logger.info('Set events to FCFS', { 
     fcfsResponse,
     fcfsScheduledTime,
@@ -74,6 +88,7 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
     dryRun: !!dryRun,
     fcfsDelay,
     previousCounter: counter - 1,
+    totalUnassignedShifts,
   };
 };
 

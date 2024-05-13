@@ -9,6 +9,7 @@ const lotteryAnalytics = async ({
   orgId,
   dryRun,
   previousCounter,
+  totalUnassignedShifts,
 }: FinalizeOutput) => {
   try {
     if (!orgId || dryRun || typeof previousCounter !== 'number') {
@@ -18,6 +19,7 @@ const lotteryAnalytics = async ({
     await context.analytics.createPostLotteryAnalytics({
       orgId,
       lotteryCounter: previousCounter,
+      totalUnassignedShifts,
     });
   } catch(error) {
     logger.error('Failed to generate analytics', { error });

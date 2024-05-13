@@ -21,7 +21,8 @@ import { analytics } from "./utils/analytics";
 import { noAssignCounter } from "./utils/no-assign-counter";
 import { fixDupUsers } from "./utils/fix-duplicate-users";
 import { lottoAnalytics } from "./utils/lotto-analytics";
-import { shiftRefMigration } from "./utils/shift-ref-update";
+// import { shiftRefMigration } from "./utils/shift-ref-update";
+import { unassignedShiftsCounter } from "./utils/unassignedShifts";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -34,7 +35,8 @@ import { shiftRefMigration } from "./utils/shift-ref-update";
     const mongoClientProd = connectionProd.db(process.env.DB);
 
 
-    await shiftRefMigration(mongoClient)
+    await unassignedShiftsCounter(mongoClientProd);
+    // await shiftRefMigration(mongoClient)
     // await lottoAnalytics(mongoClientProd);
     // await fixDupUsers(mongoClientProd);
     // await tierChecker(mongoClientProd);

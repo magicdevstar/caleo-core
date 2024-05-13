@@ -33,10 +33,12 @@ export class UserAnalyticsModel {
 
   async createPostLotteryAnalytics({
     lotteryCounter,
-    orgId
+    orgId,
+    totalUnassignedShifts = 0,
   }: {
     lotteryCounter: number;
     orgId: string;
+    totalUnassignedShifts: number;
   }) {
     const userAnalytics: Record<string, CreateUserAnalytics> = {};
 
@@ -106,6 +108,7 @@ export class UserAnalyticsModel {
     if (Object.values(userAnalytics).length > 0) {
       const res = await this.collection.insertMany(Object.values(userAnalytics).map((analytics) => ({
         ...analytics,
+        totalUnassignedShifts,
         totalShifts,
       })));
       logger.info('Written analytics response', { res });

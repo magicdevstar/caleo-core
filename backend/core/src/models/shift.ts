@@ -677,6 +677,91 @@ export class ShiftModel extends BaseModel<Shift> {
     });
   }
 
+  async getTotalEmptyShiftsPostLottery({
+    counter,
+    orgId,
+  }: {
+    orgId: string;
+    counter: number;
+  }) {
+    const pipeline = [
+      {
+        $match: {
+          lotteryNumber: counter,
+          orgId,
+          removedAt: { $exists: false },
+        },
+      },
+      {
+        $addFields: {
+          eventId: {
+            $toString: "$_id",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "shifts",
+          localField: "eventId",
+          foreignField: "eventId",
+          as: "shifts",
+        },
+      },
+      {
+        $unwind: {
+          path: "$shifts",
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shifts",
+        },
+      },
+      {
+        $match: {
+          $and: [
+            { removedAt: { $exists: false } },
+            {
+              $or: [
+                { userId: null },
+                {
+                  userId: {
+                    $exists: false,
+                  },
+                },
+              ],
+            },
+            {
+              $or: [
+                { locked: false },
+                {
+                  locked: {
+                    $exists: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: "$shiftId",
+          count: { $count: { } }
+        },
+      },
+    ];
+
+    const res: {
+      _id: string;
+      count: number;
+    }[] = await this.eventsCollection.aggregate<{
+      _id: string;
+    }>(pipeline).toArray() as any[];
+
+    return res.reduce((sum, item) => sum + item.count, 0);
+  }
+
   async findOpenLotteryShiftsGroupedById({
     orgId,
   }: {
@@ -687,7 +772,8 @@ export class ShiftModel extends BaseModel<Shift> {
     const pipeline = [
       {
         $match: {
-          status: "READY_FOR_LOTTERY",
+          status: EventStatus.ReadyForLottery,
+          orgId,
           lotteryNumber: counter,
           removedAt: { $exists: false },
         },
@@ -759,6 +845,7 @@ export class ShiftModel extends BaseModel<Shift> {
       {
         $match: {
           lotteryCounter: counter,
+          orgId,
           shiftGroupId: {
             $in: res.map(({ _id }) => _id),
           },

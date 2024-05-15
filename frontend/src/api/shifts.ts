@@ -613,6 +613,11 @@ export const GET_GROUPED_SHIFTS = gql`
         status
         removedAt
         endTime
+
+        requestDetails {
+          startTime
+          endTime
+        }
       }
 
       user {

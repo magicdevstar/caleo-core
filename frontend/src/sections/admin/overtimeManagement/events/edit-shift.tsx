@@ -47,6 +47,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
+import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -491,6 +492,9 @@ export default function EditShift({
                 textField: {
                   fullWidth: true,
                   margin: 'normal',
+                  ...(currentShifts?.[0]?.event?.requestDetails?.startTime ? {
+                    helperText: `Suggested event start time: ${convertDate({ date: currentShifts?.[0]?.event?.requestDetails?.startTime, user }).format(dateTimeFormat)}`
+                  } : {}),
                 },
                 field: {
                   readOnly: isComplete
@@ -532,6 +536,9 @@ export default function EditShift({
                 textField: {
                   fullWidth: true,
                   margin: 'normal',
+                  ...(currentShifts?.[0]?.event?.requestDetails?.endTime ? {
+                    helperText: `Suggested event end time: ${convertDate({ date: currentShifts?.[0]?.event?.requestDetails?.endTime, user }).format(dateTimeFormat)}`
+                  } : {}),
                 },
                 field: {
                   readOnly: isComplete

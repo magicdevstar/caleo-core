@@ -10,13 +10,16 @@ import DataLoader from "dataloader";
 export class LotteryCounterModel extends BaseModel<LotteryCounter> {
   public id = 'lotteryCounter';
 
-  public countLoader = new DataLoader(async (keys: readonly number[]) => {
-    // const ids = keys.map((key) => new ObjectId(key));
+  public countLoader = new DataLoader(async (input: readonly {lotteryNumber: number; orgId: string;}[]) => {
+    const keys = input.map(({ lotteryNumber }) => lotteryNumber);
     const uniqueKeys = [...new Set(keys)];
     const res = await this.collection.find({
       counter: { $in: uniqueKeys },
+      orgId: input?.[0]?.orgId,
     }).toArray();
-    return keys.map((key) => res.find((item: any) => item.counter === key));
+    return input.map(({ lotteryNumber }) =>
+      res.find((item: any) => item.counter === lotteryNumber)
+    );
   });
 
   constructor(db, private organizations: OrganizationModel) {

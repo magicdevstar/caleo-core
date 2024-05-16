@@ -457,6 +457,7 @@ export type LottoAnalytics = {
   requests?: Maybe<Array<Maybe<LottoRequests>>>;
   total: Scalars['Int']['output'];
   totalShifts: Scalars['Int']['output'];
+  totalUnassignedShifts?: Maybe<Scalars['Int']['output']>;
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
 };
@@ -2618,6 +2619,7 @@ export type LottoAnalyticsResolvers<ContextType = any, ParentType extends Resolv
   requests?: Resolver<Maybe<Array<Maybe<ResolversTypes['LottoRequests']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalShifts?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalUnassignedShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

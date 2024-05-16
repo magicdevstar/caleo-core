@@ -512,7 +512,7 @@ export const event = {
       scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
       scheduledInterestList: (item: Event) => item.scheduledInterestList ? new Date(item.scheduledInterestList).toISOString() : null,
       scheduledCloseInterestList: (item: Event) => item.scheduledCloseInterestList ? new Date(item.scheduledCloseInterestList).toISOString() : null,
-      lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load(item.lotteryNumber!) : null,
+      lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load({lotteryNumber: item.lotteryNumber!, orgId: item.orgId}) : null,
       attachments: async (item: Event, _arg: unknown, { events }: Context) => {
         if (!item.attachmentPaths) {
           return [];

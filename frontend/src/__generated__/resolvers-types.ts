@@ -581,6 +581,7 @@ export type Mutation = {
   editCheckInOut: Shift;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
+  impersonateUser?: Maybe<Scalars['Boolean']['output']>;
   inviteUser?: Maybe<User>;
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
@@ -607,6 +608,7 @@ export type Mutation = {
   removeUser: Scalars['ID']['output'];
   removeUserSkill: Scalars['ID']['output'];
   removeVenue: Scalars['ID']['output'];
+  resetImpersonation?: Maybe<Scalars['Boolean']['output']>;
   seenNotifications?: Maybe<Scalars['Boolean']['output']>;
   setShiftBufferStatus?: Maybe<ShiftBufferRequest>;
   shiftAssign?: Maybe<Shift>;
@@ -672,6 +674,11 @@ export type MutationEditCheckInOutArgs = {
 
 export type MutationEventArgs = {
   event: UpsertEvent;
+};
+
+
+export type MutationImpersonateUserArgs = {
+  userId: Scalars['String']['input'];
 };
 
 
@@ -963,7 +970,8 @@ export type Organization = {
   contact?: Maybe<OrganizationContact>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
-  features?: Maybe<OrganizationFeatures>;
+  features: OrganizationFeatures;
+  flatFeatures: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -983,15 +991,20 @@ export type OrganizationContact = {
   phone: Scalars['String']['output'];
 };
 
+export type OrganizationFeatureOptions = {
+  __typename?: 'OrganizationFeatureOptions';
+  label: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
-  eventCheckIn?: Maybe<Scalars['Boolean']['output']>;
-  eventRequests?: Maybe<Scalars['Boolean']['output']>;
-  externalEventRequests?: Maybe<Scalars['Boolean']['output']>;
-  interestLists?: Maybe<Scalars['Boolean']['output']>;
-  lottery?: Maybe<Scalars['Boolean']['output']>;
-  monthlyMaxHours?: Maybe<Scalars['Boolean']['output']>;
-  venueContractDates?: Maybe<Scalars['Boolean']['output']>;
+  eventCheckIn: Scalars['Boolean']['output'];
+  externalEventRequests: Scalars['Boolean']['output'];
+  interestLists: Scalars['Boolean']['output'];
+  lottery: Scalars['Boolean']['output'];
+  monthlyMaxHours: Scalars['Boolean']['output'];
+  venueContractDates: Scalars['Boolean']['output'];
 };
 
 export type OrganizationOvertimeSettings = {
@@ -1056,6 +1069,7 @@ export type Query = {
   notifications?: Maybe<NotificationSearchResult>;
   organization?: Maybe<Organization>;
   organizationById?: Maybe<Organization>;
+  organizationFeatures?: Maybe<Array<Maybe<OrganizationFeatureOptions>>>;
   organizations?: Maybe<OrganizationSearchResult>;
   rank?: Maybe<Rank>;
   ranks?: Maybe<RankSearchResult>;
@@ -1765,7 +1779,6 @@ export type UpsertOrganizationContact = {
 
 export type UpsertOrganizationFeatures = {
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
-  eventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2146,6 +2159,7 @@ export type ResolversTypes = ResolversObject<{
   NotificationSearchResult: ResolverTypeWrapper<NotificationSearchResult>;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
+  OrganizationFeatureOptions: ResolverTypeWrapper<OrganizationFeatureOptions>;
   OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
   OrganizationSearchInput: OrganizationSearchInput;
@@ -2295,6 +2309,7 @@ export type ResolversParentTypes = ResolversObject<{
   NotificationSearchResult: NotificationSearchResult;
   Organization: Organization;
   OrganizationContact: OrganizationContact;
+  OrganizationFeatureOptions: OrganizationFeatureOptions;
   OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
   OrganizationSearchInput: OrganizationSearchInput;
@@ -2717,6 +2732,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
+  impersonateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationImpersonateUserArgs, 'userId'>>;
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
@@ -2743,6 +2759,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeUser?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserArgs, 'id'>>;
   removeUserSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserSkillArgs, 'id'>>;
   removeVenue?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveVenueArgs, 'id'>>;
+  resetImpersonation?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   seenNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSeenNotificationsArgs, 'notificationIds'>>;
   setShiftBufferStatus?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, RequireFields<MutationSetShiftBufferStatusArgs, 'id' | 'status'>>;
   shiftAssign?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<MutationShiftAssignArgs, 'id'>>;
@@ -2794,7 +2811,8 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   contact?: Resolver<Maybe<ResolversTypes['OrganizationContact']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
-  features?: Resolver<Maybe<ResolversTypes['OrganizationFeatures']>, ParentType, ContextType>;
+  features?: Resolver<ResolversTypes['OrganizationFeatures'], ParentType, ContextType>;
+  flatFeatures?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2815,14 +2833,19 @@ export type OrganizationContactResolvers<ContextType = any, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatureOptions'] = ResolversParentTypes['OrganizationFeatureOptions']> = ResolversObject<{
+  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
-  eventCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  eventRequests?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  externalEventRequests?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  interestLists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  lottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  monthlyMaxHours?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  venueContractDates?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2877,6 +2900,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   notifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryNotificationsArgs>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   organizationById?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<QueryOrganizationByIdArgs, 'orgId'>>;
+  organizationFeatures?: Resolver<Maybe<Array<Maybe<ResolversTypes['OrganizationFeatureOptions']>>>, ParentType, ContextType>;
   organizations?: Resolver<Maybe<ResolversTypes['OrganizationSearchResult']>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
@@ -3270,6 +3294,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   NotificationSearchResult?: NotificationSearchResultResolvers<ContextType>;
   Organization?: OrganizationResolvers<ContextType>;
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
+  OrganizationFeatureOptions?: OrganizationFeatureOptionsResolvers<ContextType>;
   OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
   OrganizationSearchResult?: OrganizationSearchResultResolvers<ContextType>;

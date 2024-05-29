@@ -81,6 +81,8 @@ export type AmplifyContextType = CanRemove & {
   loading: boolean;
   authenticated: boolean;
   unauthenticated: boolean;
+  impersonatingUser: boolean;
+  refreshSession: () => Promise<unknown>;
   login: (email: string, password: string) => Promise<unknown>;
   register: (
     email: string,

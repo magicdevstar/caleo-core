@@ -924,19 +924,24 @@
     removedAt: String
     modifiedById: String
     settings: OrganizationOvertimeSettings
-    features: OrganizationFeatures
+    features: OrganizationFeatures!
+    flatFeatures: String!
 
     modifiedBy: User
   }
 
   type OrganizationFeatures {
-    lottery: Boolean
-    venueContractDates: Boolean
-    eventCheckIn: Boolean
-    interestLists: Boolean
-    monthlyMaxHours: Boolean
-    externalEventRequests: Boolean
-    eventRequests: Boolean
+    lottery: Boolean!
+    venueContractDates: Boolean!
+    eventCheckIn: Boolean!
+    interestLists: Boolean!
+    monthlyMaxHours: Boolean!
+    externalEventRequests: Boolean!
+  }
+
+  type OrganizationFeatureOptions {
+    label: String!
+    value: String!
   }
 
   type OrganizationOvertimeSettings {
@@ -1055,7 +1060,6 @@
     interestLists: Boolean
     monthlyMaxHours: Boolean
     externalEventRequests: Boolean
-    eventRequests: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1505,6 +1509,7 @@ type Query {
   organization: Organization
   organizationById(orgId: String!): Organization
   organizations(input: OrganizationSearchInput): OrganizationSearchResult
+  organizationFeatures: [OrganizationFeatureOptions]
 
   allUsers(input: AllUsersSearchInput): UserSearchResult
   users(input: UserSearchInput): UserSearchResult
@@ -1561,6 +1566,10 @@ type Mutation {
   adminEditPassword(input: InputAdminResetPassword!): Boolean
   browserNotificationSubscription(input: InputBrowserNotificationSubscription!): BrowserNotificationSetting
   removeBrowserNotificationSubscription(endpoint: String): Boolean
+
+  # Super admin function only
+  impersonateUser(userId: String!): Boolean
+  resetImpersonation: Boolean
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!

@@ -1,7 +1,8 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import {
   CognitoIdentityProviderClient,
-  AdminSetUserPasswordCommand
+  AdminSetUserPasswordCommand,
+  AdminUpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuid } from 'uuid';
 import {
@@ -56,6 +57,56 @@ export class UserModel extends BaseModel<User> {
   ) {
     super(db, DocType.User, 'users');
     this.memberSkillsCollection = this.db.collection('memberSkills');
+  }
+
+  async resetImpersonation(user: User) {
+    try {
+      const Value = user.lastName;
+      const command = new AdminUpdateUserAttributesCommand({
+        UserPoolId: process.env.COGNITO_POOL_ID,
+        Username: user.cognitoId!,
+        UserAttributes: [
+          {
+            Name: "family_name",
+            Value: Value,
+          },
+        ],
+      });
+      await cognito.send(command);
+      return true;
+    } catch(error) {
+      const message = 'Failed to reset impersonation user.';
+      logger.error(message, { error, user });
+      throw new GraphQLError(message);
+    }
+  }
+
+  async impersonateUser(user: User, userId: string) {
+    try {
+      if (!user.superAdmin) throw new GraphQLError('You are not authorized to impersonate users.');
+      const foundUser = this.collection.findOne({ _id: new ObjectId(userId) });
+      if (!foundUser) {
+        throw new GraphQLError('Invalid user ID.');
+      }
+  
+      const Value = `t:${userId}`;
+      const command = new AdminUpdateUserAttributesCommand({
+        UserPoolId: process.env.COGNITO_POOL_ID,
+        Username: user.cognitoId!,
+        UserAttributes: [
+          {
+            Name: "family_name",
+            Value: Value,
+          },
+        ],
+      });
+      await cognito.send(command);
+      return true;
+    } catch(error) {
+      const message = 'Failed to impersonate user.';
+      logger.error(message, { error, userId, user });
+      throw new GraphQLError(message);
+    }
   }
 
   async getAllAdmins({

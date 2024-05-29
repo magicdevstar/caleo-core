@@ -23,6 +23,7 @@ export const handler = startServerAndCreateLambdaHandler(
   handlers.createAPIGatewayProxyEventV2RequestHandler<
     APIGatewayProxyEventV2WithLambdaAuthorizer<{
       user?: User;
+      originalUser?: User;
     }>
   >(),
   {
@@ -35,6 +36,7 @@ export const handler = startServerAndCreateLambdaHandler(
         });
         const classContext = await createContext();
         classContext.user = event.requestContext?.authorizer?.lambda?.user;
+        classContext.originalUser = event.requestContext?.authorizer?.lambda?.originalUser;
         classContext.lambdaEvent = event;
         classContext.lambdaContext = context;
         if (event.requestContext?.authorizer?.lambda?.user) {

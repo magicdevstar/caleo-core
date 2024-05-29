@@ -53,6 +53,7 @@ export interface Context {
   scheduler: SchedulerModel;
   organization?: Organization,
   user?: User;
+  originalUser?: User;
   lambdaEvent?: any;
   lambdaContext?: any;
 };

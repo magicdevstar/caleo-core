@@ -18,17 +18,50 @@ import { varHover } from 'src/components/animate';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { useSettingsContext } from 'src/components/settings';
 import Iconify from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import { useBoolean } from 'src/hooks/use-boolean';
+import TextField from '@mui/material/TextField';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { useState } from 'react';
+import { useSnackbar } from 'notistack';
+import { useMutation } from '@apollo/client';
+import { IMPERSONATE_USER } from 'src/api/user';
 
 // ----------------------------------------------------------------------
 
 export default function UserPopover() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const confirm = useBoolean();
+  const [impersonateUserId, setImpersonateUserId] = useState<string>('');
+
+  const [impersonate] = useMutation(IMPERSONATE_USER);
 
   const { themeMode, onUpdate } = useSettingsContext();
 
-  const { logout, user } = useAuthContext();
+  const { logout, user, refreshSession } = useAuthContext();
 
   const popover = usePopover();
+
+  const handleImpersonate = async () => {
+    setLoading(true);
+    try {
+      await impersonate({
+        variables: {
+          userId: impersonateUserId,
+        },
+      });
+      await refreshSession();
+      enqueueSnackbar('Successfully impersonated user', { autoHideDuration: 5000, variant: 'success' });
+      confirm.onFalse();
+      setImpersonateUserId('');
+    } catch(error) {
+      enqueueSnackbar('Failed to impersonate user', { variant: 'error', autoHideDuration: 5000 });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -98,6 +131,22 @@ export default function UserPopover() {
           <ListItemText>{themeMode === 'dark' ? 'Light theme' : 'Dark theme'}</ListItemText>
         </MenuItem>
 
+        <MenuItem
+          sx={{ m: 1 }}
+          onClick={() => {
+            popover.onClose();
+            confirm.onTrue();
+          }}
+        >
+          <ListItemIcon sx={{ margin: 0 }}>
+            <Iconify
+              sx={{ margin: 0 }}
+              icon='ic:sharp-supervised-user-circle'
+            />
+          </ListItemIcon>
+          <ListItemText>Impersonate User</ListItemText>
+        </MenuItem>
+
         <Divider sx={{ borderStyle: 'dashed', marginTop: '8px !important' }} />
 
         <MenuItem
@@ -110,6 +159,28 @@ export default function UserPopover() {
           <ListItemText>Logout</ListItemText>
         </MenuItem>
       </CustomPopover>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title='Impersonate User'
+        content={(
+          <TextField
+            label="User Id"
+            fullWidth
+            sx={{ mt: 1 }}
+            helperText="Enter the user id of the user you would like to impersonate"
+            onBlur={(event) => {
+              setImpersonateUserId(event.target.value)
+            }}
+          />
+        )}
+        action={
+          <LoadingButton loading={loading} variant='contained' color="error" onClick={() => handleImpersonate()}>
+            Impersonate
+          </LoadingButton>
+        }
+      />
     </>
   );
 }

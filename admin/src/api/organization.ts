@@ -70,6 +70,15 @@ export const ORGANIZATION = gql`
   }
 `;
 
+export const ORGANIZATION_FEATURES = gql`
+  query ORGANIZATION_FEATURES {
+    organizationFeatures {
+      label
+      value
+    }
+  }
+`;
+
 export const ORGANIZATION_BY_ID = gql`
   query ORGANIZATION_BY_ID($orgId: String!) {
     organizationById(orgId: $orgId) {
@@ -81,13 +90,7 @@ export const ORGANIZATION_BY_ID = gql`
       state
       timezone
       weekBegins
-      features {
-        lottery
-        venueContractDates
-        eventCheckIn
-        interestLists
-        monthlyMaxHours
-      }
+      flatFeatures
     }
   }
 `;

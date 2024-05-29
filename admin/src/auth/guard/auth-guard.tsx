@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
+import { User } from 'src/__generated__/resolvers-types';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -35,7 +36,7 @@ export default function AuthGuard({ children }: Props) {
       const href = `${loginPath}?${searchParams}`;
 
       router.replace(href);
-    } else if (!user.superAdmin) {
+    } else if (!(user as User).superAdmin) {
       console.log('reroute');
       router.replace(paths.notApproved);
     } else {

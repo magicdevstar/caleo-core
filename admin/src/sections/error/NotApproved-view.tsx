@@ -10,6 +10,7 @@ import { useRouter } from 'src/routes/hooks';
 import { ForbiddenIllustration } from 'src/assets/illustrations';
 // components
 import { MotionContainer, varBounce } from 'src/components/animate';
+import { User } from 'src/__generated__/resolvers-types';
 
 // ----------------------------------------------------------------------
 
@@ -18,7 +19,7 @@ export default function NotApprovedView() {
   const { user, logout } = useAuthContext();
 
   useEffect(() => {
-    if (user.superAdmin) {
+    if ((user as User).superAdmin) {
       router.replace('/');
     }
   }, [user, router]);

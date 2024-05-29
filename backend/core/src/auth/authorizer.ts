@@ -36,7 +36,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
 
     const { users } = await createContext();
     let user = await users.findOne({ cognitoId: sub, removedAt: { $exists: false } });
-
+    let originalUser = user;
     if (user?.superAdmin && familyName && familyName.includes('t:')) {
       const [_, userId] = familyName.split(':');
       user = await users.get(userId);
@@ -46,6 +46,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
       isAuthorized: true,
       context: {
         user,
+        ...(user!.id !== originalUser!.id ? { originalUser } : {}),
       },
     };
   } catch(error) {

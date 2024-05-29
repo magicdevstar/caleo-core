@@ -312,6 +312,18 @@ export const GET_ACCOUNT_REQUEST_USERS = gql`
   }
 `;
 
+export const IMPERSONATE_USER = gql`
+  mutation ImpersonateUser($userId: String!) {
+    impersonateUser(userId: $userId)
+  }
+`;
+
+export const RESET_IMPERSONATION = gql`
+  mutation ResetImpersonation {
+    resetImpersonation
+  }
+`;
+
 export const UPDATE_USER = gql`
   mutation UpdateUser($input: UpdateUser!) {
     user(user: $input) {

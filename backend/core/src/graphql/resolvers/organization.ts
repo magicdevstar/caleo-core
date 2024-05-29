@@ -6,6 +6,7 @@ import {
   Organization,
   CheckInOutSetting,
   OrganizationFeatures,
+  OrganizationFeatureOptions,
   OrganizationSearchInput,
   CreateOrganization
 } from "../../__generated__/resolvers-types";
@@ -44,6 +45,38 @@ export const organization = {
         query: input.query,
         ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
       });
+    },
+    organizationFeatures: (
+      _parent: unknown,
+      _args: unknown,
+      _context: Context
+    ): OrganizationFeatureOptions[] => {
+      return [
+        {
+          value: 'eventCheckIn',
+          label: 'Event Check In'
+        },
+        {
+          value: 'externalEventRequests',
+          label: 'External Event Requests'
+        },
+        {
+          value: 'interestLists',
+          label: 'Interest Lists'
+        },
+        {
+          value: 'lottery',
+          label: 'Lottery'
+        },
+        {
+          value: 'monthlyMaxHours',
+          label: 'Monthly Max Hours'
+        },
+        {
+          value: 'venueContractDates',
+          label: 'Venue Contract Dates'
+        },
+      ] as {value: (keyof OrganizationFeatures), label: string}[];
     }
   },
   Mutation: {
@@ -122,6 +155,7 @@ export const organization = {
   fields: {
     Organization: {
       ...commonResolvers,
+      flatFeatures: (parent: Organization) => JSON.stringify(parent.features),
     },
     OrganizationOvertimeSettings: {
       hoursPerMonth: (parent: any) => parent.hoursPerMonth || 100,
@@ -152,7 +186,6 @@ export const organization = {
       interestLists: (parent: OrganizationFeatures) => !!parent.interestLists,
       monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
       externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
-      eventRequests: (parent: OrganizationFeatures) => !!parent.eventRequests,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

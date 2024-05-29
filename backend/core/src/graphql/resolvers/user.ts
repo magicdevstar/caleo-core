@@ -122,6 +122,22 @@ export const user = {
     }
   },
   Mutation: {
+    resetImpersonation: async (
+      _parent: unknown,
+      _input: unknown,
+      { users, user, originalUser }: Context
+    ) => {
+      const res = await users.resetImpersonation(originalUser || user!);
+      return res;
+    },
+    impersonateUser: async (
+      _parent: unknown,
+      { userId }: { userId: string },
+      { users, user }: Context
+    ) => {
+      const res = await users.impersonateUser(user!, userId);
+      return res;
+    },
     inviteUser: async (
       _parent: unknown,
       { user: inputUser }: { user: InviteUser },

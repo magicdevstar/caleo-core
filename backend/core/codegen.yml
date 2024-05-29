@@ -17,3 +17,10 @@ generates:
     config:
       useIndexSignature: true
       # contextType: "./../types/common#AuthorizerContext"
+  ./../../admin/src/__generated__/resolvers-types.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
+    config:
+      useIndexSignature: true
+      # contextType: "./../types/common#AuthorizerContext"

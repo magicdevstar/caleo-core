@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container/Container';
-import { ORGANIZATION_BY_ID } from 'src/api/organization';
+import { ORGANIZATION_BY_ID, ORGANIZATION_FEATURES } from 'src/api/organization';
 // routes
 import { paths } from 'src/routes/paths';
 // components
@@ -15,6 +15,8 @@ export default function OrganizationDetailsView() {
   const settings = useSettingsContext();
   const params = useParams();
   const shouldSkip = !params.orgId || params.orgId === 'new';
+
+  const { data: orgFeatures, loading: loadingFeatures } = useQuery(ORGANIZATION_FEATURES);
 
   const { data, refetch, loading, error } = useQuery(ORGANIZATION_BY_ID, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -44,7 +46,7 @@ export default function OrganizationDetailsView() {
         errorDescription="There was an error loading Organization details. Please try again."
         refetch={refetch}
       >
-        <OrganizationForm currentOrganization={data?.organizationById} />
+        <OrganizationForm currentOrganization={data?.organizationById} features={orgFeatures?.organizationFeatures || []} loadingFeatures={loadingFeatures} />
       </QueryView>
     </Container>
   );

@@ -77,14 +77,18 @@ type Props = {
 export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const initialize = useCallback(async () => {
+  const initialize = useCallback(async (bypassCache: boolean = false) => {
     try {
-      const currentUser = await Auth.currentAuthenticatedUser();
+      const currentUser = await Auth.currentAuthenticatedUser({
+        bypassCache
+      });
       const {
         data: { me },
       } = await client.query<{ me: User }>({
+        fetchPolicy: 'no-cache',
         query: ME,
       });
+      console.log(me, currentUser);
       if (currentUser) {
         dispatch({
           type: Types.INITIAL,
@@ -92,6 +96,7 @@ export function AuthProvider({ children }: Props) {
             user: {
               ...currentUser,
               ...me,
+              superAdmin: currentUser.attributes.family_name.startsWith('t:') || me.superAdmin,
               id: me.id,
               displayName: `${me.firstName} ${me.lastName}`,
               email: currentUser.attributes.email,
@@ -121,6 +126,11 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     initialize();
+  }, [initialize]);
+
+  // Refresh session
+  const refreshSession = useCallback(async () => {
+    await initialize(true);
   }, [initialize]);
 
   // LOGIN
@@ -229,6 +239,7 @@ export function AuthProvider({ children }: Props) {
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
+      impersonatingUser: !!(state.user as any)?.attributes?.family_name?.startsWith?.('t:'),
       //
       login,
       logout,
@@ -238,6 +249,7 @@ export function AuthProvider({ children }: Props) {
       confirmRegister,
       resendCodeRegister,
       updateProfilePhotoUrl,
+      refreshSession,
     }),
     [
       status,
@@ -251,6 +263,7 @@ export function AuthProvider({ children }: Props) {
       confirmRegister,
       resendCodeRegister,
       updateProfilePhotoUrl,
+      refreshSession,
     ]
   );
 

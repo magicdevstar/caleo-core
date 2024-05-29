@@ -13,7 +13,11 @@ const tierResetSync = async () => {
   const res = await users.collection.updateMany({
     'member.tier': MemberTier.Tier_2,
     'member.status': MemberStatus.Active,
-    'member.tierResetOnNextLottery': false,
+    '$or': [
+      {'member.tierResetOnNextLottery': false},
+      // Not sure how this is happening
+      {'member.tierResetOnNextLottery': null},
+    ],
     'member.tierUntil': { $lte: Date.now() }
   }, {
     $set: {

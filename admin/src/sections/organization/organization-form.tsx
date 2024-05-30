@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router';
 import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
@@ -31,6 +32,8 @@ import { RouterLink } from 'src/routes/components';
 import FormProvider from 'src/components/hook-form/form-provider';
 import { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 import { CircularProgress } from '@mui/material';
+import InviteUserModal from 'src/components/invite-user/invite-user-modal';
+import { useBoolean } from 'src/hooks/use-boolean';
 
 type Props = {
   currentOrganization?: Organization;
@@ -46,6 +49,7 @@ export default function OrganizationForm({
   const mdUp = useResponsive('up', 'md');
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const inviteModal = useBoolean();
 
   const [createOrg] = useMutation(CREATE_ORGANIZATION);
 
@@ -191,6 +195,11 @@ export default function OrganizationForm({
                 ))}
               </RHFSelect>
             </Stack>
+            <Tooltip title={currentOrganization ? '' : 'The organization must be created before inviting a user'}>
+              <Box width="100%">
+                <Button sx={{ width: '100%' }} disabled={!currentOrganization} onClick={() => inviteModal.onTrue()} variant='contained' color="primary">Invite User</Button>
+              </Box>
+            </Tooltip>
           </Stack>
         </Card>
       </Grid>
@@ -280,6 +289,7 @@ export default function OrganizationForm({
 
         {renderActions}
       </Grid>
+      <InviteUserModal orgId={currentOrganization?.id || ''} inviteUser={inviteModal}  />
     </FormProvider>
   );
 }

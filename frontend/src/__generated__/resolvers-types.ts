@@ -407,6 +407,7 @@ export type InviteMember = {
 export type InviteUser = {
   email: Scalars['String']['input'];
   member: InviteMember;
+  orgId: Scalars['String']['input'];
 };
 
 export type LotteryCounter = {

@@ -234,6 +234,7 @@
   input InviteUser {
     email: String!
     member: InviteMember!
+    orgId: String!
   }
 
   input NewUser {

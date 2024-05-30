@@ -101,7 +101,7 @@ const registerUser = async (event: PreSignUpEmailTriggerEvent) => {
           member: {
             orgId: event.request.userAttributes['custom:org_id'],
             pNumber: event.request.userAttributes['custom:p_number'],
-            role: event.request.userAttributes.role || MemberRole.Member,
+            role: user.member.role || MemberRole.Member,
             tier: user.member.tier || MemberTier.Tier_1,
             rankId: user.member.rankId,
             status: MemberStatus.Active,

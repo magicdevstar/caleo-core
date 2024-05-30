@@ -141,8 +141,15 @@ export const user = {
     inviteUser: async (
       _parent: unknown,
       { user: inputUser }: { user: InviteUser },
-      { users, user, organization }: Context
+      { users, user, organization, organizations }: Context
     ): Promise<User> => {
+      if (user?.superAdmin && inputUser.orgId) {
+        const foundOrganization = await organizations.get(inputUser.orgId);
+        if (foundOrganization) {
+          organization = foundOrganization;
+        }
+      }
+
       const createdUser = await users.create({
         cognitoId: '',
         firstName: '',
@@ -150,7 +157,7 @@ export const user = {
         name: '',
         superAdmin: false,
         member: {
-          orgId: user?.member.orgId!,
+          orgId: organization!.id,
           pNumber: '',
           role: inputUser.member.role || MemberRole.Member,
           status: MemberStatus.Invited,

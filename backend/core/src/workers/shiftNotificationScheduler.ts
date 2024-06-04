@@ -76,6 +76,7 @@ const removeNotification = async ({
   }
   await scheduler.removeSchedule({
     customEventName: shift.notificationId,
+    ignoreError: true,
   });
   await shifts.collection.updateOne({ _id: new ObjectId(id) }, {
     $set: {

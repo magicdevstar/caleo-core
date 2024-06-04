@@ -63,102 +63,107 @@ interface ShiftReminderEvent {
 }
 
 const scheduledEvents = async (event) => {
-  const context = await createContext();
-  const { action, orgId, ...eventParams } = JSON.parse(event) as ParsedEvent | TierResetEvent | ShiftReminderEvent;
-  if (action === ScheduleEvent.LOTTO_END) {
-    const command = new StartExecutionCommand({
-      stateMachineArn: process.env.LOTTO_STEP_FUNCTION_ARN,
-      input: JSON.stringify({
-        orgId,
-      }),
-    });
-    await client.send(command);
-  } else if (action === ScheduleEvent.USER_TIER_RETURN) {
-    await context.users.resetUserTier({
-      userId: (eventParams as TierResetEvent).userId,
-      tier: (eventParams as TierResetEvent).tier,
-    });
-  } else if (action === ScheduleEvent.USER_INACTIVE_RETURN) {
-    await context.users.setStatus({
-      userId: (eventParams as TierResetEvent).userId,
-      status: (eventParams as InactiveResetEvent).status,
-    });
-    await lambda.send(new InvokeCommand({
-      FunctionName: process.env.MAILER_LAMBDA!,
-      InvocationType: 'Event',
-      Payload: JSON.stringify({
-        action: Action.Email,
-        template: MailerEvents.OfficerUserAccountReactivated,
-        data: {
-          user: {
-            id: (eventParams as InactiveResetEvent).userId,
-          },
-          orgId: (eventParams as InactiveResetEvent).orgId,
-        },
-      } as MailerEvent),
-    }));
-  } else if (action === ScheduleEvent.SHIFT_REMINDER) {
-    const { shift: { id, userId } } = eventParams as ShiftReminderEvent;
-    await lambda.send(new InvokeCommand({
-      FunctionName: process.env.MAILER_LAMBDA,
-      InvocationType: 'Event',
-      Payload: JSON.stringify({
-        action: Action.Email,
-        template: MailerEvents.OfficerShiftStartingNotification,
-        data: {
-          userId,
-          shiftId: id,
-        },
-      } as MailerEvent),
-    }));
-  } else if (action === ScheduleEvent.LOTTO_NOTIFY) {
-    await lambda.send(new InvokeCommand({
-      FunctionName: process.env.MAILER_LAMBDA,
-      InvocationType: 'Event',
-      Payload: JSON.stringify({
-        action: Action.Email,
-        template: MailerEvents.LotteryWindowClosing,
-        data: {
+  try {
+    const context = await createContext();
+    const { action, orgId, ...eventParams } = (typeof event === 'string' ? JSON.parse(event) : event) as ParsedEvent | TierResetEvent | ShiftReminderEvent ;
+    if (action === ScheduleEvent.LOTTO_END) {
+      const command = new StartExecutionCommand({
+        stateMachineArn: process.env.LOTTO_STEP_FUNCTION_ARN,
+        input: JSON.stringify({
           orgId,
-        },
-      } as MailerEvent),
-    }));
-  } else if (action === ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE) {
-    const organization = await context.organizations.get(orgId);
-    await context.shifts.notifyUsersOfEventAvailability((eventParams as EventFirstComeFirstServeGoLive).eventId, organization!);
-  } else if (action === ScheduleEvent.EVENT_INTEREST_GO_LIVE) {
-    const organization = await context.organizations.get(orgId);
-    await context.shifts.notifyUsersOfEventInterestAvailability(
-      (eventParams as EventInterestGoLive).eventId,
-      organization!,
-      MailerEvents.OfficerInterestListOpening
-    );
-  } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSE) {
-    if ((eventParams as EventInterestClose).transition) {
-      await context.events.collection.updateOne({
-        _id: new ObjectId((eventParams as EventInterestClose).eventId),
-      }, {
-        $set: {
-          status: (eventParams as EventInterestClose).transition,
-          updatedAt: Date.now(),
-        },
+        }),
       });
+      await client.send(command);
+    } else if (action === ScheduleEvent.USER_TIER_RETURN) {
+      await context.users.resetUserTier({
+        userId: (eventParams as TierResetEvent).userId,
+        tier: (eventParams as TierResetEvent).tier,
+      });
+    } else if (action === ScheduleEvent.USER_INACTIVE_RETURN) {
+      await context.users.setStatus({
+        userId: (eventParams as TierResetEvent).userId,
+        status: (eventParams as InactiveResetEvent).status,
+      });
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA!,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerUserAccountReactivated,
+          data: {
+            user: {
+              id: (eventParams as InactiveResetEvent).userId,
+            },
+            orgId: (eventParams as InactiveResetEvent).orgId,
+          },
+        } as MailerEvent),
+      }));
+    } else if (action === ScheduleEvent.SHIFT_REMINDER) {
+      const { shift: { id, userId } } = eventParams as ShiftReminderEvent;
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.OfficerShiftStartingNotification,
+          data: {
+            userId,
+            shiftId: id,
+          },
+        } as MailerEvent),
+      }));
+    } else if (action === ScheduleEvent.LOTTO_NOTIFY) {
+      await lambda.send(new InvokeCommand({
+        FunctionName: process.env.MAILER_LAMBDA,
+        InvocationType: 'Event',
+        Payload: JSON.stringify({
+          action: Action.Email,
+          template: MailerEvents.LotteryWindowClosing,
+          data: {
+            orgId,
+          },
+        } as MailerEvent),
+      }));
+    } else if (action === ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE) {
+      const organization = await context.organizations.get(orgId);
+      await context.shifts.notifyUsersOfEventAvailability((eventParams as EventFirstComeFirstServeGoLive).eventId, organization!);
+    } else if (action === ScheduleEvent.EVENT_INTEREST_GO_LIVE) {
+      const organization = await context.organizations.get(orgId);
+      await context.shifts.notifyUsersOfEventInterestAvailability(
+        (eventParams as EventInterestGoLive).eventId,
+        organization!,
+        MailerEvents.OfficerInterestListOpening
+      );
+    } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSE) {
+      if ((eventParams as EventInterestClose).transition) {
+        await context.events.collection.updateOne({
+          _id: new ObjectId((eventParams as EventInterestClose).eventId),
+        }, {
+          $set: {
+            status: (eventParams as EventInterestClose).transition,
+            updatedAt: Date.now(),
+          },
+        });
+      }
+    } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSING) {
+      const organization = await context.organizations.get(orgId);
+      await context.shifts.notifyUsersOfEventInterestAvailability(
+        (eventParams as EventInterestClose).eventId,
+        organization!,
+        MailerEvents.OfficerInterestListClosing
+      );
     }
-  } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSING) {
-    const organization = await context.organizations.get(orgId);
-    await context.shifts.notifyUsersOfEventInterestAvailability(
-      (eventParams as EventInterestClose).eventId,
-      organization!,
-      MailerEvents.OfficerInterestListClosing
-    );
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Hello from lotto',
+        input: event,
+      }, null, 2),
+    };
+  } catch(error) {
+    logger.error('Failed to process event', { error, event });
+    throw error;
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Hello from lotto',
-      input: event,
-    }, null, 2),
-  };
 };
 
 export const handler = middy(scheduledEvents)

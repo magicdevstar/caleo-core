@@ -1,5 +1,11 @@
 import { gql } from "@apollo/client";
 
+export const ACTIVE_LOTTERY = gql`
+  query ACTIVE_LOTTERY {
+    activeLottery
+  }
+`;
+
 export const ORGANIZATION = gql`
 query ORGANIZATION {
   organization {

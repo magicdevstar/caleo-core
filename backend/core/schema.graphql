@@ -1511,6 +1511,7 @@ type Query {
   organizationById(orgId: String!): Organization
   organizations(input: OrganizationSearchInput): OrganizationSearchResult
   organizationFeatures: [OrganizationFeatureOptions]
+  activeLottery: Boolean
 
   allUsers(input: AllUsersSearchInput): UserSearchResult
   users(input: UserSearchInput): UserSearchResult

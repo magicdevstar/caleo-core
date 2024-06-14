@@ -77,7 +77,12 @@ export const organization = {
           label: 'Venue Contract Dates'
         },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
-    }
+    },
+    activeLottery: (
+      _parent: unknown,
+      _args: unknown,
+      { organizations, organization }: Context
+    ): boolean => organizations.activeLottery(organization!),
   },
   Mutation: {
     createOrganization: async (

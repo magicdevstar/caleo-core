@@ -1,73 +1,42 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@apollo/client';
 import { m } from 'framer-motion';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { capitalize } from "lodash";
+import { ACTIVE_LOTTERY } from 'src/api/organization';
 // @mui
 import Typography from '@mui/material/Typography';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
-import { convertDate, timeFormat, getNow } from "src/hooks/use-datejs";
+import { convertDate, timeFormat } from "src/hooks/use-datejs";
 // components
+import { LoadingScreen } from 'src/components/loading-screen';
 import LotteryAnalytics from 'src/components/analytics/lottery-analytics';
 import { MotionContainer, varFade } from 'src/components/animate';
 import LotteryView from './lottery-view';
 
 // ----------------------------------------------------------------------
 
-const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function LotteryViewGuard() {
   const { user } = useAuthContext();
-  const [currentTime, setCurrentTime] = useState(getNow({ organization: user?.member?.org || {} as any }));
-
-  useEffect(() => {
-    // Time interval to continue updating current time
-    const interval = setInterval(() => {
-      setCurrentTime(getNow({ organization: user?.member?.org || {} as any }));
-    }, 5000);
-    return () => {
-      clearInterval(interval)
-    };
-  }, [user]);
+  const { data, loading } = useQuery(ACTIVE_LOTTERY, {
+    pollInterval: 5000,
+  });
+  const activeLottery = data?.activeLottery || false;
 
   const lottery = useMemo(() => user?.member?.org?.settings?.lottery, [user]);
   const lotteryOpenTime = useMemo(() => convertDate({date: user?.member?.org?.settings?.lottery?.open?.time || '', user}), [user]);
-  const lotteryOpenWeekday = useMemo(() => weekdays.indexOf(user?.member?.org?.settings?.lottery?.open?.dayOfWeek.toLowerCase() || ''), [user]);
-  const lotteryCloseTime = useMemo(() => convertDate({date: user?.member?.org?.settings?.lottery?.close?.time || '', user}), [user]);
-  const lotteryCloseWeekday = useMemo(() => weekdays.indexOf(user?.member?.org?.settings?.lottery?.close?.dayOfWeek.toLowerCase() || ''), [user]);
-  const hasValidLottery = Boolean(lottery?.open?.time && lottery?.open?.dayOfWeek && lottery?.close?.time && lottery?.close?.dayOfWeek);
 
-  // Check if lottery week interval is in same week or crosses weeks (ex. Thursday to Tuesday is not same week so comparison is different)
-  let sameWeek = lotteryOpenWeekday < lotteryCloseWeekday;
-  if (lotteryOpenWeekday === lotteryCloseWeekday) {
-    if (lotteryOpenTime.hour() === lotteryCloseTime.hour()) {
-      if (lotteryOpenTime.minute() === lotteryCloseTime.minute()) {
-        sameWeek = false;
-      } else {
-        sameWeek = lotteryOpenTime.minute() < lotteryCloseTime.minute();
-      }
-    } else {
-      sameWeek = lotteryOpenTime.hour() < lotteryCloseTime.hour();
-    }
+  if (loading) {
+    return <LoadingScreen />;
   }
-  const afterStartDay = currentTime.day() >= lotteryOpenWeekday;
-  const beforeCloseDay = currentTime.day() <= lotteryCloseWeekday;
-  const withinWeek = sameWeek ? afterStartDay && beforeCloseDay : afterStartDay || beforeCloseDay;
 
-  // Have to compare hours and minutes since the date saved in lottery settings is 1 day apart so dates can't be compared
-  const withinOpenHour = currentTime.day() === lotteryOpenWeekday ? currentTime.hour() >= lotteryOpenTime.hour() : true;
-  const withinCloseHour = currentTime.day() === lotteryCloseWeekday ? currentTime.hour() <= lotteryCloseTime.hour() : true;
-  const withinHour = withinOpenHour && withinCloseHour;
-  const withinOpenMinute = currentTime.hour() === lotteryOpenTime.hour() ? currentTime.minute() >= lotteryOpenTime.minute() : true;
-  const withinCloseMinute = currentTime.hour() === lotteryCloseTime.hour() ? currentTime.minute() <= lotteryCloseTime.minute() : true;
-  const withinMinute = withinOpenMinute && withinCloseMinute;
-
-  if (lottery?.enabled && hasValidLottery && withinWeek && withinHour && withinMinute) {
+  if (activeLottery) {
     return <LotteryView />;
   }
 
@@ -80,11 +49,11 @@ export default function LotteryViewGuard() {
     }}>
       <m.div variants={varFade().in}>
         <Typography variant="h3">
-          {`Rank Order ${lottery?.enabled ? 'Period is Closed' : 'System is Disabled'}`}
+          {`Rank Order ${!activeLottery ? 'Period is Closed' : 'System is Disabled'}`}
         </Typography>
       </m.div>
 
-      { lottery?.enabled ? (
+      { !activeLottery ? (
           <m.div variants={varFade().in}>
             <Typography sx={{ color: 'text.secondary' }}>
               The rank order period is now closed. Come back on

@@ -1050,6 +1050,7 @@ export type ProfilePhotoAttachmentUpload = {
 
 export type Query = {
   __typename?: 'Query';
+  activeLottery?: Maybe<Scalars['Boolean']['output']>;
   activeNotifications?: Maybe<NotificationSearchResult>;
   allUsers?: Maybe<UserSearchResult>;
   assignment?: Maybe<Assignment>;
@@ -2881,6 +2882,7 @@ export type ProfilePhotoAttachmentUploadResolvers<ContextType = any, ParentType 
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  activeLottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   activeNotifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryActiveNotificationsArgs>>;
   allUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryAllUsersArgs>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<QueryAssignmentArgs, 'id'>>;

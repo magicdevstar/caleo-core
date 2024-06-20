@@ -2,6 +2,17 @@ import { useCallback } from "react";
 import { useAuthContext } from "src/auth/hooks";
 import { getNow } from "./use-datejs";
 
+const escapeStr = (str: string) => {
+  // Replace all double quotes with two double quotes
+  str = str.replace(/"/g, '""');
+  // Replace all newline characters with a backslash and an n
+  str = str.replace(/\n/g, '\\n');
+  // Replace all carriage return characters with a backslash and an r
+  str = str.replace(/\r/g, '\\r');
+  // Return the escaped string
+  return str;
+}
+
 export const useDownloadCsv = ({
   fileName,
   ext = 'csv',
@@ -14,7 +25,7 @@ export const useDownloadCsv = ({
   const convertToCSV = (data: Record<string, any>[]) => {
     const array = [Object.keys(data[0]).join(",")];
     data.forEach((item) => {
-      array.push(Object.values(item).map((it) => `"${it}"`).join(","));
+      array.push(Object.values(item).map((it) => `"${escapeStr(it)}"`).join(","));
     });
 
     return array.join("\n");

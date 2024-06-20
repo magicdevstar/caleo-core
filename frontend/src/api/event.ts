@@ -171,6 +171,8 @@ export const GET_EVENT_FOR_SUMMARY = gql`
           shiftCheckInOut {
             checkInTime
             checkOutTime
+            checkInNote
+            checkOutNote
             checkInCoords {
               latitude
               longitude

@@ -57,6 +57,11 @@ export const useEventSummary = () => {
 
           checkInData['Shift check in lat'] = shift.shiftCheckInOut?.checkInCoords?.latitude ? shift.shiftCheckInOut?.checkInCoords?.latitude : '-';
           checkInData['Shift check in long'] = shift.shiftCheckInOut?.checkInCoords?.longitude ? shift.shiftCheckInOut?.checkInCoords?.longitude : '-';
+          checkInData['Shift check out lat'] = shift.shiftCheckInOut?.checkOutCoords?.latitude ? shift.shiftCheckInOut?.checkOutCoords?.latitude : '-';
+          checkInData['Shift check out long'] = shift.shiftCheckInOut?.checkOutCoords?.longitude ? shift.shiftCheckInOut?.checkOutCoords?.longitude : '-';
+
+          checkInData['Shift check in note'] = shift.shiftCheckInOut?.checkInNote ? shift.shiftCheckInOut?.checkInNote : '-';
+          checkInData['Shift check out note'] = shift.shiftCheckInOut?.checkOutNote ? shift.shiftCheckInOut?.checkOutNote : '-';
         }
 
         return {

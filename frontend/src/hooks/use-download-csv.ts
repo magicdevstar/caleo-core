@@ -25,7 +25,7 @@ export const useDownloadCsv = ({
   const convertToCSV = (data: Record<string, any>[]) => {
     const array = [Object.keys(data[0]).join(",")];
     data.forEach((item) => {
-      array.push(Object.values(item).map((it) => `"${escapeStr(it)}"`).join(","));
+      array.push(Object.values(item).map((it) => `"${escapeStr(`${it}`)}"`).join(","));
     });
 
     return array.join("\n");

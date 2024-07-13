@@ -333,6 +333,7 @@ export class UserModel extends BaseModel<User> {
       return hasQualifiedRank && hasQualifiedSkills;
     });
 
+    
     if (filteredShifts.length === 0) {
       return {
         total: 0,
@@ -340,7 +341,7 @@ export class UserModel extends BaseModel<User> {
       };
     }
 
-    logger.info('Filtered Skills', { filteredShifts });
+    logger.info('Filtered Skills', { filteredShifts, userId: `avail:${user.id}` });
 
     const myShiftBuffers = await this.shiftBufferRequests.collection.find<ShiftBufferRequest>({
       userId: user.id,
@@ -410,7 +411,7 @@ export class UserModel extends BaseModel<User> {
     shift: Shift;
     organization: Organization
   }) {
-    if (!organization?.settings?.hoursPerMonth) {
+    if (!organization?.features?.monthlyMaxHours) {
       return false;
     }
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;

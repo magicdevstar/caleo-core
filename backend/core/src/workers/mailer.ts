@@ -24,7 +24,7 @@ const convertDate = (unixDate: number, organization: Organization) => {
   };
 };
 
-const sendInChunks = async (input: any, Addresses: any) => {
+const sendInChunks = async (input: any, Addresses: any, Version: string) => {
   if (Object.keys(Addresses).length > 100) {
     const chunks = chunk(Object.keys(Addresses), 100, undefined).map((chunk) => {
       const obj = {} as Record<string, AddressConfiguration>;
@@ -47,7 +47,7 @@ const sendInChunks = async (input: any, Addresses: any) => {
           TemplateConfiguration: {
             EmailTemplate: {
               Name: input.template,
-              Version: '1',
+              Version,
             },
           },
         }
@@ -70,7 +70,7 @@ const sendInChunks = async (input: any, Addresses: any) => {
         TemplateConfiguration: {
           EmailTemplate: {
             Name: input.template,
-            Version: '1',
+            Version,
           },
         },
       }
@@ -156,6 +156,7 @@ const sendEmail = async (input: MailerEvent) => {
   try {
     const context = await createContext();
     let Addresses: Record<string, AddressConfiguration> = {};
+    let templateVersion: string = '1';
     if (input.template === MailerEvents.OfficerEventRemoved) {
       const { event, organization, modifiedById } = input.data;
 
@@ -501,7 +502,7 @@ const sendEmail = async (input: MailerEvent) => {
                 await sendInChunks({
                   ...input,
                   template: MailerEvents.AdminEventFullyStaffed,
-                }, finalAddresses);
+                }, finalAddresses, templateVersion);
               }
             }
           }
@@ -576,7 +577,7 @@ const sendEmail = async (input: MailerEvent) => {
                 await sendInChunks({
                   ...input,
                   template: MailerEvents.AdminEventShiftsFilled,
-                }, finalAddresses);
+                }, finalAddresses, templateVersion);
               }
             }
           }
@@ -787,7 +788,7 @@ const sendEmail = async (input: MailerEvent) => {
             await sendInChunks({
               ...input,
               template: MailerEvents.AdminEventFullyStaffed,
-            }, finalAddresses);
+            }, finalAddresses, templateVersion);
           }
         }
       }
@@ -863,7 +864,7 @@ const sendEmail = async (input: MailerEvent) => {
             await sendInChunks({
               ...input,
               template: MailerEvents.AdminEventShiftsFilled,
-            }, finalAddresses);
+            }, finalAddresses, templateVersion);
           }
         }
       }
@@ -993,7 +994,7 @@ const sendEmail = async (input: MailerEvent) => {
           await sendInChunks({
             ...input,
             template: MailerEvents.AdminUnassignOfficerShift,
-          }, EmailAddresses);
+          }, EmailAddresses, templateVersion);
         } catch(error) {
           logger.error('Failed to send admin notification', { error });
         }
@@ -1173,6 +1174,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Failed to remove shifts by assignment', { error, input });
       }
     } else if (input.template === MailerEvents.OfficerShiftStartingNotification) {
+      templateVersion = '2';
       const { userId, shiftId } = input.data;
       const shift = await context.shifts.get(shiftId);
       if (!shift || shift.userId !== userId) {
@@ -1204,6 +1206,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
+      const hoursTilShift = organization.settings?.shiftReminder.time;
 
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
         Addresses = {
@@ -1220,6 +1223,7 @@ const sendEmail = async (input: MailerEvent) => {
               "system.metro_name": [organization.name],
               "system.login_url": [process.env.LOGIN_URL || ''],
               "shift.start_date": [shiftStart.date],
+              "hoursTilShift": [`${hoursTilShift}`],
             },
           },
         };
@@ -1228,6 +1232,7 @@ const sendEmail = async (input: MailerEvent) => {
       const { title, body } = InAppTemplates[input.template]({
         eventName: event.name,
         shiftName: assignment.name,
+        hoursTilShift,
       });
       await sendInAppNotification({
         context,
@@ -2196,7 +2201,7 @@ const sendEmail = async (input: MailerEvent) => {
       });
       return;
     }
-    await sendInChunks(input, Addresses);
+    await sendInChunks(input, Addresses, templateVersion);
   } catch(error) {
     logger.error('Error sending email', { error, input });
     throw error;

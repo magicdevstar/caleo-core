@@ -8,7 +8,8 @@
     "deploy:graphql": "npm run generate && sls deploy function -f graphql",
     "generate": "graphql-codegen --config codegen.yml",
     "gen": "npm run generate",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "TZ=UTC jest",
+    "test:unit": "TZ=UTC jest"
   },
   "author": "danwakeem",
   "license": "MIT",
@@ -49,12 +50,17 @@
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-resolvers": "^4.0.1",
+    "@jest/globals": "^29.7.0",
+    "@tsconfig/recommended": "^1.0.7",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.2",
     "esbuild": "^0.19.8",
+    "jest": "^29.7.0",
     "serverless": "^3.38.0",
     "serverless-domain-manager": "^7.1.2",
     "serverless-esbuild": "^1.50.0",
     "serverless-step-functions": "^3.15.0",
+    "ts-jest": "^29.2.3",
     "typescript": "^5.1.6"
   }
 }

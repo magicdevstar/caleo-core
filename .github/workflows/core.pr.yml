@@ -53,11 +53,8 @@ jobs:
       - name: Generate Types
         run: yarn generate
 
-      # - name: Typecheck
-      #   run: yarn typecheck
-
-      # - name: Run Unit tests
-      #   run: yarn test:unit
+      - name: Run Unit tests
+        run: yarn test:unit
 
       # - name: Deploy PR Environment
       #   run: yarn sls deploy --stage ${{ needs.variables.outputs.sls_stage }}

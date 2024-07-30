@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { format, getDay, getHours, getMinutes, setHours } from "date-fns";
+import { format, getDay, setDay, setHours, parse, parseISO } from "date-fns";
 import { DocType, UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { BaseModel } from './base';
@@ -128,43 +128,57 @@ export class OrganizationModel extends BaseModel<Organization> {
   }
 
   activeLottery(org: Organization) {
-    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const activeLottery = org.features.lottery && org.settings?.lottery?.enabled;
-    if (!activeLottery) {
-      return false;
-    }
-    const currentTime = utcToZonedTime(new Date(), org?.timezone || 'America/Los_Angeles' as any);
-    const lotteryOpenTime = utcToZonedTime(new Date(org?.settings?.lottery?.open?.time || ''), org?.timezone || 'America/Los_Angeles' as any);
-    const lotteryOpenWeekday = weekdays.indexOf(org?.settings?.lottery?.open?.dayOfWeek.toLowerCase() || '');
-    const lotteryCloseTime = utcToZonedTime(new Date(org?.settings?.lottery?.close?.time || ''), org?.timezone || 'America/Los_Angeles' as any);
-    const lotteryCloseWeekday = weekdays.indexOf(org?.settings?.lottery?.close?.dayOfWeek.toLowerCase() || '');
-    const hasValidLottery = Boolean(org?.settings?.lottery?.open?.time && org?.settings?.lottery?.open?.dayOfWeek && org?.settings?.lottery?.close?.time && org?.settings?.lottery?.close?.dayOfWeek);
+    const { timezone, settings: { lottery: { open, close } } } = org as any;
+  
+    const now = new Date();
+    const currentDay = format(now, 'EEEE').toUpperCase();
+    const currentTime = format(now, 'HH:mm:ss');
 
-    let sameWeek = lotteryOpenWeekday < lotteryCloseWeekday;
-    if (lotteryOpenWeekday === lotteryCloseWeekday) {
-      if (getHours(lotteryOpenTime) === getHours(lotteryCloseTime)) {
-        if (getMinutes(lotteryOpenTime) === getMinutes(lotteryCloseTime)) {
-          sameWeek = false;
-        } else {
-          sameWeek = getMinutes(lotteryOpenTime) < getMinutes(lotteryCloseTime);
-        }
-      } else {
-        sameWeek = getHours(lotteryOpenTime) < getHours(lotteryCloseTime);
+    // This accounts for daylight savings by appending
+    // the hours:min:seconds to the current date.
+    // If we used 1970-01-02 that is in the first half of the year
+    // so the hours will be behind by 1 hour 🙄
+    const normalizeSettingTime = (settingTime) => {
+      const firstHalf = now.toISOString().split('T')[0];
+      const secondHalf = settingTime.split('T')[1];
+      return `${firstHalf}T${secondHalf}`;
+    }
+
+    const normalOpenTime = normalizeSettingTime(open.time);
+    const normalCloseTime = normalizeSettingTime(close.time);
+    const openTime = format(parseISO(normalOpenTime), 'HH:mm:ss');
+    const closeTime = format(parseISO(normalCloseTime), 'HH:mm:ss');
+
+    const getDayIndex = (day) => {
+      const daysOfWeek = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+      return daysOfWeek.indexOf(day.toUpperCase());
+    };
+    
+    const openDayIndex = getDayIndex(open.dayOfWeek);
+    const closeDayIndex = getDayIndex(close.dayOfWeek);
+    const currentDayIndex = getDay(now);
+    
+    // Check if current day is the same as the open or close day and within the time range
+    if (currentDay === open.dayOfWeek && currentTime >= openTime) {
+      return true;
+    }
+    if (currentDay === close.dayOfWeek && currentTime <= closeTime) {
+      return true;
+    }
+
+    // Check if current day is between open and close days
+    if (openDayIndex < closeDayIndex) {
+      // Normal case: open day is before close day in the same week
+      if (currentDayIndex > openDayIndex && currentDayIndex < closeDayIndex) {
+        return true;
+      }
+    } else {
+      // Wrapping case: open day is after close day in the week
+      if (currentDayIndex > openDayIndex || currentDayIndex < closeDayIndex) {
+        return true;
       }
     }
-
-    const afterStartDay = getDay(currentTime) >= lotteryOpenWeekday;
-    const beforeCloseDay = getDay(currentTime) <= lotteryCloseWeekday;
-    const withinWeek = sameWeek ? afterStartDay && beforeCloseDay : afterStartDay || beforeCloseDay;
-
-    // Have to compare hours and minutes since the date saved in lottery settings is 1 day apart so dates can't be compared
-    const withinOpenHour = getDay(currentTime) === lotteryOpenWeekday ? getHours(currentTime) >= getHours(lotteryOpenTime) : true;
-    const withinCloseHour = getDay(currentTime) === lotteryCloseWeekday ? getHours(currentTime) <= getHours(lotteryCloseTime) : true;
-    const withinHour = withinOpenHour && withinCloseHour;
-    const withinOpenMinute = getHours(currentTime) === getHours(lotteryOpenTime) ? getMinutes(currentTime) >= getMinutes(lotteryOpenTime) : true;
-    const withinCloseMinute = getHours(currentTime) === getHours(lotteryCloseTime) ? getMinutes(currentTime) <= getMinutes(lotteryCloseTime) : true;
-    const withinMinute = withinOpenMinute && withinCloseMinute;
-
-    return hasValidLottery && withinWeek && withinHour && withinMinute;
+    
+    return false;
   }
 }

@@ -7,10 +7,16 @@ import { addHours, addSeconds, setMilliseconds, setSeconds } from 'date-fns';
 import { EventStatus } from '../__generated__/resolvers-types';
 
 interface InputEvent {
+  entries: InputEntries[];
+  orgId: string;
+  dryRun?: boolean;
+};
+
+interface InputEntries {
   orgId: string;
   tier1Assignments: string[];
   dryRun?: boolean;
-};
+}
 
 export interface FinalizeOutput {
   orgId?: string;
@@ -22,11 +28,11 @@ export interface FinalizeOutput {
 
 const formatDate = (d: Date) => `${d.toISOString().split('.')[0]}Z`;
 
-const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => {
-  const orgId = input?.[0]?.orgId;
-  const dryRun = input?.[0]?.dryRun;
+const finalizeLottery = async (input: InputEvent): Promise<FinalizeOutput> => {
+  const orgId = input?.orgId;
+  const dryRun = input?.dryRun;
   // Skip if no orgId. This can happen if there are no events to rank :)
-  if (!orgId || dryRun) {
+  if (!orgId || !!dryRun) {
     return {
       dryRun: !!dryRun,
       fcfsDelay: formatDate(addSeconds(new Date(), 15)),
@@ -48,8 +54,10 @@ const finalizeLottery = async (input: InputEvent[]): Promise<FinalizeOutput> => 
   const { counter } = await lotteryCounter.increment(orgId);
 
   // Set user tiers
-  const tier1Assignments = input.map(({ tier1Assignments }) => tier1Assignments).flat();
-  await users.setTiersPostLottery({ tier1Assignments, orgId });
+  const tier1Assignments = input.entries.map(({ tier1Assignments }) => tier1Assignments).flat();
+  if (tier1Assignments.length > 0) {
+    await users.setTiersPostLottery({ tier1Assignments, orgId });
+  }
 
   const fcfsScheduledTime = setMilliseconds(
     setSeconds(

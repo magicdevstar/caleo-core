@@ -21,10 +21,14 @@ const fetchShifts = async ({ orgId, dryRun }: InputEvent) => {
 
   logger.info('Shifts', { items });
 
-  return items.map((item) => ({
-    ...item,
-    dryRun: !!dryRun,
-  }));
+  return {
+    orgId,
+    dryRun,
+    entries: items.map((item) => ({
+      ...item,
+      dryRun: !!dryRun,
+    })),
+  };
 };
 
 export const handler = middy(fetchShifts)

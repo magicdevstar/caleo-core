@@ -264,6 +264,8 @@ stepFunctions:
           AssignShifts:
             Type: Map
             MaxConcurrency: 1
+            ResultPath: $.entries
+            InputPath: $.entries
             ItemProcessor:
               ProcessorConfig:
                 Mode: INLINE

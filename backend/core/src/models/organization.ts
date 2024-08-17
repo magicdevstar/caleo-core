@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { format, getDay, setDay, setHours, parse, parseISO } from "date-fns";
+import { format, getDay, setHours, parseISO } from "date-fns";
 import { DocType, UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { BaseModel } from './base';
@@ -130,7 +130,7 @@ export class OrganizationModel extends BaseModel<Organization> {
   activeLottery(org: Organization) {
     const { timezone, settings: { lottery: { open, close } } } = org as any;
   
-    const now = new Date();
+    const now = utcToZonedTime(new Date(), timezone);
     const currentDay = format(now, 'EEEE').toUpperCase();
     const currentTime = format(now, 'HH:mm:ss');
 
@@ -144,8 +144,10 @@ export class OrganizationModel extends BaseModel<Organization> {
       return `${firstHalf}T${secondHalf}`;
     }
 
-    const normalOpenTime = normalizeSettingTime(open.time);
-    const normalCloseTime = normalizeSettingTime(close.time);
+    const openTimeStr = utcToZonedTime(new Date(open.time), timezone).toISOString();
+    const closeTimeStr = utcToZonedTime(new Date(close.time), timezone).toISOString();
+    const normalOpenTime = normalizeSettingTime(openTimeStr);
+    const normalCloseTime = normalizeSettingTime(closeTimeStr);
     const openTime = format(parseISO(normalOpenTime), 'HH:mm:ss');
     const closeTime = format(parseISO(normalCloseTime), 'HH:mm:ss');
 

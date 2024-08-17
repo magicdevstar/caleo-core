@@ -9,20 +9,19 @@ import {
 import { OrganizationModel } from './organization';
 
 const config = {
-  timezone: "America/Chicago",
-  features: {
-    lottery: true
-  },
+  timezone: 'America/Los_Angeles',
   settings: {
     lottery: {
       enabled: true,
       open: {
         // Date set with jest current time - 2024-07-25
+        // time: "1970-01-01T02:00:00.000Z",
         time: "1970-01-02T18:00:00.000Z",
         dayOfWeek: "WEDNESDAY"
       },
       close: {
         // Date set with jest current time - 2024-07-28
+        // time: '1970-01-01T13:00:00.000Z',
         time: "1970-01-02T06:00:00.000Z",
         dayOfWeek: "SUNDAY"
       }
@@ -35,117 +34,142 @@ describe('organization service', () => {
     { collection: jest.fn() } as any,
     {} as any
   );
-  describe('activeLottery - start day of week after close day of week', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
+
+  describe('activeLottery - Close day before open day', () => {
+    describe('Start of year', () => {
+      let testConfig;
+      beforeEach(() => {
+        testConfig = JSON.parse(JSON.stringify(config));
+        testConfig.settings.lottery.open.time = '1970-01-01T02:00:00.000Z';
+        testConfig.settings.lottery.open.dayOfWeek = 'FRIDAY';
+        testConfig.settings.lottery.close.dayOfWeek = 'MONDAY';
+        testConfig.settings.lottery.close.time = '1970-01-01T13:00:00.000Z';
+        jest.useFakeTimers();
+      });
+  
+      afterEach(() => {
+        jest.setSystemTime(jest.getRealSystemTime());
+        jest.useRealTimers();
+      });
+      
+      test('should return false if we are before the open time', () => {
+        const fixedDate = new Date('2024-01-13T01:30:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+      test('should return true if we are at the open time', () => {
+        const fixedDate = new Date('2024-01-13T02:00:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(true);
+      });
+      test('should return false if we are after the close time', () => {
+        const fixedDate = new Date('2024-01-15T13:00:01.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+    });
+    
+    describe('End of year', () => {
+      let testConfig;
+      beforeEach(() => {
+        testConfig = JSON.parse(JSON.stringify(config));
+        testConfig.settings.lottery.open.time = '1970-01-01T02:00:00.000Z';
+        testConfig.settings.lottery.open.dayOfWeek = 'FRIDAY';
+        testConfig.settings.lottery.close.dayOfWeek = 'MONDAY';
+        testConfig.settings.lottery.close.time = '1970-01-01T13:00:00.000Z';
+        jest.useFakeTimers();
+      });
+  
+      afterEach(() => {
+        jest.setSystemTime(jest.getRealSystemTime());
+        jest.useRealTimers();
+      });
+      
+      test('should return false if we are before the open time', () => {
+        const fixedDate = new Date('2024-08-17T00:30:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+      test('should return true if we are at the open time', () => {
+        const fixedDate = new Date('2024-08-17T01:00:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(true);
+      });
+      test('should return false if we are after the close time', () => {
+        const fixedDate = new Date('2024-08-19T12:00:01.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
     });
 
-    afterEach(() => {
-      jest.setSystemTime(jest.getRealSystemTime());
-      jest.useRealTimers();
-    });
-
-    test('returns false if the current date is before the open date time', () => {
-      // 1 minute before open
-      const fixedDate = new Date('2024-07-24T17:59:00.000Z');
-      jest.setSystemTime(fixedDate);
-      const testConfig = JSON.parse(JSON.stringify(config));
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
-
-    test('returns true if the current date is between the open and close date time', () => {
-      // 1 minute before close
-      const fixedDate = new Date('2024-07-27T23:59:00Z');
-      jest.setSystemTime(fixedDate);
-      const testConfig = JSON.parse(JSON.stringify(config));
-
-      expect(model.activeLottery(testConfig)).toBe(true);
-    });
-
-    test('returns false if the current date is after the close date time', () => {
-      // 1 minute after close
-      const fixedDate = new Date('2024-07-28T06:01:00Z');
-      jest.setSystemTime(fixedDate);
-      const testConfig = JSON.parse(JSON.stringify(config));
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
   });
 
-  describe('activeLottery - start day of week before close day of week', () => {
-    let testConfig;
-    beforeEach(() => {
-      testConfig = JSON.parse(JSON.stringify(config));
-      // 2024-07-28T18:00:00.000Z
-      testConfig.settings.lottery.open.dayOfWeek = 'SUNDAY';
-      // 2024-07-31T06:00:00.000Z
-      testConfig.settings.lottery.close.dayOfWeek = 'WEDNESDAY';
-      jest.useFakeTimers();
+  describe('activeLottery - Close day after open day', () => {
+    describe('Start of year', () => {
+      let testConfig;
+      beforeEach(() => {
+        testConfig = JSON.parse(JSON.stringify(config));
+        testConfig.settings.lottery.open.time = '1970-01-01T02:00:00.000Z';
+        testConfig.settings.lottery.open.dayOfWeek = 'MONDAY';
+        testConfig.settings.lottery.close.dayOfWeek = 'WEDNESDAY';
+        testConfig.settings.lottery.close.time = '1970-01-01T13:00:00.000Z';
+        jest.useFakeTimers();
+      });
+  
+      afterEach(() => {
+        jest.setSystemTime(jest.getRealSystemTime());
+        jest.useRealTimers();
+      });
+      
+      test('should return false if we are before the open time', () => {
+        const fixedDate = new Date('2024-01-16T01:30:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+      test('should return true if we are at the open time', () => {
+        const fixedDate = new Date('2024-01-16T02:00:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(true);
+      });
+      test('should return false if we are after the close time', () => {
+        const fixedDate = new Date('2024-01-17T13:00:01.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+    });
+    
+    describe('End of year', () => {
+      let testConfig;
+      beforeEach(() => {
+        testConfig = JSON.parse(JSON.stringify(config));
+        testConfig.settings.lottery.open.time = '1970-01-01T02:00:00.000Z';
+        testConfig.settings.lottery.open.dayOfWeek = 'MONDAY';
+        testConfig.settings.lottery.close.dayOfWeek = 'WEDNESDAY';
+        testConfig.settings.lottery.close.time = '1970-01-01T13:00:00.000Z';
+        jest.useFakeTimers();
+      });
+  
+      afterEach(() => {
+        jest.setSystemTime(jest.getRealSystemTime());
+        jest.useRealTimers();
+      });
+      
+      test('should return false if we are before the open time', () => {
+        const fixedDate = new Date('2024-08-06T00:30:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
+      test('should return true if we are at the open time', () => {
+        const fixedDate = new Date('2024-08-06T01:00:00.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(true);
+      });
+      test('should return false if we are after the close time', () => {
+        const fixedDate = new Date('2024-08-07T12:00:01.000Z');
+        jest.setSystemTime(fixedDate);
+        expect(model.activeLottery(testConfig)).toBe(false);
+      });
     });
 
-    afterEach(() => {
-      jest.setSystemTime(jest.getRealSystemTime());
-      jest.useRealTimers();
-    });
-
-    test('returns false if the current date is before the open date time', () => {
-      const fixedDate = new Date('2024-07-28T17:59:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
-
-    test('returns true if the current date is between the open and close date time', () => {
-      const fixedDate = new Date('2024-07-31T05:59:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(true);
-    });
-
-    test('returns false if the current date is after the close date time', () => {
-      const fixedDate = new Date('2024-07-31T06:01:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
-  });
-
-  describe('activeLottery - Beginning of the year', () => {
-    let testConfig;
-    beforeEach(() => {
-      testConfig = JSON.parse(JSON.stringify(config));
-      // 2024-01-01T18:00:00.000Z
-      testConfig.settings.lottery.open.dayOfWeek = 'MONDAY';
-      // 2024-01-03T06:00:00.000Z
-      testConfig.settings.lottery.close.dayOfWeek = 'WEDNESDAY';
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.setSystemTime(jest.getRealSystemTime());
-      jest.useRealTimers();
-    });
-
-    test('returns false if the current date is before the open date time', () => {
-      const fixedDate = new Date('2024-01-01T17:59:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
-
-    test('returns true if the current date is between the open and close date time', () => {
-      const fixedDate = new Date('2024-01-03T05:59:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(true);
-    });
-
-    test('returns false if the current date is after the close date time', () => {
-      const fixedDate = new Date('2024-01-03T06:01:00Z');
-      jest.setSystemTime(fixedDate);
-
-      expect(model.activeLottery(testConfig)).toBe(false);
-    });
   });
 });

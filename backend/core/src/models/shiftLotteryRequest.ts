@@ -114,7 +114,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       {
         $match: {
           'user.removedAt': { $exists: false },
-          'user.status': MemberStatus.Active,
+          'user.member.status': MemberStatus.Active,
         },
       },
       {

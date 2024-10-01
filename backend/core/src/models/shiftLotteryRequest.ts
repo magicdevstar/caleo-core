@@ -1,6 +1,6 @@
 import { Db, ObjectId } from 'mongodb';
 import DataLoader from 'dataloader';
-import { ShiftLotteryRequest, DocType, MemberTier, ShiftLotteryRequestStatus } from '../__generated__/resolvers-types';
+import { ShiftLotteryRequest, DocType, MemberTier, ShiftLotteryRequestStatus, MemberStatus } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { LotteryCounterModel } from './lotteryCounter';
 
@@ -114,6 +114,7 @@ export class ShiftLotteryRequestModel extends BaseModel<ShiftLotteryRequest> {
       {
         $match: {
           'user.removedAt': { $exists: false },
+          'user.status': MemberStatus.Active,
         },
       },
       {

@@ -75,7 +75,8 @@ const assignShift = async ({
     throw new Error('Organization not found');
   }
 
-  const initialRequests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
+  const initialLottoRequests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
+  const initialRequests = uniqBy(initialLottoRequests, 'userId');
   const lotteryCounter = initialRequests?.[0]?.lotteryCounter;
   let state: LotteryState = {
     orgId: organization.id,

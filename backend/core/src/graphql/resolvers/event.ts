@@ -269,6 +269,7 @@ export const event = {
         events,
         shifts,
         scheduler,
+        lotteryCounter,
         shiftLotteryRequests,
         eventReferenceNumber,
         user,
@@ -343,6 +344,14 @@ export const event = {
 
       if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status !== EventStatus.ReadyForLottery) {
         inputEvent.lotteryNumber = null;
+      } else if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status === EventStatus.ReadyForLottery) {
+        // Validate lottery number is greater than or equal to the current lottery counter
+        const currentCounter = await lotteryCounter.get(inputEvent.orgId);
+        // If the lottery number is in the past (currentCounter.counter should be next)
+        // then we should just set it to the new lottery
+        if (inputEvent.lotteryNumber < currentCounter.counter) {
+          inputEvent.lotteryNumber = currentCounter.counter;
+        }
       }
 
       if (currentEvent.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {

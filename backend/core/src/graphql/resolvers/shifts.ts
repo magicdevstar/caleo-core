@@ -17,6 +17,7 @@ import {
   ShiftCheckInOutEvent,
   ShiftSearchInput,
   ShiftStatus,
+  ShiftUpdates,
   UpsertShift,
   UserSearchResult
 } from "../../__generated__/resolvers-types";
@@ -335,6 +336,35 @@ export const shift = {
 
       return allShifts.map(({ id }) => id);
     },
+    partialShiftUpdate: async (
+      _parent: unknown,
+      {
+        shiftId,
+        updates,
+      }: {
+        shiftId: string;
+        updates: ShiftUpdates;
+      },
+      {
+        user,
+        shifts,
+      }: Context
+    ): Promise<string> => {
+      adminOnly(user);
+
+      const existingShifts = await shifts.getAllShiftsById(shiftId);
+      if (existingShifts.length === 0) {
+        throw new GraphQLError('No shifts found');
+      }
+
+      await shifts.updateByShiftGroupId(shiftId, {
+        modifiedById: user?.id!,
+        ...(updates.startTime && { startTime: setSeconds(setMilliseconds(new Date(updates.startTime), 0), 0).getTime() }),
+        ...(updates.endTime && { endTime: setSeconds(setMilliseconds(new Date(updates.endTime), 0), 0).getTime() }),
+      });
+
+      return shiftId;
+    },
     shifts: async (
       _parent: unknown,
       { shifts }: { shifts: UpsertShift[] },
@@ -491,13 +521,11 @@ export const shift = {
       }
 
       shift.userId = userId ? userId : null;
-      // shift.relinquishNote = note || shift.relinquishNote;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
       shift.modifiedById = user?.id!;
 
       const removingShiftUser = !userId && existingUserId;
 
-      let updatedShift: Shift;
       let removedShift: Shift;
       if (removingShiftUser) {
         // Create removed shift
@@ -514,10 +542,22 @@ export const shift = {
           removedAt: Date.now(),
           userId: existingUserId,
         }) as any;
-        updatedShift = await shifts.update(shift, { skipMerge: true });
-      } else {
-        updatedShift = await shifts.update(shift, { skipMerge: true });
       }
+
+      const shiftUpdate = {
+        userId: userId ? userId : null,
+        status: userId ? ShiftStatus.Assigned : ShiftStatus.Unassigned,
+        modifiedById: user!.id,
+      };
+      await shifts.partialUpdate(id, {
+        userId: userId ? userId : null,
+        status: userId ? ShiftStatus.Assigned : ShiftStatus.Unassigned,
+        modifiedById: user!.id,
+      });
+      const updatedShift = {
+        ...shift,
+        ...shiftUpdate,
+      };
 
 
       if (userId) {

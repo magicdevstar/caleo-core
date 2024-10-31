@@ -659,6 +659,16 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   }
 
+  updateByShiftGroupId(shiftId: string, updates: any) {
+    return this.collection.updateMany(
+      {
+        shiftId,
+      }, {
+        $set: updates,
+      }
+    );
+  }
+
   async getAllShiftsById(shiftId: string): Promise<Shift[]> {
     const shifts = await this.collection.find({
       shiftId,

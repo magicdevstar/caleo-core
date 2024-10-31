@@ -169,6 +169,15 @@ export class BaseModel<T> {
     });
   }
 
+  async partialUpdate(id: string, updates: any): Promise<void> {
+    await this.collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: updates,
+      }
+    );
+  }
+
   async update<T extends UpdateModel>(item: T, options: { skipMerge?: boolean } = {}): Promise<T> {
     const now = Date.now();
 

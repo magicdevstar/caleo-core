@@ -831,3 +831,9 @@ export const UPSERT_SHIFTS = gql`
     }
   }
 `;
+
+export const UPDATE_SHIFTS = gql`
+  mutation UpdateShifts($shiftId: String!, $updates: ShiftUpdates!) {
+    partialShiftUpdate(shiftId: $shiftId, updates: $updates)
+  }
+`;

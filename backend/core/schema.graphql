@@ -710,6 +710,11 @@
     userId: String
     createdById: String
   }
+
+  input ShiftUpdates {
+    startTime: String
+    endTime: String
+  }
 ###### END Events ######
 
 ###### START LotteryCounter ######
@@ -1596,6 +1601,7 @@ type Mutation {
   removeAssignment(id: String!): ID!
 
   shifts(shifts: [UpsertShift]!): [Shift]
+  partialShiftUpdate(shiftId: String!, updates: ShiftUpdates!): String
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!
   shiftAssign(id: String!, userId: String, note: String): Shift

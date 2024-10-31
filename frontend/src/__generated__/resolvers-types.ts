@@ -589,6 +589,7 @@ export type Mutation = {
   notifyUsersOfEvent?: Maybe<Scalars['Boolean']['output']>;
   notifyUsersOfShift?: Maybe<Scalars['Boolean']['output']>;
   organization?: Maybe<Organization>;
+  partialShiftUpdate?: Maybe<Scalars['String']['output']>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
   readInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
@@ -710,6 +711,12 @@ export type MutationNotifyUsersOfShiftArgs = {
 
 export type MutationOrganizationArgs = {
   organization: UpsertOrganization;
+};
+
+
+export type MutationPartialShiftUpdateArgs = {
+  shiftId: Scalars['String']['input'];
+  updates: ShiftUpdates;
 };
 
 
@@ -1615,6 +1622,11 @@ export enum ShiftStatus {
   Unassigned = 'UNASSIGNED'
 }
 
+export type ShiftUpdates = {
+  endTime?: InputMaybe<Scalars['String']['input']>;
+  startTime?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type SiteLock = {
   __typename?: 'SiteLock';
   createdAt: Scalars['String']['output'];
@@ -2201,6 +2213,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftSearchInput: ShiftSearchInput;
   ShiftSearchResult: ResolverTypeWrapper<ShiftSearchResult>;
   ShiftStatus: ShiftStatus;
+  ShiftUpdates: ShiftUpdates;
   SiteLock: ResolverTypeWrapper<SiteLock>;
   Skill: ResolverTypeWrapper<Skill>;
   SkillSearchInput: SkillSearchInput;
@@ -2346,6 +2359,7 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftReminder: ShiftReminder;
   ShiftSearchInput: ShiftSearchInput;
   ShiftSearchResult: ShiftSearchResult;
+  ShiftUpdates: ShiftUpdates;
   SiteLock: SiteLock;
   Skill: Skill;
   SkillSearchInput: SkillSearchInput;
@@ -2741,6 +2755,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   notifyUsersOfEvent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfEventArgs, 'eventId'>>;
   notifyUsersOfShift?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
+  partialShiftUpdate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationPartialShiftUpdateArgs, 'shiftId' | 'updates'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
   readInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationReadInAppNotificationsArgs>>;

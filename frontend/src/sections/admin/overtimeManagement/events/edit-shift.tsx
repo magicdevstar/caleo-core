@@ -37,6 +37,7 @@ import {
   GET_GROUPED_SHIFTS,
   NOTIFY_OF_SHIFT,
   REMOVE_SHIFT,
+  UPDATE_SHIFTS,
   UPSERT_SHIFTS
 } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
@@ -109,7 +110,7 @@ export default function EditShift({
     },
   });
 
-  const [upsertShifts, { loading: isSubmitting }] = useMutation(UPSERT_SHIFTS, {
+  const [updateShifts, { loading: isSubmittingUpdates }] = useMutation(UPDATE_SHIFTS, {
     refetchQueries: [{
       query: GET_EVENT,
       variables: {
@@ -122,6 +123,24 @@ export default function EditShift({
       }
     }, GET_GROUPED_SHIFTS],
   });
+
+  const [upsertShifts, { loading: isSubmittingUpserts }] = useMutation(UPSERT_SHIFTS, {
+    refetchQueries: [{
+      query: GET_EVENT,
+      variables: {
+        id: eventId,
+      }
+    }, {
+      query: GET_ASSIGNMENT,
+      variables: {
+        id: assignmentId,
+      }
+    }, GET_GROUPED_SHIFTS],
+  });
+
+  const isSubmitting = useMemo(() =>
+    isSubmittingUpdates || isSubmittingUpserts,
+  [isSubmittingUpdates, isSubmittingUpserts]);
 
   const [removeShift, { loading: isRemoving }] = useMutation(REMOVE_SHIFT, {
     refetchQueries: [
@@ -473,19 +492,15 @@ export default function EditShift({
                   setEndTime(newValue);
                 }
                 if (currentShifts.length > 0) {
-                  await upsertShifts({
+                  await updateShifts({
                     variables: {
-                      input: currentShifts.map((shift) => ({
-                        id: shift.id,
-                        refNumber: shift.refNumber,
-                        shiftId: shift.shiftId,
-                        eventId: shift.event.id,
-                        assignmentId: shift.assignment.id,
-                        endTime: afterEndTime ? newValue.toISOString() : shift.endTime,
+                      shiftId,
+                      updates: {
+                        endTime: afterEndTime ? newValue.toISOString() : currentShifts[0].endTime,
                         startTime: newValue.toISOString(),
-                      })),
-                    }
-                  })
+                      }
+                    },
+                  });
                 }
               }}
               slotProps={{
@@ -517,19 +532,15 @@ export default function EditShift({
                   setStartTime(newValue);
                 }
                 if (currentShifts.length > 0) {
-                  await upsertShifts({
+                  await updateShifts({
                     variables: {
-                      input: currentShifts.map((shift) => ({
-                        id: shift.id,
-                        refNumber: shift.refNumber,
-                        shiftId: shift.shiftId,
-                        eventId: shift.event.id,
-                        assignmentId: shift.assignment.id,
-                        startTime: beforeStartTime ? newValue.toISOString() : shift.startTime,
+                      shiftId,
+                      updates: {
+                        startTime: beforeStartTime ? newValue.toISOString() : currentShifts[0].startTime,
                         endTime: newValue.toISOString(),
-                      })),
-                    }
-                  })
+                      }
+                    },
+                  });
                 }
               }}
               slotProps={{

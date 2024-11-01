@@ -318,7 +318,7 @@ export class UserModel extends BaseModel<User> {
     logger.info('Skills Ids', { skillIds });
 
     // Filter shifts that the user does not have a proper rank and skill for
-    const filteredShifts = shifts.filter((shift) => {
+    const rankAndSkillFilteredShifts = shifts.filter((shift) => {
       const { requiredSkillIds, rankIds } = shift.assignment;
       const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!);
       let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
@@ -333,16 +333,26 @@ export class UserModel extends BaseModel<User> {
       return hasQualifiedRank && hasQualifiedSkills;
     });
 
-    
-    if (filteredShifts.length === 0) {
+    if (rankAndSkillFilteredShifts.length === 0) {
       return {
         total: 0,
         items: [],
       };
     }
 
-    logger.info('Filtered Skills', { filteredShifts, userId: `avail:${user.id}` });
+    // Filter out shifts that have already been assigned to this user
+    const existingAssignedShifts = await this.shifts.collection.find({
+      userId: user.id,
+      status: ShiftStatus.Assigned,
+      shiftId: {
+        $in: rankAndSkillFilteredShifts.map(({ shiftId }) => shiftId),
+      },
+    }).project({ shiftId: 1 }).toArray();
+    const existingShiftIds: string[] = existingAssignedShifts.map(({ shiftId }) => shiftId);
 
+    const filteredShifts = rankAndSkillFilteredShifts.filter((shift) => !existingShiftIds.includes(shift.shiftId));
+
+    // Find all pending shift buffers
     const myShiftBuffers = await this.shiftBufferRequests.collection.find<ShiftBufferRequest>({
       userId: user.id,
       status: ShiftBufferRequestStatus.Pending,

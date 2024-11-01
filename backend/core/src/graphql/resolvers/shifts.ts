@@ -546,14 +546,10 @@ export const shift = {
 
       const shiftUpdate = {
         userId: userId ? userId : null,
-        status: userId ? ShiftStatus.Assigned : ShiftStatus.Unassigned,
+        status: userId ? ShiftStatus.Assigned : ShiftStatus.Available,
         modifiedById: user!.id,
       };
-      await shifts.partialUpdate(id, {
-        userId: userId ? userId : null,
-        status: userId ? ShiftStatus.Assigned : ShiftStatus.Unassigned,
-        modifiedById: user!.id,
-      });
+      await shifts.partialUpdate(id, shiftUpdate);
       const updatedShift = {
         ...shift,
         ...shiftUpdate,

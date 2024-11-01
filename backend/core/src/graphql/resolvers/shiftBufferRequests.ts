@@ -4,6 +4,7 @@ import {
   ShiftBufferRequestsSearchInput,
   ShiftBufferRequest,
   ShiftBufferRequestStatus,
+  ShiftStatus,
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -110,6 +111,7 @@ export const shiftBufferRequests = {
       if (shift && status === ShiftBufferRequestStatus.Approved) {
         await shifts.update({
           ...shift,
+          status: ShiftStatus.Assigned,
           userId: request.userId,
           modifiedById: user!.id,
         });

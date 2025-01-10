@@ -5,6 +5,7 @@ import logger from '../utils/logger';
 import { createContext } from '../utils/createContext';
 import { addHours, addSeconds, setMilliseconds, setSeconds } from 'date-fns';
 import { EventStatus } from '../__generated__/resolvers-types';
+import { ObjectId } from 'mongodb';
 
 interface InputEvent {
   entries: InputEntries[];
@@ -51,7 +52,7 @@ const finalizeLottery = async (input: InputEvent): Promise<FinalizeOutput> => {
     throw new Error(`Organization ${orgId} not found`);
   }
 
-  const { counter } = await lotteryCounter.increment(orgId);
+  const { counter } = await lotteryCounter.increment(new ObjectId(orgId));
 
   // Set user tiers
   const tier1Assignments = input.entries.map(({ tier1Assignments }) => tier1Assignments).flat();
@@ -70,13 +71,13 @@ const finalizeLottery = async (input: InputEvent): Promise<FinalizeOutput> => {
 
   // Set all events as FCFS and schedule them
   const fcfsResponse = await events.collection.updateMany({
-    orgId,
+    orgId: new ObjectId(orgId),
     status: EventStatus.ReadyForLottery,
     lotteryNumber: counter - 1,
   }, {
     $set: {
       status: EventStatus.FirstComeFirstServe,
-      scheduledFirstComeFirstServe: fcfsScheduledTime.getTime(),
+      scheduledFirstComeFirstServe: fcfsScheduledTime,
     },
   });
 

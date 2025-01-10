@@ -1,15 +1,40 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { DocType, Skill } from '../__generated__/resolvers-types';
-import { BaseModel, Validations } from './base';
+import { BaseMongo, Validations } from './base.v2';
 import { GraphQLError } from 'graphql';
 import { skillErrors } from '../utils/errors';
 
-export class SkillModel extends BaseModel<Skill> {
+export interface ISkill extends Omit<
+  Skill,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  '__typename' |
+  'rankOnlyIds' |
+  'ranksOnly'
+> {
+  _id?: ObjectId;
+  id?: string;
+  orgId: ObjectId;
+  rankOnlyIds: ObjectId[];
+  modifiedById: ObjectId;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export class SkillModel extends BaseMongo<ISkill> {
   constructor(db: Db) {
     super(db, DocType.Skill, 'skills');
     this.validator = {
       create: async (doc) => {
-        const found = await this.findOne({
+        const found = await this.collection.findOne({
           name: doc.name,
           orgId: doc.orgId,
           removedAt: { $exists: false },
@@ -24,6 +49,6 @@ export class SkillModel extends BaseModel<Skill> {
           });
         }
       }
-    } as Validations<Skill>;
+    } as Validations<ISkill>;
   }
 };

@@ -32,6 +32,8 @@ import {
 } from "../../types/notifications";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import logger from "../../utils/logger";
+import { IUserSearchResult } from "../../types/common";
+import { IShift, IShiftCheckInOut } from "../../models/shift";
 
 const lambda = new LambdaClient();
 
@@ -41,7 +43,7 @@ export const shift = {
       _parent: unknown,
       { input: {limit, skip, upcoming } }: {input: AvailableShiftsSearchInput},
       { users, user, organization }: Context
-    ): Promise<SearchResults<Shift>> =>
+    ): Promise<SearchResults<IShift>> =>
       users.availableShifts({
         user: user!,
         organization: organization!,
@@ -55,12 +57,12 @@ export const shift = {
       _parent: unknown,
       { id }: { id: string },
       { shifts }: Context,
-    ): Promise<Shift | null> => shifts.get(id),
+    ): Promise<IShift | null> => shifts.get(id),
     groupedShifts: async (
       _parent: unknown,
       { shiftId }: { shiftId: string },
       { shifts, user }: Context,
-    ): Promise<Shift[] | null> => {
+    ): Promise<IShift[] | null> => {
       const { items } = await shifts.search({
         shiftId,
         orgId: user?.member.orgId!,
@@ -73,7 +75,7 @@ export const shift = {
       _parent: unknown,
       _: unknown,
       { users, user, organization }: Context
-    ): Promise<SearchResults<Shift>> => users.availableShifts({
+    ): Promise<SearchResults<IShift>> => users.availableShifts({
       user: user!,
       organization: organization!,
       upcoming: false,
@@ -82,11 +84,12 @@ export const shift = {
     shifts: async (
       _parent: unknown,
       { input }: { input: ShiftSearchInput },
-      { shifts, user }: Context
-    ): Promise<SearchResults<Shift>> => {
+      { shifts, user, users }: Context
+    ): Promise<SearchResults<IShift>> => {
+      const convertedUser = users.convertToModel(user as any);
       return shifts.dynamicSearch({
-        orgId: user?.member.orgId!,
-        requestingUser: user!,
+        orgId: new ObjectId(convertedUser?.member?.orgId!),
+        requestingUser: convertedUser!,
         ...input,
       });
     },
@@ -94,7 +97,7 @@ export const shift = {
       _parent: unknown,
       { id, name }: { id: string, name?: string },
       { users, user }: Context
-    ): Promise<UserSearchResult> => {
+    ): Promise<IUserSearchResult> => {
       adminOnly(user);
 
       const filters: { name?: string } = {};
@@ -128,7 +131,7 @@ export const shift = {
         }
       },
       { shifts, user, organization }: Context
-    ): Promise<Shift> => {
+    ): Promise<IShift> => {
       adminOnly(user);
       const shift = await shifts.get(id);
       if (!shift) {
@@ -140,6 +143,7 @@ export const shift = {
         checkInTime,
         checkOutTime,
         adminNotes,
+        user: user!,
       });
       const response = await shifts.get(id);
 
@@ -172,17 +176,17 @@ export const shift = {
         }
       }: { input: ShiftCheckInOutEvent },
       { shifts, user }: Context
-    ): Promise<Shift> => {
+    ): Promise<IShift> => {
       const shift = await shifts.get(id);
       if (!shift) {
         throw new GraphQLError("Shift not found");
       }
-      adminOrOwnerOnly(shift.userId!, user);
-      let finalTime: string | undefined;
+      adminOrOwnerOnly(shift.userId?.toString() || '', user);
+      let finalTime: Date | undefined;
       let finalAdminNote: string | undefined;
       let checkInNote: string | undefined = note || undefined;
       if (userIsAdmin(user)) {
-        finalTime = time || undefined;
+        finalTime = time ? new Date(time) : undefined;
         finalAdminNote = adminNotes || undefined;
       }
 
@@ -192,6 +196,7 @@ export const shift = {
         time: finalTime,
         checkInNote,
         adminNotes: finalAdminNote,
+        user: user!,
       });
 
       return (await shifts.get(id))!;
@@ -208,17 +213,17 @@ export const shift = {
         }
       }: { input: ShiftCheckInOutEvent },
       { shifts, user }: Context
-    ): Promise<Shift> => {
+    ): Promise<IShift> => {
       const shift = await shifts.get(id);
       if (!shift) {
         throw new GraphQLError("Shift not found");
       }
-      adminOrOwnerOnly(shift.userId!, user);
-      let finalTime: string | undefined;
+      adminOrOwnerOnly(shift.userId?.toString()!, user);
+      let finalTime: Date | undefined;
       let finalAdminNote: string | undefined;
       let checkOutNote: string | undefined = note || undefined;
       if (userIsAdmin(user)) {
-        finalTime = time || undefined;
+        finalTime = time ? new Date(time) : undefined;
         finalAdminNote = adminNotes || undefined;
       }
       await shifts.checkOut({
@@ -227,6 +232,7 @@ export const shift = {
         time: finalTime,
         checkOutNote,
         adminNotes: finalAdminNote,
+        user: user!,
       });
 
       return (await shifts.get(id))!;
@@ -265,10 +271,10 @@ export const shift = {
       await shifts.remove(id, { status: ShiftStatus.Removed });
       
       // Remove shift from assignment
-      await assignments.removeShifts(shift.assignmentId, [id], user!.id);
+      await assignments.removeShifts(shift.assignmentId, [shift._id!], user!._id!);
 
       // Remove any shift buffer requests
-      await shiftBufferRequests.removeByShiftId(id, user!.id);
+      await shiftBufferRequests.removeByShiftId(id, user!._id!);
       // TODO: If there are no more shifts then I need to remove all shift lottery requests
 
       // Update event status or update event start/end time if needed
@@ -277,9 +283,9 @@ export const shift = {
         removeId: id,
         removeType: EventRemoveEventType.shift,
         orgId: user?.member.orgId!,
-        removeStart: shift.startTime as any,
-        removeEnd: shift.endTime as any,
-        modifiedById: user!.id,
+        removeStart: shift.startTime,
+        removeEnd: shift.endTime,
+        modifiedById: user!._id!,
       });
 
       // TODO: Remove shift notifications
@@ -312,15 +318,15 @@ export const shift = {
         orgId: user?.member.orgId!,
       }, {
         status: ShiftStatus.Removed,
-        modifiedById: user!.id,
+        modifiedById: user!._id,
       });
 
       // Remove from shift
-      await assignments.removeShifts(allShifts[0].assignmentId, allShifts.map(({ id }) => id), user!.id);
+      await assignments.removeShifts(allShifts[0].assignmentId, allShifts.map(({ _id }) => _id!), user!._id!);
 
       // Remove any shift buffer requests
-      await shiftBufferRequests.removeByShiftGroupId(shiftId, user!.id);
-      await shiftLotteryRequests.removeByShiftGroupId(shiftId, user!.id);
+      await shiftBufferRequests.removeByShiftGroupId(shiftId, user!._id!);
+      await shiftLotteryRequests.removeByShiftGroupId(shiftId, user!._id!);
       
       // Set event start/end date
       const eventId = allShifts[0].eventId;
@@ -329,12 +335,12 @@ export const shift = {
         removeId: shiftId,
         removeType: EventRemoveEventType.shifts,
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
 
       // TODO: Bulk remove shift notifications
 
-      return allShifts.map(({ id }) => id);
+      return allShifts.map(({ id }) => id!);
     },
     partialShiftUpdate: async (
       _parent: unknown,
@@ -358,9 +364,9 @@ export const shift = {
       }
 
       await shifts.updateByShiftGroupId(shiftId, {
-        modifiedById: user?.id!,
-        ...(updates.startTime && { startTime: setSeconds(setMilliseconds(new Date(updates.startTime), 0), 0).getTime() }),
-        ...(updates.endTime && { endTime: setSeconds(setMilliseconds(new Date(updates.endTime), 0), 0).getTime() }),
+        modifiedById: user?._id!,
+        ...(updates.startTime && { startTime: setSeconds(setMilliseconds(new Date(updates.startTime), 0), 0) }),
+        ...(updates.endTime && { endTime: setSeconds(setMilliseconds(new Date(updates.endTime), 0), 0) }),
       });
 
       return shiftId;
@@ -376,7 +382,7 @@ export const shift = {
         shifts: shiftsModel,
         user,
       }: Context
-    ): Promise<Shift[]> => {
+    ): Promise<IShift[]> => {
       adminOnly(user);
 
       const organization = await organizations.get(user?.member.orgId!);
@@ -400,16 +406,16 @@ export const shift = {
       });
 
       const updatedShifts = shifts.map((shift, index) => {
-        const { startTime, endTime, ...rest } = shift;
-        const foundShift = existingShifts.items.find(({ id }) => id === rest.id);
+        const { id, startTime, endTime, ...rest } = shift;
+        const foundShift = existingShifts.items.find(({ id: existingId }) => existingId === id);
         let status = foundShift?.status || rest.status;
-        let createdById = rest.createdById;
+        let createdById = rest.createdById ? new ObjectId(rest.createdById) : undefined;
         if (!shift.id) {
-          createdById = user?.id!;
+          createdById = user?._id!;
           status = ShiftStatus.Available;
         }
         if (!rest.createdById) {
-          createdById = user?.id!;
+          createdById = user?._id!;
         }
         if (rest.locked) {
           status = ShiftStatus.Locked;
@@ -421,37 +427,42 @@ export const shift = {
         }
         return {
           ...rest,
+          ...(id && { _id: new ObjectId(id) }),
+          ...(rest.assignmentId && { assignmentId: new ObjectId(rest.assignmentId) }),
+          ...(rest.eventId && { eventId: new ObjectId(rest.eventId) }),
+          ...(rest.userId && { userId: new ObjectId(rest.userId) }),
           status,
           availability,
           orgId: user?.member.orgId!,
-          startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0).getTime(),
-          endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0).getTime(),
+          startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0),
+          endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0),
           createdById,
           modifiedById: user?.id!,
+          updatedAt: new Date(),
         };
       }) as any;
 
       logger.info('shifts', { updatedShifts });
 
-      const writtenShifts = await shiftsModel.bulkWrite(updatedShifts) as Shift[];
+      const writtenShifts = await shiftsModel.bulkWrite<IShift>(updatedShifts);
 
       // Add ids to assignment
-      const ids = writtenShifts.map(({ id }) => id);
-      await assignments.linkShifts(ids, assignment, user!.id);
+      const ids = writtenShifts.map(({ id }) => id!);
+      await assignments.linkShifts(ids, assignment, user!._id!);
 
       // Update any shift buffer requests
       const shiftGroupId = updatedShifts[0].shiftId;
       const startTime = updatedShifts[0].startTime;
       const endTime = updatedShifts[0].endTime;
-      await shiftBufferRequests.updateByShiftGroupId(shiftGroupId, startTime, endTime, user!.id);
+      await shiftBufferRequests.updateByShiftGroupId(shiftGroupId, startTime, endTime, user!._id!);
 
       // Update event start/end time
       await events.updateEvent({
-        eventId,
+        eventId: new ObjectId(eventId),
         removeId: shifts[0].shiftId,
         removeType: EventRemoveEventType.shiftUpdate,
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
 
       // TODO: Bulk update shift notifications
@@ -467,9 +478,8 @@ export const shift = {
         users,
         user,
         organization,
-        scheduler,
       }: Context
-    ): Promise<Shift> => {
+    ): Promise<IShift> => {
       if (userId) {
         adminOrOwnerOnly(userId, user);
       }
@@ -484,7 +494,7 @@ export const shift = {
       }
 
       if (!userId && shift.userId) {
-        adminOrOwnerOnly(shift.userId!, user);
+        adminOrOwnerOnly(shift.userId.toString(), user);
       }
 
       if (userId && shift.userId && !userIsAdmin(user)) {
@@ -500,7 +510,7 @@ export const shift = {
         const { canSignUpForShift, requiresShiftBuffer } = await shifts.canSignUpForShift({
           user: assignUser,
           shift,
-          orgId: user?.member.orgId!,
+          orgId: user?.member.orgId.toString()!,
           shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
         });
         if (!canSignUpForShift && !requiresShiftBuffer) {
@@ -520,37 +530,42 @@ export const shift = {
         }
       }
 
-      shift.userId = userId ? userId : null;
+      shift.userId = userId ? new ObjectId(userId) : null;
       shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
-      shift.modifiedById = user?.id!;
+      shift.modifiedById = user?._id!;
 
       const removingShiftUser = !userId && existingUserId;
 
-      let removedShift: Shift;
+      let removedShift: IShift;
       if (removingShiftUser) {
         // Create removed shift
-        const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
+        const {id, _id, ...createShift} = shift;
         let status = ShiftStatus.Relinquished;
         if (existingUserId !== user!.id && userIsAdmin(user)) {
           status = ShiftStatus.Unassigned;
         }
-        removedShift = await shifts.create({
+        removedShift = await shifts.create<IShift>({
           ...createShift,
           relinquishNote: note,
           status,
-          modifiedById: user?.id!,
-          removedAt: Date.now(),
-          userId: existingUserId,
-        }) as any;
+          modifiedById: user?._id!,
+          removedAt: new Date(),
+          userId: new ObjectId(existingUserId),
+        });
       }
 
       const shiftUpdate = {
-        userId: userId ? userId : null,
+        ...(userId && { userId: new ObjectId(userId) }),
         status: userId ? ShiftStatus.Assigned : ShiftStatus.Available,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       };
-      await shifts.partialUpdate(id, shiftUpdate);
-      const updatedShift = {
+      await shifts.collection.updateOne({
+        _id: new ObjectId(id),
+      }, {
+        $set: shiftUpdate,
+        ...(!userId && { $unset: { userId: '' } }),
+      });
+      const updatedShift: IShift = {
         ...shift,
         ...shiftUpdate,
       };
@@ -560,8 +575,8 @@ export const shift = {
         // Deny all open requests
         // TODO: Maybe move shift buffer request to another shift slot if one is available
         await shiftBufferRequests.denyAllOpenShiftBufferRequests({
-          shiftId: shift.id,
-          modifiedById: user?.id!,
+          shiftId: shift.id!,
+          modifiedById: user?._id!,
         });
         // Scheduler reminder notification
         await lambda.send(new InvokeCommand({
@@ -635,8 +650,8 @@ export const shift = {
         }, {
           $set: {
             'member.tier': tier,
-            'member.tierUntil': tierUntil.getTime(),
-            modifiedById: user?.id!,
+            'member.tierUntil': tierUntil,
+            modifiedById: user?._id!,
           },
         });
       }
@@ -647,34 +662,34 @@ export const shift = {
   fields: {
     Shift: {
       ...commonResolvers,
-      createdBy: (shift: Shift, _, { users }: Context) => shift.createdById ? users.loader.load(shift.createdById) : null,
-      org: (shift: Shift, _, { organizations }: Context) => organizations.loader.load(shift.orgId),
-      event: (shift: Shift, _, { events }: Context) => events.loader.load(shift.eventId),
-      assignment: (shift: Shift, _, { assignments }: Context) => assignments.loader.load(shift.assignmentId),
-      startTime: (item: Shift) => new Date(item.startTime).toISOString(),
-      endTime: (item: Shift) => new Date(item.endTime).toISOString(),
-      user: (shift: Shift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId) : null,
-      shiftInterestRequest: (shift: Shift, _, { shiftInterestRequests, user, organization }: Context) =>
+      createdBy: (shift: IShift, _, { users }: Context) => shift.createdById ? users.loader.load(shift.createdById.toString()) : null,
+      org: (shift: IShift, _, { organizations }: Context) => organizations.loader.load(shift.orgId.toString()),
+      event: (shift: IShift, _, { events }: Context) => events.loader.load(shift.eventId.toString()),
+      assignment: (shift: IShift, _, { assignments }: Context) => assignments.loader.load(shift.assignmentId.toString()),
+      startTime: (item: IShift) => new Date(item.startTime).toISOString(),
+      endTime: (item: IShift) => new Date(item.endTime).toISOString(),
+      user: (shift: IShift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId.toString()) : null,
+      shiftInterestRequest: (shift: IShift, _, { shiftInterestRequests, user, organization }: Context) =>
         shiftInterestRequests.requestLoader.load({
           userId: user?.id!,
           orgId: organization?.id!,
           shiftGroupId: shift.shiftId,
         }),
-      lotteryRequest: (shift: Shift, _, { shiftLotteryRequests, user, organization }: Context) =>
+      lotteryRequest: (shift: IShift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
           userId: user?.id!,
           orgId: organization?.id!,
           shiftGroupId: shift.shiftId,
         }),
       otherShiftSlots: (
-        shift: Shift,
+        shift: IShift,
         _,
         { shifts }: Context
       ) => shifts.loadOtherShiftSlots.load(shift.shiftId),
     },
     ShiftCheckInOut: {
-      checkInTime: (item: ShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
-      checkOutTime: (item: ShiftCheckInOut) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
+      checkInTime: (item: IShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
+      checkOutTime: (item: IShiftCheckInOut) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
     }
   },
 };

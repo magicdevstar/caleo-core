@@ -1,6 +1,8 @@
 import { Context } from "../../utils/createContext";
 import { commonResolvers } from "../../utils/common.resolvers";
-import { LotteryCounter, SearchInput } from "../../__generated__/resolvers-types";
+import { SearchInput } from "../../__generated__/resolvers-types";
+import { ILotteryCounter } from "../../models/lotteryCounter";
+import { ObjectId } from "mongodb";
 
 export const lotteryCounter = {
   Query: {
@@ -17,9 +19,10 @@ export const lotteryCounter = {
     lotteryCounters: (
       _parent: unknown,
       { input }: { input: SearchInput },
-      { lotteryCounter }: Context,
+      { lotteryCounter, user }: Context,
     ) => lotteryCounter.search({
       ...input,
+      orgId: new ObjectId(user?.member.orgId!),
       includeRemoved: true,
     }),
   },
@@ -27,8 +30,8 @@ export const lotteryCounter = {
   fields: {
     LotteryCounter: {
       ...commonResolvers,
-      start: (parent: LotteryCounter) => parent.start ? new Date(parent.start).toISOString() : null,
-      end: (parent: LotteryCounter) => parent.end ? new Date(parent.end).toISOString() : null,
+      start: (parent: ILotteryCounter) => parent.start ? parent.start.toISOString() : null,
+      end: (parent: ILotteryCounter) => parent.end ? parent.end.toISOString() : null,
     },
   },
 };

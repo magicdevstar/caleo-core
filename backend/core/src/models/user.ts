@@ -15,14 +15,12 @@ import {
   Organization,
   ProfilePhotoAttachmentUpload,
   Shift,
-  ShiftBufferRequest,
   ShiftBufferRequestStatus,
   ShiftStatus,
-  User
+  User,
 } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { AssignmentModel } from './assignment';
-import { IShift, ShiftModel } from './shift';
+import { IShift, IShiftWithAssignment, ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';
@@ -33,15 +31,19 @@ import {
   startOfWeek,
 } from 'date-fns';
 import { DocumentModel } from './document';
-import { ShiftBufferRequestModel } from './shiftBufferRequest';
+import { IShiftBufferRequest, ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
-import { ShiftInterestRequestModel } from './shiftInterestRequest';
+import { IShiftInterestRequest, ShiftInterestRequestModel } from './shiftInterestRequest';
+import { IOrganization } from './organization';
+import { BaseMongo } from './base.v2';
+import { IMemberSkill } from './memberSkill';
+import { IUser } from '../types/common';
 
 const cognito = new CognitoIdentityProviderClient({});
 
-export class UserModel extends BaseModel<User> {
+export class UserModel extends BaseMongo<IUser> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
 
@@ -59,7 +61,13 @@ export class UserModel extends BaseModel<User> {
     this.memberSkillsCollection = this.db.collection('memberSkills');
   }
 
-  async resetImpersonation(user: User) {
+  findByCognitoId(cognitoId: string) {
+    return this.collection.findOne<IUser>({
+      cognitoId,
+    });
+  }
+
+  async resetImpersonation(user: IUser) {
     try {
       const Value = user.lastName;
       const command = new AdminUpdateUserAttributesCommand({
@@ -81,7 +89,7 @@ export class UserModel extends BaseModel<User> {
     }
   }
 
-  async impersonateUser(user: User, userId: string) {
+  async impersonateUser(user: IUser, userId: string) {
     try {
       if (!user.superAdmin) throw new GraphQLError('You are not authorized to impersonate users.');
       const foundUser = this.collection.findOne({ _id: new ObjectId(userId) });
@@ -111,9 +119,11 @@ export class UserModel extends BaseModel<User> {
 
   async getAllAdmins({
     orgId,
-  }) {
-    return this.collection.find({
-      'member.orgId': orgId,
+  }: {
+    orgId: ObjectId;
+  }): Promise<IUser[]> {
+    return this.collection.find<IUser>({
+      'member.orgId': new ObjectId(orgId),
       'member.role': MemberRole.Admin,
       removedAt: { $exists: false },
     }).toArray();
@@ -150,18 +160,18 @@ export class UserModel extends BaseModel<User> {
     upcoming,
     eventTypes = [EventStatus.FirstComeFirstServe],
   }: {
-    user: User;
-    organization: Organization;
+    user: IUser;
+    organization: IOrganization;
     upcoming?: boolean;
     eventTypes?: EventStatus[];
   }) {
     let query: any = {
-      orgId: organization.id,
+      orgId: new ObjectId(organization.id),
       status: {
         $in: eventTypes,
       },
       endTime: {
-        $gte: Date.now(),
+        $gte: new Date(),
       },
       $or: [
         {
@@ -174,37 +184,37 @@ export class UserModel extends BaseModel<User> {
         },
         {
           status: EventStatus.FirstComeFirstServe,
-          scheduledFirstComeFirstServe: { $lte: Date.now() }
+          scheduledFirstComeFirstServe: { $lte: new Date() }
         },
         {
           status: EventStatus.InterestList,
-          scheduledInterestList: { $lte: Date.now() },
-          scheduledCloseInterestList: { $gte: Date.now() }
+          scheduledInterestList: { $lte: new Date() },
+          scheduledCloseInterestList: { $gte: new Date() }
         },
       ],
     };
     if (eventTypes && eventTypes.length === 1 && eventTypes[0] === EventStatus.ReadyForLottery) {
-      const lotteryCounterDoc = await this.lotteryCounter.get(organization.id);
+      const lotteryCounterDoc = await this.lotteryCounter.get(organization._id!);
       query = {
-        orgId: organization.id,
+        orgId: new ObjectId(organization.id),
         status: EventStatus.ReadyForLottery,
         lotteryNumber: lotteryCounterDoc.counter,
       };
     } else if (upcoming) {
-      const lotteryCounterDoc = await this.lotteryCounter.get(organization.id);
+      const lotteryCounterDoc = await this.lotteryCounter.get(organization._id!);
       let key = '$gte';
       if ((lotteryCounterDoc.start as any) < Date.now()) {
         key = '$gt';
       }
       query = {
-        orgId: organization.id,
+        orgId: new ObjectId(organization.id),
         $or: [
           {
             status: EventStatus.FirstComeFirstServe,
             $or: [
               {
                 scheduledFirstComeFirstServe: {
-                  $gte: Date.now(),
+                  $gte: new Date(),
                 },
               },
             ]
@@ -214,7 +224,7 @@ export class UserModel extends BaseModel<User> {
             $or: [
               {
                 scheduledInterestList: {
-                  $gte: Date.now(),
+                  $gte: new Date(),
                 },
               },
             ]
@@ -246,7 +256,7 @@ export class UserModel extends BaseModel<User> {
       {
         $match: {
           eventId: {
-            $in: events.items.map(({ id }) => id),
+            $in: events.items.map(({ _id }) => _id),
           },
           status: ShiftStatus.Available,
         },
@@ -270,13 +280,6 @@ export class UserModel extends BaseModel<User> {
         },
       },
       {
-        $addFields: {
-          assignmentId: {
-            $toObjectId: "$assignmentId",
-          },
-        },
-      },
-      {
         $lookup: {
           from: "assignments",
           localField: "assignmentId",
@@ -292,7 +295,7 @@ export class UserModel extends BaseModel<User> {
         },
       },
     ];
-    const shifts = await this.shifts.aggregate<Shift>(pipeline);
+    const shifts = await this.shifts.collection.aggregate<IShiftWithAssignment>(pipeline).toArray();
     if (shifts.length === 0) {
       return {
         total: 0,
@@ -305,22 +308,24 @@ export class UserModel extends BaseModel<User> {
     // Fetch member skills
     let skillIds: string[] = [];
     if ((user.member.memberSkillIds || []).length > 0) {
-      const skillList = await this.memberSkillsCollection.find({
-        orgId: organization.id,
+      const skillList = await this.memberSkillsCollection.find<IMemberSkill>({
+        orgId: new ObjectId(organization.id),
         _id: {
-          $in: (user.member.memberSkillIds || []).map((id) => new ObjectId(id as string)),
+          $in: user.member.memberSkillIds || [],
         },
         removedAt: { $exists: false },
       }).toArray();
-      skillIds = skillList.map(({ skillId }) => skillId);
+      skillIds = skillList.map(({ skillId }) => skillId.toString());
     }
 
     logger.info('Skills Ids', { skillIds });
 
     // Filter shifts that the user does not have a proper rank and skill for
     const rankAndSkillFilteredShifts = shifts.filter((shift) => {
-      const { requiredSkillIds, rankIds } = shift.assignment;
-      const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!);
+      const { requiredSkillIds: rawRequiredSkillIds, rankIds: rawRankIds } = shift.assignment;
+      const requiredSkillIds = rawRequiredSkillIds?.map((id) => id!.toString());
+      const rankIds = rawRankIds?.map((id) => id!.toString());
+      const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!.toString());
       let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
       if (!hasQualifiedSkills) {
         hasQualifiedSkills = (requiredSkillIds || [])?.reduce((hasAllSkills, skillId) => {
@@ -334,6 +339,7 @@ export class UserModel extends BaseModel<User> {
     });
 
     if (rankAndSkillFilteredShifts.length === 0) {
+      logger.info('No shifts found after rank and skill filtering');
       return {
         total: 0,
         items: [],
@@ -353,25 +359,26 @@ export class UserModel extends BaseModel<User> {
     const filteredShifts = rankAndSkillFilteredShifts.filter((shift) => !existingShiftIds.includes(shift.shiftId));
 
     // Find all pending shift buffers
-    const myShiftBuffers = await this.shiftBufferRequests.collection.find<ShiftBufferRequest>({
-      userId: user.id,
+    const myShiftBuffers = await this.shiftBufferRequests.collection.find<IShiftBufferRequest>({
+      userId: user._id,
       status: ShiftBufferRequestStatus.Pending,
     }).toArray();
 
-    const rejectedInterestRequests = await this.shiftInterestRequests.collection.find({
-      userId: new ObjectId(user.id),
+    const rejectedInterestRequests = await this.shiftInterestRequests.collection.find<IShiftInterestRequest>({
+      userId: user._id,
       status: ShiftBufferRequestStatus.Rejected,
       shiftGroupId: {
         $in: filteredShifts.map(({ shiftId }) => shiftId),
       },
     }).project({ _id: 1, shiftGroupId: 1 }).toArray();
     
-    const onlyAvailableShifts: Shift[] = [];
+    const onlyAvailableShifts: IShift[] = [];
     const now = Date.now();
     for(const shift of filteredShifts) {
       const foundRejectedInterest = await rejectedInterestRequests.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       const foundShiftBufferRequest = myShiftBuffers.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       if (foundShiftBufferRequest || foundRejectedInterest) {
+        logger.info('Skipping shift due to shift buffer or rejected interest request', { shift, foundShiftBufferRequest, foundRejectedInterest });
         continue;
       }
       const hasMaxHours = await this.hasMaxHours({
@@ -385,6 +392,7 @@ export class UserModel extends BaseModel<User> {
         organization,
       });
       if (hasMaxShifts || hasMaxHours) {
+        logger.info('Skipping shift due to max hours or shifts', { shift, hasMaxHours, hasMaxShifts });
         continue;
       }
       const res = await this.shifts.canSignUpForShift({
@@ -396,6 +404,8 @@ export class UserModel extends BaseModel<User> {
       shift.shiftBufferShift = res.shiftBuffer;
       if ((res.canSignUpForShift || res.requiresShiftBuffer) && (shift.endTime as any) >= now) {
         onlyAvailableShifts.push(shift);
+      } else {
+        logger.info('Skipping shift due to canSignUpForShift', { shift, res });
       }
     }
 
@@ -404,9 +414,8 @@ export class UserModel extends BaseModel<User> {
 
     return {
       total: sorted.length,
-      items: sorted.map(({ _id, assignmentId, ...rest }: any) => ({
+      items: sorted.map(({ _id, ...rest }: any) => ({
         id: _id.toString(),
-        assignmentId: assignmentId.toString(),
         ...rest,
       })),
     }
@@ -417,9 +426,9 @@ export class UserModel extends BaseModel<User> {
     shift,
     organization,
   }: {
-    user: User;
-    shift: Shift;
-    organization: Organization
+    user: User | IUser;
+    shift: IShift;
+    organization: Organization | IOrganization
   }) {
     if (!organization?.features?.monthlyMaxHours) {
       return false;
@@ -444,7 +453,7 @@ export class UserModel extends BaseModel<User> {
       shiftCheckInOut,
       ...shift
     }) => {
-      let milliseconds = endTime - startTime;
+      let milliseconds = endTime.getTime() - startTime.getTime();
       try {
         if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
           milliseconds = new Date(shiftCheckInOut.checkOutTime).getTime() - new Date(shiftCheckInOut.checkInTime).getTime();
@@ -467,9 +476,9 @@ export class UserModel extends BaseModel<User> {
     shift,
     organization,
   }: {
-    user: User;
-    shift: Shift;
-    organization: Organization
+    user: User | IUser;
+    shift: IShift;
+    organization: Organization | IOrganization
   }) {
     const weekStartsOn: any = dayMap[organization.weekBegins] - 1;
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
@@ -503,7 +512,7 @@ export class UserModel extends BaseModel<User> {
       skip?: number;
       name?: string;
     };
-    orgId: string;
+    orgId: ObjectId;
   }) {
 
     const shift = await this.shifts.get(id);
@@ -596,9 +605,11 @@ export class UserModel extends BaseModel<User> {
       }, {
         $set: {
           'member.status': status,
-          'member.inactivateUntil': null,
-          'member.inactivationNote': null,
         },
+        $unset: {
+          'member.inactivateUntil': 1,
+          'member.inactivationNote': 1,
+        }
       });
     } catch(error) {
       logger.error('Failed to reset user tier', { error });
@@ -613,37 +624,40 @@ export class UserModel extends BaseModel<User> {
     orgId: string;
   }) {
     try {
-      const setTier1Res = await this.collection.updateMany({
-        'member.orgId': orgId,
+      await this.collection.updateMany({
+        'member.orgId': new ObjectId(orgId),
         'member.tier': MemberTier.Tier_2,
         'member.tierResetOnNextLottery': true,
       }, {
         $set: {
           'member.tier': MemberTier.Tier_1,
-          'member.tierUntil': null,
           'member.tierResetOnNextLottery': false,
         },
+        $unset: {
+          'member.tierUntil': 1,
+        }
       });
-      logger.info('Set tier 1 res', { setTier1Res });
       if (tier1Assignments.length > 0) {
-        const setTier2Res = await this.collection.updateMany({
+        await this.collection.updateMany({
           'member.tier': MemberTier.Tier_1,
-          'member.orgId': orgId,
+          'member.orgId': new ObjectId(orgId),
           _id: {
             $in: tier1Assignments.map((id) => new ObjectId(id)),
           },
           $or: [
             { 'member.tierUntil': null },
+            { 'member.tierUntil': { $exists: false } },
             { 'member.tierUntil': { $lte: Date.now() } },
           ]
         }, {
           $set: {
             'member.tier': MemberTier.Tier_2,
-            'member.tierUntil': null,
             'member.tierResetOnNextLottery': true,
           },
+          $unset: {
+            'member.tierUntil': 1,
+          }
         });
-        logger.info('Set tier 2 res', { setTier2Res });
       }
     } catch(error) {
       logger.error('Failed to set tiers post lottery', { error });
@@ -652,5 +666,28 @@ export class UserModel extends BaseModel<User> {
 
   async getDownloadUrl(attachmentPath: string) {
     return this.document.getDownloadUrl(attachmentPath);
+  }
+
+  convertToModel(doc?: User): IUser | undefined {
+    if (!doc) {
+      return;
+    }
+    return {
+      ...doc,
+      _id: new ObjectId((doc as any)._id),
+      id: (doc as any)._id.toString(),
+      ...(doc.modifiedById && { modifiedById: new ObjectId(doc.modifiedById) }),
+      ...(doc.removedAt && { removedAt: new Date(doc.removedAt) }),
+      ...(doc.createdAt && { removedAt: new Date(doc.createdAt) }),
+      member: {
+        ...(doc.member!),
+        orgId: new ObjectId(doc.member!.orgId),
+        ...(doc.member!.rankId && { rankId: new ObjectId(doc.member!.rankId) }),
+        ...(doc.member!.startDate && { startDate: new Date(doc.member!.startDate) }),         
+        ...(doc.member!.tierUntil && { tierUntil: new Date(doc.member!.tierUntil) }),
+        ...(doc.member!.inactivateUntil && { inactivateUntil: new Date(doc.member!.inactivateUntil) }),
+        memberSkillIds: (doc.member!.memberSkillIds || []).map((id) => new ObjectId(id!)),
+      } as any,
+    } as unknown as IUser;
   }
 }

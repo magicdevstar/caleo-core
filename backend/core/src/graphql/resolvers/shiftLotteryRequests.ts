@@ -1,7 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import {
-  ShiftLotteryRequest,
   ShiftLotteryRequestStatus,
   ShiftLotteryRequestsSearchInput,
   ShiftLottoRequestsSearchInput,
@@ -12,6 +11,8 @@ import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
 import { ObjectId } from "mongodb";
+import { IShiftLotteryRequest } from "../../models/shiftLotteryRequest";
+import { IShift } from "../../models/shift";
 
 export const shiftLotteryRequests = {
   Query: {
@@ -22,7 +23,7 @@ export const shiftLotteryRequests = {
         user,
         shiftLotteryRequests,
       }: Context
-    ): Promise<SearchResults<ShiftLotteryRequest>> => {
+    ): Promise<SearchResults<IShiftLotteryRequest>> => {
       adminOnly(user);
       return shiftLotteryRequests.search({
         ...input,
@@ -41,10 +42,10 @@ export const shiftLotteryRequests = {
         lotteryCounter,
         organization,
       }: Context
-    ): Promise<SearchResults<ShiftLotteryRequest>> => {
+    ): Promise<SearchResults<IShiftLotteryRequest>> => {
       let searchInput: any = {
         orgId: user?.member.orgId!,
-        userId: user?.id,
+        ...(user?._id && {userId: user._id}),
         queryField: 'shiftGroupId',
         order: 'asc',
         orderBy: 'order',
@@ -62,7 +63,7 @@ export const shiftLotteryRequests = {
         }
       }
       if (!userIsAdmin(user)) {
-        const { counter } = await lotteryCounter.get(organization!.id);
+        const { counter } = await lotteryCounter.get(organization!._id!);
         searchInput.lotteryCounter = {
           $in: [counter],
         };
@@ -81,9 +82,12 @@ export const shiftLotteryRequests = {
         throw new GraphQLError('Lottery Request not found. Please try again.');
       }
 
-      adminOrOwnerOnly(foundRequest.userId, user);
+      adminOrOwnerOnly(foundRequest.userId.toString(), user);
 
-      await shiftLotteryRequests.remove(id, { modifiedById: user?.id, status: ShiftLotteryRequestStatus.Removed });
+      await shiftLotteryRequests.remove(id, {
+        modifiedById: user?._id!,
+        status: ShiftLotteryRequestStatus.Removed
+      });
       await shiftLotteryRequests.reorderShifts(foundRequest.lotteryCounter, user?.id!, id);
       return id;
     },
@@ -91,10 +95,10 @@ export const shiftLotteryRequests = {
       _parent: unknown,
       { shiftLotteryRequest }: { shiftLotteryRequest: UpsertShiftLotteryRequest },
       { shiftLotteryRequests, shifts, user, lotteryCounter, organization }: Context
-    ): Promise<ShiftLotteryRequest> => {
+    ): Promise<IShiftLotteryRequest> => {
       adminOrOwnerOnly(shiftLotteryRequest.userId, user);
 
-      const shift = await shifts.findOne({
+      const shift = await shifts.collection.findOne<IShift>({
         shiftId: shiftLotteryRequest.shiftGroupId,
         removedAt: { $exists: false },
       });
@@ -102,20 +106,21 @@ export const shiftLotteryRequests = {
         throw new GraphQLError('Shift not found');
       }
 
-      const { counter } = await lotteryCounter.get(organization!.id);
-      const highestOrderNumber = await shiftLotteryRequests.highestOrderNumber(counter, user!.id);
-      const upsertObject = {
+      const { counter } = await lotteryCounter.get(organization!._id!);
+      const highestOrderNumber = await shiftLotteryRequests.highestOrderNumber(counter, user!.id!);
+      const upsertObject: IShiftLotteryRequest = {
         status: ShiftLotteryRequestStatus.Pending,
         order: highestOrderNumber + 1,
         ...shiftLotteryRequest,
         shiftGroupId: shift.shiftId,
-        eventId: shift.eventId,
-        assignmentId: shift.assignmentId,
+        eventId: new ObjectId(shift.eventId),
+        assignmentId: new ObjectId(shift.assignmentId),
         lotteryCounter: counter,
-        orgId: shift.orgId,
-        userId: user?.id!,
-        modifiedById: user?.id!,
-      } as any;
+        orgId: new ObjectId(shift.orgId),
+        userId: user?._id!,
+        modifiedById: user?._id!,
+        id: shiftLotteryRequest.id || undefined,
+      };
 
       const res = await shiftLotteryRequests.upsert(upsertObject);
       logger.info('Upsert Res', { res });
@@ -134,7 +139,7 @@ export const shiftLotteryRequests = {
     ) => {
       adminOnly(user);
       // find available slot
-      const availableShift = await shifts.findOne({
+      const availableShift = await shifts.collection.findOne<IShift>({
         shiftId,
         status: ShiftStatus.Available,
         removedAt: { $exists: false },
@@ -161,7 +166,7 @@ export const shiftLotteryRequests = {
       const { canSignUpForShift } = await shifts.canSignUpForShift({
         user: lottoUser,
         shift: availableShift,
-        orgId: user?.member.orgId!,
+        orgId: user?.member.orgId.toString()!,
         shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
       });
 
@@ -171,13 +176,19 @@ export const shiftLotteryRequests = {
       
       try {
         availableShift.status = ShiftStatus.Assigned;
-        availableShift.userId = lottoUser.id;
-        availableShift.modifiedById = user?.id!;
-        await shifts.update(availableShift, { skipMerge: true });
+        availableShift.userId = lottoUser._id!;
+        availableShift.modifiedById = user?._id!;
+        await shifts.update({
+          ...availableShift,
+          id: availableShift.id!,
+        });
 
         foundRequest.status = ShiftLotteryRequestStatus.Approved;
-        foundRequest.modifiedById = user?.id!;
-        await shiftLotteryRequests.update(foundRequest, { skipMerge: true });
+        foundRequest.modifiedById = user?._id!;
+        await shiftLotteryRequests.update({
+          ...foundRequest,
+          id: foundRequest.id!,
+        });
 
         return true;
       } catch (error) {
@@ -198,9 +209,9 @@ export const shiftLotteryRequests = {
     ) => {
       adminOnly(user);
       // find assigned slot
-      const assignedShift = await shifts.findOne({
+      const assignedShift = await shifts.collection.findOne<IShift>({
         shiftId,
-        userId,
+        userId: new ObjectId(userId),
         status: ShiftStatus.Assigned,
         removedAt: { $exists: false },
       });
@@ -240,8 +251,11 @@ export const shiftLotteryRequests = {
         );
 
         foundRequest.status = ShiftLotteryRequestStatus.Rejected;
-        foundRequest.modifiedById = user?.id!;
-        await shiftLotteryRequests.update(foundRequest, { skipMerge: true });
+        foundRequest.modifiedById = user?._id!;
+        await shiftLotteryRequests.update({
+          ...foundRequest,
+          id: foundRequest.id!,
+        });
 
         return true;
       } catch (error) {
@@ -253,18 +267,18 @@ export const shiftLotteryRequests = {
   fields: {
     ShiftLotteryRequest: {
       ...commonResolvers,
-      org: (item: ShiftLotteryRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId),
-      event: (item: ShiftLotteryRequest, _, { events }: Context) => events.loader.load(item.eventId),
-      assignment: (item: ShiftLotteryRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
-      user: async (item: ShiftLotteryRequest, {shiftStart, timezoneOffset}: {shiftStart: string; timezoneOffset: number;}, { users }: Context) => {
-        const user = await users.loader.load(item.userId);
+      org: (item: IShiftLotteryRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId.toString()),
+      event: (item: IShiftLotteryRequest, _, { events }: Context) => events.loader.load(item.eventId.toString()),
+      assignment: (item: IShiftLotteryRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId.toString()),
+      user: async (item: IShiftLotteryRequest, {shiftStart, timezoneOffset}: {shiftStart: string; timezoneOffset: number;}, { users }: Context) => {
+        const user = await users.loader.load(item.userId.toString());
         return {
           ...user,
           shiftStart,
           timezoneOffset,
         };
       },
-      shift: (item: ShiftLotteryRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
+      shift: (item: IShiftLotteryRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
     },
   },
 };

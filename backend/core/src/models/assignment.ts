@@ -1,15 +1,52 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import uniq from 'lodash.uniq';
-import { Assignment, DocType, Organization, User } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
+import { Assignment, DocType, User } from '../__generated__/resolvers-types';
+import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
-import { ShiftModel } from './shift';
+import { IOrganization } from './organization';
+import { IUser } from '../types/common';
 
 const lambda = new LambdaClient({});
 
-export class AssignmentModel extends BaseModel<Assignment> {
+export interface IAssignment extends Omit<
+  Assignment,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  'eventId' |
+  'event' |
+  'shifts' |
+  'shiftIds' |
+  'requiredSkills' |
+  'requiredSkillIds' |
+  'ranks' |
+  'rankIds' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  userId: ObjectId;
+  orgId: ObjectId;
+  eventId: ObjectId;
+  shiftIds: ObjectId[];
+  requiredSkillIds: ObjectId[];
+  rankIds: ObjectId[];
+  modifiedById: ObjectId;
+  assignmentId: ObjectId;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export class AssignmentModel extends BaseMongo<IAssignment> {
   constructor(db: Db) {
     super(db, DocType.Assignment, 'assignments');
   }
@@ -19,11 +56,11 @@ export class AssignmentModel extends BaseModel<Assignment> {
     organization,
     user,
   }: {
-    assignment: Assignment;
-    organization: Organization;
-    user: User;
+    assignment: IAssignment;
+    organization: IOrganization;
+    user: IUser;
   }) {
-    await this.remove(assignment.id, { modifiedById: user.id });
+    await this.remove(assignment.id!, { modifiedById: user._id });
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
       InvocationType: 'Event',
@@ -39,36 +76,45 @@ export class AssignmentModel extends BaseModel<Assignment> {
     }));
   }
 
-  async linkShifts(shiftIds: string[], assignment: Assignment, modifiedById: string) {
-    const currentShiftIds = assignment.shiftIds || [];
+  async linkShifts(shiftIds: string[], assignment: IAssignment, modifiedById: ObjectId) {
+    const currentShiftIds = (assignment.shiftIds || []).map((id) => id.toString());
     const newIds = shiftIds.filter((id) => !currentShiftIds.includes(id));
     if (newIds.length > 0) {
-      const shiftIds = uniq([...currentShiftIds, ...newIds]);
-      await this.update({
-        ...assignment,
-        shiftIds,
-        modifiedById,
-      }, { skipMerge: true });
+      const shiftIds = uniq([
+        ...currentShiftIds,
+        ...newIds
+      ] as string[]).map((id) => new ObjectId(id));
+      this.collection.updateOne({ _id: new ObjectId(assignment.id) }, {
+        $set: {
+          shiftIds,
+          modifiedById: modifiedById,
+          updatedAt: new Date(),
+        },
+      });
     }
   }
 
-  async removeShifts(assignmentId: string, shiftIds: string[], modifiedById: string) {
-    const assignment = await this.get(assignmentId);
-    if (assignment) {
-      await this.update({
-        ...assignment,
-        shiftIds: (assignment.shiftIds || []).filter((sid) => !shiftIds.includes(sid as string)),
-        modifiedById,
-      } as any, { skipMerge: true });
-    }
-  }
-
-  async removeAllByEventId(orgId: string, eventId: string, modifiedById: string) {
-    const assignmentRes = await this.removeMany({
-      orgId,
-      eventId,
+  async removeShifts(assignmentId: ObjectId, shiftIds: ObjectId[], modifiedById: ObjectId) {
+    await this.collection.updateOne({
+      _id: assignmentId,
     }, {
-      modifiedById,
+      $pull: {
+        shiftIds: {
+          $in: shiftIds,
+        },
+      },
+      $set: {
+        modifiedById,
+      },
+    });
+  }
+
+  async removeAllByEventId(orgId: string, eventId: string, modifiedById: ObjectId) {
+    const assignmentRes = await this.removeMany({
+      orgId: new ObjectId(orgId),
+      eventId: new ObjectId(eventId),
+    }, {
+      modifiedById: modifiedById,
     });
 
     if (assignmentRes.modifiedCount === 0) {

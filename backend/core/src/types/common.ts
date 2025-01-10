@@ -1,5 +1,81 @@
-import { User } from "../__generated__/resolvers-types";
+import { ObjectId } from "mongodb";
+import { Member, User, UserSearchResult } from "../__generated__/resolvers-types";
 
 export interface AuthorizerContext {
-  user: User;
+  user: IUser;
+}
+
+export interface IUserSearchResult extends Omit<
+  UserSearchResult,
+  'items' 
+> {
+  items: IUser[];
+} 
+
+export interface IMember extends Omit<
+  Member,
+  'memberSkills' |
+  'memberSkillIds' |
+  'orgId' |
+  'org' |
+  'rank' |
+  'rankId' |
+  'startDate' |
+  'tierUntil' |
+  '__typename'
+> {
+  memberSkillIds: ObjectId[];
+  orgId: ObjectId;
+  rankId: ObjectId;
+  
+  startDate: Date;
+  tierUntil: Date;
+}
+
+export interface IUser extends Omit<
+  User,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'image' |
+  'member' |
+  'shiftsThisWeek' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  modifiedById: ObjectId;
+
+  member: IMember;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export interface IUser extends Omit<
+  User,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'image' |
+  'member' |
+  'shiftsThisWeek' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  modifiedById: ObjectId;
+
+  member: IMember;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
 }

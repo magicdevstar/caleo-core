@@ -4,19 +4,25 @@ import { ObjectId } from "mongodb";
 import difference from 'lodash.difference';
 import uniq from 'lodash.uniq';
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { AddressConfiguration, MessageType, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
+import { AddressConfiguration, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
 import { utcToZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
 import logger from "../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../types/mailer";
 import { Context, createContext } from "../utils/createContext";
-import { Event, Assignment, EventStatus, InAppNotificationMeta, MemberStatus, Organization, Shift, User } from "../__generated__/resolvers-types";
+import { Event, EventStatus, MemberStatus, Shift, User } from "../__generated__/resolvers-types";
 import { InAppTemplates } from "../types/inAppTemplates";
+import { IAssignment } from "../models/assignment";
+import { IOrganization } from "../models/organization";
+import { IShift, IShiftExpanded } from "../models/shift";
+import { IInAppNotificationMeta } from "../models/inAppNotifications";
+import { IUser } from "../types/common";
+import { IEvent } from "../models/event";
 
 const pinpoint = new PinpointClient({});
 
-const convertDate = (unixDate: number, organization: Organization) => {
+const convertDate = (unixDate: number | Date, organization: IOrganization) => {
   const zonedDate = utcToZonedTime(new Date(unixDate), organization?.timezone || 'America/Los_Angeles' as any);
   return {
     date: format(zonedDate, 'MM/dd/yyyy'),
@@ -96,7 +102,7 @@ const sendInAppNotification = async ({
   body: string;
   userId: string;
   orgId: string;
-  meta?: InAppNotificationMeta;
+  meta?: IInAppNotificationMeta;
 }) => {
   try {
     if (!userId) {
@@ -160,23 +166,15 @@ const sendEmail = async (input: MailerEvent) => {
     if (input.template === MailerEvents.OfficerEventRemoved) {
       const { event, organization, modifiedById } = input.data;
 
-      const allShifts = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
+      const allShifts = context.shifts.collection.aggregate<IShiftExpanded>(JSON.parse(JSON.stringify([
         {
           $match: {
-            eventId: event.id,
+            eventId: new ObjectId(event.id),
             userId: {
               $exists: true,
             },
             removedAt: { $exists: false },
           },
-        },
-        {
-          $addFields: {
-              userId: {
-                $toObjectId: "$userId",
-              },
-              assignmentId: { $toObjectId: '$assignmentId' },
-            },
         },
         {
           $lookup: {
@@ -212,15 +210,15 @@ const sendEmail = async (input: MailerEvent) => {
       ])));
 
       Addresses = {};
-      let shift: Shift | null;
+      let shift: IShiftExpanded | null;
       do {
-        shift = await allShifts.next() as any;
+        shift = await allShifts.next();
         if (shift && shift.user && shift.user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[shift.user!.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
             Substitutions: {
               'user.first_name': [shift.user!.firstName],
-              'shift.name': [shift.assignment.name],
+              'shift.name': [shift?.assignment?.name || ''],
               'event.name': [event.name],
               'system.metro_name': [organization.name],
             },
@@ -231,11 +229,11 @@ const sendEmail = async (input: MailerEvent) => {
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
             metroName: organization.name,
-            shiftName: shift!.assignment.name,
+            shiftName: shift!.assignment?.name || '',
           });
           await sendInAppNotification({
             context,
-            userId: shift!.userId!,
+            userId: shift!.userId?.toString() || '',
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -306,12 +304,12 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const bufferVenue = await context.venues.get(bufferEvent.venueId);
+      const bufferVenue = await context.venues.get(bufferEvent.venueId!);
       if (!bufferVenue) {
         logger.error('Buffer Venue not found', { input, bufferVenue });
         return;
       }
-      const venue = await context.venues.get(event.venueId);
+      const venue = await context.venues.get(event.venueId!);
       if (!venue) {
         logger.error('Venue not found', { input, venue });
         return;
@@ -328,35 +326,35 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const allAdmins: User[] = await context.users.getAllAdmins({
+      const allAdmins = await context.users.getAllAdmins({
         orgId: event.orgId,
-      }) as any[];
+      });
 
-      const shiftStart = convertDate(shift.startTime as any, organization);
-      const shiftEnd = convertDate(shift.endTime as any, organization);
-      const bufferShiftStart = convertDate(shiftBufferShift.startTime as any, organization);
-      const bufferShiftEnd = convertDate(shiftBufferShift.endTime as any, organization);
+      const shiftStart = convertDate(shift.startTime, organization);
+      const shiftEnd = convertDate(shift.endTime, organization);
+      const bufferShiftStart = convertDate(shiftBufferShift.startTime, organization);
+      const bufferShiftEnd = convertDate(shiftBufferShift.endTime, organization);
 
       const inAppPromises: Promise<any>[] = [];
       // TODO: Look up conflicting shift
       Addresses = (allAdmins || [])
-        .filter((admin: User) => {
+        .filter((admin) => {
           const { title, body } = InAppTemplates[input.template]({
             name: user.name,
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: (admin as any)?._id?.toString(),
+            userId: admin?._id?.toString() || '',
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
               shiftId: shift.shiftId,
-              venueId: new ObjectId(venue.id) as any,
-              assignmentId: new ObjectId(assignment.id) as any,
-              shiftBufferRequestId: new ObjectId(createdShiftBuffer.id) as any,
+              venueId: new ObjectId(venue.id),
+              assignmentId: new ObjectId(assignment.id),
+              shiftBufferRequestId: new ObjectId(createdShiftBuffer.id),
             },
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
@@ -366,7 +364,7 @@ const sendEmail = async (input: MailerEvent) => {
             "user.first_name": [user.firstName],
             "user.last_name":  [user.lastName],
             "admin.first_name": [admin.firstName],
-            "event.reference_number_request": [event.referenceId],
+            "event.reference_number_request": [`${event.referenceId}`],
             "event.name_request": [event.name],
             "shift.name_request": [assignment.name],
             "venue.name_request": [venue.name],
@@ -374,7 +372,7 @@ const sendEmail = async (input: MailerEvent) => {
             "event.start_time_request": [shiftStart.time],
             "event.end_date_request": [shiftEnd.date],
             "event.end_time_request": [shiftEnd.time],
-            "event.reference_number_conflict": [bufferEvent.referenceId],
+            "event.reference_number_conflict": [`${bufferEvent.referenceId}`],
             "event.name_conflict": [bufferEvent.name],
             "shift.name_conflict": [bufferAssignment.name],
             "venue.name_conflict": [bufferVenue.name],
@@ -416,7 +414,7 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const venue = await context.venues.get(event.venueId);
+      const venue = await context.venues.get(event.venueId!);
       if (!venue) {
         logger.error('Venue not found', { input, venue });
       }
@@ -433,12 +431,12 @@ const sendEmail = async (input: MailerEvent) => {
       const inAppPromises: Promise<any>[] = [];
 
       if (input.template === MailerEvents.OfficerPendingShiftApproved) {
-        const venue = await context.venues.get(event.venueId);
+        const venue = await context.venues.get(event.venueId!);
         if (venue) {
           // Check if event is fully staffed
           if (event.notifyWhenFullyStaffed) {
             const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-              eventId: event.id,
+              eventId: event._id,
               removedAt: { $exists: false },
               $or: [
                 { userId: null },
@@ -448,12 +446,12 @@ const sendEmail = async (input: MailerEvent) => {
             if (totalUnassignedShifts === 0) {
               const allAdmins = await context.users.getAllAdmins({
                 orgId: event.orgId,
-              }) as any[];
+              });
     
-              const eventStart = convertDate(event.startTime as any, organization);
-              const eventEnd = convertDate(event.endTime as any, organization);
+              const eventStart = convertDate(event.startTime!, organization);
+              const eventEnd = convertDate(event.endTime!, organization);
               const EmailAddresses = (allAdmins || [])
-                .filter((admin: User) => {
+                .filter((admin) => {
                   const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
                     eventRefNumber: event.referenceId,
                     eventName: event.name,
@@ -461,13 +459,13 @@ const sendEmail = async (input: MailerEvent) => {
                   });
                   inAppPromises.push(sendInAppNotification({
                     context,
-                    userId: (admin as any)?._id?.toString(),
+                    userId: admin?._id?.toString()!,
                     templateName: MailerEvents.AdminEventFullyStaffed,
                     orgId: organization.id,
                     title,
                     body,
                     meta: {
-                      eventId: new ObjectId(event.id) as any,
+                      eventId: new ObjectId(event.id),
                     }
                   }));
                   return admin.member.contactInfo!.primaryEmail.receiveEmails
@@ -477,7 +475,7 @@ const sendEmail = async (input: MailerEvent) => {
                     "event.name": [event.name],
                     "event.start_date": [eventStart.date],
                     "admin.first_name": [admin.firstName],
-                    "event.reference_number": [event.referenceId],
+                    "event.reference_number": [`${event.referenceId}`],
                     "venue.name": [venue.name],
                     "event.start_time": [eventStart.time],
                     "event.end_date": [eventEnd.date],
@@ -497,7 +495,7 @@ const sendEmail = async (input: MailerEvent) => {
     
               const finalAddresses = {
                 ...EmailAddresses,
-              } as any;
+              };
               if (Object.keys(finalAddresses).length > 0) {
                 await sendInChunks({
                   ...input,
@@ -510,8 +508,8 @@ const sendEmail = async (input: MailerEvent) => {
           // Check if assignment is fully staffed
           if (assignment.notifyWhenFullyStaffed) {
             const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-              eventId: event.id,
-              assignmentId: assignment.id,
+              eventId: event._id,
+              assignmentId: assignment._id,
               $or: [
                 { userId: null },
                 { userId: { $exists: false } },
@@ -521,12 +519,12 @@ const sendEmail = async (input: MailerEvent) => {
             if (totalUnassignedShifts === 0) {
               const allAdmins = await context.users.getAllAdmins({
                 orgId: event.orgId,
-              }) as any[];
+              });
     
-              const eventStart = convertDate(event.startTime as any, organization);
-              const eventEnd = convertDate(event.endTime as any, organization);
+              const eventStart = convertDate(event.startTime!, organization);
+              const eventEnd = convertDate(event.endTime!, organization);
               const EmailAddresses = (allAdmins || [])
-                .filter((admin: User) => {
+                .filter((admin) => {
                   const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
                     shiftName: assignment.name,
                     eventName: event.name,
@@ -534,14 +532,14 @@ const sendEmail = async (input: MailerEvent) => {
                   });
                   inAppPromises.push(sendInAppNotification({
                     context,
-                    userId: (admin as any)?._id?.toString(),
+                    userId: admin?._id?.toString()!,
                     templateName: MailerEvents.AdminEventShiftsFilled,
                     orgId: organization.id,
                     title,
                     body,
                     meta: {
-                      eventId: new ObjectId(event.id) as any,
-                      assignmentId: new ObjectId(assignment.id) as any,
+                      eventId: new ObjectId(event.id),
+                      assignmentId: new ObjectId(assignment.id),
                     }
                   }));
                   return admin.member.contactInfo!.primaryEmail.receiveEmails
@@ -551,7 +549,7 @@ const sendEmail = async (input: MailerEvent) => {
                     "shift.name": [assignment.name],
                     "event.name": [event.name],
                     "admin.first_name": [admin.firstName],
-                    "event.reference_number": [event.referenceId],
+                    "event.reference_number": [`${event.referenceId}`],
                     "venue.name": [venue.name],
                     "event.start_date": [eventStart.date],
                     "event.start_time": [eventStart.time],
@@ -572,7 +570,7 @@ const sendEmail = async (input: MailerEvent) => {
     
               const finalAddresses = {
                 ...EmailAddresses,
-              } as any;
+              };
               if (Object.keys(finalAddresses).length > 0) {
                 await sendInChunks({
                   ...input,
@@ -592,16 +590,16 @@ const sendEmail = async (input: MailerEvent) => {
       });
       inAppPromises.push(sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
         body,
         meta: {
-          eventId: new ObjectId(event.id) as any,
+          eventId: new ObjectId(event.id),
           shiftId: shift.shiftId,
-          assignmentId: new ObjectId(assignment.id) as any,
-          shiftBufferRequestId: new ObjectId(request.id) as any,
+          assignmentId: new ObjectId(assignment.id),
+          shiftBufferRequestId: new ObjectId(request.id),
         }
       }));
 
@@ -614,7 +612,7 @@ const sendEmail = async (input: MailerEvent) => {
               "shift.name": [assignment.name],
               "event.name": [event.name],
               "user.first_name": [user.firstName],
-              "event.reference_number": [event.referenceId],
+              "event.reference_number": [`${event.referenceId}`],
               "shift.start_date": [shiftStart.date],
               "shift.start_time": [shiftStart.time],
               "shift.end_date": [shiftEnd.date],
@@ -636,7 +634,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Event not found', { input, event });
         return;
       }
-      const venue = await context.venues.get(event.venueId);
+      const venue = await context.venues.get(event.venueId!);
       if (!venue) {
         logger.error('Venue not found', { input, venue });
         return;
@@ -654,8 +652,8 @@ const sendEmail = async (input: MailerEvent) => {
       }
 
       if (adminAssignedShift) {
-        const shiftStart = convertDate(shift.startTime as any, organization);
-        const shiftEnd = convertDate(shift.endTime as any, organization);
+        const shiftStart = convertDate(new Date(shift.startTime), organization);
+        const shiftEnd = convertDate(new Date(shift.endTime), organization);
 
         if (user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses = {
@@ -685,15 +683,15 @@ const sendEmail = async (input: MailerEvent) => {
         });
         await sendInAppNotification({
           context,
-          userId: user.id,
+          userId: user.id!,
           templateName: input.template,
           orgId: organization.id,
           title,
           body,
           meta: {
-            eventId: new ObjectId(event.id) as any,
+            eventId: new ObjectId(event.id),
             shiftId: shift.shiftId,
-            assignmentId: new ObjectId(assignment.id) as any,
+            assignmentId: new ObjectId(assignment.id),
           }
         });
       }
@@ -707,22 +705,22 @@ const sendEmail = async (input: MailerEvent) => {
       });
       inAppPromises.push(sendInAppNotification({
         context,
-        userId: user!.id,
+        userId: user!.id!,
         templateName: MailerEvents.OfficerNewShiftAssigned,
         orgId: organization.id,
         title,
         body,
         meta: {
-          eventId: new ObjectId(event.id) as any,
+          eventId: new ObjectId(event.id),
           shiftId: shift.shiftId,
-          assignmentId: new ObjectId(assignment.id) as any,
+          assignmentId: new ObjectId(assignment.id),
         }
       }));
 
       // Check if event is fully staffed
       if (event.notifyWhenFullyStaffed) {
         const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-          eventId: event.id,
+          eventId: event._id,
           removedAt: { $exists: false },
           $or: [
             { userId: null },
@@ -732,12 +730,12 @@ const sendEmail = async (input: MailerEvent) => {
         if (totalUnassignedShifts === 0) {
           const allAdmins = await context.users.getAllAdmins({
             orgId: event.orgId,
-          }) as any[];
+          });
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
           const EmailAddresses = (allAdmins || [])
-            .filter((admin: User) => {
+            .filter((admin) => {
               const { title, body } = InAppTemplates[MailerEvents.AdminEventFullyStaffed]({
                 eventRefNumber: event.referenceId,
                 eventName: event.name,
@@ -745,15 +743,15 @@ const sendEmail = async (input: MailerEvent) => {
               });
               inAppPromises.push(sendInAppNotification({
                 context,
-                userId: (admin as any)?._id?.toString(),
+                userId: admin?._id?.toString()!,
                 templateName: MailerEvents.AdminEventFullyStaffed,
                 orgId: organization.id,
                 title,
                 body,
                 meta: {
-                  eventId: new ObjectId(event.id) as any,
+                  eventId: new ObjectId(event.id),
                   shiftId: shift.shiftId,
-                  assignmentId: new ObjectId(assignment.id) as any,
+                  assignmentId: new ObjectId(assignment.id),
                 }
               }));
               return admin.member.contactInfo!.primaryEmail.receiveEmails
@@ -763,7 +761,7 @@ const sendEmail = async (input: MailerEvent) => {
                 "event.name": [event.name],
                 "event.start_date": [eventStart.date],
                 "admin.first_name": [admin.firstName],
-                "event.reference_number": [event.referenceId],
+                "event.reference_number": [`${event.referenceId}`],
                 "venue.name": [venue.name],
                 "event.start_time": [eventStart.time],
                 "event.end_date": [eventEnd.date],
@@ -783,7 +781,7 @@ const sendEmail = async (input: MailerEvent) => {
 
           const finalAddresses = {
             ...EmailAddresses,
-          } as any;
+          };
           if (Object.keys(finalAddresses).length > 0) {
             await sendInChunks({
               ...input,
@@ -796,8 +794,8 @@ const sendEmail = async (input: MailerEvent) => {
       // Check if assignment is fully staffed
       if (assignment.notifyWhenFullyStaffed) {
         const totalUnassignedShifts = await context.shifts.collection.countDocuments({
-          eventId: event.id,
-          assignmentId: assignment.id,
+          eventId: event._id,
+          assignmentId: assignment._id,
           $or: [
             { userId: null },
             { userId: { $exists: false } },
@@ -807,12 +805,12 @@ const sendEmail = async (input: MailerEvent) => {
         if (totalUnassignedShifts === 0) {
           const allAdmins = await context.users.getAllAdmins({
             orgId: event.orgId,
-          }) as any[];
+          });
 
           const eventStart = convertDate(event.startTime as any, organization);
           const eventEnd = convertDate(event.endTime as any, organization);
           const EmailAddresses = (allAdmins || [])
-            .filter((admin: User) => {
+            .filter((admin) => {
               const { title, body } = InAppTemplates[MailerEvents.AdminEventShiftsFilled]({
                 shiftName: assignment.name,
                 eventName: event.name,
@@ -820,15 +818,15 @@ const sendEmail = async (input: MailerEvent) => {
               });
               inAppPromises.push(sendInAppNotification({
                 context,
-                userId: (admin as any)?._id?.toString(),
+                userId: admin?._id?.toString()!,
                 templateName: MailerEvents.AdminEventShiftsFilled,
                 orgId: organization.id,
                 title,
                 body,
                 meta: {
-                  eventId: new ObjectId(event.id) as any,
+                  eventId: new ObjectId(event.id),
                   shiftId: shift.shiftId,
-                  assignmentId: new ObjectId(assignment.id) as any,
+                  assignmentId: new ObjectId(assignment.id),
                 }
               }));
               return admin.member.contactInfo!.primaryEmail.receiveEmails
@@ -838,7 +836,7 @@ const sendEmail = async (input: MailerEvent) => {
                 "shift.name": [assignment.name],
                 "event.name": [event.name],
                 "admin.first_name": [admin.firstName],
-                "event.reference_number": [event.referenceId],
+                "event.reference_number": [`${event.referenceId}`],
                 "venue.name": [venue.name],
                 "event.start_date": [eventStart.date],
                 "event.start_time": [eventStart.time],
@@ -859,7 +857,7 @@ const sendEmail = async (input: MailerEvent) => {
 
           const finalAddresses = {
             ...EmailAddresses,
-          } as any;
+          };
           if (Object.keys(finalAddresses).length > 0) {
             await sendInChunks({
               ...input,
@@ -889,8 +887,8 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const shiftStart = convertDate(shift.startTime as any, organization);
-      const shiftEnd = convertDate(shift.endTime as any, organization);
+      const shiftStart = convertDate(new Date(shift.startTime), organization);
+      const shiftEnd = convertDate(new Date(shift.endTime), organization);
 
       const inAppPromises: Promise<any>[] = [];
 
@@ -904,7 +902,7 @@ const sendEmail = async (input: MailerEvent) => {
               "event.name": [event.name],
               "shift.start_date": [shiftStart.date],
               "user.first_name": [user.firstName],
-              "event.reference_number": [event.referenceId],
+              "event.reference_number": [`${event.referenceId}`],
               "shift.start_time": [shiftStart.time],
               "shift.end_date": [shiftEnd.date],
               "shift.end_time": [shiftEnd.time],
@@ -920,24 +918,24 @@ const sendEmail = async (input: MailerEvent) => {
       });
       inAppPromises.push(sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
         body,
         meta: {
-          eventId: new ObjectId(event.id) as any,
+          eventId: new ObjectId(event.id),
           shiftId: shift.shiftId,
-          assignmentId: new ObjectId(assignment.id) as any,
+          assignmentId: new ObjectId(assignment.id),
         }
       }));
 
       const allAdmins = await context.users.getAllAdmins({
         orgId: event.orgId,
-      }) as any[];
+      });
 
       const EmailAddresses = (allAdmins || [])
-        .filter((admin: User) => {
+        .filter((admin) => {
           const { title, body } = InAppTemplates[MailerEvents.AdminUnassignOfficerShift]({
             eventName: event.name,
             eventRefNumber: event.referenceId,
@@ -947,15 +945,15 @@ const sendEmail = async (input: MailerEvent) => {
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: (admin as any)?._id?.toString(),
+            userId: admin?._id?.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
               shiftId: shift.shiftId,
-              assignmentId: new ObjectId(assignment.id) as any,
+              assignmentId: new ObjectId(assignment.id),
             }
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
@@ -970,7 +968,7 @@ const sendEmail = async (input: MailerEvent) => {
             'admin.first_name': [removeUser.firstName],
             'admin.unassign.first_name': [removeUser.firstName],
             'admin.unassign.last_name': [removeUser.lastName],
-            "event.reference_number": [event.referenceId],
+            "event.reference_number": [`${event.referenceId}`],
             "shift.start_time": [shiftStart.time],
             "shift.end_date": [shiftEnd.date],
             "shift.end_time": [shiftEnd.time],
@@ -1020,17 +1018,17 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const shiftStart = convertDate(shift.startTime as any, organization);
-      const shiftEnd = convertDate(shift.endTime as any, organization);
+      const shiftStart = convertDate(shift.startTime, organization);
+      const shiftEnd = convertDate(shift.endTime, organization);
 
       const allAdmins = await context.users.getAllAdmins({
         orgId: event.orgId,
-      }) as any[];
+      });
       
       const inAppPromises: Promise<any>[] = [];
 
       Addresses = (allAdmins || [])
-        .filter((admin: User) => {
+        .filter((admin) => {
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
             eventRefNumber: event.referenceId,
@@ -1040,15 +1038,15 @@ const sendEmail = async (input: MailerEvent) => {
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: (admin as any)?._id?.toString(),
+            userId: admin?._id?.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
               shiftId: shift.shiftId,
-              assignmentId: new ObjectId(assignment.id) as any,
+              assignmentId: new ObjectId(assignment.id),
             }
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
@@ -1060,7 +1058,7 @@ const sendEmail = async (input: MailerEvent) => {
             "shift.name": [assignment.name],
             "event.name": [event.name],
             "admin.first_name": [admin.firstName],
-            "event.reference_number": [event.referenceId],
+            "event.reference_number": [`${event.referenceId}`],
             "shift.start_date": [shiftStart.date],
             "shift.start_time": [shiftStart.time],
             "shift.end_date": [shiftEnd.date],
@@ -1089,23 +1087,16 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const allShifts = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
+      const allShifts = await context.shifts.collection.aggregate<IShiftExpanded>([
         {
           $match: {
-            eventId: event.id,
-            assignmentId: assignment.id,
+            eventId: event._id,
+            assignmentId: new ObjectId(assignment.id),
             userId: {
               $exists: true,
             },
             removedAt: { $exists: false },
           },
-        },
-        {
-          $addFields: {
-              userId: {
-                $toObjectId: "$userId",
-              },
-            },
         },
         {
           $lookup: {
@@ -1127,11 +1118,11 @@ const sendEmail = async (input: MailerEvent) => {
             'user.removedAt': { $exists: false },
           }
         }
-      ])));
+      ]);
 
-      let shift: Shift | null;
+      let shift: IShiftExpanded | null;
       do {
-        shift = await allShifts.next() as any;
+        shift = await allShifts.next();
         if (shift && shift.user?.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[shift.user!.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
@@ -1153,15 +1144,15 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: shift!.userId!,
+            userId: shift!.userId!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
               shiftId: shift.shiftId,
-              assignmentId: new ObjectId(assignment.id) as any,
+              assignmentId: new ObjectId(assignment.id),
             }
           });
         }
@@ -1236,15 +1227,15 @@ const sendEmail = async (input: MailerEvent) => {
       });
       await sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
         body,
         meta: {
-          eventId: new ObjectId(event.id) as any,
+          eventId: new ObjectId(event.id),
           shiftId: shift.shiftId,
-          assignmentId: new ObjectId(assignment.id) as any,
+          assignmentId: new ObjectId(assignment.id),
         }
       });
     } else if (input.template === MailerEvents.LotteryWindowClosing) {
@@ -1256,15 +1247,15 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const allUsers = await context.users.collection.find({
-        'member.orgId': orgId,
+      const allUsers = await context.users.collection.find<IUser>({
+        'member.orgId': new ObjectId(orgId),
         'member.status': MemberStatus.Active,
         removedAt: { $exists: false },
       });
 
-      let user: User | null;
+      let user: IUser | null;
       do {
-        user = await allUsers.next() as any;
+        user = await allUsers.next();
         if (user && user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[user.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
@@ -1283,7 +1274,7 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: (user as any)._id.toString(),
+            userId: user._id!.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1294,21 +1285,14 @@ const sendEmail = async (input: MailerEvent) => {
     } else if (input.template === MailerEvents.OfficerAvailableOtPosted) {
       const { orgId } = input.data;
 
-      const totalRes = await context.shifts.collection.aggregate(JSON.parse(JSON.stringify([
+      const totalRes = await context.shifts.collection.aggregate<{total: number}>([
         {
           $match: {
-            orgId,
+            orgId: new ObjectId(orgId),
             userId: {
               $ne: null,
             },
             removedAt: { $exists: false },
-          },
-        },
-        {
-          $addFields: {
-            eventId: {
-              $toObjectId: "$eventId",
-            },
           },
         },
         {
@@ -1335,7 +1319,7 @@ const sendEmail = async (input: MailerEvent) => {
         {
           $count: 'total',
         },
-      ])));
+      ]).toArray();
 
       if (totalRes?.[0]?.total === 0) {
         logger.warn('No open shifts found', { input });
@@ -1348,15 +1332,15 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const allUsers = await context.users.collection.find({
-        'member.orgId': orgId,
+      const allUsers = await context.users.collection.find<IUser>({
+        'member.orgId': new ObjectId(orgId),
         'member.status': MemberStatus.Active,
         removedAt: { $exists: false },
       });
 
-      let user: User | null;
+      let user: IUser | null;
       do {
-        user = await allUsers.next() as any;
+        user = await allUsers.next();
         if (user && user.member.contactInfo?.primaryEmail.receiveEmails) {
           Addresses[user.member.contactInfo!.primaryEmail.address] = {
             ChannelType: 'EMAIL',
@@ -1373,7 +1357,7 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: (user as any)._id.toString(),
+            userId: user._id!.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1384,7 +1368,7 @@ const sendEmail = async (input: MailerEvent) => {
     } else if (input.template === MailerEvents.OfficerFcfsShiftAvailable) {
       const { shiftId, organization } = input.data;
 
-      const shift = await context.shifts.findOne({
+      const shift = await context.shifts.collection.findOne<IShift>({
         shiftId,
         removedAt: { $exists: false },
         $and: [
@@ -1423,21 +1407,21 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const shiftStart = convertDate(shift.startTime as any, organization);
-      const shiftEnd = convertDate(shift.endTime as any, organization);
+      const shiftStart = convertDate(shift.startTime, organization);
+      const shiftEnd = convertDate(shift.endTime, organization);
 
-      const allUsers = await context.users.collection.find({
-        'member.orgId': organization.id,
+      const allUsers = await context.users.collection.find<IUser>({
+        'member.orgId': organization._id,
         'member.status': MemberStatus.Active,
         'member.rankId': { $in: assignment.rankIds },
         removedAt: { $exists: false },
       });
 
-      let user: User | null;
+      let user: IUser | null;
       do {
-        user = await allUsers.next() as any;
+        user = await allUsers.next();
         if (user) {
-          let skillIds: string[] | undefined = undefined;
+          let skillIds: ObjectId[] | undefined = undefined;
 
           // Verify user has required skills
           if (assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
@@ -1453,7 +1437,7 @@ const sendEmail = async (input: MailerEvent) => {
           const { canSignUpForShift } = await context.shifts.canSignUpForShift({
             user: {
               ...user,
-              id: (user as any)._id.toString(),
+              id: user._id!.toString()!,
             },
             shift,
             orgId: organization.id,
@@ -1473,7 +1457,7 @@ const sendEmail = async (input: MailerEvent) => {
                 "shift.start_time": [shiftStart.time],
                 "shift.end_date": [shiftEnd.date],
                 "shift.end_time": [shiftEnd.time],
-                "event.reference_number": [event.referenceId],
+                "event.reference_number": [`${event.referenceId}`],
                 "system.login_url": [`${process.env.APP_URL || ''}/dashboard/available/overtime`],
               },
             };
@@ -1486,7 +1470,7 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: (user as any)._id.toString(),
+            userId: user!._id!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1507,16 +1491,16 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const assignmentDetails: Assignment[] = await context.assignments.collection.find({
-        orgId: organization.id,
-        eventId: event.id,
+      const assignmentDetails = await context.assignments.collection.find({
+        orgId: new ObjectId(organization.id),
+        eventId: event._id,
         removedAt: { $exists: false },
-      }).project({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray() as unknown as Assignment[];
+      }).project<IAssignment>({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray();
 
       const shiftIds = await context.shifts.collection.find({
-        orgId: organization.id,
-        eventId: event.id,
-        assignmentId: { $in: assignmentDetails.map((a: any) => a._id.toString()) },
+        orgId: new ObjectId(organization.id),
+        eventId: new ObjectId(event.id),
+        assignmentId: { $in: assignmentDetails.map((a) => a._id!) },
         removedAt: { $exists: false },
         $and: [
           {
@@ -1536,30 +1520,30 @@ const sendEmail = async (input: MailerEvent) => {
             ],
           }
         ]
-      }).project({ shiftId: 1 }).toArray();
-      const uniqShiftIds = uniq(shiftIds.map((s: any) => s.shiftId));
-      const uniqRanksIds = uniq(assignmentDetails.map((a: any) => a.rankIds).flat());
+      }).project<IShift>({ shiftId: 1 }).toArray();
+      const uniqShiftIds = uniq(shiftIds.map((s) => s.shiftId));
+      const uniqRanksIds = uniq(assignmentDetails.map((a) => a.rankIds).flat());
 
-      const eventStart = convertDate(event.startTime as any, organization);
-      const eventEnd = convertDate(event.endTime as any, organization);
+      const eventStart = convertDate(event.startTime!, organization);
+      const eventEnd = convertDate(event.endTime!, organization);
 
-      const allUsers = await context.users.collection.find({
-        'member.orgId': organization.id,
+      const allUsers = await context.users.collection.find<IUser>({
+        'member.orgId': new ObjectId(organization.id),
         'member.status': MemberStatus.Active,
         'member.rankId': { $in: uniqRanksIds },
         removedAt: { $exists: false },
       });
 
-      let user: User | null;
+      let user: IUser | null;
       do {
-        user = await allUsers.next() as any;
+        user = await allUsers.next();
         if (user) {
-          let skillIds: string[] | undefined = undefined;
+          let skillIds: ObjectId[] | undefined = undefined;
           let canSignUpForAShift = false;
           for(const shiftId of uniqShiftIds) {
-            const shift = await context.shifts.findOne({
+            const shift = await context.shifts.collection.findOne<IShift>({
               shiftId,
-              orgId: organization.id,
+              orgId: new ObjectId(organization.id),
               $or: [
                 { userId: null },
                 { userId: { $exists: false } },
@@ -1570,10 +1554,10 @@ const sendEmail = async (input: MailerEvent) => {
             }
 
             // Verify user has required skills
-            const assignment = assignmentDetails.find((a: any) => a._id.toString() === shift.assignmentId);
+            const assignment = assignmentDetails.find((a) => a._id === shift.assignmentId);
             if (assignment && assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
               if (!skillIds && (user?.member?.memberSkillIds || []).length > 0) {
-                const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []).map((id) => new ObjectId(id as any)));
+                const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []).map((id) => new ObjectId(id)));
                 skillIds = mSkills.map(({ skillId }) => skillId);
               }
               if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
@@ -1584,7 +1568,7 @@ const sendEmail = async (input: MailerEvent) => {
             const { canSignUpForShift } = await context.shifts.canSignUpForShift({
               user: {
                 ...user,
-                id: (user as any)._id.toString(),
+                id: user._id!.toString(),
               },
               shift,
               orgId: organization.id,
@@ -1607,7 +1591,7 @@ const sendEmail = async (input: MailerEvent) => {
                 "system.metro_name": [organization.name],
                 "event.start_date": [eventStart.date],
                 "event.end_date": [eventEnd.date],
-                "event.reference_number": [event.referenceId],
+                "event.reference_number": [`${event.referenceId}`],
                 "system.login_url": [`${process.env.APP_URL || ''}/dashboard/available/overtime`],
               },
             };
@@ -1618,13 +1602,13 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: (user as any)._id.toString(),
+            userId: user!._id!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
             }
           });
         }
@@ -1659,19 +1643,19 @@ const sendEmail = async (input: MailerEvent) => {
      }
 
       const allAdmins = await context.users.getAllAdmins({
-        orgId,
-      }) as any[];
+        orgId: new ObjectId(orgId),
+      });
 
       const inAppPromises: Promise<any>[] = [];
       const EmailAddresses = (allAdmins || [])
-        .filter((admin: User) => {
+        .filter((admin) => {
           const { title, body } = InAppTemplates[input.template]({
             metroName: organization.name,
             name: user.name,
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: (admin as any)?._id?.toString(),
+            userId: admin!._id!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1744,7 +1728,7 @@ const sendEmail = async (input: MailerEvent) => {
       });
       await sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
@@ -1787,7 +1771,7 @@ const sendEmail = async (input: MailerEvent) => {
       const { title, body } = InAppTemplates[input.template]();
       await sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
@@ -1799,7 +1783,7 @@ const sendEmail = async (input: MailerEvent) => {
         organization,
       } = input.data;
 
-      const shifts = await context.shifts.collection.find({
+      const shifts = await context.shifts.collection.find<IShift>({
         _id: { $in: shiftIds.map((id: string) => new ObjectId(id)) },
       }).toArray();
 
@@ -1808,8 +1792,8 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const assignments = await context.assignments.collection.find({
-        _id: { $in: uniq(shifts.map((s: any) => new ObjectId(s.assignmentId))) },
+      const assignments = await context.assignments.collection.find<IAssignment>({
+        _id: { $in: uniq(shifts.map((s) => s.assignmentId)) },
       }).toArray();
 
       if (assignments.length === 0) {
@@ -1819,13 +1803,13 @@ const sendEmail = async (input: MailerEvent) => {
       const assignmentMap = assignments.reduce((obj, assignment) => {
         return {
           ...obj,
-          [assignment._id.toString()]: assignment,
+          [assignment._id!.toString()]: assignment,
         };
-      }, {});
+      }, {} as Record<string, IAssignment>);
 
-      const userIds = uniq(shifts.map((s: any) => s.userId));
-      const users = await context.users.collection.find({
-        _id: { $in: userIds.map((id: string) => new ObjectId(id)) },
+      const userIds = uniq(shifts.map((s) => s.userId)) as ObjectId[];
+      const users = await context.users.collection.find<IUser>({
+        _id: { $in: userIds },
       }).toArray();
 
       if (users.length === 0) {
@@ -1835,15 +1819,15 @@ const sendEmail = async (input: MailerEvent) => {
       const userMap = users.reduce((obj, user) => {
         return {
           ...obj,
-          [user._id.toString()]: user,
+          [user._id!.toString()]: user,
         };
-      }, {});
+      }, {} as Record<string, IUser>);
 
       const inAppPromises: Promise<any>[] = [];
       for(const shift of shifts) {
-        const { date, time } = convertDate(shift.endTime as any, organization);
-        const user = userMap[shift.userId];
-        const assignment = assignmentMap[shift.assignmentId];
+        const { date, time } = convertDate(shift.endTime, organization);
+        const user = userMap[shift.userId!.toString()];
+        const assignment = assignmentMap[shift.assignmentId.toString()];
         if (!user) {
           logger.warn('User not found', { input, shift });
           continue;
@@ -1868,20 +1852,20 @@ const sendEmail = async (input: MailerEvent) => {
         }
 
         const { title, body } = InAppTemplates[input.template]({
-          shiftName: shift.name,
+          shiftName: assignment.name,
           endTime: `${date} ${time}`,
         });
         inAppPromises.push(sendInAppNotification({
           context,
-          userId: user._id.toString(),
+          userId: user._id!.toString(),
           templateName: input.template,
           orgId: organization.id,
           title,
           body,
           meta: {
-            eventId: new ObjectId(shift.eventId) as any,
+            eventId: new ObjectId(shift.eventId),
             shiftId: shift.shiftId,
-            assignmentId: new ObjectId(shift.assignmentId) as any,
+            assignmentId: new ObjectId(shift.assignmentId),
           }
         }));
       }
@@ -1892,10 +1876,10 @@ const sendEmail = async (input: MailerEvent) => {
         shift,
         organization,
       }: {
-        originalShift: Shift,
-        shift: Shift,
-        organization: Organization,
-      } = input.data as any;
+        originalShift: IShift,
+        shift: IShift,
+        organization: IOrganization,
+      } = input.data;
 
       const user = await context.users.get(shift.userId!);
       if (!user) {
@@ -1920,14 +1904,14 @@ const sendEmail = async (input: MailerEvent) => {
       let oldInTime;
       let newInTime;
 
-      if (originalShift.shiftCheckInOut?.checkOutTime !== shift.shiftCheckInOut?.checkOutTime) {
-        oldOutTime = convertDate(originalShift.shiftCheckInOut?.checkOutTime as any, organization);
-        newOutTime = convertDate(shift.shiftCheckInOut?.checkOutTime as any, organization);
+      if (originalShift.shiftCheckInOut && originalShift.shiftCheckInOut.checkOutTime !== shift.shiftCheckInOut?.checkOutTime) {
+        oldOutTime = convertDate(originalShift.shiftCheckInOut?.checkOutTime!, organization);
+        newOutTime = convertDate(shift.shiftCheckInOut?.checkOutTime!, organization);
       }
 
-      if (originalShift.shiftCheckInOut?.checkInTime !== shift.shiftCheckInOut?.checkInTime) {
-        oldInTime = convertDate(originalShift.shiftCheckInOut?.checkInTime as any, organization);
-        newInTime = convertDate(shift.shiftCheckInOut?.checkInTime as any, organization);
+      if (originalShift.shiftCheckInOut && originalShift.shiftCheckInOut.checkInTime !== shift.shiftCheckInOut?.checkInTime) {
+        oldInTime = convertDate(originalShift.shiftCheckInOut!.checkInTime!, organization);
+        newInTime = convertDate(shift.shiftCheckInOut!.checkInTime!, organization);
       }
       const { title, body } = InAppTemplates[input.template]({
         eventName: event.name,
@@ -1941,15 +1925,15 @@ const sendEmail = async (input: MailerEvent) => {
 
       await sendInAppNotification({
         context,
-        userId: user.id,
+        userId: user.id!,
         templateName: input.template,
         orgId: organization.id,
         title,
         body,
         meta: {
-          eventId: new ObjectId(shift.eventId) as any,
+          eventId: new ObjectId(shift.eventId),
           shiftId: shift.shiftId,
-          assignmentId: new ObjectId(shift.assignmentId) as any,
+          assignmentId: new ObjectId(shift.assignmentId),
         }
       });
     } else if (input.template === MailerEvents.OfficerInterestListClosing || input.template === MailerEvents.OfficerInterestListOpening) {
@@ -1961,16 +1945,16 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      const assignmentDetails: Assignment[] = await context.assignments.collection.find({
-        orgId: organization.id,
-        eventId: event.id,
+      const assignmentDetails = await context.assignments.collection.find({
+        orgId: new ObjectId(organization.id),
+        eventId: new ObjectId(event.id),
         removedAt: { $exists: false },
-      }).project({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray() as unknown as Assignment[];
+      }).project<IAssignment>({ _id: 1, rankIds: 1, requiredSkillIds: 1 }).toArray();
 
       const shiftIds = await context.shifts.collection.find({
-        orgId: organization.id,
-        eventId: event.id,
-        assignmentId: { $in: assignmentDetails.map((a: any) => a._id.toString()) },
+        orgId: new ObjectId(organization.id),
+        eventId: new ObjectId(event.id),
+        assignmentId: { $in: assignmentDetails.map((a) => a._id) },
         removedAt: { $exists: false },
         $and: [
           {
@@ -1990,29 +1974,29 @@ const sendEmail = async (input: MailerEvent) => {
             ],
           }
         ]
-      }).project({ shiftId: 1 }).toArray();
-      const uniqShiftIds = uniq(shiftIds.map((s: any) => s.shiftId));
-      const uniqRanksIds = uniq(assignmentDetails.map((a: any) => a.rankIds).flat());
+      }).project<IShift>({ shiftId: 1 }).toArray();
+      const uniqShiftIds = uniq(shiftIds.map((s) => s.shiftId)) as string[];
+      const uniqRanksIds = uniq(assignmentDetails.map((a) => a.rankIds).flat()) as ObjectId[];
 
-      const interestClosingTime = convertDate(event.scheduledCloseInterestList as any, organization);
+      const interestClosingTime = convertDate(event.scheduledCloseInterestList!, organization);
 
-      const allUsers = await context.users.collection.find({
-        'member.orgId': organization.id,
+      const allUsers = await context.users.collection.find<IUser>({
+        'member.orgId': new ObjectId(organization.id),
         'member.status': MemberStatus.Active,
         'member.rankId': { $in: uniqRanksIds },
         removedAt: { $exists: false },
       });
 
-      let user: User | null;
+      let user: IUser | null;
       do {
-        user = await allUsers.next() as any;
+        user = await allUsers.next();
         if (user) {
-          let skillIds: string[] | undefined = undefined;
+          let skillIds: ObjectId[] | undefined = undefined;
           let canSignUpForAShift = false;
           for(const shiftId of uniqShiftIds) {
-            const shift = await context.shifts.findOne({
+            const shift = await context.shifts.collection.findOne<IShift>({
               shiftId,
-              orgId: organization.id,
+              orgId: new ObjectId(organization.id),
               $or: [
                 { userId: null },
                 { userId: { $exists: false } },
@@ -2023,10 +2007,10 @@ const sendEmail = async (input: MailerEvent) => {
             }
 
             // Verify user has required skills
-            const assignment = assignmentDetails.find((a: any) => a._id.toString() === shift.assignmentId);
+            const assignment = assignmentDetails.find((a) => a._id === shift.assignmentId);
             if (assignment && assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
               if (!skillIds && (user?.member?.memberSkillIds || []).length > 0) {
-                const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []).map((id) => new ObjectId(id as any)));
+                const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []));
                 skillIds = mSkills.map(({ skillId }) => skillId);
               }
               if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
@@ -2037,7 +2021,7 @@ const sendEmail = async (input: MailerEvent) => {
             const { canSignUpForShift } = await context.shifts.canSignUpForShift({
               user: {
                 ...user,
-                id: (user as any)._id.toString(),
+                id: user!._id!.toString(),
               },
               shift,
               orgId: organization.id,
@@ -2057,13 +2041,13 @@ const sendEmail = async (input: MailerEvent) => {
           });
           await sendInAppNotification({
             context,
-            userId: (user as any)._id.toString(),
+            userId: user!._id!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
             }
           });
         }
@@ -2083,35 +2067,35 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      if (!(event as Event).requestDetails?.startTime || !(event as Event).requestDetails?.endTime) {
+      if (!(event as IEvent).requestDetails?.startTime || !(event as IEvent).requestDetails?.endTime) {
         logger.error('Requested event start/end time not found', { input, event });
         return;
       }
 
-      const eventStart = convertDate(event.requestDetails.startTime as any, organization);
-      const eventEnd = convertDate(event.requestDetails.endTime as any, organization);
+      const eventStart = convertDate(event.requestDetails.startTime, organization);
+      const eventEnd = convertDate(event.requestDetails.endTime, organization);
 
       const allAdmins = await context.users.getAllAdmins({
-        orgId,
-      }) as any[];
+        orgId: new ObjectId(orgId),
+      });
       
       const inAppPromises: Promise<any>[] = [];
 
       Addresses = (allAdmins || [])
-        .filter((admin: User) => {
+        .filter((admin) => {
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
             eventRefNumber: event.referenceId,
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: (admin as any)?._id?.toString(),
+            userId: admin!._id!.toString(),
             templateName: input.template,
             orgId: organization.id,
             title,
             body,
             meta: {
-              eventId: new ObjectId(event.id) as any,
+              eventId: new ObjectId(event.id),
             }
           }));
           return admin.member.contactInfo?.primaryEmail.receiveEmails
@@ -2159,18 +2143,18 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
-      if (!(event as Event).requestDetails?.requestorEmail) {
+      if (!(event as IEvent).requestDetails?.requestorEmail) {
         logger.error('Requestor email not found', { input, event });
         return;
       }
 
-      if (!(event as Event).requestDetails?.startTime || !(event as Event).requestDetails?.endTime) {
+      if (!(event as IEvent).requestDetails?.startTime || !(event as IEvent).requestDetails?.endTime) {
         logger.error('Requested event start/end time not found', { input, event });
         return;
       }
 
-      const eventStart = convertDate(event.requestDetails.startTime as any, organization);
-      const eventEnd = convertDate(event.requestDetails.endTime as any, organization);
+      const eventStart = convertDate(event.requestDetails.startTime, organization);
+      const eventEnd = convertDate(event.requestDetails.endTime, organization);
       const includeRejectReason = input.template === MailerEvents.EventRequestedRejected && event.requestDetails.adminNote;
 
       Addresses = {

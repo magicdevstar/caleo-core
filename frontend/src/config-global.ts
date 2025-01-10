@@ -18,9 +18,16 @@ export const FIREBASE_API = {
 };
 
 export const AMPLIFY_API = {
-  userPoolId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_ID,
-  userPoolWebClientId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID,
-  region: process.env.REACT_APP_AWS_AMPLIFY_REGION,
+  userPoolId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_ID!,
+  userPoolWebClientId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID!,
+  region: process.env.REACT_APP_AWS_AMPLIFY_REGION!,
+  oauth: {
+    domain: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN!,
+    scope: ['email', 'openid', 'phone'],
+    responseType: 'code',
+    redirectSignOut: window.location.origin,
+    redirectSignIn: window.location.origin
+  }
 };
 
 export const AUTH0_API = {

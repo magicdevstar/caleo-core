@@ -2,13 +2,15 @@ import { Context } from "../../utils/createContext";
 import {
   CreateShiftBufferRequest,
   ShiftBufferRequestsSearchInput,
-  ShiftBufferRequest,
   ShiftBufferRequestStatus,
   ShiftStatus,
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
+import { IShiftBufferRequest } from "../../models/shiftBufferRequest";
+import { ObjectId } from "mongodb";
+import { IShift } from "../../models/shift";
 
 export const shiftBufferRequests = {
   Query: {
@@ -16,23 +18,23 @@ export const shiftBufferRequests = {
       _parent: unknown,
       { input }: {input: ShiftBufferRequestsSearchInput},
       { shiftBufferRequests, user }: Context
-    ): Promise<SearchResults<ShiftBufferRequest>> => {
+    ): Promise<SearchResults<IShiftBufferRequest>> => {
       const { startTime, endTime, userId, ...searchInput } = input;
 
       if (userId) {
         adminOrOwnerOnly(userId, user);
-        (searchInput as any).userId = userId;
+        (searchInput as any).userId = new ObjectId(userId);
       } else {
         adminOnly(user);
       }
 
       if (startTime) {
         (searchInput as any).endTime = {
-          $gte: new Date(startTime).getTime(),
+          $gte: new Date(startTime),
         };
       } else if (endTime) {
         (searchInput as any).startTime = {
-          $lte: new Date(endTime).getTime(),
+          $lte: new Date(endTime),
         };
       }
 
@@ -54,12 +56,12 @@ export const shiftBufferRequests = {
         throw new GraphQLError('Shift buffer request not found.');
       }
 
-      if (request.userId !== user?.id && !userIsAdmin(user)) {
+      if (request.userId !== user?._id! && !userIsAdmin(user)) {
         throw new GraphQLError('You do not have permission to remove this shift buffer request.');
       }
 
       await shiftBufferRequests.remove(id, {
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
       return id;
     },
@@ -67,7 +69,7 @@ export const shiftBufferRequests = {
       _parent: unknown,
       { id, status, reason }: { id: string, status: ShiftBufferRequestStatus, reason: string },
       { shiftBufferRequests, shifts, user, organization }: Context
-    ): Promise<ShiftBufferRequest> => {
+    ): Promise<IShiftBufferRequest> => {
       adminOnly(user);
 
       const request = await shiftBufferRequests.get(id);
@@ -76,7 +78,7 @@ export const shiftBufferRequests = {
       }
 
       // Check that the shift exists and is available
-      const shift = await shifts.get(request.shiftId);
+      const shift = await shifts.get(request.shiftId.toString());
       if (!shift) {
         throw new GraphQLError('The shift for this request was not found.');
       }
@@ -91,7 +93,7 @@ export const shiftBufferRequests = {
         ...request,
         status,
         reason,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       };
       await shiftBufferRequests.updateWithNotification({
         request: updatedShiftBuffer,
@@ -102,18 +104,18 @@ export const shiftBufferRequests = {
 
       // Reject all remaining requests
       await shiftBufferRequests.denyAllOpenShiftBufferRequests({
-        shiftId: request.shiftId,
+        shiftId: request.shiftId.toString(),
         ignoreIds: [id],
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
 
       // Assign user to shift
       if (shift && status === ShiftBufferRequestStatus.Approved) {
-        await shifts.update({
+        await shifts.update<any>({
           ...shift,
           status: ShiftStatus.Assigned,
           userId: request.userId,
-          modifiedById: user!.id,
+          modifiedById: user!._id!,
         });
       }
 
@@ -123,15 +125,15 @@ export const shiftBufferRequests = {
       _parent: unknown,
       { shiftBufferRequest }: { shiftBufferRequest: CreateShiftBufferRequest },
       { shiftBufferRequests, shifts, user, organization }: Context
-    ): Promise<ShiftBufferRequest> => {
+    ): Promise<IShiftBufferRequest> => {
       adminOrOwnerOnly(shiftBufferRequest.userId, user);
 
-      const foundShiftBuffer = await shiftBufferRequests.findOne({
-        shiftId: shiftBufferRequest.shiftId,
-        userId: user?.id,
+      const foundShiftBuffer: IShiftBufferRequest = await shiftBufferRequests.collection.findOne({
+        shiftId: new ObjectId(shiftBufferRequest.shiftId),
+        userId: user?._id!,
         status: ShiftBufferRequestStatus.Pending,
         removedAt: { $exists: false },
-      });
+      }) as unknown as IShiftBufferRequest;
 
       if (foundShiftBuffer) {
         return foundShiftBuffer;
@@ -159,14 +161,14 @@ export const shiftBufferRequests = {
   fields: {
     ShiftBufferRequest: {
       ...commonResolvers,
-      startTime: (item: ShiftBufferRequest) => new Date(item.startTime).toISOString(),
-      endTime: (item: ShiftBufferRequest) => new Date(item.endTime).toISOString(),
-      org: (item: ShiftBufferRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId),
-      event: (item: ShiftBufferRequest, _, { events }: Context) => events.loader.load(item.eventId),
-      assignment: (item: ShiftBufferRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId),
-      user: (item: ShiftBufferRequest, _, { users }: Context) => users.loader.load(item.userId),
-      shift: (item: ShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftId),
-      shiftBufferShift: (item: ShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftBufferShiftId),
+      startTime: (item: IShiftBufferRequest) => new Date(item.startTime).toISOString(),
+      endTime: (item: IShiftBufferRequest) => new Date(item.endTime).toISOString(),
+      org: (item: IShiftBufferRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId.toString()),
+      event: (item: IShiftBufferRequest, _, { events }: Context) => events.loader.load(item.eventId.toString()),
+      assignment: (item: IShiftBufferRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId.toString()),
+      user: (item: IShiftBufferRequest, _, { users }: Context) => users.loader.load(item.userId.toString()),
+      shift: (item: IShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftId.toString()),
+      shiftBufferShift: (item: IShiftBufferRequest, _, { shifts }: Context) => shifts.loader.load(item.shiftBufferShiftId.toString()),
     },
   },
 };

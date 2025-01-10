@@ -1,16 +1,43 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import {
   DocType,
-  UpsertVenue,
   UpsertVenueContact,
   Venue,
-  VenueContract
+  VenueContact,
+  VenueContract,
+  VenueStatus
 } from '../__generated__/resolvers-types';
-import { BaseModel, Validations } from './base';
-import { GraphQLError } from 'graphql';
-import { venueErrors } from '../utils/errors';
+import { BaseMongo } from './base.v2';
 
-export interface IVenueContract extends Omit<VenueContract, 'expirationDate'> {
+export interface IIVenue {
+  address: string;
+  city?: string;
+  contact?: IVenueContact;
+  contract?: IVenueContract;
+  createdAt: Date;
+  _id: ObjectId | string;
+  id?: string;
+  modifiedById?: ObjectId | string;
+  name: string;
+  notes?: string;
+  orgId: ObjectId | string;
+  phone?: string;
+  removedAt?: Date;
+  state?: string;
+  status?: VenueStatus;
+  updatedAt: Date;
+  zip?: string;
+}
+
+export interface IVenueContact extends Omit<
+  VenueContact,
+  '__typename'
+> {}
+
+export interface IVenueContract extends Omit<
+  VenueContract,
+  'expirationDate'
+> {
   expirationDate: Date;
 }
 
@@ -22,30 +49,34 @@ export interface IUpsertVenueContract extends Omit<UpsertVenueContact, 'expirati
   expirationDate: Date;
 }
 
-export interface IUpsertVenue extends Omit<UpsertVenue, 'contract'> {
-  contract?: IUpsertVenueContract;
-}
-
-export class VenueModel extends BaseModel<Venue> {
+export class VenueModel extends BaseMongo<IIVenue> {
   constructor(db: Db) {
     super(db, DocType.Venue, 'venues');
-    this.validator = {
-      create: async (doc) => {
-        const found = await this.findOne({
-          name: doc.name,
-          orgId: doc.orgId,
-          removedAt: { $exists: false }
-        });
-  
-        if (found) {
-          throw new GraphQLError('Venue name must be unique', {
-            extensions: {
-              code: venueErrors.NAME_MUST_BE_UNIQUE,
-              argumentName: 'name',
-            },
-          });
-        }
+  }
+
+  async approveVenue(venueId: ObjectId | string, modifiedById: ObjectId) {
+    await this.collection.updateOne(
+      { _id: typeof venueId === 'string' ? new ObjectId(venueId) : venueId },
+      {
+        $set: {
+          status: VenueStatus.Active,
+          modifiedById,
+          updatedAt: new Date()
+        },
       }
-    } as Validations<Venue>;
+    );
+  }
+
+  async rejectVenue(venueId: ObjectId | string, modifiedById: ObjectId) {
+    await this.collection.updateOne(
+      { _id: typeof venueId === 'string' ? new ObjectId(venueId) : venueId },
+      {
+        $set: {
+          status: VenueStatus.Inactive,
+          modifiedById,
+          updatedAt: new Date()
+        },
+      }
+    );
   }
 };

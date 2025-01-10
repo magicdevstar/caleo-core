@@ -1,8 +1,11 @@
-import { Event, Venue, VenueStatus } from "../__generated__/resolvers-types";
+import { ObjectId } from "mongodb";
+import { VenueStatus } from "../__generated__/resolvers-types";
+import { IEvent } from "../models/event";
 import { MailerEvents } from "../types/mailer";
 import { createContext } from "../utils/createContext";
 import logger from "../utils/logger";
 import { APIGatewayEvent } from "aws-lambda";
+import { IIVenue } from "../models/venue";
 
 export const handler = async (inputEvent: APIGatewayEvent) => {
   try {
@@ -31,19 +34,19 @@ export const handler = async (inputEvent: APIGatewayEvent) => {
       };
     }
 
-    let venueId = event.venueId;
+    let venueId = new ObjectId(event.venueId);
     if (!venueId) {
-      venue.orgId = orgId;
+      venue.orgId = new ObjectId(orgId);
       venue.status = VenueStatus.Requested;
-      const finalVenue: Venue = await context.venues.create(venue);
-      venueId = finalVenue.id;
+      const finalVenue: IIVenue = await context.venues.create(venue);
+      venueId = finalVenue._id as ObjectId;
     }
 
-    event.orgId = orgId;
+    event.orgId = new ObjectId(orgId);
     event.referenceId = await context.eventReferenceNumber.get(orgId);
     event.searchAttribute = `${event.referenceId} ${event.name}`;
     event.venueId = venueId;
-    const finalEvent: Event = await context.events.create(event);
+    const finalEvent: IEvent = await context.events.create(event);
 
     Promise.all([
       await context.events.sendEventRequestMailerEvent({

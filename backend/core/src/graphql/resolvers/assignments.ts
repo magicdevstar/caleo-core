@@ -1,9 +1,11 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { Assignment, UpsertAssignment, AssignmentSearchInput } from "../../__generated__/resolvers-types";
+import { AssignmentSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { EventRemoveEventType } from "../../models/event";
+import { ObjectId } from "mongodb";
+import { IAssignment } from "../../models/assignment";
 
 export const assignments = {
   Query: {
@@ -11,12 +13,12 @@ export const assignments = {
       _parent: unknown,
       { id }: { id: string },
       { assignments }: Context,
-    ): Promise<Assignment | null> => assignments.get(id, { removed: true }),
+    ): Promise<IAssignment | null> => assignments.get(id, { removed: true }),
     assignments: async (
       _parent: unknown,
       { input: {limit, skip, ...input} }: {input: AssignmentSearchInput},
       { assignments, user }: Context
-    ): Promise<SearchResults<Assignment>> => assignments.search({
+    ): Promise<SearchResults<IAssignment>> => assignments.search({
       limit,
       skip,
       ...input,
@@ -54,8 +56,8 @@ export const assignments = {
       // await shifts.removeAllByAssignmentId(user?.member.orgId!, id);
 
       // Remove shift buffer requests
-      await shiftBufferRequests.removeByAssignmentId(id, user!.id);
-      await shiftLotteryRequests.removeByAssignmentId(id, user!.id);
+      await shiftBufferRequests.removeByAssignmentId(id, user!._id!);
+      await shiftLotteryRequests.removeByAssignmentId(id, user!._id!);
 
       // Remove assignmentId from event and update status if needed
       await events.updateEvent({
@@ -63,50 +65,46 @@ export const assignments = {
         removeId: id,
         removeType: EventRemoveEventType.assignment,
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
 
       return id;
     },
     assignment: async (
       _parent: unknown,
-      { assignment }: { assignment: UpsertAssignment },
+      { assignment }: { assignment: IAssignment },
       { assignments, events, user }: Context
-    ): Promise<Assignment> => {
+    ): Promise<IAssignment> => {
       adminOnly(user);
 
-      const event = await events.get(assignment.eventId);
+      const event = await events.get(assignment.eventId.toString());
       if (!event) {
         throw new GraphQLError("Event not found");
       }
 
-      let updatedAssignment: Assignment;
+      let updatedAssignment: IAssignment;
       if (assignment.id) {
         const currentAssignment = await assignments.get(assignment.id);
         if (!currentAssignment) {
           throw new GraphQLError("Assignment not found");
         }
-        updatedAssignment = await assignments.update({
-          ...currentAssignment,
-          ...assignment,
-          modifiedById: user!.id,
-        } as any, { skipMerge: true });
-      } else {
-        updatedAssignment = await assignments.upsert({
-          ...assignment,
-          createdById: user!.id,
-          orgId: user?.member.orgId!,
-          modifiedById: user!.id,
-        } as any);
-      }
+      } 
 
+      updatedAssignment = await assignments.upsert({
+        ...assignment,
+        ...(assignment.eventId && { eventId: new ObjectId(assignment.eventId) }),
+        ...(assignment.requiredSkillIds && { requiredSkillIds: assignment.requiredSkillIds.map((id) => new ObjectId(id)) }),
+        ...(assignment.rankIds && { rankIds: assignment.rankIds.map((id) => new ObjectId(id)) }),
+        orgId: new ObjectId(user?.member.orgId!),
+        modifiedById: new ObjectId(user!.id),
+      });
 
       if (!assignment.id) {
-        await events.update({
-          ...event,
-          assignmentIds: [...(event.assignmentIds || []), updatedAssignment.id],
-          modifiedById: user!.id,
-        } as any, { skipMerge: true });
+        await events.addAssignmentId(
+          event._id!,
+          updatedAssignment._id!,
+          new ObjectId(user!.id)
+        );
       }
 
       return updatedAssignment;
@@ -115,12 +113,12 @@ export const assignments = {
   fields: {
     Assignment: {
       ...commonResolvers,
-      org: (assignment: Assignment, _, { organizations }: Context) => organizations.loader.load(assignment.orgId),
-      event: (assignment: Assignment, _, { events }: Context) => events.loader.load(assignment.eventId),
-      requiredSkills: (assignment: Assignment, _, { skills }: Context) => skills.loader.loadMany((assignment.requiredSkillIds || []) as any),
-      ranks: (assignment: Assignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []) as any),
-      shifts: (assignment: Assignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []) as any),
-      availableShifts: async (item: Assignment, _arg: unknown, { shifts }: Context) => shifts.assignmentShiftCount.load(item.id),
+      org: (assignment: IAssignment, _, { organizations }: Context) => organizations.loader.load(assignment.orgId.toString()),
+      event: (assignment: IAssignment, _, { events }: Context) => events.loader.load(assignment.eventId.toString()),
+      requiredSkills: (assignment: IAssignment, _, { skills }: Context) => skills.loader.loadMany((assignment.requiredSkillIds || []).map((id) => id.toString())),
+      ranks: (assignment: IAssignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []).map((id) => id.toString())),
+      shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
+      availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.assignmentShiftCount.load(item.id?.toString()!),
     },
   },
 };

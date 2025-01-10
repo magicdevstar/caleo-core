@@ -1,6 +1,5 @@
-import { AnyBulkWriteOperation, Collection, Db, ObjectId, UpdateResult } from "mongodb";
+import { Collection, Db, ObjectId, UpdateResult } from "mongodb";
 import DataLoader from 'dataloader';
-import merge from 'lodash.merge';
 import { DocType } from "../__generated__/resolvers-types";
 import { GraphQLError } from "graphql";
 import logger from "../utils/logger";
@@ -8,6 +7,12 @@ import { SearchResults } from "../utils/common.resolvers";
 
 export interface InputModel {
   orgId: ObjectId;
+  modifiedById: ObjectId | string;
+  createdById?: ObjectId | string;
+}
+
+interface IBulkWriteInput extends InputModel {
+  _id?: ObjectId;
 }
 
 interface UpdateModel extends InputModel {
@@ -36,6 +41,7 @@ export class BaseMongo<T> {
     protected db: Db,
     private docType: DocType,
     private collectionName: string = process.env.MONGODB_COLLECTION!,
+    protected validator: Validations<T> = {},
   ) {
     this.collection = this.db.collection(this.collectionName);
     this.typeName = docType.charAt(0).toUpperCase() + this.docType.slice(1).toLowerCase();
@@ -50,14 +56,18 @@ export class BaseMongo<T> {
       updatedAt: now,
     };
 
+    if (this.validator.create) {
+      await this.validator.create(insertDoc as any);
+    }
+
     const res = await this.collection.insertOne(insertDoc);
 
     const createdDoc = {
       ...insertDoc,
       _id: res.insertedId,
       id: res.insertedId.toString(),
-      createdAt: now as any,
-      updatedAt: now as any,
+      createdAt: now,
+      updatedAt: now,
     } as T;
     return createdDoc;
   }
@@ -73,19 +83,8 @@ export class BaseMongo<T> {
     } as T));
   }
 
-  async find(query: any, { includedRemoved = false } = {}): Promise<T[]> {
-    const res = await this.collection.find({
-      ...query,
-      ...(includedRemoved ? {} : { removedAt: { $exists: false } }),
-    }).toArray();
-    return res.map((item) => ({
-      ...item,
-      id: item._id.toString(),
-    } as T));
-  }
-
   async get(
-    id: string,
+    id: string | ObjectId,
     { removed = false } = {}
   ): Promise<T | null> {
     const res = await this.collection.findOne({
@@ -101,109 +100,95 @@ export class BaseMongo<T> {
     } as T;
   }
 
-  async bulkWrite<T extends UpdateModel>(items: T[]): Promise<T[]> {
+  async update<T extends UpdateModel>({id, ...item}: T, unset?: any): Promise<T> {
     const now = new Date();
-
-    const bulkDocs = items.map((item) => {
-      if (item.id) {
-        const { id, ...restOfItem } = item;
-        return {
-          updateOne: {
-            filter: { _id: new ObjectId(id) },
-            update: {
-              $set: {
-                ...restOfItem,
-                docType: this.docType,
-                updatedAt: now as any,
-              }
-            },
-          }
-        }
-      }
-      return {
-        insertOne: {
-          document: {
-            ...item,
-            docType: this.docType,
-            updatedAt: now as any,
-          }
-        },
-      };
-    }) as any;
-    const updateRes = await this.collection.bulkWrite(bulkDocs);
-
-    return bulkDocs.map((doc) => {
-      if (doc.updateOne) {
-        return {
-          ...doc.updateOne.update.$set,
-          id: doc.updateOne.filter._id.toString(),
-        };
-      }
-      const { _id: id, ...rest } = doc.insertOne.document;
-      return {
-        ...rest,
-        id: id.toString(),
-      };
-    });
-  }
-
-  async update<T extends UpdateModel>(item: T, options: { skipMerge?: boolean } = {}): Promise<T> {
-    const now = new Date();
-
-    let updateDoc: T = item;
-    if (!options.skipMerge) {
-      const existingDoc = await this.get(item.id!);
-  
-      if (!existingDoc) {
-        throw new GraphQLError(`${this.typeName} not found`, {
-          extensions: {
-            code: `${this.docType}_NOT_FOUND`,
-            argumentName: 'id',
-          },
-        });
-      }
-  
-      updateDoc = merge(existingDoc, item, {
-        docType: this.docType,
-        updatedAt: now as any,
-      }) as T;
-    }
-    const { id, ...upDoc } = updateDoc;
-
-    await this.collection.updateOne({ _id: new ObjectId(id) }, { $set: upDoc });
-    return updateDoc;
-  }
-
-  async replace<T extends UpdateModel>(item: T): Promise<T> {
-    const now = new Date();
-
-    let updateDoc: T = item;
-    const { id, ...upDoc } = updateDoc;
-
-    await this.collection.replaceOne({ _id: new ObjectId(id) }, {
-      ...upDoc,
+    const updateDoc = {
+      ...item,
       updatedAt: now,
+    };
+
+    const res = await this.collection.updateOne({
+      _id: new ObjectId(id),
+    }, {
+      $set: updateDoc,
+      ...(unset && { $unset: unset }),
     });
 
-    return updateDoc;
+    if (res.modifiedCount === 0) {
+      throw new GraphQLError(`${this.typeName} not found`);
+    }
+
+    return {id, ...updateDoc} as unknown as T;
   }
 
   async upsert<T extends UpsertModel>(item: T): Promise<T> {
+    if (typeof item.modifiedById === 'string') {
+      item.modifiedById = new ObjectId(item.modifiedById);
+    }
     if (!item.id) {
-      (item as any).createdById = (item as any).modifiedById;
+      item.createdById = item.modifiedById;
       return this.create(item);
     }
     return this.update(item as UpdateModel) as Promise<T>;
   }
 
   async remove(id: string, setValues?: any): Promise<void> {
+    const now = new Date();
     await this.collection.updateOne({
       _id: new ObjectId(id)
     }, {
       $set: {
         removedAt: new Date(),
+        updatedAt: new Date(),
         ...(setValues || {})
       },
+    });
+  }
+
+  async bulkWrite<T extends IBulkWriteInput>(items: T[]): Promise<T[]> {
+    const now = new Date();
+    const bulkDocs = items.map((item) => {
+      if (item._id) {
+        return {
+          updateOne: {
+            filter: { _id: item._id },
+            update: {
+              $set: {
+                ...item,
+                docType: this.docType,
+                updatedAt: now,
+              }
+            },
+          }
+        };
+      }
+      return {
+        insertOne: {
+          document: {
+            ...item,
+            docType: this.docType,
+            updatedAt: now,
+            createdAt: now,
+          },
+        },
+      };
+    });
+
+    await this.collection.bulkWrite(bulkDocs);
+
+    return bulkDocs.map((item) => {
+      if (item.updateOne) {
+        return {
+          ...item.updateOne.update.$set,
+          _id: item.updateOne.filter._id,
+          id: item.updateOne.filter._id.toString(),
+        };
+      }
+      return {
+        ...item.insertOne.document,
+        // This is added by mongo after the bulk write is complete :)
+        id: (item.insertOne.document as any)._id.toString(),
+      }
     });
   }
 
@@ -277,9 +262,11 @@ export class BaseMongo<T> {
   }
 
   async removeMany(filter: any, setValues?: any): Promise<UpdateResult<Document>> {
+    const now = new Date();
     return this.collection.updateMany(filter, {
       $set: {
-        removedAt: new Date(),
+        removedAt: now,
+        updatedAt: now,    
         ...(setValues || {}),
       },
     });

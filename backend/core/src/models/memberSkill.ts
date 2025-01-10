@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import uniq from 'lodash.uniq';
@@ -8,7 +8,6 @@ import {
   MemberSkillAttachmentUpload,
   Organization,
   SkillStatus,
-  UpsertMemberSkill,
 } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import { UserModel } from './user';
@@ -17,27 +16,53 @@ import logger from '../utils/logger';
 import { DocumentModel } from './document';
 import { SkillModel } from './skill';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { BaseMongo } from './base.v2';
+import { IUser } from '../types/common';
+import { IOrganization } from './organization';
 
 const lambda = new LambdaClient({});
 
-interface InputDocModel extends UpsertMemberSkill {
+export interface IMemberSkill extends Omit<
+  MemberSkill,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  'userId' |
+  'user' |
+  'skillId' |
+  'skill' |
+  '__typename'
+> {
+  _id?: ObjectId;
   id?: string;
-  orgId: string;
+  orgId: ObjectId;
+  userId: ObjectId;
+  skillId: ObjectId;
+  modifiedById: ObjectId;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
 }
 
-export class MemberSkillModel extends BaseModel<MemberSkill> {
+export class MemberSkillModel extends BaseMongo<IMemberSkill> {
   documentBasePath: string = 'memberSkills';
   constructor(db: Db, private users: UserModel, private document: DocumentModel, private skills: SkillModel) {
     super(db, DocType.MemberSkill, 'memberSkills');
   }
 
-  async upsertDoc(item: InputDocModel, organization: Organization): Promise<MemberSkill> {
-    const user = await this.users.get(item.userId);
+  async upsertDoc(item: IMemberSkill, organization: IOrganization): Promise<IMemberSkill> {
+    const user = await this.users.get(item.userId.toString());
     if (!user) {
       throw new GraphQLError('User not found');
     }
 
-    const skill = await this.skills.get(item.skillId);
+    const skill = await this.skills.get(item.skillId.toString());
     if (!skill) {
       throw new GraphQLError('Skill not found');
     }
@@ -48,18 +73,18 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
       item.status = SkillStatus.Approved;
     }
 
-    const res = await super.upsert(item) as MemberSkill;
+    const res = await super.upsert(item) as IMemberSkill;
 
-    await this.users.update({
-      ...user,
-      member: {
-        ...user.member,
-        memberSkillIds: uniq([
-          ...user.member?.memberSkillIds || [],
-          res.id,
-        ]),
+    await this.users.collection.updateOne({
+      _id: user._id,
+    }, {
+      $set: {
+        modifiedById: new ObjectId(item.modifiedById),
       },
-    } as any);
+      $push: {
+        'member.memberSkillIds': res._id,
+      }
+    });
 
     if (
       item.status === SkillStatus.Approved ||
@@ -86,32 +111,30 @@ export class MemberSkillModel extends BaseModel<MemberSkill> {
     return res;
   }
 
-  async removeDoc(id: string, modifiedById: string): Promise<void> {
+  async removeDoc(id: string, modifiedById: ObjectId): Promise<void> {
     const memberSkill = await this.get(id);
     if (!memberSkill) {
       throw new GraphQLError('MemberSkill not found');
     }
 
-    const user = await this.users.get(memberSkill.userId);
+    const user = await this.users.get(memberSkill.userId.toString());
     if (!user) {
       throw new GraphQLError('User not found');
     }
 
-    logger.info('User Before', { user });
-    await this.users.update({
-      ...user,
-      modifiedById,
-      member: {
-        ...user.member,
-        memberSkillIds: (user.member?.memberSkillIds || [])
-          .filter((id) => id !== memberSkill.id),
+    await this.users.collection.updateOne({
+      _id: user._id,
+    }, {
+      $set: {
+        modifiedById,
       },
-    } as any,{
-      skipMerge: true,
+      $pull: {
+        'member.memberSkillIds': memberSkill._id,
+      }
     });
 
     await super.remove(id, {
-      modifiedById
+      modifiedById,
     });
   }
 

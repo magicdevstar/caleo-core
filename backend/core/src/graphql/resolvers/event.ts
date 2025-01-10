@@ -2,11 +2,10 @@ import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import {
   EventSearchInput,
-  Event,
-  UpsertEvent,
   EventStatus,
   EventAttachmentUpload,
-  VenueStatus
+  VenueStatus,
+  DocType
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -14,6 +13,8 @@ import logger from "../../utils/logger";
 import { format, setMilliseconds, addMinutes, setSeconds, isAfter, subHours } from "date-fns";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { MailerEvents } from "../../types/mailer";
+import { IEvent, IUpsertEvent } from "../../models/event";
+import { ObjectId } from "mongodb";
 
 export const event = {
   Query: {
@@ -21,12 +22,12 @@ export const event = {
       _parent: unknown,
       { id }: { id: string },
       { events }: Context,
-    ): Promise<Event | null> => events.get(id, { removed: true }),
+    ): Promise<IEvent | null> => events.get(id, { removed: true }),
     events: async (
       _parent: unknown,
       { input: { range, endTime, createdById, status, referenceIds, venueIds, ...input } }: { input: EventSearchInput },
       { events, lotteryCounter, organization, user }: Context
-    ): Promise<SearchResults<Event>> => {
+    ): Promise<SearchResults<IEvent>> => {
       let timeFilters: any = {};
       const $or: any[] = [];
 
@@ -34,7 +35,7 @@ export const event = {
         (input as any).referenceId = { $in: referenceIds };
       }
       if (venueIds) {
-        (input as any).venueId = { $in: venueIds };
+        (input as any).venueId = { $in: venueIds.map((id) => new ObjectId(id!)) };
       }
 
       const includeComplete = (status || []).includes(EventStatus.Complete);
@@ -42,30 +43,30 @@ export const event = {
       if (range) {
         const { startTime, endTime } = range;
         if (startTime && startTime.value) {
-          timeFilters.startTime = new Date(startTime.value).getTime();
+          timeFilters.startTime = new Date(startTime.value);
         } else if (startTime && (startTime.gte || startTime?.lte)) {
           timeFilters.startTime = {
-            ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
-            ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
+            ...(startTime.gte ? { $gte: new Date(startTime.gte) } : {}),
+            ...(startTime.lte ? { $lte: new Date(startTime.lte) } : {}),
           };
         }
   
         if (endTime && endTime.value) {
-          timeFilters.endTime = new Date(endTime.value).getTime();
+          timeFilters.endTime = new Date(endTime.value);
         } else if (endTime && (endTime.gte || endTime?.lte)) {
           timeFilters.endTime = {
-            ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
-            ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+            ...(endTime.gte ? { $gte: new Date(endTime.gte) } : {}),
+            ...(endTime.lte ? { $lte: new Date(endTime.lte) } : {}),
           };
         }
       } else if (endTime && !includeComplete) {
         if (endTime.value) {
-          timeFilters.endTime = new Date(endTime.value).getTime();
+          timeFilters.endTime = new Date(endTime.value);
         } else if (endTime.gte || endTime?.lte) {
           $or.push({
             endTime: {
-              ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
-              ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+              ...(endTime.gte ? { $gte: new Date(endTime.gte) } : {}),
+              ...(endTime.lte ? { $lte: new Date(endTime.lte) } : {}),
             }
           }, {
             endTime: { $exists: false },
@@ -73,7 +74,7 @@ export const event = {
         }
       }
       if (createdById) {
-        (input as any).createdById = { $in: createdById };
+        (input as any).createdById = { $in: createdById.map((id) => new ObjectId(id!)) };
       }
       // Kill me :) Maybe I should consider just calculating the status with event bridge instead of this mess
       if (status) {
@@ -90,7 +91,7 @@ export const event = {
         if (includeLottery && includePreLottery) {
           filteredStatus.push(EventStatus.ReadyForLottery);
         } else if (includeLottery) {
-          const { counter } = await lotteryCounter.get(organization!.id);
+          const { counter } = await lotteryCounter.get(organization!._id!);
           if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
             $or.push({
               lotteryNumber: counter,
@@ -100,7 +101,7 @@ export const event = {
           }
           filteredStatus.push(EventStatus.ReadyForLottery);
         } else if (includePreLottery) {
-          const { counter } = await lotteryCounter.get(organization!.id);
+          const { counter } = await lotteryCounter.get(organization!._id!);
           if (filteredStatus.length > 0 || includeComplete || includePreFCFS) {
             $or.push({
               lotteryNumber: { $gt: counter },
@@ -113,10 +114,10 @@ export const event = {
         if (includePreFCFS) {
           if (filteredStatus.length > 0 || includeComplete || includeLottery || includePreLottery) {
             $or.push({
-              scheduledFirstComeFirstServe: { $gt: Date.now() },
+              scheduledFirstComeFirstServe: { $gt: new Date() },
             });
           } else {
-            (input as any).scheduledFirstComeFirstServe = { $gt: Date.now() };
+            (input as any).scheduledFirstComeFirstServe = { $gt: new Date() };
           }
           filteredStatus.push(EventStatus.FirstComeFirstServe);
         }
@@ -128,14 +129,14 @@ export const event = {
         }
       }
 
-      return events.search({
+      return await events.search({
         orgId: user?.member.orgId!,
         // Do not show complete events in the overtime search :)
         ...timeFilters,
         ...($or.length > 0 ? { $or } : {}),
         ...input,
         queryField: 'searchAttribute',
-      })
+      });
     }
   },
   Mutation: {
@@ -175,7 +176,7 @@ export const event = {
       await events.removeEvent({
         event,
         organization: organization!,
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
       return id;
     },
@@ -183,7 +184,7 @@ export const event = {
       _parent: unknown,
       { id }: { id: string },
       { events, venues, user, organization }: Context
-    ): Promise<Event> => {
+    ): Promise<IEvent> => {
       adminOnly(user);
       const event = await events.get(id);
       if (!event) {
@@ -194,13 +195,12 @@ export const event = {
       }
 
       event.status = EventStatus.Draft;
-      await events.update(event, { skipMerge: true });
+      await events.approveEvent(event._id!, user!._id!);
 
       if (event.venueId) {
         const venue = await venues.get(event.venueId);
         if (venue && venue.status === VenueStatus.Requested) {
-          venue.status = VenueStatus.Active;
-          await venues.update(venue, { skipMerge: true });
+          await venues.approveVenue(venue._id, user!._id!);
         }
       }
 
@@ -216,7 +216,7 @@ export const event = {
       _parent: unknown,
       { id, reason }: { id: string, reason?: string },
       { events, venues, user, organization }: Context
-    ): Promise<Event> => {
+    ): Promise<IEvent> => {
       adminOnly(user);
       const event = await events.get(id);
       if (!event) {
@@ -226,17 +226,16 @@ export const event = {
         throw new GraphQLError('Event not up for approval');
       }
 
-      await events.remove(event.id, {
-        modifiedById: user!.id,
+      await events.remove(event.id!, {
+        modifiedById: user!._id!,
         status: EventStatus.Removed,
         'requestDetails.adminNote': reason || 'N/A',
       });
 
       if (event.requestDetails?.newVenue) {
-        const venue = await venues.get(event.venueId);
+        const venue = await venues.get(event.venueId!);
         if (venue && venue.status === VenueStatus.Requested) {
-          venue.status = VenueStatus.Inactive;
-          await venues.update(venue, { skipMerge: true });
+          await venues.rejectVenue(venue._id, user!._id!);
         }
       }
 
@@ -245,6 +244,8 @@ export const event = {
           ...event,
           requestDetails: {
             ...event.requestDetails,
+            startTime: event.requestDetails?.startTime ? new Date(event.requestDetails.startTime) : undefined,
+            endTime: event.requestDetails?.endTime ? new Date(event.requestDetails.endTime) : undefined,
             adminNote: reason || 'N/A',
           },
         },
@@ -264,7 +265,7 @@ export const event = {
           scheduledCloseInterestList: scheduledCloseInterest,
           ...event
         }
-      }: { event: UpsertEvent },
+      }: { event: IUpsertEvent },
       {
         events,
         shifts,
@@ -275,37 +276,38 @@ export const event = {
         user,
         organization,
       }: Context
-    ): Promise<Event> => {
+    ): Promise<IEvent> => {
       adminOnly(user);
 
-      let currentEvent: any = {};
-      
+      let currentEvent: IEvent | undefined;
       if (event.id) {
-        currentEvent = await events.get(event.id);
-        if (!currentEvent) {
+        let foundEvent = await events.get(event.id);
+        if (!foundEvent) {
           throw new GraphQLError('Could not find event');
         }
+        currentEvent = foundEvent;
         // Remove this so it will be set as long as we pass in a first come first serve event
         delete currentEvent.notifyOnFirstComeFirstServe;
+        event.referenceId = currentEvent.referenceId;
       } else {
-        (event as any).createdById = user!.id;
-        (event as any).status = EventStatus.Draft;
-        (event as any).referenceId = await eventReferenceNumber.get(organization!.id);
+        event.createdById = user!._id!;
+        event.status = EventStatus.Draft;
+        event.referenceId = await eventReferenceNumber.get(organization!.id);
       }
 
-      let scheduledFirstComeFirstServe;
+      let scheduledFirstComeFirstServe: Date | undefined;
       if (event.status === EventStatus.FirstComeFirstServe && scheduledFCFS) {
         scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(scheduledFCFS), 0), 0);
       } else if (event.status === EventStatus.FirstComeFirstServe && !scheduledFCFS) {
         scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(), 0), 0);
       }
-      let scheduledInterestList;
+      let scheduledInterestList: Date | undefined;
       if (event.status === EventStatus.InterestList && scheduledInterest) {
         scheduledInterestList = setMilliseconds(setSeconds(new Date(scheduledInterest), 0), 0);
       } else if (event.status === EventStatus.InterestList && !scheduledInterest) {
         scheduledInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
       }
-      let scheduledCloseInterestList;
+      let scheduledCloseInterestList: Date | undefined;
       if (event.status === EventStatus.InterestList && scheduledCloseInterest) {
         scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(scheduledCloseInterest), 0), 0);
       } else if (event.status === EventStatus.InterestList && !scheduledCloseInterest) {
@@ -313,11 +315,22 @@ export const event = {
         scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
       }
       const inputEvent = {
-        ...currentEvent,
         ...event,
+        id: event.id!,
+        venueId: event.venueId ? new ObjectId(event.venueId) : undefined,
+        assignmentIds: event.assignmentIds ? event.assignmentIds.map((id) => new ObjectId(id!)) : undefined,
+        createdById: currentEvent ? currentEvent.createdById : user!._id!,
+        ...(event.venueId && { venueId: new ObjectId(event.venueId) }),
+        ...(event.requestDetails && {
+          requestDetails: {
+            ...event.requestDetails,
+            ...(event.requestDetails.startTime && { startTime: new Date(event.requestDetails.startTime) }),
+            ...(event.requestDetails.endTime && { endTime: new Date(event.requestDetails.endTime) }),
+          }
+        }),
         ...(
           event.status === EventStatus.FirstComeFirstServe ? {
-            scheduledFirstComeFirstServe: scheduledFirstComeFirstServe.getTime(),
+            scheduledFirstComeFirstServe: scheduledFirstComeFirstServe,
             notifyOnFirstComeFirstServe,
           } : {
             scheduledFirstComeFirstServe: null,
@@ -327,8 +340,8 @@ export const event = {
         ...(
           event.status === EventStatus.InterestList ? {
             interestListTransition: event.interestListTransition ? event.interestListTransition : null,
-            scheduledInterestList: scheduledInterestList.getTime(),
-            scheduledCloseInterestList: scheduledCloseInterestList.getTime(),
+            scheduledInterestList: scheduledInterestList,
+            scheduledCloseInterestList: scheduledCloseInterestList,
           } : {
             interestListTransition: null,
             scheduledInterestList: null,
@@ -337,10 +350,10 @@ export const event = {
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
-      };
-
-      inputEvent.searchAttribute = `${inputEvent.referenceId} ${inputEvent.name}`;
+        modifiedById: user!._id!,
+        searchAttribute: `${event.referenceId} ${event.name}`,
+        docType: DocType.Event,
+      } as unknown as IEvent;
 
       if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status !== EventStatus.ReadyForLottery) {
         inputEvent.lotteryNumber = null;
@@ -354,94 +367,94 @@ export const event = {
         }
       }
 
-      if (currentEvent.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {
-        await shiftLotteryRequests.removeByEventId(currentEvent.id, user!.id);
+      if (currentEvent?.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {
+        await shiftLotteryRequests.removeByEventId(currentEvent?.id!, user!._id!);
       } else if (
         (
-          (currentEvent.status !== EventStatus.FirstComeFirstServe && inputEvent.status === EventStatus.FirstComeFirstServe) ||
-          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent.scheduledFirstComeFirstServe !== inputEvent.scheduledFirstComeFirstServe) ||
-          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent.notifyOnFirstComeFirstServe !== inputEvent.notifyOnFirstComeFirstServe)
+          (currentEvent?.status !== EventStatus.FirstComeFirstServe && inputEvent.status === EventStatus.FirstComeFirstServe) ||
+          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent?.scheduledFirstComeFirstServe !== inputEvent.scheduledFirstComeFirstServe) ||
+          (inputEvent.status === EventStatus.FirstComeFirstServe && currentEvent?.notifyOnFirstComeFirstServe !== inputEvent.notifyOnFirstComeFirstServe)
         ) &&
         notifyOnFirstComeFirstServe
       ) {
         // If the event is going to FCFS within 2 minutes notify users now
-        if (isAfter(new Date(), addMinutes(scheduledFirstComeFirstServe, -1))) {
+        if (isAfter(new Date(), addMinutes(scheduledFirstComeFirstServe!, -1))) {
           await scheduler.removeSchedule({
             event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
             orgId: user?.member.orgId!,
-            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent?.id}`,
             ignoreError: true,
           });
-          await shifts.notifyUsersOfEventAvailability(currentEvent.id, organization!);
+          await shifts.notifyUsersOfEventAvailability(currentEvent?.id!, organization!);
         } else {
           await scheduler.updateScheduledEvent({
             event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
             orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledFirstComeFirstServe, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTime: `at(${format(scheduledFirstComeFirstServe!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
             eventTimeZone: Timezone.UTC,
-            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent?.id}`,
             eventInput: JSON.stringify({
               action: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
               orgId: user?.member.orgId!,
-              eventId: currentEvent.id,
+              eventId: currentEvent?.id,
             }),
           });
         }
       } else if (
-          (currentEvent.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
-          (inputEvent.status === EventStatus.InterestList && currentEvent.scheduledInterestList !== inputEvent.scheduledInterestList)
+          (currentEvent?.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
+          (inputEvent.status === EventStatus.InterestList && currentEvent?.scheduledInterestList !== inputEvent.scheduledInterestList)
       ) {
         logger.info('Interest list opening', { inputEvent, currentEvent });
-        if (isAfter(new Date(), addMinutes(scheduledInterestList, -1))) {
+        if (isAfter(new Date(), addMinutes(scheduledInterestList!, -1))) {
           await scheduler.removeSchedule({
             event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
             orgId: user?.member.orgId!,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent?.id}`,
             ignoreError: true,
           });
-          await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListOpening);
+          await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListOpening);
         } else {
           await scheduler.updateScheduledEvent({
             event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
             orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledInterestList, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTime: `at(${format(scheduledInterestList!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
             eventTimeZone: Timezone.UTC,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent?.id}`,
             eventInput: JSON.stringify({
               action: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
               orgId: user?.member.orgId!,
-              eventId: currentEvent.id,
+              eventId: currentEvent?.id,
             }),
           });
         }
       } else if (
-        (currentEvent.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
-        (inputEvent.status === EventStatus.InterestList && currentEvent.scheduledCloseInterestList !== inputEvent.scheduledCloseInterestList) ||
-        (inputEvent.status === EventStatus.InterestList && inputEvent.interestListTransition !== currentEvent.interestListTransition)
+        (currentEvent?.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
+        (inputEvent.status === EventStatus.InterestList && currentEvent?.scheduledCloseInterestList !== inputEvent.scheduledCloseInterestList) ||
+        (inputEvent.status === EventStatus.InterestList && inputEvent.interestListTransition !== currentEvent?.interestListTransition)
       ) {
         const closingEvents = subHours(
-          scheduledCloseInterestList,
+          scheduledCloseInterestList!,
           organization?.settings?.interestList?.defaultNotificationTime || 24
         );
-        if (isAfter(new Date(), addMinutes(scheduledCloseInterestList, -1))) {
+        if (isAfter(new Date(), addMinutes(scheduledCloseInterestList!, -1))) {
           await scheduler.removeSchedule({
             event: ScheduleEvent.EVENT_INTEREST_CLOSE,
             orgId: user?.member.orgId!,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent?.id}`,
             ignoreError: true,
           });
-          await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListClosing);
+          await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListClosing);
         } else {
           await scheduler.updateScheduledEvent({
             event: ScheduleEvent.EVENT_INTEREST_CLOSE,
             orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledCloseInterestList, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+            eventTime: `at(${format(scheduledCloseInterestList!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
             eventTimeZone: Timezone.UTC,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent.id}`,
+            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent?.id}`,
             eventInput: JSON.stringify({
               action: ScheduleEvent.EVENT_INTEREST_CLOSE,
               orgId: user?.member.orgId!,
-              eventId: currentEvent.id,
+              eventId: currentEvent?.id,
               transition: inputEvent.interestListTransition,
             }),
           });
@@ -450,21 +463,21 @@ export const event = {
             await scheduler.removeSchedule({
               event: ScheduleEvent.EVENT_INTEREST_CLOSING,
               orgId: user?.member.orgId!,
-              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
+              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent?.id}`,
               ignoreError: true,
             });
-            await shifts.notifyUsersOfEventInterestAvailability(currentEvent.id, organization!, MailerEvents.OfficerInterestListClosing);
+            await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListClosing);
           } else {
             await scheduler.updateScheduledEvent({
               event: ScheduleEvent.EVENT_INTEREST_CLOSING,
               orgId: user?.member.orgId!,
               eventTime: `at(${format(closingEvents, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
               eventTimeZone: Timezone.UTC,
-              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
+              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent?.id}`,
               eventInput: JSON.stringify({
                 action: ScheduleEvent.EVENT_INTEREST_CLOSING,
                 orgId: user?.member.orgId!,
-                eventId: currentEvent.id,
+                eventId: currentEvent?.id,
                 transition: inputEvent.interestListTransition,
               }),
             });
@@ -473,7 +486,7 @@ export const event = {
       }
 
       // Clean up scheduled event if we are not going to FCFS
-      if (inputEvent.status !== EventStatus.FirstComeFirstServe && currentEvent.status === EventStatus.FirstComeFirstServe) {
+      if (inputEvent.status !== EventStatus.FirstComeFirstServe && currentEvent?.status === EventStatus.FirstComeFirstServe) {
         await scheduler.removeSchedule({
           event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
           orgId: user?.member.orgId!,
@@ -483,7 +496,7 @@ export const event = {
       }
 
       // Clean up scheduled event if we are not going to Interest List
-      if (inputEvent.status !== EventStatus.InterestList && currentEvent.status === EventStatus.InterestList) {
+      if (inputEvent.status !== EventStatus.InterestList && currentEvent?.status === EventStatus.InterestList) {
         await scheduler.removeSchedule({
           event: ScheduleEvent.EVENT_INTEREST_CLOSING,
           orgId: user?.member.orgId!,
@@ -499,11 +512,11 @@ export const event = {
       }
 
       logger.info('Upsert event', { inputEvent, event, currentEvent });
-      let finalEvent: any;
+      let finalEvent: IEvent;
       if (!inputEvent.id) {
         finalEvent = await events.create(inputEvent);
       } else {
-        finalEvent = await events.update(inputEvent as any);
+        finalEvent = await events.update({id: inputEvent.id!, ...inputEvent});
       }
 
       return finalEvent;
@@ -512,17 +525,17 @@ export const event = {
   fields: {
     Event: {
       ...commonResolvers,
-      createdBy: (event: Event, _, { users }: Context) => event.createdById ? users.loader.load(event.createdById) : null,
-      org: (event: Event, _, { organizations }: Context) => organizations.loader.load(event.orgId),
-      venue: (event: Event, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId) : null,
-      assignments: (event: Event, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []) as any),
-      startTime: (item: Event) => item.startTime ? new Date(item.startTime).toISOString() : null,
-      endTime: (item: Event) => item.endTime ? new Date(item.endTime).toISOString() : null,
-      scheduledFirstComeFirstServe: (item: Event) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
-      scheduledInterestList: (item: Event) => item.scheduledInterestList ? new Date(item.scheduledInterestList).toISOString() : null,
-      scheduledCloseInterestList: (item: Event) => item.scheduledCloseInterestList ? new Date(item.scheduledCloseInterestList).toISOString() : null,
-      lotteryCounter: (item: Event, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load({lotteryNumber: item.lotteryNumber!, orgId: item.orgId}) : null,
-      attachments: async (item: Event, _arg: unknown, { events }: Context) => {
+      createdBy: (event: IEvent, _, { users }: Context) => event.createdById ? users.loader.load(event.createdById.toString()) : null,
+      org: (event: IEvent, _, { organizations }: Context) => organizations.loader.load(event.orgId.toString()),
+      venue: (event: IEvent, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId.toString()) : null,
+      assignments: (event: IEvent, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []).map((id) => id.toString())),
+      startTime: (item: IEvent) => item.startTime ? new Date(item.startTime).toISOString() : null,
+      endTime: (item: IEvent) => item.endTime ? new Date(item.endTime).toISOString() : null,
+      scheduledFirstComeFirstServe: (item: IEvent) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
+      scheduledInterestList: (item: IEvent) => item.scheduledInterestList ? new Date(item.scheduledInterestList).toISOString() : null,
+      scheduledCloseInterestList: (item: IEvent) => item.scheduledCloseInterestList ? new Date(item.scheduledCloseInterestList).toISOString() : null,
+      lotteryCounter: (item: IEvent, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load({lotteryNumber: item.lotteryNumber!, orgId: item.orgId.toString()}) : null,
+      attachments: async (item: IEvent, _arg: unknown, { events }: Context) => {
         if (!item.attachmentPaths) {
           return [];
         }
@@ -532,7 +545,7 @@ export const event = {
 
         return results.filter((result) => result.status === 'fulfilled').map((result: any) => result.value);
       },
-      availableShifts: async (item: Event, _arg: unknown, { shifts }: Context) => shifts.eventShiftCount.load(item.id),
+      availableShifts: async (item: IEvent, _arg: unknown, { shifts }: Context) => shifts.eventShiftCount.load(item.id!),
     },
   },
 };

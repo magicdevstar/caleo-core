@@ -2,8 +2,8 @@ import { Context } from "../../utils/createContext";
 import { Venue, VenueSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { IUpsertVenue, IVenueContract } from "../../models/venue";
-import logger from "../../utils/logger";
+import { IIVenue, IVenueContract } from "../../models/venue";
+import { ObjectId } from "mongodb";
 
 export const venue = {
   Query: {
@@ -11,12 +11,12 @@ export const venue = {
       _parent: unknown,
       { id }: { id: string },
       { venues }: Context,
-    ): Promise<Venue | null> => venues.get(id),
+    ): Promise<IIVenue | null> => venues.get(id),
     venues: async (
       _parent: unknown,
       { input: { status, ...rest } }: { input: VenueSearchInput },
       { venues, user }: Context
-    ): Promise<SearchResults<Venue>> => venues.search({
+    ): Promise<SearchResults<IIVenue>> => venues.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...(status && { status: { $in: status } }),
@@ -31,15 +31,15 @@ export const venue = {
     ): Promise<string> => {
       adminOnly(user);
       await venues.remove(id, {
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
       return id;
     },
     venue: async (
       _parent: unknown,
-      { venue }: { venue: IUpsertVenue },
+      { venue }: { venue: IIVenue },
       { venues, user }: Context
-    ): Promise<Venue> => {
+    ): Promise<IIVenue> => {
       adminOnly(user);
 
       if (venue.contract?.expirationDate) {
@@ -49,17 +49,17 @@ export const venue = {
       return venues.upsert({
         ...venue,
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
-      } as any);
+        modifiedById: user!._id!,
+      });
     },
   },
   fields: {
     Venue: {
       ...commonResolvers,
-      org: (venue: Venue, _, { organizations }: Context) => organizations.loader.load(venue.orgId),
+      org: (venue: IIVenue, _, { organizations }: Context) => organizations.loader.load(venue.orgId.toString()),
     },
     VenueContract: {
-      expirationDate: (contract: IVenueContract) => contract.expirationDate ? new Date(contract.expirationDate).toISOString() : null,
+      expirationDate: (contract: IVenueContract) => contract.expirationDate ? contract.expirationDate.toISOString() : null,
     },
   },
 };

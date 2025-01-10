@@ -1,13 +1,28 @@
 import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
-import { BaseModel } from "./base";
-import { DayOfWeek, DocType, LotteryCounter, Organization } from "../__generated__/resolvers-types";
-import { OrganizationModel } from "./organization";
+import { DayOfWeek, DocType } from "../__generated__/resolvers-types";
+import { IOrganization, OrganizationModel } from "./organization";
 import { dayMap } from "../utils/dayMap";
 import { addWeeks, isAfter, setDay, setHours, setMinutes, getHours, getMinutes } from "date-fns";
 import logger from "../utils/logger";
 import DataLoader from "dataloader";
+import { ObjectId } from "mongodb";
+import { BaseMongo } from "./base.v2";
 
-export class LotteryCounterModel extends BaseModel<LotteryCounter> {
+export interface ILotteryCounter {
+  _id?: ObjectId;
+  id?: string;
+  orgId: ObjectId;
+  counter: number;
+  docType: string;
+  start: Date;
+  end: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+  modifiedById: ObjectId;
+}
+
+export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
   public id = 'lotteryCounter';
 
   public countLoader = new DataLoader(async (input: readonly {lotteryNumber: number; orgId: string;}[]) => {
@@ -15,7 +30,7 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     const uniqueKeys = [...new Set(keys)];
     const res = await this.collection.find({
       counter: { $in: uniqueKeys },
-      orgId: input?.[0]?.orgId,
+      orgId: new ObjectId(input?.[0]?.orgId),
     }).toArray();
     return input.map(({ lotteryNumber }) =>
       res.find((item: any) => item.counter === lotteryNumber)
@@ -26,37 +41,41 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     super(db, DocType.LotteryCounter, 'lotteryCounter');
   }
 
-  async getByCounter(counter: number, orgId: string): Promise<LotteryCounter | null> {
-    const res = await this.findOne({ counter, orgId });
+  async getByCounter(counter: number, orgId: ObjectId): Promise<ILotteryCounter | null> {
+    const res = await this.collection.findOne<ILotteryCounter>({ counter, orgId });
 
     if (!res) {
       return null;
     }
 
-    return res;
+    return {
+      ...res,
+      id: res?._id?.toString(),
+    };
   }
 
-  async get(orgId: string): Promise<LotteryCounter> {
-    const res = await this.findOne({ orgId, removedAt: { $exists: false } });
+  async get(orgId: ObjectId): Promise<ILotteryCounter> {
+    const res = await this.collection.findOne<ILotteryCounter>({ orgId: orgId, removedAt: { $exists: false } });
 
     if (!res) {
       const dates = await this.getNextLotteryDates(orgId);
       const out = {
-        id: orgId,
-        orgId,
+        id: orgId.toString(),
+        orgId: orgId,
         counter: 0,
         docType: DocType.LotteryCounter,
-        start: dates.start.getTime() as any,
-        end: dates.end.getTime() as any,
-      } as LotteryCounter;
-      logger.info('Lottery counter', { orgId, counter: out, dates });
+        start: dates.start,
+        end: dates.end,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as ILotteryCounter;
       return out;
     }
     return res;
   }
 
-  async getNextLotteryDates(orgId: string, inputOrg?: Organization) {
-    let org: Organization | undefined | null = inputOrg;
+  async getNextLotteryDates(orgId: ObjectId, inputOrg?: IOrganization) {
+    let org: IOrganization | undefined | null = inputOrg;
     if (!org) {
       org = await this.organizations.get(orgId);
       if (!org) {
@@ -101,20 +120,20 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     };
   }
 
-  async updateLotteryDates(organization: Organization) {
-    const { start, end } = await this.getNextLotteryDates(organization.id, organization);
+  async updateLotteryDates(organization: IOrganization) {
+    const { start, end } = await this.getNextLotteryDates(organization._id!, organization);
     await this.collection.updateOne({
-      orgId: organization.id,
+      orgId: new ObjectId(organization.id),
       removedAt: { $exists: false },
     }, {
       $set: {
-        start: start.getTime(),
-        end: end.getTime(),
+        start: start,
+        end: end,
       },
     });
   }
 
-  async increment(orgId: string): Promise<LotteryCounter> {
+  async increment(orgId: ObjectId): Promise<ILotteryCounter> {
     const counter = await this.get(orgId);
     if (!counter) {
       throw new Error(`Counter not found for org ${orgId}`);
@@ -122,14 +141,14 @@ export class LotteryCounterModel extends BaseModel<LotteryCounter> {
     // Create new counter record
     const { id, ...currentCounter } = counter;
     const { end, start } = await this.getNextLotteryDates(orgId);
-    const res: LotteryCounter = this.create({
+    const res: ILotteryCounter = this.create<ILotteryCounter>({
       ...currentCounter,
-      end: end.getTime(),
-      start: start.getTime(),
+      end: end,
+      start: start,
       counter: counter.counter + 1,
     }) as any;
     // Remove old counter record
-    await this.remove(id);
+    await this.remove(id!);
     return res;
   }
 }

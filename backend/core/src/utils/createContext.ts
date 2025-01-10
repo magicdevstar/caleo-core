@@ -1,13 +1,13 @@
 import { Db } from "mongodb";
 import mongodb from './mongo';
 
-import { Organization, User } from "../__generated__/resolvers-types";
+import { User } from "../__generated__/resolvers-types";
 import { AssignmentModel } from "../models/assignment";
 import { EventModel } from "../models/event";
 import { MemberNotificationModel } from "../models/memberNotification";
 import { MemberSkillModel } from "../models/memberSkill";
 import { NotificationModel } from "../models/nontification";
-import { OrganizationModel } from "../models/organization";
+import { IOrganization, OrganizationModel } from "../models/organization";
 import { RankModel } from "../models/rank";
 import { SchedulerModel } from "../models/scheduler";
 import { ShiftModel } from "../models/shift";
@@ -25,6 +25,7 @@ import { BrowserNotificationSubscription } from "../models/browserNotificationSu
 import { InAppNotificationModel } from "../models/inAppNotifications";
 import { UserAnalyticsModel } from "../models/analytics";
 import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
+import { IUser } from "../types/common";
 
 let db: Db;
 
@@ -51,9 +52,9 @@ export interface Context {
   shiftLotteryRequests: ShiftLotteryRequestModel;
   memberNotifications: MemberNotificationModel;
   scheduler: SchedulerModel;
-  organization?: Organization,
-  user?: User;
-  originalUser?: User;
+  organization?: IOrganization;
+  user?: IUser;
+  originalUser?: IUser;
   lambdaEvent?: any;
   lambdaContext?: any;
 };
@@ -91,7 +92,7 @@ export const createContext = async (): Promise<Context> => {
     shiftInterestRequests
   );
   const memberSkills = new MemberSkillModel(db, users, document, skills);
-  const memberNotifications = new MemberNotificationModel(db, notifications);
+  const memberNotifications = new MemberNotificationModel(db);
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
   const inAppNotifications = new InAppNotificationModel(db);
   const analytics = new UserAnalyticsModel(db);

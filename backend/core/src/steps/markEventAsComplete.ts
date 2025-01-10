@@ -11,7 +11,7 @@ const markEventsAsComplete = async () => {
   logger.setLogLevel('INFO');
 
   const res = await events.collection.updateMany({
-    endTime: { $lte: Date.now() },
+    endTime: { $lte: new Date() },
     status: { $in: [EventStatus.Draft, EventStatus.FirstComeFirstServe] }
   }, {
     $set: {

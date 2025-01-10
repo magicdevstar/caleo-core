@@ -1,6 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
 import { ShiftInterestRequest, DocType, UpsertShiftInterestRequest, ShiftInterestRequestStatus } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { BaseMongo } from './base.v2';
 import DataLoader from 'dataloader';
 
@@ -30,7 +29,8 @@ export interface IShiftInterestRequest extends Omit<
   removedAt?: Date;
 }
 
-export interface IUpsertShiftInterestRequest extends Omit<UpsertShiftInterestRequest, 'userId'> {
+export interface IUpsertShiftInterestRequest extends Omit<UpsertShiftInterestRequest, 'userId' | 'id'> {
+  id?: string;
   userId: ObjectId;
   orgId: ObjectId;
   eventId: ObjectId;

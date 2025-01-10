@@ -1,8 +1,9 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { Rank, RankSearchInput, UpsertRank } from "../../__generated__/resolvers-types";
+import { RankSearchInput } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import logger from "../../utils/logger";
+import { ObjectId } from "mongodb";
+import { IRank } from "../../models/rank";
 
 export const rank = {
   Query: {
@@ -10,12 +11,12 @@ export const rank = {
       _parent: unknown,
       { id }: { id: string },
       { ranks }: Context,
-    ): Promise<Rank | null> => ranks.get(id),
+    ): Promise<IRank | null> => ranks.get(id),
     ranks: async (
       _parent: unknown,
       { input }: { input: RankSearchInput },
       { ranks, user }: Context
-    ): Promise<SearchResults<Rank>> => ranks.search({
+    ): Promise<SearchResults<IRank>> => ranks.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
@@ -32,27 +33,28 @@ export const rank = {
         user,
       }: Context
     ): Promise<string> => {
-      const countUsersWithRole = await users.collection.countDocuments({
-        'member.rankId': id,
+      const existingUserWithRole = await users.collection.findOne({
+        'member.rankId': new ObjectId(id),
       });
 
-      if (countUsersWithRole > 0) {
+      if (existingUserWithRole) {
         throw new GraphQLError("Cannot remove a rank that is assigned to users");
       }
 
       await ranks.remove(id, {
-        modifiedById: user!.id,
+        modifiedById: user!._id!,
       });
 
-      // Remove all references to the rank from any shifts
-      const res = await skills.collection.updateMany({
-        rankOnlyIds: id
+      const idAsObjectId = new ObjectId(id);
+      // Remove all references to the rank from any skills
+      await skills.collection.updateMany({
+        rankOnlyIds: idAsObjectId
       }, {
         $set: {
-          modifiedById: user!.id,
+          modifiedById: user!._id!,
         },
         $pull: {
-          rankOnlyIds: id
+          rankOnlyIds: idAsObjectId
         } as any,
       });
 
@@ -60,23 +62,23 @@ export const rank = {
     },
     rank: async (
       _parent: unknown,
-      { rank }: { rank: UpsertRank },
+      { rank }: { rank: IRank },
       { ranks, user }: Context
-    ): Promise<Rank> => {
+    ): Promise<IRank> => {
       if (Object.keys(rank).length === 0) {
         throw new GraphQLError("Rank is empty");
       }
       return ranks.upsert({
         ...rank,
         orgId: user?.member.orgId!,
-        modifiedById: user!.id,
-      } as any);
+        modifiedById: user!._id!,
+      });
     },
   },
   fields: {
     Rank: {
       ...commonResolvers,
-      org: (rank: Rank, _, { organizations }: Context) => organizations.loader.load(rank.orgId),
+      org: (rank: IRank, _, { organizations }: Context) => organizations.loader.load(rank.orgId.toString()),
     },
   },
 };

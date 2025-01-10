@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "collectionMigration": "ts-node src/collectionUpgrades.ts",
     "build:userMap": "ts-node src/utils/userId-map.ts"
   },
   "devDependencies": {

@@ -20,14 +20,14 @@ const testEvent = async (inputEvent: Event) => {
   const date = new Date('2023-08-25T02:57:12.518Z');
   // const eventTime = `at(${format(date, 'yyyy-MM-dd')}T${format(date, 'hh:mm:ss')})`;
   const eventTime = `cron(${format(date, 'm')} ${format(date, 'h')} ? * 5 *)`
-  const res = await scheduler.updateScheduledEvent({
-    ...inputEvent,
-    eventTime,
-  });
+  // const res = await scheduler.updateScheduledEvent({
+  //   ...inputEvent,
+  //   eventTime,
+  // });
 
-  logger.info('testEvent', { res });
+  // logger.info('testEvent', { res });
 
-  return res;
+  // return res;
 };
 
 export const handler = middy(testEvent)

@@ -1,20 +1,82 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   DocType,
   Event,
   EventAttachmentUpload,
+  EventRequestDetails,
   EventStatus,
   Organization,
-  Venue,
+  UpsertEvent,
 } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { BaseMongo } from './base.v2';
+import { IOrganization } from './organization';
 
 const lambda = new LambdaClient({});
+
+export interface IEventRequestDetails extends Omit<
+  EventRequestDetails,
+  'startTime' |
+  'endTime'
+> {
+  startTime?: Date;
+  endTime?: Date;
+}
+
+export interface IEvent extends Omit<
+  Event,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  'startTime' |
+  'endTime' |
+  'scheduledInterestList' |
+  'scheduledCloseInterestList' |
+  'scheduledFirstComeFirstServe' |
+  'venueId' |
+  'venue' |
+  'assignmentIds' |
+  'assignments' |
+  'createdById' |
+  'createdBy' |
+  'requestDetails' |
+  'referenceId' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  orgId: ObjectId;
+  modifiedById: ObjectId;
+  venueId?: ObjectId;
+  assignmentIds?: ObjectId[];
+  createdById?: ObjectId;
+
+  requestDetails?: IEventRequestDetails;
+  referenceId?: number;
+
+  startTime?: Date;
+  endTime?: Date;
+  scheduledInterestList?: Date;
+  scheduledCloseInterestList?: Date;
+  scheduledFirstComeFirstServe?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  removedAt?: Date;
+}
+
+export interface IUpsertEvent extends Omit<UpsertEvent, 'createdById'> {
+  referenceId?: number;
+  createdById?: ObjectId;
+}
 
 export enum EventRemoveEventType {
   assignment,
@@ -23,7 +85,7 @@ export enum EventRemoveEventType {
   shiftUpdate,
 }
 
-export class EventModel extends BaseModel<Event> {
+export class EventModel extends BaseMongo<IEvent> {
   documentBasePath: string = 'events';
   constructor(
     db: Db,
@@ -33,17 +95,29 @@ export class EventModel extends BaseModel<Event> {
     super(db, DocType.Event, 'events');
   }
 
+  async approveEvent(id: ObjectId, modifiedById: ObjectId) {
+    await this.collection.updateOne({
+      _id: id,
+    }, {
+      $set: {
+        status: EventStatus.Draft,
+        modifiedById,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
   async removeEvent({
     event,
     organization,
     modifiedById,
   } : {
-    event: Event;
-    organization: Organization;
-    modifiedById: string;
+    event: IEvent;
+    organization: IOrganization | Organization;
+    modifiedById: ObjectId;
   }) {
-    await this.remove(event.id, {
-      modifiedById,
+    await this.remove(event.id!, {
+      modifiedById: modifiedById,
       status: EventStatus.Removed,
     });
 
@@ -68,8 +142,8 @@ export class EventModel extends BaseModel<Event> {
     orgId,
     template
   } : {
-    event: Event;
-    venueId?: string;
+    event: IEvent;
+    venueId?: ObjectId;
     orgId: string;
     template: MailerEvents.EventRequestedApproved | MailerEvents.EventRequestedRejected | MailerEvents.EventRequestedConfirm | MailerEvents.AdminEventRequested;
   }) {
@@ -97,13 +171,13 @@ export class EventModel extends BaseModel<Event> {
     orgId,
     modifiedById,
   }: {
-    eventId: string;
+    eventId: ObjectId;
     removeId: string;
     removeType: EventRemoveEventType;
-    orgId: string;
-    removeStart?: number;
-    removeEnd?: number;
-    modifiedById: string;
+    orgId: ObjectId;
+    removeStart?: Date;
+    removeEnd?: Date;
+    modifiedById: ObjectId;
   }) {
     const event = await this.get(eventId);
 
@@ -111,8 +185,8 @@ export class EventModel extends BaseModel<Event> {
       if (
         removeStart &&
         removeEnd &&
-        (event.startTime as any) !== removeStart &&
-        (event.endTime as any) !== removeEnd
+        event.startTime?.getTime() !== removeStart.getTime() &&
+        event.endTime?.getTime() !== removeEnd.getTime()
       ) {
         return false;
       }
@@ -122,15 +196,18 @@ export class EventModel extends BaseModel<Event> {
         eventId,
       };
   
-      let eventUpdates: any = {};
+      let pullAssignmentIds: any;
       if (removeType === EventRemoveEventType.assignment) {
-        shiftFilter.assignmentId = {$ne: removeId};
-        eventUpdates = {
-          assignmentIds: (event.assignmentIds || []).filter((aid) => aid !== removeId),
+        const removeIdAsObjectId = new ObjectId(removeId);
+        shiftFilter.assignmentId = {$ne: removeIdAsObjectId};
+        pullAssignmentIds = {
+          assignmentIds: removeIdAsObjectId,
         };
       } else if (removeType === EventRemoveEventType.shift) {
+        // TODO: Update this to objectId when you switch shifts to base v2
         shiftFilter.id = {$ne: removeId};
       } else if (removeType === EventRemoveEventType.shifts) {
+        // TODO: Update this to objectId when you switch shifts to base v2
         shiftFilter.shiftId = {$ne: removeId};
       }
   
@@ -155,13 +232,17 @@ export class EventModel extends BaseModel<Event> {
       const startTime = earliestShift ? earliestShift.startTime : null;
       const endTime = latestShift ? latestShift.endTime : null;
 
-      await this.update({
-        ...event,
-        ...eventUpdates,
-        startTime,
-        endTime,
-        modifiedById,
-      } as any, { skipMerge: true });
+      this.collection.updateOne({
+        _id: event._id!,
+      }, {
+        $set: {
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+          modifiedById: modifiedById,
+          updatedAt: new Date(),
+        },
+        ...(pullAssignmentIds && { $pull: pullAssignmentIds }),
+      });
     }
     return true;
   }
@@ -169,9 +250,9 @@ export class EventModel extends BaseModel<Event> {
   async getUploadUrl({
     orgId,
   }: {
-    orgId: string;
+    orgId: ObjectId;
   }): Promise<EventAttachmentUpload> {
-    const attachmentPath = `${orgId}/${this.documentBasePath}/${uuid()}`;
+    const attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${uuid()}`;
     const uploadUrl = await this.document.getUploadUrl(attachmentPath);
     return {
       attachmentPath,
@@ -182,4 +263,22 @@ export class EventModel extends BaseModel<Event> {
   async getDownloadUrl(attachmentPath: string) {
     return this.document.getDownloadUrl(attachmentPath);
   };
+
+  async addAssignmentId(
+    id: ObjectId,
+    assignmentId: ObjectId,
+    modifiedById?: ObjectId,
+  ) {
+    await this.collection.updateOne({
+      _id: id,
+    }, {
+      $set: {
+        updatedAt: new Date(),
+        modifiedById,
+      },
+      $push: {
+        assignmentIds: assignmentId,
+      },
+    });
+  }
 };

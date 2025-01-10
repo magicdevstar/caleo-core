@@ -6,10 +6,11 @@ import logger from '../utils/logger';
 import { createContext } from '../utils/createContext';
 import { MemberStatus } from '../__generated__/resolvers-types';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { IOrganization } from '../models/organization';
 
 const lambda = new LambdaClient();
 
-let organizationMap: Record<string, any> = {};
+let organizationMap: Record<string, IOrganization> = {};
 const memberStatusSync = async () => {
   const { users, organizations } = await createContext();
 
@@ -36,8 +37,9 @@ const memberStatusSync = async () => {
   for (const user of foundUsers) {
     let organization = organizationMap[user.member.orgId];
     if (!organization) {
-      organizationMap[user.member.orgId] = await organizations.get(user.member.orgId);
-      organization = organizationMap[user.member.orgId];
+      const foundOrg = await organizations.get(user.member.orgId);
+      organizationMap[user.member.orgId] = foundOrg!;
+      organization = foundOrg!;
     }
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,

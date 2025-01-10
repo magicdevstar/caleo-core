@@ -1,12 +1,12 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { format, getDay, setHours, parseISO } from "date-fns";
 import { DocType, UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
-import { BaseModel } from './base';
 import { ScheduleEvent } from "../models/scheduler";
 import { SchedulerModel } from './scheduler';
 import { utcToZonedTime } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
+import { BaseMongo } from './base.v2';
 
 // Default org properties in function form to deep clone object
 export const getDefaultOrg = () => ({
@@ -15,6 +15,7 @@ export const getDefaultOrg = () => ({
 });
 export const getDefaultOrgSettings = () => ({
   shiftsPerWeek: 6,
+  hoursPerMonth: 100,
   lottery: {
     enabled: true,
     notifyUsersBeforeClose: 24,
@@ -57,14 +58,41 @@ export const getDefaultOrgFeatures = () => ({
   externalEventRequests: false,
 });
 
-export class OrganizationModel extends BaseModel<Organization> {
+export interface IOrganization extends Omit<
+  Organization,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id: string;
+  orgId: ObjectId;
+  modifiedById: ObjectId;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export class OrganizationModel extends BaseMongo<IOrganization> {
   constructor(db: Db, private scheduler: SchedulerModel) {
     super(db, DocType.Organization, 'organizations');
   }
 
+  public async getBySSOAppName(ssoAppName: string): Promise<IOrganization | null> {
+    const org = await this.collection.findOne<IOrganization>({ ssoAppName });
+    return org;
+  }
+
   public async create(org: any): Promise<any> {
     const inputOrg = org as UpsertOrganization;
-    const now = Date.now();
+    const now = new Date();
     const insertDoc = {
       ...inputOrg,
       docType: DocType.Organization,
@@ -84,7 +112,7 @@ export class OrganizationModel extends BaseModel<Organization> {
     return organization as Organization;
   }
 
-  async scheduleLotteryEvents(orgId: string, org: Organization) {
+  async scheduleLotteryEvents(orgId: ObjectId, org: IOrganization) {
     const startTime = utcToZonedTime(new Date(org.settings?.lottery?.open?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
     const startDay = org.settings?.lottery?.open?.dayOfWeek || DayOfWeek.Friday;
     const endTime = utcToZonedTime(new Date(org.settings?.lottery?.close?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
@@ -127,7 +155,7 @@ export class OrganizationModel extends BaseModel<Organization> {
     });
   }
 
-  activeLottery(org: Organization) {
+  activeLottery(org: IOrganization) {
     const { timezone, settings: { lottery: { open, close } } } = org as any;
   
     const now = utcToZonedTime(new Date(), timezone);

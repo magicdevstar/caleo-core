@@ -986,6 +986,7 @@ export type Organization = {
   name: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   settings?: Maybe<OrganizationOvertimeSettings>;
+  ssoAppName?: Maybe<Scalars['String']['output']>;
   state: Scalars['String']['output'];
   timezone: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
@@ -2836,6 +2837,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
+  ssoAppName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

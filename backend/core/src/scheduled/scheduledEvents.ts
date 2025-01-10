@@ -141,7 +141,7 @@ const scheduledEvents = async (event) => {
         }, {
           $set: {
             status: (eventParams as EventInterestClose).transition,
-            updatedAt: Date.now(),
+            updatedAt: new Date(),
           },
         });
       }

@@ -929,6 +929,7 @@
     updatedAt: String!
     removedAt: String
     modifiedById: String
+    ssoAppName: String
     settings: OrganizationOvertimeSettings
     features: OrganizationFeatures!
     flatFeatures: String!

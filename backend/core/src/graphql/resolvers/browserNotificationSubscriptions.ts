@@ -1,5 +1,5 @@
 import { Context } from "../../utils/createContext";
-import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import { adminOrOwnerOnly } from "../../utils/access";
 import { commonResolvers } from "../../utils/common.resolvers";
 import { BrowserNotificationSetting, InputBrowserNotificationSubscription } from "../../__generated__/resolvers-types";
 
@@ -11,7 +11,7 @@ export const browserNotificationSubscriptions = {
       { input }: { input: InputBrowserNotificationSubscription },
       { browserNotificationSubscriptions, user }: Context
     ): Promise<BrowserNotificationSetting> => {
-      adminOrOwnerOnly(user!.id, user);
+      adminOrOwnerOnly(user!.id!, user);
       return browserNotificationSubscriptions.upsertNotificationSubscription({
         user: user!,
         input
@@ -22,7 +22,7 @@ export const browserNotificationSubscriptions = {
       { endpoint }: { endpoint: string },
       { browserNotificationSubscriptions, user }: Context
     ): Promise<boolean> => {
-      adminOrOwnerOnly(user!.id, user);
+      adminOrOwnerOnly(user!.id!, user);
       await browserNotificationSubscriptions.removeSubscription({
         user: user!,
         endpoint,

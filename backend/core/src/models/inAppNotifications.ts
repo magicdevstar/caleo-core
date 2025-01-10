@@ -13,6 +13,7 @@ export interface IInAppNotification extends Omit<
   'updatedAt' |
   'removedAt' |
   'org' |
+  'meta' |
   'user'
 > {
   id: ObjectId;
@@ -21,6 +22,17 @@ export interface IInAppNotification extends Omit<
   createdAt: Date;
   updatedAt: Date;
   removedAt?: Date;
+  meta?: IInAppNotificationMeta;
+}
+
+export interface IInAppNotificationMeta {
+  assignmentId?: ObjectId;
+  eventId?: ObjectId;
+  rankId?: ObjectId;
+  shiftBufferRequestId?: ObjectId;
+  shiftId?: ObjectId | string;
+  skillId?: ObjectId;
+  venueId?: ObjectId;
 }
 
 export class InAppNotificationModel {
@@ -166,7 +178,7 @@ export class InAppNotificationModel {
     templateName: string;
     userId: string;
     orgId: string;
-    meta?: InAppNotificationMeta;
+    meta?: IInAppNotificationMeta;
   }): Promise<IInAppNotification> {
     const now = new Date();
     const document: Omit<IInAppNotification, 'id'> = {

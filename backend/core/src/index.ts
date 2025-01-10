@@ -9,8 +9,8 @@ import type { APIGatewayProxyEventV2WithLambdaAuthorizer } from 'aws-lambda';
 import typeDefs from './graphql/typedefs';
 import logger, { loggerMiddleware } from './utils/logger';
 import resolvers from './graphql/resolvers';
-import { User } from './__generated__/resolvers-types';
 import { Context, createContext } from './utils/createContext';
+import { User } from './__generated__/resolvers-types';
 
 const server = new ApolloServer({
   typeDefs,
@@ -35,8 +35,8 @@ export const handler = startServerAndCreateLambdaHandler(
           apiGatewayRequestId: event.requestContext.requestId,
         });
         const classContext = await createContext();
-        classContext.user = event.requestContext?.authorizer?.lambda?.user;
-        classContext.originalUser = event.requestContext?.authorizer?.lambda?.originalUser;
+        classContext.user = classContext.users.convertToModel(event.requestContext?.authorizer?.lambda?.user);
+        classContext.originalUser = classContext.users.convertToModel(event.requestContext?.authorizer?.lambda?.originalUser);
         classContext.lambdaEvent = event;
         classContext.lambdaContext = context;
         if (event.requestContext?.authorizer?.lambda?.user) {

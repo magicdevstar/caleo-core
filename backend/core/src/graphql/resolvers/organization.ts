@@ -12,7 +12,7 @@ import {
 } from "../../__generated__/resolvers-types";
 import { adminOnly, isSuperAdmin, superAdminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { getDefaultOrg, getDefaultOrgFeatures, getDefaultOrgSettings } from "../../models/organization";
+import { getDefaultOrg, getDefaultOrgFeatures, getDefaultOrgSettings, IOrganization } from "../../models/organization";
 
 export const organization = {
   Query: {
@@ -20,12 +20,12 @@ export const organization = {
       _parent: unknown,
       _args: unknown,
       { organizations, user }: Context
-    ): Promise<Organization | null> => organizations.get(user?.member.orgId || ''),
+    ): Promise<IOrganization | null> => organizations.get(user?.member.orgId || ''),
     organizationById: async (
       _parent: unknown,
       { orgId }: { orgId: string },
       { organizations, user }: Context
-    ): Promise<Organization | null> => {
+    ): Promise<IOrganization | null> => {
       superAdminOnly(user);
       return organizations.get(orgId || '');
     },
@@ -33,7 +33,7 @@ export const organization = {
       _parent: unknown,
       { input }: { input: OrganizationSearchInput},
       { organizations, user }: Context
-    ): Promise<SearchResults<Organization>> => {
+    ): Promise<SearchResults<IOrganization>> => {
       superAdminOnly(user);
 
       return organizations.search({
@@ -89,7 +89,7 @@ export const organization = {
       _parent: unknown,
       { organization: org }: { organization: CreateOrganization },
       { organizations, lotteryCounter, user }: Context
-    ): Promise<Organization> => {
+    ): Promise<IOrganization> => {
       superAdminOnly(user);
 
       const mergedOrg = {
@@ -117,18 +117,18 @@ export const organization = {
       _parent: unknown,
       { organization: org }: { organization: UpsertOrganization },
       { organizations, scheduler, users, lotteryCounter, user }: Context
-    ): Promise<Organization> => {
+    ): Promise<IOrganization> => {
       adminOnly(user);
 
-      const orgId = isSuperAdmin(user) && org?.id ? org?.id : user?.member?.orgId;
+      const orgId = isSuperAdmin(user) && org?.id ? new ObjectId(org?.id) : user?.member?.orgId;
 
-      const existingOrg = await organizations.get(orgId || '');
+      const existingOrg = await organizations.get(orgId?.toString() || '');
 
       if (!isSuperAdmin(user)) {
         delete org.features;
       }
 
-      const mergedOrg = merge(existingOrg, org);
+      const mergedOrg: IOrganization = merge(existingOrg, org);
 
       if (!mergedOrg.id) {
         if (!mergedOrg.settings) {
@@ -139,14 +139,14 @@ export const organization = {
         }
       };
 
-      const res = await organizations.update(mergedOrg as any, { skipMerge: true });
+      const res = await organizations.update(mergedOrg as any);
 
       await users.collection.updateMany({
-        'member.orgId': mergedOrg.id,
-        'member.maxShifts': { $gt: mergedOrg.settings.shiftsPerWeek },
+        'member.orgId': mergedOrg._id,
+        'member.maxShifts': { $gt: mergedOrg.settings!.shiftsPerWeek },
       }, {
         $set: {
-          'member.maxShifts': mergedOrg.settings.shiftsPerWeek,
+          'member.maxShifts': mergedOrg.settings!.shiftsPerWeek,
         },
       });
 
@@ -160,7 +160,7 @@ export const organization = {
   fields: {
     Organization: {
       ...commonResolvers,
-      flatFeatures: (parent: Organization) => JSON.stringify(parent.features),
+      flatFeatures: (parent: IOrganization) => JSON.stringify(parent.features),
     },
     OrganizationOvertimeSettings: {
       hoursPerMonth: (parent: any) => parent.hoursPerMonth || 100,

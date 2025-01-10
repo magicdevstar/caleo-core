@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
-import { InAppNotificationSearchInput, Notification, NotificationFrequency, NotificationSearchInput, SearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
+import { Notification, NotificationFrequency, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ObjectId } from "mongodb";
@@ -19,7 +19,7 @@ export const notification = {
       { input }: {input: NotificationSearchInput},
       { notifications, user }: Context
     ): Promise<SearchResults<Notification>> => await notifications.search({
-        orgId: user?.member.orgId!,
+        orgId: user?.member.orgId!.toString(),
         queryField: 'title',
         ...input,
       }),
@@ -51,7 +51,7 @@ export const notification = {
         read,
         order,
         orderBy,
-        userId: new ObjectId(user?.id!),
+        userId: user?._id!,
       });
       return res;
     },
@@ -86,7 +86,7 @@ export const notification = {
           $or: [
             {rankIds: { $exists: false }},
             {rankIds: { $size: 0 }},
-            {rankIds: {$in: [user?.member.rankId]},}
+            {rankIds: {$in: [user?.member.rankId.toString()]},}
           ]
         }
       ],
@@ -102,7 +102,7 @@ export const notification = {
     ): Promise<boolean> => inAppNotifications.removeMany({
       ids,
       removeAll,
-      userId: new ObjectId(user!.id)
+      userId: user!._id!
     }),
     readInAppNotifications: async (
       _parent: unknown,
@@ -111,7 +111,7 @@ export const notification = {
     ): Promise<boolean> => inAppNotifications.markAsRead({
       ids,
       readAll,
-      userId: new ObjectId(user!.id)
+      userId: user!._id!
     }),
     removeNotification: async (
       _parent: unknown,
@@ -139,7 +139,7 @@ export const notification = {
 
       return notifications.upsert({
         ...notification,
-        orgId: user?.member.orgId!,
+        orgId: user?.member.orgId!.toString(),
         modifiedById: user?.id!,
       } as any);
     },
@@ -161,7 +161,7 @@ export const notification = {
         _result,
         _args,
         { inAppNotifications, user } : Context
-      ) => inAppNotifications.unreadCount(new ObjectId(user?.id!))
+      ) => inAppNotifications.unreadCount(user!._id!)
     },
     InAppNotifications: {
       createdAt: (notification: IInAppNotification) => notification.createdAt.toISOString(),

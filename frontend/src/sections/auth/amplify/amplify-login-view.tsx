@@ -120,6 +120,17 @@ export default function AmplifyLoginView() {
       >
         Login
       </LoadingButton>
+
+      {/* <LoadingButton
+        fullWidth
+        color="inherit"
+        size="large"
+        onClick={federatedLogin}
+        variant="contained"
+        loading={isSubmitting}
+      >
+        Federated Login
+      </LoadingButton> */}
     </Stack>
   );
 

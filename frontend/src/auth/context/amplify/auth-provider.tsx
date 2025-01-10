@@ -102,8 +102,8 @@ export function AuthProvider({ children }: Props) {
               ...me,
               id: me.id,
               displayName: `${me.firstName} ${me.lastName}`,
-              email: currentUser.attributes.email,
-              family_name: currentUser.attributes.family_name,
+              email: me.member.contactInfo?.primaryEmail?.address || 'na@caleo.com',
+              family_name: me.lastName,
               photoURL: me.image || _mock.image.avatar(24),
               role: me.member.role?.toLowerCase(),
             },
@@ -155,6 +155,12 @@ export function AuthProvider({ children }: Props) {
           role: me.member.role?.toLowerCase(),
         },
       },
+    });
+  }, []);
+
+  const federatedLogin = useCallback(async (code?: string) => {
+    await Auth.federatedSignIn({
+      customProvider: 'azure-test'
     });
   }, []);
 
@@ -239,6 +245,7 @@ export function AuthProvider({ children }: Props) {
       confirmRegister,
       resendCodeRegister,
       updateProfilePhotoUrl,
+      federatedLogin,
     }),
     [
       status,
@@ -252,6 +259,7 @@ export function AuthProvider({ children }: Props) {
       confirmRegister,
       resendCodeRegister,
       updateProfilePhotoUrl,
+      federatedLogin,
     ]
   );
 

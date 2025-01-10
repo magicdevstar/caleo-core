@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
@@ -10,6 +10,11 @@ import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
 import { userIsAdmin } from '../utils/access';
 import { SearchResults } from '../utils/common.resolvers';
+import { IOrganization } from './organization';
+import { IUser } from '../types/common';
+import { BaseMongo } from './base.v2';
+import { IAssignment } from './assignment';
+import { IEvent } from './event';
 
 const dayOfWeek = [
   'sunday',
@@ -22,22 +27,82 @@ const dayOfWeek = [
 ];
 
 export interface ShiftSearchExtended extends ShiftSearchInput {
-  orgId: string;
-  requestingUser: User;
+  orgId: ObjectId;
+  requestingUser: IUser;
 }
 
-export interface IShift extends Omit<Shift, 'shiftCheckInOut' | 'startTime' | 'endTime'> {
-  startTime: number;
-  endTime: number;
-  shiftCheckInOut: {
-    checkInTime: Date;
-    checkOutTime: Date;
-  }
-} 
+export interface IShiftCheckInOut extends Omit<
+  ShiftCheckInOut,
+  'checkInTime' |
+  'checkOutTime' |
+  '__typename'
+> {
+  checkInTime?: Date;
+  checkOutTime?: Date;
+}
+
+export interface IShift extends Omit<
+  Shift,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  'assignment' |
+  'assignmentId' |
+  'createdBy' |
+  'createdById' |
+  'endTime' |
+  'event' |
+  'eventId' |
+  'lotteryRequest' |
+  'otherShiftSlots' |
+  'shiftBufferShift' |
+  'shiftCheckInOut' |
+  'shiftInterestRequest' |
+  'startTime' |
+  'user' |
+  'userId' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  orgId: ObjectId;
+  modifiedById: ObjectId;
+  createdById: ObjectId;
+  assignmentId: ObjectId;
+  eventId: ObjectId;
+  userId?: ObjectId | null;
+
+  order?: number;
+
+  shiftCheckInOut?: IShiftCheckInOut;
+
+  endTime: Date;
+  startTime: Date;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export interface IShiftExpanded extends IShift {
+  user?: IUser;
+  assignment?: IAssignment;
+  event?: IEvent;
+}
+
+export interface IShiftWithAssignment extends IShift {
+  assignment: IAssignment;
+  shiftBufferShift?: IShift;
+}
 
 const lambda = new LambdaClient({});
 
-export class ShiftModel extends BaseModel<Shift> {
+export class ShiftModel extends BaseMongo<IShift> {
   eventsCollection: Collection;
   lottoShiftRequestCollection: Collection;
 
@@ -67,7 +132,7 @@ export class ShiftModel extends BaseModel<Shift> {
   });
 
   public loadOtherShiftSlots = new DataLoader(async (groupKeys: readonly string[]) => {
-    const res = await this.collection.find({
+    const res = await this.collection.find<IShift>({
       shiftId: { $in: groupKeys },
       removedAt: { $exists: false },
     }).sort({ _id: -1 }).toArray();
@@ -77,11 +142,10 @@ export class ShiftModel extends BaseModel<Shift> {
         return acc;
       }
       acc[shift.shiftId] = acc[shift.shiftId] || [];
-      shift.id = shift._id.toString();
-      delete (shift as any)._id;
+      shift.id = shift._id!.toString();
       acc[shift.shiftId].push(shift);
       return acc;
-    }, {} as any);
+    }, {} as Record<string, IShift[]>);
 
     return groupKeys
       .map((key) =>
@@ -95,13 +159,13 @@ export class ShiftModel extends BaseModel<Shift> {
 
   public eventShiftCount = new DataLoader(async (keys: readonly string[]) => {
     const res = await this.collection.aggregate<{
-      _id: string;
+      _id: ObjectId;
       count: number;
     }>([
       {
         $match: {
           eventId: {
-            $in: keys,
+            $in: keys.map((id) => new ObjectId(id)),
           },
           removedAt: { $exists: false },
           status: { $ne: ShiftStatus.Locked },
@@ -118,18 +182,18 @@ export class ShiftModel extends BaseModel<Shift> {
       },
     ]).toArray();
 
-    return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
+    return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
   });
 
   public assignmentShiftCount = new DataLoader(async (keys: readonly string[]) => {
     const res = await this.collection.aggregate<{
-      _id: string;
+      _id: ObjectId;
       count: number;
     }>([
       {
         $match: {
           assignmentId: {
-            $in: keys,
+            $in: keys.map((id) => new ObjectId(id)),
           },
           removedAt: { $exists: false },
           status: { $ne: ShiftStatus.Locked },
@@ -146,15 +210,18 @@ export class ShiftModel extends BaseModel<Shift> {
       },
     ]).toArray();
 
-    return keys.map((key) => res.find((item) => item._id === key)?.count || 0);
+    return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
   });
 
   public shiftCountLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {
-    const beginningOfWeek = keys[0].beginningOfWeek.getTime();
-    const endOfWeek = keys[0].endOfWeek.getTime();
-    const orgId = keys[0].orgId;
-    const userIds = keys.map(({ id }) => id);
-    const res = await this.collection.aggregate([
+    const beginningOfWeek = keys[0].beginningOfWeek;
+    const endOfWeek = keys[0].endOfWeek;
+    const orgId = new ObjectId(keys[0].orgId);
+    const userIds = keys.map(({ id }) => new ObjectId(id));
+    const res = await this.collection.aggregate<{
+      _id: ObjectId;
+      count: number;
+    }>([
       {
         $match: {
           orgId,
@@ -186,10 +253,10 @@ export class ShiftModel extends BaseModel<Shift> {
   });
 
   public shiftHoursLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfMonth: Date; endOfMonth: Date;}[]) => {
-    const beginningOfMonth = keys[0].beginningOfMonth.getTime();
-    const endOfMonth = keys[0].endOfMonth.getTime();
-    const orgId = keys[0].orgId;
-    const userIds = keys.map(({ id }) => id);
+    const beginningOfMonth = keys[0].beginningOfMonth;
+    const endOfMonth = keys[0].endOfMonth;
+    const orgId = new ObjectId(keys[0].orgId);
+    const userIds = keys.map(({ id }) => new ObjectId(id));
     const query = {
       userId: {
         $in: userIds,
@@ -201,15 +268,15 @@ export class ShiftModel extends BaseModel<Shift> {
         $lte: endOfMonth,
       }
     };
-    const allShifts: IShift[] = await this.collection.find(query).toArray() as any;
+    const allShifts = await this.collection.find<IShift>(query).toArray();
     const shiftsGroupedByUser = allShifts.reduce((acc, shift) => {
       if (shift.userId) {
-        acc[shift.userId] = acc[shift.userId] || [];
-        acc[shift.userId].push(shift);
+        acc[shift.userId.toString()] = acc[shift.userId.toString()] || [];
+        acc[shift.userId.toString()].push(shift);
       }
       return acc;
-    }, {} as any);
-    const res: any = {};
+    }, {} as Record<string, IShift[]>);
+    const res: Record<string, number> = {};
     for (const key of Object.keys(shiftsGroupedByUser)) {
       const allShifts = shiftsGroupedByUser[key];
       const totalMilliseconds = allShifts.reduce((total, {
@@ -217,7 +284,7 @@ export class ShiftModel extends BaseModel<Shift> {
         endTime,
         shiftCheckInOut
       }) => {
-        let milliseconds = endTime - startTime;
+        let milliseconds = endTime.getTime() - startTime.getTime();
         if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
           milliseconds = shiftCheckInOut.checkOutTime.getTime() - shiftCheckInOut.checkInTime.getTime();
         }
@@ -228,25 +295,19 @@ export class ShiftModel extends BaseModel<Shift> {
       const totalHours = Math.floor(totalMilliseconds / 3600000);
       res[key] = totalHours;
     }
-
-    logger.info('Shift Hours Grouped by User', {
-      shiftsGroupedByUser,
-      res,
-      beginningOfMonth,
-      endOfMonth,
-      query,
-      keys,
-    });
     
     return keys.map((key) => res[key.id] || 0);
   });
 
   public weekShiftsLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {
-    const beginningOfWeek = keys[0].beginningOfWeek.getTime();
-    const endOfWeek = keys[0].endOfWeek.getTime();
-    const orgId = keys[0].orgId;
-    const userIds = keys.map(({ id }) => id);
-    const res = await this.collection.aggregate([
+    const beginningOfWeek = keys[0].beginningOfWeek;
+    const endOfWeek = keys[0].endOfWeek;
+    const orgId = new ObjectId(keys[0].orgId);
+    const userIds = keys.map(({ id }) => new ObjectId(id));
+    const res = await this.collection.aggregate<{
+      _id: ObjectId;
+      shifts: IShift[];
+    }>([
       {
         $match: {
           orgId,
@@ -275,8 +336,8 @@ export class ShiftModel extends BaseModel<Shift> {
     return keys
       .map((key) =>
         res
-          .find((item: any) => item._id.toString() === key.id) || { shifts: [] })
-          .map(({ shifts }: any) => shifts);
+          .find((item) => item._id.toString() === key.id) || { shifts: [] as IShift[] })
+          .map(({ shifts }) => shifts);
   });
 
   constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
@@ -290,19 +351,22 @@ export class ShiftModel extends BaseModel<Shift> {
     checkInTime,
     checkOutTime,
     adminNotes,
+    user,
   } : {
     id: string,
     checkInTime?: string,
     checkOutTime?: string,
     adminNotes?: string,
+    user: IUser,
   }) {
     await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
-        'updatedAt': Date.now(),
-        ...(checkInTime ? { 'shiftCheckInOut.checkInTime': checkInTime } : {}),
-        ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': checkOutTime } : {}),
+        modifiedById: user._id!,
+        updatedAt: new Date(),
+        ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
+        ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
       },
     });
@@ -314,18 +378,21 @@ export class ShiftModel extends BaseModel<Shift> {
     time,
     checkInNote,
     adminNotes,
+    user
   } : {
     id: string,
     coords?: ShiftCheckInOutCoordinates,
-    time?: string,
+    time?: Date,
     checkInNote?: string,
     adminNotes?: string,
+    user: IUser,
   }) {
     await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
-        'updatedAt': Date.now(),
+        modifiedById: user._id!,
+        updatedAt: new Date(),
         'shiftCheckInOut.checkInTime': time || new Date(),
         ...(checkInNote ? { 'shiftCheckInOut.checkInNote': checkInNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
@@ -340,18 +407,21 @@ export class ShiftModel extends BaseModel<Shift> {
     time,
     checkOutNote,
     adminNotes,
+    user,
   } : {
     id: string,
     coords?: ShiftCheckInOutCoordinates,
-    time?: string,
+    time?: Date,
     checkOutNote?: string,
     adminNotes?: string,
+    user: IUser,
   }) {
     await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
-        'updatedAt': Date.now(),
+        modifiedById: user._id!,
+        updatedAt: new Date(),
         'shiftCheckInOut.checkOutTime': time || new Date(),
         ...(checkOutNote ? { 'shiftCheckInOut.checkOutNote': checkOutNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
@@ -363,7 +433,7 @@ export class ShiftModel extends BaseModel<Shift> {
   async highestRefNumber(eventId: string) {
     try {
       const res = await this.collection
-        .find({ eventId })
+        .find<IShift>({ eventId: new ObjectId(eventId) })
         .sort({ refNumber: -1 })
         .limit(1)
         .toArray();
@@ -374,9 +444,9 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   }
 
-  async notifyUsersOfEventAvailability(eventId: string, organization: Organization) {
-    const emptyShifts = await this.collection.find({
-      eventId,
+  async notifyUsersOfEventAvailability(eventId: string, organization: Organization | IOrganization) {
+    const emptyShifts = await this.collection.find<IShift>({
+      eventId: new ObjectId(eventId),
       removedAt: { $exists: false },
       $or: [
         { userId: null },
@@ -402,11 +472,11 @@ export class ShiftModel extends BaseModel<Shift> {
 
   async notifyUsersOfEventInterestAvailability(
     eventId: string,
-    organization: Organization,
+    organization: Organization | IOrganization,
     mailerTemplate: MailerEvents.OfficerInterestListOpening | MailerEvents.OfficerInterestListClosing,
   ) {
-    const emptyShifts = await this.collection.find({
-      eventId,
+    const emptyShifts = await this.collection.find<IShift>({
+      eventId: new ObjectId(eventId),
       removedAt: { $exists: false },
       $or: [
         { userId: null },
@@ -436,15 +506,15 @@ export class ShiftModel extends BaseModel<Shift> {
     orgId,
     shiftBufferTime = 0,
   }: {
-    user: User;
-    shift: Shift;
+    user: User | IUser;
+    shift: IShift;
     orgId: string;
     shiftBufferTime?: number;
   }) {
     const res: {
       canSignUpForShift: boolean;
       requiresShiftBuffer: boolean;
-      shiftBuffer?: Shift;
+      shiftBuffer?: IShift;
     } = {
       canSignUpForShift: false,
       requiresShiftBuffer: false,
@@ -484,8 +554,8 @@ export class ShiftModel extends BaseModel<Shift> {
       //  |----------------------| 
       {
         $and: [
-          { startTime: { $lte: ((shift.startTime as any) - bufferOffset) } },
-          { endTime: { $gte: ((shift.endTime as any) + bufferOffset) } }
+          { startTime: { $lte: new Date(shift.startTime.getTime() - bufferOffset) } },
+          { endTime: { $gte: new Date(shift.endTime.getTime() + bufferOffset) } }
         ],
       },
       // Case 2: The interval is completely inside the start date and end date
@@ -496,8 +566,8 @@ export class ShiftModel extends BaseModel<Shift> {
       //       |----------|
       {
         $and: [
-          { startTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
-          { endTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+          { startTime: { $gte: new Date(shift.startTime.getTime() - bufferOffset) } },
+          { endTime: { $lte: new Date(shift.endTime.getTime() + bufferOffset) } }
         ],
       },
       // Case 3: The start date is outside the interval and the end date is inside the interval
@@ -508,8 +578,8 @@ export class ShiftModel extends BaseModel<Shift> {
       // |-----------|
       {
         $and: [
-          { endTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
-          { endTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+          { endTime: { $gte: new Date(shift.startTime.getTime() - bufferOffset) } },
+          { endTime: { $lte: new Date(shift.endTime.getTime() + bufferOffset) } }
         ],
       },
       // Case 4: The start date is inside the interval and the end date is outside the interval
@@ -519,40 +589,40 @@ export class ShiftModel extends BaseModel<Shift> {
       //              |-------------|
       {
         $and: [
-          { startTime: { $gte: ((shift.startTime as any) - bufferOffset) } },
-          { startTime: { $lte: ((shift.endTime as any) + bufferOffset) } }
+          { startTime: { $gte: new Date(shift.startTime.getTime() - bufferOffset) } },
+          { startTime: { $lte: new Date(shift.endTime.getTime() + bufferOffset) } }
         ],
       },
     ];
 
     const query = {
-      orgId,
-      userId: user.id,
+      orgId: new ObjectId(orgId),
+      userId: new ObjectId(user.id),
       removedAt: { $exists: false },
       $or,
     };
-    const foundOverlap = await this.collection.findOne(query);
+    const foundOverlap = await this.collection.findOne<IShift>(query);
 
     res.canSignUpForShift = !foundOverlap;
 
     if(
       foundOverlap &&
       !(
-        (foundOverlap.startTime > shift.startTime && foundOverlap.startTime < shift.endTime) ||
-        (foundOverlap.endTime > shift.startTime && foundOverlap.endTime < shift.endTime + 1) ||
-        (foundOverlap.startTime === shift.startTime && foundOverlap.endTime === shift.endTime)
+        (foundOverlap.startTime.getTime() > shift.startTime.getTime() && foundOverlap.startTime.getTime() < shift.endTime.getTime()) ||
+        (foundOverlap.endTime.getTime() > shift.startTime.getTime() && foundOverlap.endTime.getTime() < shift.endTime.getTime() + 1) ||
+        (foundOverlap.startTime.getTime() === shift.startTime.getTime() && foundOverlap.endTime.getTime() === shift.endTime.getTime())
       )
     ) {
       res.requiresShiftBuffer = true;
-      foundOverlap.id = foundOverlap._id.toString();
-      res.shiftBuffer = foundOverlap as any;
+      foundOverlap.id = foundOverlap._id!.toString();
+      res.shiftBuffer = foundOverlap;
     }
 
     return res;
   }
 
-  async notifyUsersOfShiftAvailability(shiftId: string, organization: Organization) {
-    const emptyShifts = await this.collection.find({
+  async notifyUsersOfShiftAvailability(shiftId: string, organization: IOrganization) {
+    const emptyShifts = await this.collection.find<IShift>({
       shiftId,
       removedAt: { $exists: false },
       $or: [
@@ -577,9 +647,9 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   }
 
-  createAvailability(shift: Shift, timezone: string) {
-    const startTime = utcToZonedTime(new Date(shift.startTime), timezone);
-    const endTime = utcToZonedTime(new Date(shift.endTime), timezone);
+  createAvailability(shift: IShift, timezone: string) {
+    const startTime = utcToZonedTime(shift.startTime, timezone);
+    const endTime = utcToZonedTime(shift.endTime, timezone);
   
     const startDay = getDay(startTime);
     const endDay = getDay(endTime);
@@ -594,7 +664,7 @@ export class ShiftModel extends BaseModel<Shift> {
     }
   
     return dayOfWeek.reduce((acc, day, index) => {
-      acc[day] = {};
+      acc[day] = {} as {startTime: Date; endTime: Date;};
       if (index === startDay) {
         if (endDay !== startDay) {
           acc[day].endTime = endOfDay(new Date(0));
@@ -621,16 +691,16 @@ export class ShiftModel extends BaseModel<Shift> {
         acc[day] = null;
       }
       return acc;
-    }, {} as any);
+    }, {} as Record<string, {startTime: Date; endTime: Date;} | null>);
   }
 
   async removeAllByEventId(orgId: string, eventId: string, modifiedById: string): Promise<void> {
     const shiftRes = await this.removeMany({
-      orgId,
-      eventId,
+      orgId: new ObjectId(orgId),
+      eventId: new ObjectId(eventId),
       status: { $in: [ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked] }
     }, {
-      modifiedById,
+      modifiedById: new ObjectId(modifiedById),
       status: ShiftStatus.Removed,
     });
 
@@ -644,11 +714,11 @@ export class ShiftModel extends BaseModel<Shift> {
 
   async removeAllByAssignmentId(orgId: string, assignmentId: string, modifiedById: string): Promise<void> {
     const shiftRes = await this.removeMany({
-      orgId,
-      assignmentId,
+      orgId: new ObjectId(orgId),
+      assignmentId: new ObjectId(assignmentId),
       status: { $in: [ShiftStatus.Assigned, ShiftStatus.Available, ShiftStatus.Locked] }
     }, {
-      modifiedById,
+      modifiedById: new ObjectId(modifiedById),
       status: ShiftStatus.Removed,
     });
     if (shiftRes.modifiedCount === 0) {
@@ -669,22 +739,29 @@ export class ShiftModel extends BaseModel<Shift> {
     );
   }
 
-  async getAllShiftsById(shiftId: string): Promise<Shift[]> {
-    const shifts = await this.collection.find({
+  async getAllShiftsById(shiftId: string): Promise<IShift[]> {
+    const shifts = await this.collection.find<IShift>({
       shiftId,
       removedAt: { $exists: false },
     }).toArray();
     return shifts.map((shift) => ({
       ...shift,
-      id: shift._id.toString(),
-    } as any)) as Shift[];
+      id: shift._id!.toString(),
+    }));
   }
 
-  async getByShiftId(shiftId: string): Promise<Shift | null> {
-    return this.findOne({
+  async getByShiftId(shiftId: string): Promise<IShift | null> {
+    const doc = await this.collection.findOne<IShift>({
       shiftId,
       removedAt: { $exists: false },
     });
+    if (!doc) {
+      return null;
+    }
+    return {
+      ...doc,
+      id: doc._id!.toString(),
+    };
   }
 
   async getTotalEmptyShiftsPostLottery({
@@ -698,15 +775,8 @@ export class ShiftModel extends BaseModel<Shift> {
       {
         $match: {
           lotteryNumber: counter,
-          orgId,
+          orgId: new ObjectId(orgId),
           removedAt: { $exists: false },
-        },
-      },
-      {
-        $addFields: {
-          eventId: {
-            $toString: "$_id",
-          },
         },
       },
       {
@@ -762,12 +832,10 @@ export class ShiftModel extends BaseModel<Shift> {
       },
     ];
 
-    const res: {
+    const res = await this.eventsCollection.aggregate<{
       _id: string;
       count: number;
-    }[] = await this.eventsCollection.aggregate<{
-      _id: string;
-    }>(pipeline).toArray() as any[];
+    }>(pipeline).toArray();
 
     return res.reduce((sum, item) => sum + item.count, 0);
   }
@@ -777,22 +845,16 @@ export class ShiftModel extends BaseModel<Shift> {
   }: {
     orgId: string;
   }) {
-    const { counter } = await this.lotteryCounter.get(orgId);
+    const orgIdObj = new ObjectId(orgId);
+    const { counter } = await this.lotteryCounter.get(orgIdObj);
 
     const pipeline = [
       {
         $match: {
           status: EventStatus.ReadyForLottery,
-          orgId,
+          orgId: orgIdObj,
           lotteryNumber: counter,
           removedAt: { $exists: false },
-        },
-      },
-      {
-        $addFields: {
-          eventId: {
-            $toString: "$_id",
-          },
         },
       },
       {
@@ -851,11 +913,13 @@ export class ShiftModel extends BaseModel<Shift> {
       _id: string;
     }>(pipeline).toArray();
 
-    const orderedIds = await this.lottoShiftRequestCollection.aggregate([
+    const orderedIds = await this.lottoShiftRequestCollection.aggregate<{
+      _id: string;
+    }>([
       {
         $match: {
           lotteryCounter: counter,
-          orgId,
+          orgId: new ObjectId(orgId),
           shiftGroupId: {
             $in: res.map(({ _id }) => _id),
           },
@@ -882,8 +946,6 @@ export class ShiftModel extends BaseModel<Shift> {
       },
     ]).toArray();
 
-    logger.info('Res', { orderedIds });
-
     return {
       items: orderedIds,
       lotteryCounter: counter,
@@ -895,7 +957,7 @@ export class ShiftModel extends BaseModel<Shift> {
   }: {
     shiftGroupId: string;
   }) {
-    const res = await this.collection.find({
+    const res = await this.collection.find<IShift>({
       $and: [
         { shiftId: shiftGroupId },
         { removedAt: { $exists: false } },
@@ -924,11 +986,11 @@ export class ShiftModel extends BaseModel<Shift> {
     return res.map(({_id, ...item}) => ({
       ...item,
       _id,
-      id: _id.toString(),
-    }) as unknown as Shift);
+      id: _id!.toString(),
+    }) as IShift);
   }
 
-  async dynamicSearch(input: ShiftSearchExtended): Promise<SearchResults<Shift>> {
+  async dynamicSearch(input: ShiftSearchExtended): Promise<SearchResults<IShift>> {
     const {
       skip,
       limit,
@@ -953,12 +1015,14 @@ export class ShiftModel extends BaseModel<Shift> {
       ...matchInput
     } = input;
 
+    logger.info('Dynamic shift keys', { keys: Object.keys(matchInput).map((key) => ({ keyType: typeof key, key })) });
+
     if (createdById) {
-      (matchInput as any).createdById = { $in: createdById };
+      (matchInput as any).createdById = { $in: createdById.map((cbi) => new ObjectId(cbi!)) };
     }
 
     if (eventIds) {
-      (matchInput as any).eventId = { $in: eventIds };
+      (matchInput as any).eventId = { $in: eventIds.map((eventId) => new ObjectId(eventId!)) };
     }
 
     if (refNumber) {
@@ -971,52 +1035,62 @@ export class ShiftModel extends BaseModel<Shift> {
 
     // const realStatuses = (status || []).filter((s) => [ShiftStatus.Assigned].includes(s || ''));
 
-    // Find set of assigned users if requester is admin
-    if (assignedIds && userIsAdmin(requestingUser)) {
-      (matchInput as any).userId = { $in: assignedIds };
-    // Find set user assignments if requester is admin and the userId provided does not match the requesting user
-    } else if (userId !== requestingUser?.id && userIsAdmin(requestingUser)) {
-      (matchInput as any).userId = userId;
+    if (userIsAdmin(requestingUser)) {
+      if (assignedIds) {
+        (matchInput as any).userId = { $in: assignedIds.map((uId) => new ObjectId(uId!)) };  
+      } else if (userId) {
+        (matchInput as any).userId = new ObjectId(userId!);
+      }
     } else {
-      (matchInput as any).userId = requestingUser?.id;
+      (matchInput as any).userId = requestingUser?._id;
     }
+
+    // // Find set of assigned users if requester is admin
+    // if (assignedIds && userIsAdmin(requestingUser)) {
+    //   (matchInput as any).userId = { $in: assignedIds.map((uId) => new ObjectId(uId!)) };
+    // // Find set user assignments if requester is admin and the userId provided does not match the requesting user
+    // } else if (!!userId && userId !== requestingUser?.id && userIsAdmin(requestingUser)) {
+    //   (matchInput as any).userId = new ObjectId(userId!);
+    // } else if (!userIsAdmin(requestingUser)) {
+    //   (matchInput as any).userId = requestingUser?._id;
+    // }
 
     if (range) {
       const { startTime, endTime, removedAt } = range;
       if (startTime && startTime.value) {
-        (matchInput as any).startTime = new Date(startTime.value).getTime();
+        (matchInput as any).startTime = new Date(startTime.value);
       } else if (startTime && (startTime.gte || startTime?.lte)) {
         (matchInput as any).startTime = {
-          ...(startTime.gte ? { $gte: new Date(startTime.gte).getTime() } : {}),
-          ...(startTime.lte ? { $lte: new Date(startTime.lte).getTime() } : {}),
+          ...(startTime.gte ? { $gte: new Date(startTime.gte) } : {}),
+          ...(startTime.lte ? { $lte: new Date(startTime.lte) } : {}),
         };
       }
 
       if (endTime && endTime.value) {
-        (matchInput as any).endTime = new Date(endTime.value).getTime();
+        (matchInput as any).endTime = new Date(endTime.value);
       } else if (endTime && (endTime.gte || endTime?.lte)) {
         (matchInput as any).endTime = {
-          ...(endTime.gte ? { $gte: new Date(endTime.gte).getTime() } : {}),
-          ...(endTime.lte ? { $lte: new Date(endTime.lte).getTime() } : {}),
+          ...(endTime.gte ? { $gte: new Date(endTime.gte) } : {}),
+          ...(endTime.lte ? { $lte: new Date(endTime.lte) } : {}),
         };
       }
 
       if (removedAt && removedAt.value) {
-        (matchInput as any).removedAt = new Date(removedAt.value).getTime();
+        (matchInput as any).removedAt = new Date(removedAt.value);
       } else if (removedAt && (removedAt.gte || removedAt?.lte)) {
         (matchInput as any).removedAt = {
-          ...(removedAt.gte ? { $gte: new Date(removedAt.gte).getTime() } : {}),
-          ...(removedAt.lte ? { $lte: new Date(removedAt.lte).getTime() } : {}),
+          ...(removedAt.gte ? { $gte: new Date(removedAt.gte) } : {}),
+          ...(removedAt.lte ? { $lte: new Date(removedAt.lte) } : {}),
         };
       }
     } else if (startTime || endTime) {
       if (startTime) {
         (matchInput as any).endTime = {
-          $gte: new Date(startTime).getTime(),
+          $gte: new Date(startTime),
         };
       } else if (endTime) {
         (matchInput as any).startTime = {
-          $lte: new Date(endTime).getTime(),
+          $lte: new Date(endTime),
         };
       }
     }
@@ -1051,14 +1125,6 @@ export class ShiftModel extends BaseModel<Shift> {
 
     if (rankIds || skillIds) {
       pipeline.push({
-        $addFields:
-          {
-            assignmentId: {
-              $toObjectId: "$assignmentId",
-            },
-          },
-      },
-      {
         $lookup:
           {
             from: "assignments",
@@ -1081,10 +1147,10 @@ export class ShiftModel extends BaseModel<Shift> {
       };
 
       if (rankIds) {
-        assignmentMatch.$match["assignment.rankIds"] = { $in: rankIds };
+        assignmentMatch.$match["assignment.rankIds"] = { $in: rankIds.map((id) => new ObjectId(id!)) };
       }
       if (skillIds) {
-        assignmentMatch.$match["assignment.requiredSkillIds"] = { $in: skillIds };
+        assignmentMatch.$match["assignment.requiredSkillIds"] = { $in: skillIds.map((id) => new ObjectId(id!)) };
       }
       pipeline.push(assignmentMatch);
     }
@@ -1098,11 +1164,6 @@ export class ShiftModel extends BaseModel<Shift> {
         $sort: { _id: -1 },
       });
     }
-
-    const totalPipeline = JSON.parse((JSON.stringify(pipeline)));
-    totalPipeline.push({
-      $count: "total",
-    });
 
     if (skip) {
       pipeline.push({
@@ -1118,11 +1179,15 @@ export class ShiftModel extends BaseModel<Shift> {
     logger.info('Dynamic Shift Pipeline', {
       input,
       pipeline,
-      totalPipeline,
     });
 
-    const itemResult = await this.collection.aggregate(JSON.parse(JSON.stringify(pipeline))).toArray();
-    const totalResult = await this.collection.aggregate(totalPipeline).toArray();
+    const itemResult = await this.collection.aggregate(pipeline).toArray();
+    const totalResult = await this.collection.aggregate([
+      ...pipeline,
+      {
+        $count: "total",
+      }
+    ]).toArray();
 
     logger.info('Dynamic Shift Result', {
       itemResult,
@@ -1130,11 +1195,10 @@ export class ShiftModel extends BaseModel<Shift> {
     });
 
     return {
-      items: itemResult.map(({_id, assignmentId, ...item}) => ({
+      items: itemResult.map(({_id, ...item}) => ({
         ...item,
-        assignmentId: typeof assignmentId === 'string' ? assignmentId : assignmentId.toString(),
         id: _id.toString(),
-      })) as any,
+      })) as IShift[],
       total: totalResult.length > 0 ? totalResult[0].total : 0,
     };
   }

@@ -6,13 +6,13 @@ import { Db } from 'mongodb';
 
 import logger from './../utils/logger';
 import { validateToken } from './jwt';
-import { User } from './../__generated__/resolvers-types';
 import { createContext } from '../utils/createContext';
+import { IUser } from '../types/common';
 
 interface AuthorizerSimpleResponse {
   isAuthorized: boolean;
   context?: {
-    user?: User | null;
+    user?: IUser | null;
   };
 }
 
@@ -35,7 +35,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
     }
 
     const { users } = await createContext();
-    let user = await users.findOne({ cognitoId: sub, removedAt: { $exists: false } });
+    let user = await users.collection.findOne<IUser>({ cognitoId: sub, removedAt: { $exists: false } });
     let originalUser = user;
     if (user?.superAdmin && familyName && familyName.includes('t:')) {
       const [_, userId] = familyName.split(':');
@@ -45,7 +45,7 @@ const authorizer = async (event: APIGatewayRequestAuthorizerEventV2): Promise<Au
     return {
       isAuthorized: true,
       context: {
-        user,
+        user: user!,
         ...(user!.id !== originalUser!.id ? { originalUser } : {}),
       },
     };

@@ -12,6 +12,9 @@ import {
 } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
+import { ObjectId } from "mongodb";
+import { ISkill } from "../../models/skill";
+import { IMemberSkill } from "../../models/memberSkill";
 
 export const skill = {
   Query: {
@@ -19,19 +22,19 @@ export const skill = {
       _parent: unknown,
       { id }: { id: string },
       { skills }: Context,
-    ): Promise<Skill | null> => skills.get(id),
+    ): Promise<ISkill | null> => skills.get(id),
     skills: async (
       _parent: unknown,
       { input: { rankOnlyIds, ...input } }: { input: SkillSearchInput },
       { skills, user }: Context
-    ): Promise<SearchResults<Skill>> => skills.search({
+    ): Promise<SearchResults<ISkill>> => skills.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
       ...(rankOnlyIds ? {
         $or: [
           { rankOnlyIds: [] },
-          { rankOnlyIds: { $in: rankOnlyIds } },
+          { rankOnlyIds: { $in: rankOnlyIds.map((id) => new ObjectId(id!)) } },
         ]
       } : {}),
     }),
@@ -39,7 +42,7 @@ export const skill = {
       _parent: unknown,
       { input }: { input: MemberSkillSearchInput },
       { memberSkills, user }: Context
-    ): Promise<SearchResults<MemberSkill>> => memberSkills.search({
+    ): Promise<SearchResults<IMemberSkill>> => memberSkills.search({
       orgId: user?.member.orgId!,
       ...input,
     })
@@ -52,18 +55,20 @@ export const skill = {
     ): Promise<string> => {
       adminOnly(user);
 
+      const userId = user!._id!;
       await skills.remove(id, {
-        modifiedById: user!.id,
+        modifiedById: userId,
       });
 
+      const requiredSkillId = new ObjectId(id);
       await assignments.collection.updateMany({
-        requiredSkillIds: id,
+        requiredSkillIds: requiredSkillId,
       }, {
         $set: {
-          modifiedById: user!.id,
+          modifiedById: userId,
         },
         $pull: {
-          requiredSkillIds: id,
+          requiredSkillIds: requiredSkillId,
         },
       } as any);
 
@@ -78,19 +83,15 @@ export const skill = {
       if (!memberSkill) {
         throw new GraphQLError('Could not find member skill');
       }
-      adminOrOwnerOnly(memberSkill.userId, user);
-      await memberSkills.removeDoc(id, user!.id);
-      const skillUser = await users.get(memberSkill.userId);
-
-      if (skillUser) {
-        skillUser.member.memberSkillIds = skillUser.member.memberSkillIds?.filter((s) => s !== id);
-        await users.update({
-          ...skillUser,
-          modifiedById: user!.id,
-        } as any, {
-          skipMerge: true,
-        });
-      }
+      adminOrOwnerOnly(memberSkill.userId.toString(), user);
+      await memberSkills.removeDoc(id, user!._id!);
+      await users.collection.updateOne({
+        _id: memberSkill.userId,
+      }, {
+        $pull: {
+          memberSkillIds: new ObjectId(id),
+        },
+      });
 
       return id;
     },
@@ -105,15 +106,18 @@ export const skill = {
       }
       return skills.upsert({
         ...skill,
+        ...(skill.rankOnlyIds && {
+          rankOnlyIds: skill.rankOnlyIds.map((id) => new ObjectId(id!)),
+        }),
         orgId: user?.member.orgId!,
-        modifiedById: user?.id!,
+        modifiedById: user?._id!,
       } as any);
     },
     userSkill: async (
       _parent: unknown,
       { userSkill }: { userSkill: UpsertMemberSkill },
       { memberSkills, user, organization }: Context
-    ): Promise<MemberSkill> => {
+    ): Promise<IMemberSkill> => {
       adminOrOwnerOnly(userSkill.userId, user);
 
       if (
@@ -124,8 +128,10 @@ export const skill = {
       
       return memberSkills.upsertDoc({
         ...userSkill,
+        ...(userSkill.skillId && { skillId: new ObjectId(userSkill.skillId) }),
+        ...(userSkill.userId && { userId: new ObjectId(userSkill.userId) }),
         orgId: user?.member.orgId!,
-        modifiedById: user?.id!,
+        modifiedById: user?._id!,
       } as any, organization!);
     },
     userSkillAttachmentUploadUrl: async (
@@ -134,21 +140,21 @@ export const skill = {
       { memberSkills, user }: Context
     ): Promise<MemberSkillAttachmentUpload> => {
       return memberSkills.getUploadUrl({
-        orgId: user?.member.orgId!,
+        orgId: user?.member.orgId.toString()!,
       });
     }
   },
   fields: {
     Skill: {
       ...commonResolvers,
-      org: (skill: Skill, _, { organizations }: Context) => organizations.loader.load(skill.orgId),
-      ranksOnly: (skill: Skill, _, { ranks }: Context) => skill.rankOnlyIds && skill.rankOnlyIds.length > 0 ? ranks.loader.loadMany((skill.rankOnlyIds || []) as any) : [],
+      org: (skill: ISkill, _, { organizations }: Context) => organizations.loader.load(skill.orgId.toString()),
+      ranksOnly: (skill: ISkill, _, { ranks }: Context) => skill.rankOnlyIds && skill.rankOnlyIds.length > 0 ? ranks.loader.loadMany((skill.rankOnlyIds || []).map((id) => id.toString())) : [],
     },
     MemberSkill: {
       ...commonResolvers,
-      skill: (memberSkill: MemberSkill, _, { skills }: Context) => skills.loader.load(memberSkill.skillId),
-      user: (memberSkill: MemberSkill, _, { users }: Context) => users.loader.load(memberSkill.userId),
-      image: (memberSkill: MemberSkill, _, { memberSkills }: Context) => memberSkill.imagePath ? memberSkills.getDownloadUrl(memberSkill.imagePath!) : null,
+      skill: (memberSkill: IMemberSkill, _, { skills }: Context) => skills.loader.load(memberSkill.skillId.toString()),
+      user: (memberSkill: IMemberSkill, _, { users }: Context) => users.loader.load(memberSkill.userId.toString()),
+      image: (memberSkill: IMemberSkill, _, { memberSkills }: Context) => memberSkill.imagePath ? memberSkills.getDownloadUrl(memberSkill.imagePath!) : null,
     },
   },
 };

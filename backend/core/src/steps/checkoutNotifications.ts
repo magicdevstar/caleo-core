@@ -30,7 +30,7 @@ const checkoutNotifications = async () => {
     logger.info('Checking for shifts to notify', {
       findParams,
       now: Date.now(),
-      timezone: org?.timezone || 'America/Los_Angeles' as any
+      timezone: org?.timezone || 'America/Los_Angeles',
     });
 
     const shiftsToNotify = await shifts.collection.find(findParams).toArray();

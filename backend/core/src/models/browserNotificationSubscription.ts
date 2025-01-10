@@ -2,6 +2,7 @@ import { Db, ObjectId } from 'mongodb';
 import { DocType, BrowserNotificationSetting, User, InputBrowserNotificationSubscription } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import DataLoader from 'dataloader';
+import { IUser } from '../types/common';
 
 export class BrowserNotificationSubscription extends BaseModel<BrowserNotificationSetting> {
   public userIdLoader = new DataLoader(async (keys: readonly ObjectId[]) => {
@@ -24,9 +25,9 @@ export class BrowserNotificationSubscription extends BaseModel<BrowserNotificati
     super(db, DocType.BrowserNotificationSetting, 'browserNotificationSubscriptions');
   }
 
-  async removeSubscription({ user, endpoint }: { user: User; endpoint: string }) {
+  async removeSubscription({ user, endpoint }: { user: IUser; endpoint: string }) {
     return this.collection.deleteOne({
-      userId: new ObjectId(user.id),
+      userId: user._id,
       'subscription.endpoint': endpoint,
     });
   }
@@ -35,7 +36,7 @@ export class BrowserNotificationSubscription extends BaseModel<BrowserNotificati
     user,
     input
   }: {
-    user: User;
+    user: IUser;
     input: InputBrowserNotificationSubscription,
   }): Promise<BrowserNotificationSetting> {
     const found = await this.collection.findOne({
@@ -55,8 +56,8 @@ export class BrowserNotificationSubscription extends BaseModel<BrowserNotificati
 
     const now = new Date();
     const doc = {
-      orgId: new ObjectId(user.member.orgId),
-      userId: new ObjectId(user.id),
+      orgId: user.member.orgId,
+      userId: user._id!,
       createdAt: now,
       updatedAt: now,
       subscription: input,

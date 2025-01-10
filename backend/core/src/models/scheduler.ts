@@ -13,6 +13,7 @@ import {
 } from "@aws-sdk/client-scheduler";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import logger from "../utils/logger";
+import { ObjectId } from "mongodb";
 
 const scheduler = new SchedulerClient({});
 const sfn = new SFNClient({});
@@ -55,12 +56,12 @@ export class SchedulerModel {
     event,
     customEventName,
   }: {
-    orgId: string;
+    orgId: ObjectId;
     event: ScheduleEvent;
     customEventName?: string;
   }) {
     const command = new GetScheduleCommand({
-      Name: customEventName || `${orgId}-${event}`,
+      Name: customEventName || `${orgId.toString()}-${event}`,
     });
 
     try {
@@ -79,13 +80,13 @@ export class SchedulerModel {
     ignoreError = false,
   }: {
     event?: ScheduleEvent;
-    orgId?: string;
+    orgId?: ObjectId;
     customEventName?: string;
     ignoreError?: boolean;
   }) {
     try {
       const command = new DeleteScheduleCommand({
-        Name: customEventName || `${orgId}-${event}`,
+        Name: customEventName || `${orgId?.toString()}-${event}`,
       });
   
       await scheduler.send(command);
@@ -106,7 +107,7 @@ export class SchedulerModel {
     enabled = ScheduleState.ENABLED,
   } : {
     event: ScheduleEvent;
-    orgId: string;
+    orgId: ObjectId;
     customEventName?: string;
     eventTime: string;
     eventTimeZone: Timezone;
@@ -120,7 +121,7 @@ export class SchedulerModel {
         customEventName,
       });
       const input: CreateScheduleCommandInput | UpdateScheduleCommandInput = {
-        Name: customEventName || `${orgId}-${event}`,
+        Name: customEventName || `${orgId.toString()}-${event}`,
         ScheduleExpression: eventTime,
         FlexibleTimeWindow: {
           Mode: FlexibleTimeWindowMode.FLEXIBLE,

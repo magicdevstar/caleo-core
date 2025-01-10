@@ -11,6 +11,7 @@ import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generat
 import { createContext } from '../utils/createContext';
 import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../types/notifications';
 import { LotteryState } from '../models/lotteryState';
+import { IStagedShiftLotteryRequest } from '../models/shiftLotteryRequest';
 
 interface InputEvent {
   _id: string;
@@ -20,16 +21,16 @@ interface InputEvent {
 
 const lambda = new LambdaClient({});
 
-const bucketAndShuffle = (requests: any[]) => {
+const bucketAndShuffle = (requests: IStagedShiftLotteryRequest[]) => {
   const bucket = requests.reduce((acc, req) => {
     if (!acc[req.order]) {
       acc[req.order] = [];
     }
     acc[req.order].push(req);
     return acc;
-  }, {});
+  }, {} as Record<string, IStagedShiftLotteryRequest[]>);
 
-  let shuffledReq: any[] = [];
+  let shuffledReq: IStagedShiftLotteryRequest[] = [];
 
   Object.keys(bucket)
     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
@@ -76,13 +77,13 @@ const assignShift = async ({
   }
 
   const initialLottoRequests = await lottery.requestsStagedForAssignment(shiftGroupId, reRun);
-  const initialRequests = uniqBy(initialLottoRequests, 'userId');
+  const initialRequests: IStagedShiftLotteryRequest[] = uniqBy(initialLottoRequests, 'userId');
   const lotteryCounter = initialRequests?.[0]?.lotteryCounter;
   let state: LotteryState = {
-    orgId: organization.id,
+    orgId: organization._id!,
     assignedUsers: [],
     lotteryCounter,
-  } as any;
+  };
   if (typeof lotteryCounter === 'number') {
     state = await lotteryState.getState(organization.id, lotteryCounter);
   }
@@ -91,15 +92,15 @@ const assignShift = async ({
     assignedUserRequests,
     unassignedUserRequests,
   } = initialRequests.reduce((acc, req) => {
-    if (state.assignedUsers.includes(req.user.id)) {
+    if (state.assignedUsers.includes(req.user._id)) {
       acc.assignedUserRequests.push(req);
     } else {
       acc.unassignedUserRequests.push(req);
     }
     return acc;
   }, {
-    assignedUserRequests: [] as any,
-    unassignedUserRequests: [] as any,
+    assignedUserRequests: [] as IStagedShiftLotteryRequest[],
+    unassignedUserRequests: [] as IStagedShiftLotteryRequest[],
   });
 
   // Attempt to give everyone at least one shift before assigning a
@@ -109,35 +110,37 @@ const assignShift = async ({
   const assignedTier1Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_1);
   const assignedTier2Requests = assignedUserRequests.filter((request) => request.user?.member?.tier === MemberTier.Tier_2);
 
-  const allRequests: typeof tier1Requests = [
+  const allRequests: IStagedShiftLotteryRequest[] = [
     ...bucketAndShuffle(tier1Requests),
     ...bucketAndShuffle(tier2Requests),
     ...bucketAndShuffle(assignedTier1Requests),
     ...bucketAndShuffle(assignedTier2Requests),
   ];
 
-  const requests = uniqBy(allRequests, 'userId');
+  const requests: IStagedShiftLotteryRequest[] = uniqBy(allRequests, 'userId');
 
   logger.info('Lottery requests', {
     requests,
   });
 
   const assignment = await assignments.get(shifts[0].assignmentId);
+  const assignmentRankIds = (assignment?.rankIds || []).map((id) => id.toString());
+  const assignmentSkillIds = (assignment?.requiredSkillIds || []).map((id) => id.toString());
 
   const tier1Assignments = new Set<string>();
   const shiftAssignments: any[] = [];
   const acceptedRequestIds: ObjectId[] = [];
   // Loop through requests, check if user can sign up for shift and assign the shift if so
   for(const request of requests) {
-    if (!assignment?.rankIds?.includes(request.user?.member?.rankId)) {
-      logger.info('Request rank does not match assignment rank', {  assignmentRankIds: assignment?.rankIds, requestRankId: request.user?.member?.rankId });
+    if (!assignmentRankIds.includes(request.user?.member?.rankId.toString())) {
+      logger.info('Request rank does not match assignment rank', { assignmentRankIds, requestRankId: request.user?.member?.rankId });
       continue;
     }
-    if (assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
+    if (assignmentSkillIds.length > 0) {
       const mSkills = await memberSkills.findAll(request.user?.member?.memberSkillIds.map((id) => new ObjectId(id)));
       const skillIds = mSkills.map(({ skillId }) => skillId);
-      if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
-        logger.info('Request skills do not match assignment skills', {  assignmentSkillIds: assignment.requiredSkillIds, requestSkillIds: skillIds });
+      if (difference(assignment?.requiredSkillIds || [], skillIds).length > 0) {
+        logger.info('Request skills do not match assignment skills', {  assignmentSkillIds, requestSkillIds: skillIds });
         continue;
       }
     }
@@ -168,7 +171,7 @@ const assignShift = async ({
         continue;
       }
       // Remove shift from list
-      const pendingShift: any = shifts.pop();
+      const pendingShift = shifts.pop();
       if (pendingShift) {
         logger.info('Pending shift', { pendingShift });
         shiftAssignments.push({
@@ -178,7 +181,7 @@ const assignShift = async ({
           },
         });
         acceptedRequestIds.push(new ObjectId(request._id));
-        state.assignedUsers.push(request.user.id);
+        state.assignedUsers.push(request.user._id);
         if (request.user?.member?.tier === MemberTier.Tier_1) {
           tier1Assignments.add(request.user.id);
         }

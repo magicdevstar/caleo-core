@@ -1,15 +1,38 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { DocType, Rank } from '../__generated__/resolvers-types';
 import { BaseModel, Validations } from './base';
 import { GraphQLError } from 'graphql';
 import { rankErrors } from '../utils/errors';
+import { BaseMongo } from './base.v2';
 
-export class RankModel extends BaseModel<Rank> {
+export interface IRank extends Omit<
+  Rank,
+  'id' |
+  'createdAt' |
+  'updatedAt' |
+  'removedAt' |
+  'modifiedById' |
+  'modifiedBy' |
+  'orgId' |
+  'org' |
+  '__typename'
+> {
+  _id?: ObjectId;
+  id?: string;
+  orgId: ObjectId;
+  modifiedById: ObjectId;
+
+  createdAt: Date;
+  updatedAt: Date;
+  removedAt?: Date;
+}
+
+export class RankModel extends BaseMongo<IRank> {
   constructor(db: Db) {
     super(db, DocType.Rank, 'ranks');
     this.validator = {
       create: async (doc) => {
-        const found = await this.findOne({
+        const found = await this.collection.findOne({
           name: doc.name,
           orgId: doc.orgId,
           removedAt: { $exists: false },
@@ -24,6 +47,6 @@ export class RankModel extends BaseModel<Rank> {
           });
         }
       }
-    } as Validations<Rank>;
+    } as Validations<IRank>;
   }
 };

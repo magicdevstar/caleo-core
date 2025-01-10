@@ -49,7 +49,7 @@ const upsertNotification = async ({
 
   await scheduler.updateScheduledEvent({
     event: ScheduleEvent.SHIFT_REMINDER,
-    orgId: shift.orgId,
+    orgId: new ObjectId(shift.orgId),
     eventTime: `at(${format(zonedDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
     eventTimeZone: tz as any,
     customEventName: eventId,

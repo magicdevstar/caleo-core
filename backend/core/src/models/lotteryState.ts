@@ -3,9 +3,9 @@ import { DocType } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 
 export interface LotteryState {
-  _id: ObjectId;
-  orgId: string;
-  assignedUsers: string[];
+  _id?: ObjectId;
+  orgId: ObjectId;
+  assignedUsers: ObjectId[];
   lotteryCounter: number;
 }
 
@@ -17,7 +17,7 @@ export class LotteryStateModel extends BaseModel<LotteryState> {
 
   async initialize(orgId: string, lotteryCounter: number) {
     const foundState = await this.collection.findOne({
-      orgId,
+      orgId: new ObjectId(orgId),
       lotteryCounter,
     });
 
@@ -34,7 +34,7 @@ export class LotteryStateModel extends BaseModel<LotteryState> {
     }
 
     const initDoc = {
-      orgId,
+      orgId: new ObjectId(orgId),
       assignedUsers: [],
       lotteryCounter,
     };
@@ -44,7 +44,7 @@ export class LotteryStateModel extends BaseModel<LotteryState> {
 
   async getState(orgId: string, lotteryCounter: number) {
     const res = await this.collection.findOne({
-      orgId,
+      orgId: new ObjectId(orgId),
       lotteryCounter,
     });
 

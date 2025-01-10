@@ -16,6 +16,7 @@ import { ObjectId } from "mongodb";
 import { IShiftInterestRequest, IUpsertShiftInterestRequest } from "../../models/shiftInterestRequest";
 import logger from "../../utils/logger";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
+import { IShift } from "../../models/shift";
 
 const lambda = new LambdaClient();
 
@@ -31,7 +32,7 @@ export const shiftInterestRequests = {
     ): Promise<SearchResults<IShiftInterestRequest>> => {
       adminOnly(user);
       const searchInput: any = {
-        orgId: new ObjectId(user?.member.orgId!),
+        orgId: user?.member.orgId,
         shiftGroupId: input.shiftGroupId,
         status: {
           $in: [
@@ -59,7 +60,7 @@ export const shiftInterestRequests = {
         throw new GraphQLError('Shift Request not found. Please try again.');
       }
       adminOrOwnerOnly(foundRequest.userId.toString(), user);
-      await shiftInterestRequests.remove(id, { modifiedById: user?.id, status: ShiftLotteryRequestStatus.Removed });
+      await shiftInterestRequests.remove(id, { modifiedById: user!._id!, status: ShiftLotteryRequestStatus.Removed });
       return id;
     },
     shiftInterestRequest: async (
@@ -72,10 +73,10 @@ export const shiftInterestRequests = {
         user,
         organization,
       }: Context
-    ): Promise<ShiftLotteryRequest> => {
+    ): Promise<IUpsertShiftInterestRequest> => {
       adminOrOwnerOnly(shiftInterestRequest.userId, user);
 
-      const shift = await shifts.findOne({
+      const shift = await shifts.collection.findOne<IShift>({
         shiftId: shiftInterestRequest.shiftGroupId,
         removedAt: { $exists: false },
       });
@@ -117,11 +118,14 @@ export const shiftInterestRequests = {
 
               const updatedShift = {
                 ...slot,
-                userId: interestUser.id,
+                userId: interestUser._id!,
                 status: ShiftStatus.Assigned,
               };
 
-              await shifts.update(updatedShift, { skipMerge: true });
+              await shifts.update({
+                ...updatedShift,
+                id: updatedShift.id!,
+              });
 
               notificationData = {
                 template: MailerEvents.OfficerAdminAssignedShift,
@@ -150,8 +154,8 @@ export const shiftInterestRequests = {
               interestUser = foundUser;
             }
 
-            const slot = await shifts.findOne({
-              userId: interestUser.id,
+            const slot = await shifts.collection.findOne({
+              userId: interestUser._id!,
               shiftId: shiftInterestRequest.shiftGroupId,
               status: ShiftStatus.Assigned,
             });
@@ -166,18 +170,18 @@ export const shiftInterestRequests = {
                 }
               }
               const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
-              await shifts.create({
+              await shifts.create<any>({
                 ...createShift,
                 status: ShiftStatus.Unassigned,
-                modifiedById: user?.id!,
-                removedAt: Date.now(),
-                userId: interestUser.id,
-              }) as any;
-              await shifts.update({
+                modifiedById: user?._id!,
+                removedAt: new Date(),
+                userId: interestUser._id,
+              });
+              delete slot.userId;
+              await shifts.update<any>({
                 ...slot,
-                userId: null,
                 status: ShiftStatus.Available,
-              }, { skipMerge: true });
+              }, { userId: '' });
             } else {
               throw new GraphQLError('User is not assigned to this shift');
             }
@@ -192,13 +196,13 @@ export const shiftInterestRequests = {
         shiftGroupId: shiftInterestRequest.shiftGroupId,
         ...(shiftInterestRequest.status && {status: shiftInterestRequest.status}),
         ...(shiftInterestRequest.id ? {} : { status: ShiftInterestRequestStatus.Pending }),
-        orgId: new ObjectId(user?.member.orgId!),
+        orgId: user?.member.orgId!,
         eventId: new ObjectId(shift.eventId),
         assignmentId: new ObjectId(shift.assignmentId),
-        modifiedById: new ObjectId(user?.id!),
+        modifiedById: user?._id!,
         userId: new ObjectId(shiftInterestRequest.userId),
       }
-      const res = await shiftInterestRequests.upsert(upsert as any);
+      const res = await shiftInterestRequests.upsert(upsert);
 
       // TODO: Send notification to user if the status changed from pending to approved or rejected?
       if (notificationData) {

@@ -44,6 +44,7 @@ provider:
         type: request
         functionName: authorizerFunc
         enableSimpleResponses: true
+        resultTtlInSeconds: 300
         payloadVersion: '2.0'
         identitySource:
           - $request.header.Authorization
@@ -169,6 +170,15 @@ functions:
           trigger: PostConfirmation
           existing: true
           forceDeploy: true
+
+  # ssoSignUp:
+  #   handler: src/workers/ssoSignUp.handler
+  #   events:
+  #     - cognitoUserPool:
+  #         pool: ${param:poolName}
+  #         trigger: PostConfirmation
+  #         existing: true
+  #         forceDeploy: true
 
   # Scheduled Tasks
   scheduledEvents:  

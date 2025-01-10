@@ -1,27 +1,36 @@
-import { Db } from 'mongodb';
-import { DocType, MemberNotification } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
+import { Db, ObjectId } from 'mongodb';
+import { DocType } from '../__generated__/resolvers-types';
 import DataLoader from 'dataloader';
-import { NotificationModel } from './nontification';
+import { BaseMongo } from './base.v2';
 
-export class MemberNotificationModel extends BaseModel<MemberNotification> {
+export interface IMemberNotification {
+  _id?: ObjectId;
+  id?: string;
+  notificationId: ObjectId;
+  userId: ObjectId;
+  lastSeen: Date;
+}
+
+export class MemberNotificationModel extends BaseMongo<IMemberNotification> {
   public userLoader = new DataLoader(async (keys: readonly string[]) => {
+    const keysAsObjectId = keys.map((id) => new ObjectId(id));
     const { items: res } = await this.search({
-      userId: { $in: keys },
+      userId: { $in: keysAsObjectId },
     });
-    return keys.map((key) => res.find((item: any) => item.id === key));
+    return keysAsObjectId.map((key) => res.find((item) => item.userId === key));
   });
 
   public seenLoader = new DataLoader(async (keys: readonly {notificationId: string; userId: string}[]) => {
-    const userId = keys?.[0].userId;
+    const notificationIds = keys.map(({ notificationId }) => new ObjectId(notificationId));
+    const userId = new ObjectId(keys?.[0].userId);
     const { items: res } = await this.search({
-      notificationId: { $in: keys.map(({ notificationId }) => notificationId) },
+      notificationId: { $in: notificationIds },
       userId,
     });
-    return keys.map(({ notificationId }) => !!res.find((item: any) => item.notificationId === notificationId));
+    return notificationIds.map((notificationId) => !!res.find((item) => item.notificationId === notificationId));
   });
 
-  constructor(db: Db, private notifications: NotificationModel) {
+  constructor(db: Db) {
     super(db, DocType.MemberNotification, 'memberNotifications');
   }
 
@@ -32,24 +41,26 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     notificationIds: string[];
     userId: string;
   }): Promise<void> {
-    const now = Date.now();
+    const now = new Date();
 
+    const userIdAsObjectId = new ObjectId(userId);
+    const notificationIdsAsObjectId = notificationIds.map((id) => new ObjectId(id));
     // Update existing notifications
     await this.collection.updateMany({
-      notificationId: { $in: notificationIds },
-      userId,
+      notificationId: { $in: notificationIdsAsObjectId },
+      userId: userIdAsObjectId,
     }, { $set: { lastSeen: now }});
 
     // Get all notifications
     const {items: allMemberNotifications} = await this.search({
-      notificationId: { $in: notificationIds },
-      userId,
+      notificationId: { $in: notificationIdsAsObjectId },
+      userId: userIdAsObjectId,
     });
 
     // Create a notification map so we know what member notifications are already in the database
     const notificationMap = allMemberNotifications.reduce((acc, memberNotification) => {
-      if (!acc[memberNotification.notificationId]) {
-        acc[memberNotification.notificationId] = memberNotification;
+      if (!acc[memberNotification.notificationId.toString()]) {
+        acc[memberNotification.notificationId.toString()] = memberNotification;
       }
       return acc;
     }, {} as any);
@@ -58,10 +69,10 @@ export class MemberNotificationModel extends BaseModel<MemberNotification> {
     const newNotifications = notificationIds.filter((notificationId) => {
       return !notificationMap[notificationId];
     }).map((notificationId) => ({
-      notificationId,
-      userId,
-      lastSeen: now as any,
-    }) as Omit<MemberNotification, 'id'>);
+      notificationId: new ObjectId(notificationId),
+      userId: userIdAsObjectId,
+      lastSeen: now,
+    }) as IMemberNotification);
 
     if (newNotifications.length > 0) {
       await this.collection.insertMany(newNotifications);

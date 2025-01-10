@@ -1,0 +1,5 @@
+backend/core
+backend/ops
+frontend
+migrations
+admin

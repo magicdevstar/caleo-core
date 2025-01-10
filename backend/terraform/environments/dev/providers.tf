@@ -1,4 +1,12 @@
 terraform {
+  cloud {
+    organization = "caleo-pro"
+    workspaces {
+      project = "caleo"
+      name    = "caleo-core-dev"
+    }
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"

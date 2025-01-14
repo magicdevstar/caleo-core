@@ -8,7 +8,7 @@ data "tfe_outputs" "caleo_core_dev" {
 }
 
 resource "aws_route53_record" "subdomain" {
-  for_each = data.tfe_outputs.caleo_core_dev.nonsensitive_values
+  for_each = nonsensitive(data.tfe_outputs.caleo_core_dev.values.hosted_zone_ns_values)
 
   zone_id = local.caleo_zone_id
   name    = "${each.key}.caleopro.com"
@@ -17,12 +17,11 @@ resource "aws_route53_record" "subdomain" {
   records = each.value
 }
 
-# import {
-#   to = aws_route53_record.subdomain["dev"]
-#   id = "${local.caleo_zone_id}_dev.caleopro.com_NS"
-# }
-
-# import {
-#   to = aws_route53_record.subdomain["azure"]
-#   id = "${local.caleo_zone_id}_azure.caleopro.com_NS"
-# }
+import {
+  to = aws_route53_record.subdomain["dev"]
+  id = "${local.caleo_zone_id}_dev.caleopro.com_NS"
+}
+import {
+  to = aws_route53_record.subdomain["azure"]
+  id = "${local.caleo_zone_id}_azure.caleopro.com_NS"
+}

@@ -27,13 +27,3 @@ module "amplify_domains" {
     "azure" = "azure.caleopro.com"
   }
 }
-
-import {
-  to = module.domains["azure"].aws_route53_zone.main
-  id = "Z0500544S478HPDSOU51"
-}
-
-import {
-  to = module.domains["dev"].aws_route53_zone.main
-  id = "Z10463933IY6QHZX2AKNA"
-}

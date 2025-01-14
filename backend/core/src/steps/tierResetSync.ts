@@ -18,7 +18,7 @@ const tierResetSync = async () => {
       // Not sure how this is happening
       {'member.tierResetOnNextLottery': null},
     ],
-    'member.tierUntil': { $lte: Date.now() }
+    'member.tierUntil': { $lte: new Date() }
   }, {
     $set: {
       'member.tier': MemberTier.Tier_1,

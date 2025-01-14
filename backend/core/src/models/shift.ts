@@ -782,7 +782,7 @@ export class ShiftModel extends BaseMongo<IShift> {
       {
         $lookup: {
           from: "shifts",
-          localField: "eventId",
+          localField: "_id",
           foreignField: "eventId",
           as: "shifts",
         },
@@ -860,7 +860,7 @@ export class ShiftModel extends BaseMongo<IShift> {
       {
         $lookup: {
           from: "shifts",
-          localField: "eventId",
+          localField: "_id",
           foreignField: "eventId",
           as: "shifts",
         },

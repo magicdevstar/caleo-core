@@ -5,6 +5,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import logger from '../utils/logger';
 import { createContext } from '../utils/createContext';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import { subHours } from 'date-fns';
 
 const lambda = new LambdaClient({});
 
@@ -19,7 +20,7 @@ const checkoutNotifications = async () => {
 
   for(const org of orgs) {
     const now = new Date();
-    const sixHoursAgo = now.getTime() - 6 * 60 * 60 * 1000;
+    const sixHoursAgo = subHours(new Date(), 6);
 
     const findParams = {
       endTime: { $lte: sixHoursAgo },
@@ -29,7 +30,7 @@ const checkoutNotifications = async () => {
     };
     logger.info('Checking for shifts to notify', {
       findParams,
-      now: Date.now(),
+      now,
       timezone: org?.timezone || 'America/Los_Angeles',
     });
 
@@ -40,7 +41,7 @@ const checkoutNotifications = async () => {
         _id: { $in: shiftsToNotify.map(s => s._id) },
       }, {
         $set: {
-          updatedAt: now.getTime(),
+          updatedAt: now,
           'shiftCheckInOut.checkOutTime': now,
         },
       });

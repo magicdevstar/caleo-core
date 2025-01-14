@@ -135,7 +135,7 @@ export const notification = {
         throw new GraphQLError('Until expire requires an expiration date');
       }
 
-      notification.expiration = notification.frequency !== NotificationFrequency.UntilExpire ? null : new Date(notification.expiration as any).getTime() as any;
+      notification.expiration = notification.frequency !== NotificationFrequency.UntilExpire ? null : new Date(notification.expiration as any) as any;
 
       return notifications.upsert({
         ...notification,

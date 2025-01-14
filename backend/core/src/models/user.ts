@@ -647,7 +647,7 @@ export class UserModel extends BaseMongo<IUser> {
           $or: [
             { 'member.tierUntil': null },
             { 'member.tierUntil': { $exists: false } },
-            { 'member.tierUntil': { $lte: Date.now() } },
+            { 'member.tierUntil': { $lte: new Date() } },
           ]
         }, {
           $set: {

@@ -173,11 +173,11 @@ const assignShift = async ({
       // Remove shift from list
       const pendingShift = shifts.pop();
       if (pendingShift) {
-        logger.info('Pending shift', { pendingShift });
+        logger.info('Pending shift', { pendingShift, request });
         shiftAssignments.push({
           updateOne: {
             filter: { _id: new ObjectId(pendingShift._id) },
-            update: { $set: { userId: request.userId.toString(), status: ShiftStatus.Assigned } },
+            update: { $set: { userId: new ObjectId(request.userId), status: ShiftStatus.Assigned } },
           },
         });
         acceptedRequestIds.push(new ObjectId(request._id));

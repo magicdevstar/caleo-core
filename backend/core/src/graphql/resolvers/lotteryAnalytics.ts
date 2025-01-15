@@ -2,6 +2,7 @@ import { Context } from "../../utils/createContext";
 import { LottoAnalytics, LottoRequests } from "../../__generated__/resolvers-types";
 import { ILottoAnalytics } from "../../models/analytics";
 import { userIsAdmin } from "../../utils/access";
+import { ObjectId } from "mongodb";
 
 export const lotteryAnalytics = {
   Query: {
@@ -15,7 +16,7 @@ export const lotteryAnalytics = {
       }: Context,
     ) => {
       const uId = userId && userIsAdmin(user) ? userId : user?.id!;
-      const currentCounter = await lotteryCounter.get(user?.member.orgId!);
+      const currentCounter = await lotteryCounter.get(new ObjectId(user?.member.orgId!));
       return analytics.getUserLottoAnalytics({
         userId: uId,
         lotteryCounter: currentCounter.counter - 1,

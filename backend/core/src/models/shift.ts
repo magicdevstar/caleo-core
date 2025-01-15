@@ -1035,6 +1035,7 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     // const realStatuses = (status || []).filter((s) => [ShiftStatus.Assigned].includes(s || ''));
 
+    // Find set of assigned users if requester is admin
     if (userIsAdmin(requestingUser)) {
       if (assignedIds) {
         (matchInput as any).userId = { $in: assignedIds.map((uId) => new ObjectId(uId!)) };  
@@ -1044,16 +1045,6 @@ export class ShiftModel extends BaseMongo<IShift> {
     } else {
       (matchInput as any).userId = requestingUser?._id;
     }
-
-    // // Find set of assigned users if requester is admin
-    // if (assignedIds && userIsAdmin(requestingUser)) {
-    //   (matchInput as any).userId = { $in: assignedIds.map((uId) => new ObjectId(uId!)) };
-    // // Find set user assignments if requester is admin and the userId provided does not match the requesting user
-    // } else if (!!userId && userId !== requestingUser?.id && userIsAdmin(requestingUser)) {
-    //   (matchInput as any).userId = new ObjectId(userId!);
-    // } else if (!userIsAdmin(requestingUser)) {
-    //   (matchInput as any).userId = requestingUser?._id;
-    // }
 
     if (range) {
       const { startTime, endTime, removedAt } = range;

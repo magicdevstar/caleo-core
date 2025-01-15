@@ -139,7 +139,7 @@ export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
       throw new Error(`Counter not found for org ${orgId}`);
     }
     // Create new counter record
-    const { id, ...currentCounter } = counter;
+    const { id, _id, ...currentCounter } = counter;
     const { end, start } = await this.getNextLotteryDates(orgId);
     const res: ILotteryCounter = this.create<ILotteryCounter>({
       ...currentCounter,
@@ -148,7 +148,7 @@ export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
       counter: counter.counter + 1,
     }) as any;
     // Remove old counter record
-    await this.remove(id!);
+    await this.remove(_id!);
     return res;
   }
 }

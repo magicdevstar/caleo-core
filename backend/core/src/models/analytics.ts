@@ -46,7 +46,7 @@ export class UserAnalyticsModel {
       {
         $match: {
           lotteryCounter,
-          orgId,
+          orgId: new ObjectId(orgId),
           status: {
             $in: [
               ShiftLotteryRequestStatus.Approved,

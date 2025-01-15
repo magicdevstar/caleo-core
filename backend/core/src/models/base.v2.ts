@@ -132,7 +132,7 @@ export class BaseMongo<T> {
     return this.update(item as UpdateModel) as Promise<T>;
   }
 
-  async remove(id: string, setValues?: any): Promise<void> {
+  async remove(id: string | ObjectId, setValues?: any): Promise<void> {
     const now = new Date();
     await this.collection.updateOne({
       _id: new ObjectId(id)

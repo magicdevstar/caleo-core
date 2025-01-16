@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { mongo, mongoProd, mongoLocal } from "./utils/mongodb";
+import { mongo, mongoProd } from "./utils/mongodb";
 import { memberNotifications } from "./utils/collectionMigration/memberNotifications";
 import { assignments } from "./utils/collectionMigration/assignments";
 import { lotteryCounter } from "./utils/collectionMigration/lotteryCounter";
@@ -17,14 +17,14 @@ import { shifts } from "./utils/collectionMigration/shifts";
 (async () => {
   let connection: MongoClient | undefined;
   let connectionProd: MongoClient | undefined;
-  let connectionLocal: MongoClient | undefined;
+  // let connectionLocal: MongoClient | undefined;
   try {
     connection = await mongo.connect();
     connectionProd = await mongoProd.connect();
-    connectionLocal = await mongoLocal.connect();
-    const mongoClient = connectionLocal.db('caleo-prod');
+    // connectionLocal = await mongoLocal.connect();
+    // const mongoClient = connectionLocal.db('caleo-prod');
     // const mongoClient = connection.db('caleo-dev');
-    // const mongoClient = connectionProd.db('caleo-prod'); 
+    const mongoClient = connectionProd.db('caleo-prod'); 
 
     await lotteryCounter(mongoClient.collection('lotteryCounter'));
     console.log('lotteryCounter done');
@@ -46,12 +46,12 @@ import { shifts } from "./utils/collectionMigration/shifts";
     console.log('assignments done');
     await events(mongoClient.collection('events'));
     console.log('events done');
-    await shiftLotteryRequests(mongoClient.collection('shiftLotteryRequests'));
-    console.log('shiftLotteryRequests done');
-    await users(mongoClient.collection('users'));
-    console.log('users done');
     await shifts(mongoClient.collection('shifts'));
     console.log('shifts done');
+    await users(mongoClient.collection('users'));
+    console.log('users done');
+    await shiftLotteryRequests(mongoClient.collection('shiftLotteryRequests'));
+    console.log('shiftLotteryRequests done');
   } catch(error) {
     console.error('Failed to migrate: ', error);
   } finally {
@@ -61,8 +61,8 @@ import { shifts } from "./utils/collectionMigration/shifts";
     if (connection) {
       await (connection).close();
     }
-    if (connectionLocal) {
-      await (connectionLocal).close();
-    }
+    // if (connectionLocal) {
+    //   await (connectionLocal).close();
+    // }
   }
 })();

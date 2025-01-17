@@ -497,7 +497,7 @@ export const user = {
       startDate: (member: IMember) => member.startDate ? new Date(member.startDate).toISOString() : null,
       rank: async (member: IMember, _, { ranks }: Context) => {
         const result = await (member.rankId ? ranks.loader.load(member.rankId.toString()) : null);
-        logger.info('Member rank', { member, result, rankId: member.rankId.toString() });
+        logger.info('Member rank', { member, result, rankId: member?.rankId?.toString() });
         return result;
       },
       memberSkills: (member: IMember, _, { memberSkills }: Context) => {

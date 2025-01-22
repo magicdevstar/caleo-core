@@ -22,6 +22,7 @@ export const assignments = {
       limit,
       skip,
       ...input,
+      ...(input.eventId && { eventId: new ObjectId(input.eventId) }),
       orgId: user?.member.orgId!,
     })
   },

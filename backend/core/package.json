@@ -1,5 +1,5 @@
 {
-  "name": "caleo-core",
+  "name": "@caleo/core",
   "version": "0.0.1",
   "description": "Caleo graphql server",
   "main": "src/index.ts",

@@ -144,6 +144,13 @@ functions:
       - httpApi:
           path: /public/venues
           method: GET
+  getSSOConfig:
+    handler: src/public/getSSOConfig.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /public/sso
+          method: GET
   eventRequest:
     handler: src/public/eventRequest.handler
     timeout: 15

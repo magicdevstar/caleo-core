@@ -56,6 +56,7 @@ export const getDefaultOrgFeatures = () => ({
   interestLists: false,
   monthlyMaxHours: false,
   externalEventRequests: false,
+  sso: false,
 });
 
 export interface IOrganization extends Omit<
@@ -83,6 +84,11 @@ export interface IOrganization extends Omit<
 export class OrganizationModel extends BaseMongo<IOrganization> {
   constructor(db: Db, private scheduler: SchedulerModel) {
     super(db, DocType.Organization, 'organizations');
+  }
+
+  public async getOrganizationSSOConfig(subdomain: string): Promise<IOrganization | null> {
+    const org = await this.collection.findOne<IOrganization>({ 'sso.uiSubDomains': subdomain });
+    return org;
   }
 
   public async getBySSOAppName(ssoAppName: string): Promise<IOrganization | null> {

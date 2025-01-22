@@ -933,6 +933,7 @@
     settings: OrganizationOvertimeSettings
     features: OrganizationFeatures!
     flatFeatures: String!
+    sso: OrganizationSSOSettings
 
     modifiedBy: User
   }
@@ -944,11 +945,18 @@
     interestLists: Boolean!
     monthlyMaxHours: Boolean!
     externalEventRequests: Boolean!
+    sso: Boolean!
   }
 
   type OrganizationFeatureOptions {
     label: String!
     value: String!
+  }
+
+  type OrganizationSSOSettings {
+    uiSubDomains: [String]
+    enablePasswordLogin: Boolean
+    metadataDocUrl: String
   }
 
   type OrganizationOvertimeSettings {
@@ -1033,6 +1041,7 @@
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
     features: UpsertOrganizationFeatures
+    sso: UpsertOrganizationSSOSettings
   }
 
   input UpsertOrganization {
@@ -1047,6 +1056,7 @@
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
     features: UpsertOrganizationFeatures
+    sso: UpsertOrganizationSSOSettings
   }
 
   input UpsertOrganizationOvertimeSettings {
@@ -1060,6 +1070,12 @@
     interestList: UpsertInterestListSetting
   }
 
+  input UpsertOrganizationSSOSettings {
+    uiSubDomains: [String]
+    enablePasswordLogin: Boolean
+    metadataDocUrl: String
+  }
+
   input UpsertOrganizationFeatures {
     lottery: Boolean
     venueContractDates: Boolean
@@ -1067,6 +1083,7 @@
     interestLists: Boolean
     monthlyMaxHours: Boolean
     externalEventRequests: Boolean
+    sso: Boolean
   }
 
   input UpsertInterestListSetting {

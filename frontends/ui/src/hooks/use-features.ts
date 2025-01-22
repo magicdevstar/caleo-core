@@ -8,6 +8,7 @@ const defaultFeatures: OrganizationFeatures = {
   venueContractDates: false,
   monthlyMaxHours: false,
   externalEventRequests: false,
+  sso: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

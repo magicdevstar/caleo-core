@@ -158,9 +158,9 @@ export function AuthProvider({ children }: Props) {
     });
   }, []);
 
-  const federatedLogin = useCallback(async (code?: string) => {
+  const federatedLogin = useCallback(async (subdomain: string) => {
     await Auth.federatedSignIn({
-      customProvider: 'azure-test'
+      customProvider: subdomain
     });
   }, []);
 

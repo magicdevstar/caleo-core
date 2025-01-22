@@ -155,6 +155,7 @@ export type CreateOrganization = {
   features?: InputMaybe<UpsertOrganizationFeatures>;
   name: Scalars['String']['input'];
   settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
+  sso?: InputMaybe<UpsertOrganizationSsoSettings>;
   state?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
   weekBegins?: InputMaybe<DayOfWeek>;
@@ -986,6 +987,7 @@ export type Organization = {
   name: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   settings?: Maybe<OrganizationOvertimeSettings>;
+  sso?: Maybe<OrganizationSsoSettings>;
   ssoAppName?: Maybe<Scalars['String']['output']>;
   state: Scalars['String']['output'];
   timezone: Scalars['String']['output'];
@@ -1013,6 +1015,7 @@ export type OrganizationFeatures = {
   interestLists: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
+  sso: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
 };
 
@@ -1026,6 +1029,13 @@ export type OrganizationOvertimeSettings = {
   shiftReminder: ShiftReminder;
   shiftsPerWeek: Scalars['Int']['output'];
   userRelinquishShift: UserRelinquishShift;
+};
+
+export type OrganizationSsoSettings = {
+  __typename?: 'OrganizationSSOSettings';
+  enablePasswordLogin?: Maybe<Scalars['Boolean']['output']>;
+  metadataDocUrl?: Maybe<Scalars['String']['output']>;
+  uiSubDomains?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
 };
 
 export type OrganizationSearchInput = {
@@ -1781,6 +1791,7 @@ export type UpsertOrganization = {
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
+  sso?: InputMaybe<UpsertOrganizationSsoSettings>;
   state?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
   weekBegins?: InputMaybe<DayOfWeek>;
@@ -1798,6 +1809,7 @@ export type UpsertOrganizationFeatures = {
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
+  sso?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -1810,6 +1822,12 @@ export type UpsertOrganizationOvertimeSettings = {
   shiftReminder: UpsertShiftReminder;
   shiftsPerWeek: Scalars['Int']['input'];
   userRelinquishShift: UpsertUserRelinquishShift;
+};
+
+export type UpsertOrganizationSsoSettings = {
+  enablePasswordLogin?: InputMaybe<Scalars['Boolean']['input']>;
+  metadataDocUrl?: InputMaybe<Scalars['String']['input']>;
+  uiSubDomains?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 export type UpsertRank = {
@@ -2177,6 +2195,7 @@ export type ResolversTypes = ResolversObject<{
   OrganizationFeatureOptions: ResolverTypeWrapper<OrganizationFeatureOptions>;
   OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
+  OrganizationSSOSettings: ResolverTypeWrapper<OrganizationSsoSettings>;
   OrganizationSearchInput: OrganizationSearchInput;
   OrganizationSearchResult: ResolverTypeWrapper<OrganizationSearchResult>;
   Phone: ResolverTypeWrapper<Phone>;
@@ -2235,6 +2254,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertOrganizationContact: UpsertOrganizationContact;
   UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
+  UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
@@ -2328,6 +2348,7 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationFeatureOptions: OrganizationFeatureOptions;
   OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
+  OrganizationSSOSettings: OrganizationSsoSettings;
   OrganizationSearchInput: OrganizationSearchInput;
   OrganizationSearchResult: OrganizationSearchResult;
   Phone: Phone;
@@ -2380,6 +2401,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertOrganizationContact: UpsertOrganizationContact;
   UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
+  UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
@@ -2837,6 +2859,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
+  sso?: Resolver<Maybe<ResolversTypes['OrganizationSSOSettings']>, ParentType, ContextType>;
   ssoAppName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2864,6 +2887,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2877,6 +2901,13 @@ export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType 
   shiftReminder?: Resolver<ResolversTypes['ShiftReminder'], ParentType, ContextType>;
   shiftsPerWeek?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   userRelinquishShift?: Resolver<ResolversTypes['UserRelinquishShift'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OrganizationSsoSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationSSOSettings'] = ResolversParentTypes['OrganizationSSOSettings']> = ResolversObject<{
+  enablePasswordLogin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  metadataDocUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  uiSubDomains?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3317,6 +3348,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationFeatureOptions?: OrganizationFeatureOptionsResolvers<ContextType>;
   OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
+  OrganizationSSOSettings?: OrganizationSsoSettingsResolvers<ContextType>;
   OrganizationSearchResult?: OrganizationSearchResultResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
   ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;

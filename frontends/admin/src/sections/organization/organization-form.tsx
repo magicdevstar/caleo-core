@@ -69,6 +69,11 @@ export default function OrganizationForm({
         ...obj,
         [value]: Yup.boolean()
       }), {})),
+      sso: Yup.object().shape({
+        uiSubDomains: Yup.string(),
+        enablePasswordLogin: Yup.boolean(),
+        metadataDocUrl: Yup.string(),
+      }).optional(),
     }),
   [features]);
 
@@ -83,6 +88,11 @@ export default function OrganizationForm({
       weekBegins: currentOrganization?.weekBegins || 'SUNDAY',
       timezone: currentOrganization?.timezone || 'America/Los_Angeles',
       features: currentOrganization?.flatFeatures ? JSON.parse(currentOrganization?.flatFeatures) as {} : {},
+      sso: (currentOrganization?.sso ? {
+        uiSubDomains: (currentOrganization?.sso.uiSubDomains || []).join(','),
+        enablePasswordLogin: currentOrganization?.sso.enablePasswordLogin || false,
+        metadataDocUrl: currentOrganization?.sso.metadataDocUrl || '',
+      } : undefined),
     }),
     [currentOrganization]
   );
@@ -103,7 +113,13 @@ export default function OrganizationForm({
       try {
         await updateOrg({
           variables: {
-            organization: values,
+            organization: {
+              ...values,
+              sso: (values.sso ? {
+                ...values.sso,
+                uiSubDomains: values.sso.uiSubDomains ? values.sso.uiSubDomains.split(',').map((domain) => domain.trim()) : [],
+              } : {})
+            },
           },
         });
         enqueueSnackbar('Organization updated successfully!');
@@ -249,6 +265,33 @@ export default function OrganizationForm({
     </>
   );
 
+  const renderSSOSettings = (
+    <>
+      {mdUp && (
+        <Grid md={4}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            SSO Configuration
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Basic details we need to support their SSO configuration
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid xs={12} md={8}>
+        <Card>
+          {!mdUp && <CardHeader title="Features" />}
+
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <RHFTextField name="sso.uiSubDomains" label="UI Subdomains (Separated by comma)" disabled={isSubmitting} />
+            <RHFTextField name="sso.metadataDocUrl" label="Metadata URL" disabled={isSubmitting} />
+            <RHFSwitch name="sso.enablePasswordLogin" label="Enabled username/password login (Support coming soon)" disabled />
+          </Stack>
+        </Card>
+      </Grid>
+    </>
+  );
+
   const renderActions = (
     <>
       {mdUp && <Grid md={4} />}
@@ -286,6 +329,8 @@ export default function OrganizationForm({
         {renderDetails}
 
         {renderFeatures}
+
+        {renderSSOSettings}
 
         {renderActions}
       </Grid>

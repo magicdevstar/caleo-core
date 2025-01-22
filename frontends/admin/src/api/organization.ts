@@ -21,6 +21,12 @@ export const ORGANIZATION = gql`
         eventCheckIn
         interestLists
         monthlyMaxHours
+        sso
+      }
+      sso {
+        uiSubDomains
+        enablePasswordLogin
+        metadataDocUrl
       }
       settings {
         shiftsPerWeek
@@ -91,6 +97,11 @@ export const ORGANIZATION_BY_ID = gql`
       timezone
       weekBegins
       flatFeatures
+      sso {
+        uiSubDomains
+        enablePasswordLogin
+        metadataDocUrl
+      }
     }
   }
 `;
@@ -128,6 +139,12 @@ export const UPDATE_ORGANIZATION = gql`
         eventCheckIn
         interestLists
         monthlyMaxHours
+        sso
+      }
+      sso {
+        uiSubDomains
+        enablePasswordLogin
+        metadataDocUrl
       }
     }
   }
@@ -150,6 +167,12 @@ export const CREATE_ORGANIZATION = gql`
         eventCheckIn
         interestLists
         monthlyMaxHours
+        sso
+      }
+      sso {
+        uiSubDomains
+        enablePasswordLogin
+        metadataDocUrl
       }
     }
   }

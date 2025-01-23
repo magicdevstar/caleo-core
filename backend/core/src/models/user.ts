@@ -5,6 +5,7 @@ import {
   AdminUpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuid } from 'uuid';
+import difference from 'lodash.difference';
 import {
   DocType,
   EventStatus,
@@ -328,12 +329,7 @@ export class UserModel extends BaseMongo<IUser> {
       const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!.toString());
       let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
       if (!hasQualifiedSkills) {
-        hasQualifiedSkills = (requiredSkillIds || [])?.reduce((hasAllSkills, skillId) => {
-          if (!(skillIds.includes(skillId as string))) {
-            return false;
-          }
-          return hasAllSkills;
-        }, true);
+        hasQualifiedSkills = difference(requiredSkillIds || [], skillIds).length === 0;
       }
       return hasQualifiedRank && hasQualifiedSkills;
     });

@@ -138,8 +138,8 @@ const assignShift = async ({
     }
     if (assignmentSkillIds.length > 0) {
       const mSkills = await memberSkills.findAll(request.user?.member?.memberSkillIds.map((id) => new ObjectId(id)));
-      const skillIds = mSkills.map(({ skillId }) => skillId);
-      if (difference(assignment?.requiredSkillIds || [], skillIds).length > 0) {
+      const skillIds = mSkills.map(({ skillId }) => skillId.toString());
+      if (difference(assignmentSkillIds, skillIds).length > 0) {
         logger.info('Request skills do not match assignment skills', {  assignmentSkillIds, requestSkillIds: skillIds });
         continue;
       }

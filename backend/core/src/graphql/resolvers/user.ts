@@ -506,6 +506,12 @@ export const user = {
         }
         return [];
       },
+      memberEquipments: (member: IMember, _, { memberEquipments }: Context) => {
+        if (Array.isArray(member.memberEquipmentIds) && member.memberEquipmentIds.length > 0) {
+          return memberEquipments.loader.loadMany(member.memberEquipmentIds.map((id) => id?.toString()) as string[]);
+        }
+        return [];
+      },
       tierUntil: (member: IMember) => member.tierUntil ? new Date(member.tierUntil).toISOString() : null,
       inactivateUntil: (member: IMember) => member.inactivateUntil ? new Date(member.inactivateUntil).toISOString() : null,
       org: async (member: IMember, _, { organizations }: Context) => {

@@ -75,16 +75,18 @@ export class MemberSkillModel extends BaseMongo<IMemberSkill> {
 
     const res = await super.upsert(item) as IMemberSkill;
 
-    await this.users.collection.updateOne({
-      _id: user._id,
-    }, {
-      $set: {
-        modifiedById: new ObjectId(item.modifiedById),
-      },
-      $push: {
-        'member.memberSkillIds': res._id,
-      }
-    });
+    if (res._id) {
+      await this.users.collection.updateOne({
+        _id: user._id,
+      }, {
+        $set: {
+          modifiedById: new ObjectId(item.modifiedById),
+        },
+        $push: {
+          'member.memberSkillIds': res._id,
+        }
+      });
+    }
 
     if (
       item.status === SkillStatus.Approved ||
@@ -101,7 +103,7 @@ export class MemberSkillModel extends BaseMongo<IMemberSkill> {
           template,
           data: {
             user,
-            skill: res,
+            skill: item.id ? item : res,
             organization,
           }
         } as MailerEvent),

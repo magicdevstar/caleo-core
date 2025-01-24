@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 // types
+import { get } from 'lodash';
 import { FrontendUser } from 'src/api/user';
 import { MemberStatus } from 'src/__generated__/resolvers-types';
 // components
@@ -13,6 +14,7 @@ import AccountOvertime from './account-overtime';
 import AccountChangePassword from './account-change-password';
 import AccountNewPassword from './account-new-password';
 import AccountLotteryAnalytics from './account-lottery-analytics';
+import AccountEquipments from './account-equiptment';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,13 @@ const TABS = [
     label: 'Skills',
     visible: () => true,
     icon: <Iconify icon="solar:share-bold" width={24} />,
+  },
+  {
+    value: 'equipment',
+    label: 'Equipment',
+    visible: (canView = true) => canView,
+    userKey: 'member.org.features.equipment',
+    icon: <Iconify icon="ic:baseline-directions-car" width={24} />,
   },
   {
     value: 'lottoAnalytics',
@@ -85,9 +94,12 @@ export default function MainAccountView({
           mb: { xs: 3, md: 5 },
         }}
       >
-        {TABS.filter(({visible}) => visible(adminViewer)).map((tab) => (
-          <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
-        ))}
+        {TABS
+          .filter(({userKey, visible}) => userKey ? visible(get(user, userKey)) : visible(adminViewer))
+          .map((tab) => (
+            <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
+          ))
+        }
       </Tabs>
 
       {currentTab === 'general' && <AccountGeneral adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
@@ -95,6 +107,8 @@ export default function MainAccountView({
       {currentTab === 'overtime' && <AccountOvertime user={user} allDisabled={allDisabled} />}
 
       {currentTab === 'skills' && <AccountSkills adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
+
+      {currentTab === 'equipment' && <AccountEquipments adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
       
       {currentTab === 'lottoAnalytics' && <AccountLotteryAnalytics user={user} />}
 

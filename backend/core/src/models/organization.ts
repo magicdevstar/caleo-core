@@ -57,6 +57,7 @@ export const getDefaultOrgFeatures = () => ({
   monthlyMaxHours: false,
   externalEventRequests: false,
   sso: false,
+  equipment: false,
 });
 
 export interface IOrganization extends Omit<

@@ -3,6 +3,7 @@ import { MailerEvents } from "src/types/mailer";
 
 export const notificationRouterPath = (template: string, meta?: InAppNotificationMeta) => {
   switch(template) {
+    case MailerEvents.OfficerAdminApprovedEquipment:
     case MailerEvents.OfficerAdminApprovedSkill:
       return {
         path: '/dashboard/user',

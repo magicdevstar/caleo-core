@@ -80,6 +80,10 @@ export const organization = {
           value: 'sso',
           label: 'SSO Login Support'
         },
+        {
+          value: 'equipment',
+          label: 'Equipment Management and Assignment association',
+        },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
     activeLottery: (
@@ -196,6 +200,7 @@ export const organization = {
       monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
       externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
       sso: (parent: OrganizationFeatures) => !!parent.sso,
+      equipment: (parent: OrganizationFeatures) => !!parent.equipment,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

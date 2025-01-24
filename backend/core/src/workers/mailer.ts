@@ -290,6 +290,43 @@ const sendEmail = async (input: MailerEvent) => {
         },
       });
 
+    } else if (
+      input.template === MailerEvents.OfficerAdminApprovedEquipment ||
+      input.template === MailerEvents.OfficerAdminDeniedEquipment
+    ) {
+      const { user, equipment, memberEquipment, organization } = input.data;
+
+      if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+        Addresses = {
+          ...Addresses,
+          [user.member.contactInfo!.primaryEmail.address]: {
+            ChannelType: 'EMAIL',
+            Substitutions: {
+              'user.first_name': [user.firstName],
+              'equipment.name': [equipment.name],
+              'system.metro_name': [organization.name],
+              ...(input.template === MailerEvents.OfficerAdminDeniedEquipment && { 'equipment.denial_reason': [memberEquipment.statusReason || ''] }),
+            },
+          },
+        };
+      }
+
+      const { title, body } = InAppTemplates[input.template]({
+        metroName: organization.name,
+        equipmentName: equipment.name,
+      });
+      await sendInAppNotification({
+        context,
+        userId: user.id,
+        templateName: input.template,
+        orgId: organization.id,
+        title,
+        body,
+        meta: {
+          equipmentId: new ObjectId(equipment.id) as any,
+        },
+      });
+
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
       const { shift, createdShiftBuffer, shiftBufferShift, user, organization } = input.data;
       

@@ -22,6 +22,7 @@ export const ORGANIZATION = gql`
         interestLists
         monthlyMaxHours
         sso
+        equipment
       }
       sso {
         uiSubDomains
@@ -140,6 +141,7 @@ export const UPDATE_ORGANIZATION = gql`
         interestLists
         monthlyMaxHours
         sso
+        equipment
       }
       sso {
         uiSubDomains
@@ -168,6 +170,7 @@ export const CREATE_ORGANIZATION = gql`
         interestLists
         monthlyMaxHours
         sso
+        equipment
       }
       sso {
         uiSubDomains

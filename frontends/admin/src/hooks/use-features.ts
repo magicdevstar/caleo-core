@@ -9,6 +9,7 @@ const defaultFeatures: OrganizationFeatures = {
   monthlyMaxHours: false,
   externalEventRequests: false,
   sso: false,
+  equipment: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

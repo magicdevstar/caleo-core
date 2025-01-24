@@ -28,6 +28,8 @@ query ORGANIZATION {
       interestLists
       monthlyMaxHours
       externalEventRequests
+      sso
+      equipment
     }
     settings {
       shiftsPerWeek

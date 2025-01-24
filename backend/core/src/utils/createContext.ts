@@ -26,6 +26,8 @@ import { InAppNotificationModel } from "../models/inAppNotifications";
 import { UserAnalyticsModel } from "../models/analytics";
 import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 import { IUser } from "../types/common";
+import { EquipmentModel } from "../models/equipment";
+import { MemberEquipmentModel } from "../models/memberEquipment";
 
 let db: Db;
 
@@ -43,6 +45,8 @@ export interface Context {
   ranks: RankModel;
   skills: SkillModel;
   memberSkills: MemberSkillModel;
+  equipments: EquipmentModel;
+  memberEquipments: MemberEquipmentModel;
   venues: VenueModel;
   notifications: NotificationModel;
   events: EventModel;
@@ -78,6 +82,7 @@ export const createContext = async (): Promise<Context> => {
   const assignments = new AssignmentModel(db);
   const skills = new SkillModel(db);
   const ranks = new RankModel(db);
+  const equipments = new EquipmentModel(db);
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
   const shiftLotteryRequests = new ShiftLotteryRequestModel(db, lotteryCounter);
   const events = new EventModel(db, document, shifts);
@@ -92,6 +97,7 @@ export const createContext = async (): Promise<Context> => {
     shiftInterestRequests
   );
   const memberSkills = new MemberSkillModel(db, users, document, skills);
+  const memberEquipments = new MemberEquipmentModel(db, users, document, equipments);
   const memberNotifications = new MemberNotificationModel(db);
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
   const inAppNotifications = new InAppNotificationModel(db);
@@ -120,5 +126,7 @@ export const createContext = async (): Promise<Context> => {
     inAppNotifications,
     analytics,
     shiftInterestRequests,
+    equipments,
+    memberEquipments,
   };
 };

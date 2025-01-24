@@ -30,6 +30,8 @@ const userDetailProperties = `
         interestLists
         monthlyMaxHours
         externalEventRequests
+        sso
+        equipment
       }
       settings {
         shiftsPerWeek
@@ -81,6 +83,18 @@ const userDetailProperties = `
       image
       createdAt
       skill {
+        id
+        name
+        requiresCert
+      }
+    }
+    memberEquipments {
+      id
+      status
+      equipmentId
+      image
+      createdAt
+      equipment {
         id
         name
         requiresCert
@@ -205,6 +219,14 @@ export const UPSERT_MEMBER_SKILL = gql`
   }
 `;
 
+export const UPSERT_MEMBER_EQUIPMENT = gql`
+  mutation UpsertMemberEquipment($input: UpsertMemberEquipment!) {
+    userEquipment(userEquipment: $input) {
+      id
+    }
+  }
+`;
+
 export const SEND_INVITATION = gql`
   mutation InviteUser($user: InviteUser!) {
     inviteUser(user: $user) {
@@ -216,6 +238,12 @@ export const SEND_INVITATION = gql`
 export const REMOVE_MEMBER_SKILL = gql`
   mutation RemoveMemberSkill($id: String!) {
     removeUserSkill(id: $id)
+  }
+`;
+
+export const REMOVE_MEMBER_EQUIPMENT = gql`
+  mutation RemoveMemberEquipment($id: String!) {
+    removeUserEquipment(id: $id)
   }
 `;
 

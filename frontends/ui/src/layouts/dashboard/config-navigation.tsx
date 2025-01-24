@@ -47,6 +47,9 @@ const ICONS = {
 
 export function useNavData() {
   const { user } = useAuthContext()
+
+  const includeEquipment = useMemo(() => user.member.org?.features.equipment, [user.member.org?.features.equipment])
+
   const data = useMemo(
     () => [
       // OVERVIEW
@@ -90,6 +93,7 @@ export function useNavData() {
                 { title: 'Search Users', path: paths.dashboard.admin.users.root, internalChildRoutes: true, internalChildRoutesExclude: '/request' },
                 { title: 'Account Requests', path: paths.dashboard.admin.users.requests.account },
                 { title: 'Skill Requests', path: paths.dashboard.admin.users.requests.skills },
+                ...(includeEquipment ? [{ title: 'Equipment Requests', path: paths.dashboard.admin.users.requests.equipment }] : []),
                 { title: 'Shift Buffer Requests', path: paths.dashboard.admin.users.requests.buffer },
               ],
             },
@@ -104,7 +108,7 @@ export function useNavData() {
               icon: ICONS.settings,
               children: [
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
-                { title: 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
+                { title: includeEquipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
                 { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
               ],
@@ -113,7 +117,7 @@ export function useNavData() {
         },
       ] : [])
     ],
-    [user?.role]
+    [user?.role, includeEquipment]
   );
 
   return data;

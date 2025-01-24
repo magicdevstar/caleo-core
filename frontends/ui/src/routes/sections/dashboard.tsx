@@ -22,6 +22,7 @@ const AdminNotifications = lazyWithRetry(() => import('src/pages/dashboard/admin
 const EditNotification = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
 const SkillRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/skillRequests'));
+const EquipmentRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/equipmentRequests'));
 const ShiftBufferRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/shiftBufferRequests'));
 const AccountRequests = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/accountRequests'));
 const AdminUserDetails = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userDetails'));
@@ -85,6 +86,7 @@ export const dashboardRoutes = [
                 children: [
                   { path: 'account', element: <AccountRequests /> },
                   { path: 'skills', element: <SkillRequests /> },
+                  { path: 'equipment', element: <EquipmentRequests /> },
                   { path: 'buffer', element: <ShiftBufferRequests /> }
                 ]
               },

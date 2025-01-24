@@ -4,6 +4,7 @@
     ORGANIZATION
     RANK
     SKILL
+    EQUIPMENT
     MEMBER_SKILL
     VENUE
     NOTIFICATION
@@ -155,6 +156,7 @@
     inactivationNote: String
     rankId: String
     memberSkillIds: [String]
+    memberEquipmentIds: [String]
     adminNote: String
     deactivationNote: String
     maxShifts: Int
@@ -162,6 +164,7 @@
     availability: UserAvailability!
     rank: Rank
     memberSkills: [MemberSkill]
+    memberEquipments: [MemberEquipment]
     org: Organization
   }
 
@@ -278,6 +281,7 @@
     inactivationNote: String
     rankId: String
     memberSkillIds: [String]
+    memberEquipmentIds: [String]
     adminNote: String
     status: MemberStatus
     maxShifts: Int
@@ -902,6 +906,74 @@
   }
 ###### END Rank ######
 
+###### START Equipment ######
+  enum EquipmentStatus {
+    APPROVED
+    DENIED
+    PENDING
+  }
+
+  type Equipment {
+    id: ID!
+    name: String!
+    active: Boolean!
+    requiresAdminApproval: Boolean!
+    requiresCert: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization!
+    modifiedBy: User
+  }
+
+  type MemberEquipmentAttachmentUpload {
+    imagePath: String!
+    uploadUrl: String!
+  }
+
+  type MemberEquipment {
+    id: ID!
+    userId: String!
+    imagePath: String!
+    equipmentId: String!
+    orgId: String!
+    status: EquipmentStatus!
+    statusReason: String
+    docType: DocType!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    equipment: Equipment!
+    user: User
+    # Download url for the image
+    image: String
+    modifiedBy: User
+  }
+
+  input UpsertEquipment {
+    id: String
+    name: String
+    active: Boolean
+    requiresAdminApproval: Boolean
+    requiresCert: Boolean
+  }
+
+  input UpsertMemberEquipment {
+    id: String
+    imagePath: String
+    status: EquipmentStatus
+    statusReason: String
+    equipmentId: String!
+    userId: String!
+  }
+###### END Equipment ######
+
 ###### START Organization ######
   type OrganizationContact {
     phone: String!
@@ -946,6 +1018,7 @@
     monthlyMaxHours: Boolean!
     externalEventRequests: Boolean!
     sso: Boolean!
+    equipment: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1084,6 +1157,7 @@
     monthlyMaxHours: Boolean
     externalEventRequests: Boolean
     sso: Boolean
+    equipment: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1283,6 +1357,36 @@
 
   type SkillSearchResult {
     items: [Skill]
+    total: Int!
+  }
+
+  input MemberEquipmentSearchInput {
+    limit: Int
+    skip: Int
+    status: String
+    orderBy: String
+    order: String
+  }
+
+  type MemberEquipmentSearchResult {
+    items: [MemberEquipment]
+    total: Int!
+  }
+
+  input EquipmentSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    requiresCert: Boolean
+    rankOnlyIds: [String]
+    requiresAdminApproval: Boolean
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
+  type EquipmentSearchResult {
+    items: [Equipment]
     total: Int!
   }
 
@@ -1546,6 +1650,10 @@ type Query {
   skill(id: String!): Skill
   skills(input: SkillSearchInput): SkillSearchResult
   memberSkills(input: MemberSkillSearchInput): MemberSkillSearchResult
+
+  equipment(id: String!): Equipment
+  equipments(input: EquipmentSearchInput): EquipmentSearchResult
+  memberEquipments(input: MemberEquipmentSearchInput): MemberEquipmentSearchResult
   
   venue(id: String!): Venue
   venues(input: VenueSearchInput): VenueSearchResult
@@ -1604,6 +1712,12 @@ type Mutation {
   userSkill(userSkill: UpsertMemberSkill!): MemberSkill
   removeUserSkill(id: String!): ID!
   userSkillAttachmentUploadUrl: MemberSkillAttachmentUpload
+
+  equipment(equipment: UpsertEquipment!): Equipment
+  removeEquipment(id: String!): ID!
+  userEquipment(userEquipment: UpsertMemberEquipment!): MemberEquipment
+  removeUserEquipment(id: String!): ID!
+  userEquipmentAttachmentUploadUrl: MemberEquipmentAttachmentUpload
 
   venue(venue: UpsertVenue!): Venue
   removeVenue(id: String!): ID!

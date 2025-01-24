@@ -23,6 +23,20 @@ export const InAppTemplates = {
     title: 'Skill Denied',
     body: `An administrator for ${metroName} Caleo has denied your ${skillName} skill request.`,
   }),
+  [MailerEvents.OfficerAdminApprovedEquipment]: ({
+    metroName,
+    equipmentName,
+  }) => ({
+    title: 'Equipment Approved',
+    body: `An administrator for ${metroName} Caleo has approved your ${equipmentName} equipment request!`,
+  }),
+  [MailerEvents.OfficerAdminDeniedEquipment]: ({
+    metroName,
+    equipmentName,
+  }) => ({
+    title: 'Equipment Denied',
+    body: `An administrator for ${metroName} Caleo has denied your ${equipmentName} equipment request.`,
+  }),
   [MailerEvents.AdminPendingShiftRequested]: ({
     name,
   }) => ({

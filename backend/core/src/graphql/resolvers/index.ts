@@ -3,6 +3,7 @@ import { notification } from './notification';
 import { organization } from './organization';
 import { rank } from './rank';
 import { skill } from './skills';
+import { equipment } from './equipments';
 import { user } from './user';
 import { venue } from './venue';
 import { event } from './event';
@@ -35,6 +36,7 @@ export default {
     ...browserNotificationSubscriptions.Query,
     ...lotteryAnalytics.Query,
     ...shiftInterestRequests.Query,
+    ...equipment.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -54,6 +56,7 @@ export default {
     ...browserNotificationSubscriptions.Mutation,
     ...lotteryAnalytics.Mutation,
     ...shiftInterestRequests.Mutation,
+    ...equipment.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -72,4 +75,5 @@ export default {
   ...browserNotificationSubscriptions.fields,
   ...lotteryAnalytics.fields,
   ...shiftInterestRequests.fields,
+  ...equipment.fields,
 };

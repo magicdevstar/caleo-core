@@ -32,6 +32,7 @@ export interface IInAppNotificationMeta {
   shiftBufferRequestId?: ObjectId;
   shiftId?: ObjectId | string;
   skillId?: ObjectId;
+  equipmentId?: ObjectId;
   venueId?: ObjectId;
 }
 

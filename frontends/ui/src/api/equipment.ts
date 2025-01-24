@@ -49,6 +49,11 @@ export const GET_EQUIPMENTS = gql`
         active
         requiresAdminApproval
         requiresCert
+        rankOnlyIds
+        ranksOnly {
+          id
+          name
+        }
         createdAt
       }
       total

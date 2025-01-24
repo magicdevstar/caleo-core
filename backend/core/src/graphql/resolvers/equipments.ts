@@ -23,12 +23,18 @@ export const equipment = {
     ): Promise<IEquipment | null> => equipments.get(id),
     equipments: async (
       _parent: unknown,
-      { input }: { input: SkillSearchInput },
+      { input: { rankOnlyIds, ...input } }: { input: SkillSearchInput },
       { equipments, user }: Context
     ): Promise<SearchResults<IEquipment>> => equipments.search({
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
+      ...(rankOnlyIds ? {
+        $or: [
+          { rankOnlyIds: [] },
+          { rankOnlyIds: { $in: rankOnlyIds.map((id) => new ObjectId(id!)) } },
+        ]
+      } : {}),
     }),
     memberEquipments: async (
       _parent: unknown,
@@ -99,6 +105,9 @@ export const equipment = {
       }
       return equipments.upsert({
         ...equipment,
+        ...(equipment.rankOnlyIds && {
+          rankOnlyIds: equipment.rankOnlyIds.map((id) => new ObjectId(id!)),
+        }),
         orgId: user?.member.orgId!,
         modifiedById: user?._id!,
       } as any);
@@ -137,7 +146,8 @@ export const equipment = {
   fields: {
     Equipment: {
       ...commonResolvers,
-      org: (skill: IEquipment, _, { organizations }: Context) => organizations.loader.load(skill.orgId.toString()),
+      org: (equipment: IEquipment, _, { organizations }: Context) => organizations.loader.load(equipment.orgId.toString()),
+      ranksOnly: (equipment: IEquipment, _, { ranks }: Context) => equipment.rankOnlyIds && equipment.rankOnlyIds.length > 0 ? ranks.loader.loadMany((equipment.rankOnlyIds || []).map((id) => id.toString())) : [],
     },
     MemberEquipment: {
       ...commonResolvers,

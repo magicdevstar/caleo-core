@@ -193,6 +193,7 @@ export default function AccountEquipments({ user, adminViewer, allDisabled }: Pr
       <UpsertMemberEquipment
         memberEquipment={editEquipment?.memberEquipment || null}
         userId={user.id}
+        rankId={user.member.rank!.id}
         upsertMemberEquipment={upsertMemberEquipment}
         onUpsertMemberEquipment={handleUpsert}
         existingEquipment={(user.member.memberEquipments || []) as MemberEquipment[]}

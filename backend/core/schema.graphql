@@ -921,11 +921,13 @@
     requiresCert: Boolean!
     docType: DocType!
     orgId: String!
+    rankOnlyIds: [String]
     createdAt: String!
     updatedAt: String!
     removedAt: String
     modifiedById: String
 
+    ranksOnly: [Rank]
     org: Organization!
     modifiedBy: User
   }
@@ -962,6 +964,7 @@
     active: Boolean
     requiresAdminApproval: Boolean
     requiresCert: Boolean
+    rankOnlyIds: [String]
   }
 
   input UpsertMemberEquipment {

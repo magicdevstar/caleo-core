@@ -14,11 +14,14 @@ export interface IEquipment extends Omit<
   'modifiedBy' |
   'orgId' |
   'org' |
-  '__typename'
+  '__typename' |
+  'rankOnlyIds' |
+  'ranksOnly'
 > {
   _id?: ObjectId;
   id?: string;
   orgId: ObjectId;
+  rankOnlyIds: ObjectId[];
   modifiedById: ObjectId;
 
   createdAt: Date;

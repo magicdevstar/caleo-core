@@ -31,12 +31,14 @@ const defaultMemberEquipment = {
 
 export default function UpsertMemberEquipment({
   userId,
+  rankId,
   memberEquipment,
   upsertMemberEquipment,
   existingEquipment,
   onUpsertMemberEquipment,
 }: {
   userId: string;
+  rankId: string;
   memberEquipment: MemberEquipment | null;
   existingEquipment: MemberEquipment[];
   upsertMemberEquipment: ReturnType<any>;
@@ -48,6 +50,7 @@ export default function UpsertMemberEquipment({
     variables: {
       input: {
         active: true,
+        rankOnlyIds: [rankId],
       },
     }
   });

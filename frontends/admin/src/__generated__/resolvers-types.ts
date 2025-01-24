@@ -226,6 +226,8 @@ export type Equipment = {
   name: Scalars['String']['output'];
   org: Organization;
   orgId: Scalars['String']['output'];
+  rankOnlyIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  ranksOnly?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
   requiresAdminApproval: Scalars['Boolean']['output'];
   requiresCert: Scalars['Boolean']['output'];
@@ -1860,6 +1862,7 @@ export type UpsertEquipment = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  rankOnlyIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
   requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -2699,6 +2702,8 @@ export type EquipmentResolvers<ContextType = any, ParentType extends ResolversPa
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rankOnlyIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  ranksOnly?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requiresAdminApproval?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   requiresCert?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

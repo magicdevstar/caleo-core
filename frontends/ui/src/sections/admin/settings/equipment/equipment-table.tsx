@@ -73,6 +73,7 @@ export default function EquipmentTable() {
                 name: equipment.name,
                 requiresCert: equipment.requiresCert,
                 requiresAdminApproval: equipment.requiresAdminApproval,
+                rankOnlyIds: equipment.rankOnlyIds,
               },
             },
           });
@@ -89,6 +90,7 @@ export default function EquipmentTable() {
     ],
     columns: [
       { id: 'name', label: 'Equipment', columnType: 'string' },
+      { id: 'ranksOnly', label: 'Ranks', width: 200, noSort: true, columnType: 'array', maxRender: 1 },
       { id: 'requiresCert', label: 'Cert Required', width: 160, columnType: 'boolean' },
       { id: 'requiresAdminApproval', label: 'Admin Approval', width: 160, columnType: 'boolean' },
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },

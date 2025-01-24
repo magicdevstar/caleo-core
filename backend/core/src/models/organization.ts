@@ -92,8 +92,8 @@ export class OrganizationModel extends BaseMongo<IOrganization> {
     return org;
   }
 
-  public async getBySSOAppName(ssoAppName: string): Promise<IOrganization | null> {
-    const org = await this.collection.findOne<IOrganization>({ ssoAppName });
+  public async getBySSOAppName(uiSubDomains: string): Promise<IOrganization | null> {
+    const org = await this.collection.findOne<IOrganization>({ 'sso.uiSubDomains': uiSubDomains });
     return org;
   }
 

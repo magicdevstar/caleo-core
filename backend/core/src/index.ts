@@ -5,12 +5,13 @@ import {
   startServerAndCreateLambdaHandler,
   handlers
 } from '@as-integrations/aws-lambda';
-import type { APIGatewayProxyEventV2WithLambdaAuthorizer } from 'aws-lambda';
+import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import typeDefs from './graphql/typedefs';
 import logger, { loggerMiddleware } from './utils/logger';
 import resolvers from './graphql/resolvers';
 import { Context, createContext } from './utils/createContext';
 import { User } from './__generated__/resolvers-types';
+import { userFromEvent } from './utils/userFromEvent';
 
 const server = new ApolloServer({
   typeDefs,
@@ -21,10 +22,7 @@ const server = new ApolloServer({
 export const handler = startServerAndCreateLambdaHandler(
   server,
   handlers.createAPIGatewayProxyEventV2RequestHandler<
-    APIGatewayProxyEventV2WithLambdaAuthorizer<{
-      user?: User;
-      originalUser?: User;
-    }>
+    APIGatewayProxyEventV2WithJWTAuthorizer
   >(),
   {
     middleware: [loggerMiddleware],
@@ -34,15 +32,14 @@ export const handler = startServerAndCreateLambdaHandler(
         logger.setPersistentLogAttributes({
           apiGatewayRequestId: event.requestContext.requestId,
         });
+        logger.info('RAW EVENT', { event });
         const classContext = await createContext();
-        classContext.user = classContext.users.convertToModel(event.requestContext?.authorizer?.lambda?.user);
-        classContext.originalUser = classContext.users.convertToModel(event.requestContext?.authorizer?.lambda?.originalUser);
+        const { user, originalUser } = await userFromEvent(event, classContext.users);
+        classContext.user = user;
+        classContext.originalUser = originalUser;
         classContext.lambdaEvent = event;
         classContext.lambdaContext = context;
-        if (event.requestContext?.authorizer?.lambda?.user) {
-          classContext.organization = await classContext.organizations.get(event.requestContext?.authorizer?.lambda?.user.member.orgId) as any;
-        }
-  
+        classContext.organization = await classContext.organizations.get(user.member.orgId) || undefined;
         return classContext;
       } catch(error) {
         logger.error('Error creating context', {error});

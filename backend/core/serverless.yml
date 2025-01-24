@@ -6,6 +6,7 @@ params:
     dbName: caleo-dev
     poolName: lvmpd-oms-uat
     poolId: us-west-2_8023dPQwv
+    uiClientId: 1jqluc6upa0sk661jeoai1sj9l
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}
     domainName: dev-api.caleopro.com
@@ -21,6 +22,7 @@ params:
     dbName: caleo-prod
     poolName: lvmpd-oms-prod
     poolId: us-west-2_3enNflKSo
+    uiClientId: 6eb59tb72ti81bh5oh3vf9hvq1
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: lvmpd@caleopro.com
@@ -40,15 +42,14 @@ provider:
   httpApi:
     cors: true
     authorizers:
-      customAuthorizer:
-        type: request
-        functionName: authorizerFunc
-        enableSimpleResponses: true
-        resultTtlInSeconds: 300
-        payloadVersion: '2.0'
+      cognitoAuthorizer:
+        type: jwt
         identitySource:
           - $request.header.Authorization
           - $request.header.authorization
+        issuerUrl: https://cognito-idp.${aws:region}.amazonaws.com/${param:poolId}
+        audience:
+          - ${param:uiClientId}
   environment:
     STAGE: ${sls:stage}
     REGION: ${aws:region}
@@ -133,7 +134,7 @@ functions:
           path: /
           method: POST
           authorizer:
-            name: customAuthorizer
+            name: cognitoAuthorizer
       - httpApi:
           path: /
           method: GET
@@ -166,7 +167,7 @@ functions:
           path: /errors
           method: POST
           authorizer:
-            name: customAuthorizer
+            name: cognitoAuthorizer
 
   # Register Cognito User Hook
   registerUser:
@@ -177,15 +178,6 @@ functions:
           trigger: PostConfirmation
           existing: true
           forceDeploy: true
-
-  # ssoSignUp:
-  #   handler: src/workers/ssoSignUp.handler
-  #   events:
-  #     - cognitoUserPool:
-  #         pool: ${param:poolName}
-  #         trigger: PostConfirmation
-  #         existing: true
-  #         forceDeploy: true
 
   # Scheduled Tasks
   scheduledEvents:  

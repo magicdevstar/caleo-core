@@ -677,8 +677,8 @@ export const shift = {
         }),
       lotteryRequest: (shift: IShift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
-          userId: user?.id!,
-          orgId: organization?.id!,
+          userId: user?._id!,
+          orgId: organization?._id!,
           shiftGroupId: shift.shiftId,
         }),
       otherShiftSlots: (

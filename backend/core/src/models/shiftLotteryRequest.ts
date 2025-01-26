@@ -63,7 +63,7 @@ export class ShiftLotteryRequestModel extends BaseMongo<IShiftLotteryRequest> {
     const userId = keys[0].userId;
     const groupIds = keys.map((key) => key.shiftGroupId);
     const res = await this.collection.find({
-      userId: new ObjectId(userId),
+      userId: userId,
       lotteryCounter: counter,
       shiftGroupId: {
         $in: groupIds,

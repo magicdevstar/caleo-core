@@ -121,8 +121,6 @@ functions:
   # testFun:
   #   handler: src/workers/test.handler
   # GQL API
-  authorizerFunc:
-    handler: src/auth/authorizer.handler
   graphql:
     handler: src/index.handler
     memorySize: 2048

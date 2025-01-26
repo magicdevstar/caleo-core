@@ -190,7 +190,7 @@ export class ShiftLotteryRequestModel extends BaseMongo<IShiftLotteryRequest> {
   async highestOrderNumber(lotteryCounter: number, userId: string) {
     const res = await this.collection.find({
       lotteryCounter,
-      userId,
+      userId: new ObjectId(userId),
       removedAt: { $exists: false },
     }).sort({ order: -1 }).limit(1).toArray();
     return res[0] ? res[0].order : -1;

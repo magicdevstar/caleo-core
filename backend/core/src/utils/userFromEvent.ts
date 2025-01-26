@@ -35,7 +35,10 @@ export const userFromEvent = async (
   }
 
   return {
-    user,
+    user: {
+      id: user._id.toString(),
+      ...user,
+    },
     originalUser,
   };
 };

@@ -26,7 +26,7 @@ export const lottoAnalysis = async (prodDb: Db, lotteryCounter: number) => {
         let fullList: any[] = [];
         for (const key of Object.keys(groupings[userId])) {
           const originalSet = groupings[userId][key];
-          const sorted = sortBy(originalSet, 'createdAt').reverse();
+          const sorted = sortBy(originalSet, 'updatedAt').reverse();
           fullList.push(...sorted);
         }
         bulkOperations[userId] = fullList.map((s, i) => ({

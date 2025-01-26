@@ -45,7 +45,7 @@ export const shiftLotteryRequests = {
     ): Promise<SearchResults<IShiftLotteryRequest>> => {
       let searchInput: any = {
         orgId: user?.member.orgId!,
-        ...(user?._id && {userId: user._id}),
+        ...(user?._id && {userId: new ObjectId(user._id!)}),
         queryField: 'shiftGroupId',
         order: 'asc',
         orderBy: 'order',

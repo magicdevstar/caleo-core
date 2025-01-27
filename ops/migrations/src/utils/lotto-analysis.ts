@@ -10,13 +10,13 @@ export const lottoAnalysis = async (prodDb: Db, lotteryCounter: number) => {
 
     const groupings: Record<string, Record<string, any[]>> = {};
 
+    // Order query
     for (const result of results) {
       const userId = result.userId.toString();
       if(!groupings[userId]) groupings[userId] = {} as Record<string, any[]>;
       if(!groupings[userId][`${result.order}`]) groupings[userId][`${result.order}`] = [];
       groupings[userId][`${result.order}`].push(result);
     }
-
 
     const allBulkOperations: any[] = [];
     const bulkOperations: Record<string, any[]> = {};
@@ -46,6 +46,37 @@ export const lottoAnalysis = async (prodDb: Db, lotteryCounter: number) => {
     // console.log(firstKey);
     console.log(JSON.stringify(bulkOperations, null, 2));
     console.log(allBulkOperations.length);
+
+
+
+    ///////
+
+    // for (const result of results) {
+    //   const userId = result.userId.toString();
+    //   if(!groupings[userId]) groupings[userId] = {} as Record<string, any[]>;
+    //   if(!groupings[userId][result.shiftGroupId]) groupings[userId][result.shiftGroupId] = [];
+    //   groupings[userId][result.shiftGroupId].push(result);
+    // }
+
+    // const result = Object.keys(groupings).reduce((obj, userId) => {
+    //   const list = Object.keys(groupings[userId]);
+
+    //   const userObj = list.reduce((uObj, shiftGroupId) => {
+    //     if (groupings[userId][shiftGroupId].length > 1) {
+    //       uObj[shiftGroupId] = groupings[userId][shiftGroupId];
+    //     }
+    //     return uObj;
+    //   }, {} as Record<string, any[]>);
+
+    //   if (Object.keys(userObj).length > 0) {
+    //     obj[userId] = userObj;
+    //   }
+
+    //   return obj;
+    // }, {} as Record<string, Record<string, any[]>>);
+
+    // console.log(JSON.stringify(result, null, 2));
+
   } catch (error) {
     console.error(error);
   }

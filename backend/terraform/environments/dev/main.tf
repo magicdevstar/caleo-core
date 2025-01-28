@@ -3,7 +3,9 @@ locals {
 
   hosted_zones = {
     "dev" = "dev.caleopro.com"
+    # SSO Config
     "azure" = "azure.caleopro.com"
+    "lasd-dev" = "lasd-dev.caleopro.com"
   }
 }
 
@@ -21,9 +23,5 @@ module "amplify_domains" {
   # They sadly don't have a data attribute for this :(
   app_id = local.amplify_id
 
-  domains = {
-    "dev" = "dev.caleopro.com"
-    # SSO Config
-    "azure" = "azure.caleopro.com"
-  }
+  domains = local.hosted_zones
 }

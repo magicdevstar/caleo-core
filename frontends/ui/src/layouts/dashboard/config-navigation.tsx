@@ -4,6 +4,7 @@ import { paths } from 'src/routes/paths';
 // components
 import SvgColor from 'src/components/svg-color';
 import { useAuthContext } from 'src/auth/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -47,8 +48,7 @@ const ICONS = {
 
 export function useNavData() {
   const { user } = useAuthContext()
-
-  const includeEquipment = useMemo(() => user.member.org?.features.equipment, [user.member.org?.features.equipment])
+  const { equipment, lottery } = useFeatures();
 
   const data = useMemo(
     () => [
@@ -61,7 +61,7 @@ export function useNavData() {
           { title: 'My Overtime', path: paths.dashboard.myOvertime, icon: ICONS.job },
           { title: 'Available Overtime', path: paths.dashboard.availableOvertime, icon: ICONS.calendar },
           { title: 'Upcoming Overtime', path: paths.dashboard.upcomingOvertime, icon: ICONS.label },
-          { title: 'Rank Overtime', path: paths.dashboard.rankOvertime, icon: ICONS.kanban },
+          ...(lottery ? [{ title: 'Rank Overtime', path: paths.dashboard.rankOvertime, icon: ICONS.kanban }] : []),
           {
             title: 'My Profile',
             path: paths.dashboard.user.root,
@@ -93,7 +93,7 @@ export function useNavData() {
                 { title: 'Search Users', path: paths.dashboard.admin.users.root, internalChildRoutes: true, internalChildRoutesExclude: '/request' },
                 { title: 'Account Requests', path: paths.dashboard.admin.users.requests.account },
                 { title: 'Skill Requests', path: paths.dashboard.admin.users.requests.skills },
-                ...(includeEquipment ? [{ title: 'Equipment Requests', path: paths.dashboard.admin.users.requests.equipment }] : []),
+                ...(equipment ? [{ title: 'Equipment Requests', path: paths.dashboard.admin.users.requests.equipment }] : []),
                 { title: 'Shift Buffer Requests', path: paths.dashboard.admin.users.requests.buffer },
               ],
             },
@@ -108,7 +108,7 @@ export function useNavData() {
               icon: ICONS.settings,
               children: [
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
-                { title: includeEquipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
+                { title: equipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
                 { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
               ],
@@ -117,7 +117,7 @@ export function useNavData() {
         },
       ] : [])
     ],
-    [user?.role, includeEquipment]
+    [user?.role, equipment, lottery]
   );
 
   return data;

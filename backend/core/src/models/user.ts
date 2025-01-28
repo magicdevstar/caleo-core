@@ -476,6 +476,9 @@ export class UserModel extends BaseMongo<IUser> {
     shift: IShift;
     organization: Organization | IOrganization
   }) {
+    if (!organization.features.weeklyMaxShifts) {
+      return false;
+    }
     const weekStartsOn: any = dayMap[organization.weekBegins] - 1;
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
     const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);

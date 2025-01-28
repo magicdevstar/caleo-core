@@ -7,6 +7,8 @@ const defaultFeatures: OrganizationFeatures = {
   interestLists: false,
   venueContractDates: false,
   monthlyMaxHours: false,
+  weeklyMaxShifts: false,
+  disabledTiers: false,
   externalEventRequests: false,
   sso: false,
   equipment: false,

@@ -1122,6 +1122,7 @@ export type OrganizationFeatureOptions = {
 
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
+  disabledTiers: Scalars['Boolean']['output'];
   equipment: Scalars['Boolean']['output'];
   eventCheckIn: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
@@ -1130,6 +1131,7 @@ export type OrganizationFeatures = {
   monthlyMaxHours: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
+  weeklyMaxShifts: Scalars['Boolean']['output'];
 };
 
 export type OrganizationOvertimeSettings = {
@@ -1953,6 +1955,7 @@ export type UpsertOrganizationContact = {
 };
 
 export type UpsertOrganizationFeatures = {
+  disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   equipment?: InputMaybe<Scalars['Boolean']['input']>;
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1961,6 +1964,7 @@ export type UpsertOrganizationFeatures = {
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
+  weeklyMaxShifts?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpsertOrganizationOvertimeSettings = {
@@ -3115,6 +3119,7 @@ export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType ex
 }>;
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+  disabledTiers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   equipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3123,6 +3128,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  weeklyMaxShifts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

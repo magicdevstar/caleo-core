@@ -55,6 +55,8 @@ export const getDefaultOrgFeatures = () => ({
   eventCheckIn: false,
   interestLists: false,
   monthlyMaxHours: false,
+  weeklyMaxShifts: false,
+  disabledTiers: false,
   externalEventRequests: false,
   sso: false,
   equipment: false,

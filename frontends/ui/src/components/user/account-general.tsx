@@ -37,6 +37,7 @@ import { client } from 'src/utils/apollo';
 import { roleNames, tierNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
 import { convertDate, dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -114,6 +115,7 @@ export default function AccountGeneral({
   adminViewer: boolean;
   allDisabled?: boolean;
 }) {
+  const { disabledTiers } = useFeatures();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
@@ -474,40 +476,45 @@ export default function AccountGeneral({
                   </MenuItem>
                 ))}
               </RHFSelect>
-              <RHFSelect
-                fullWidth
-                name="tier"
-                label="Tier"
-                disabled={!adminViewer || allDisabled}
-                InputLabelProps={{ shrink: true }}
-                PaperPropsSx={{ textTransform: 'capitalize' }}
-              >
-                {[
-                  MemberTier.Tier_1,
-                  MemberTier.Tier_2,
-                ].map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {tierNames[option]}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
+              {
+                !disabledTiers &&
+                <>
+                  <RHFSelect
+                    fullWidth
+                    name="tier"
+                    label="Tier"
+                    disabled={!adminViewer || allDisabled}
+                    InputLabelProps={{ shrink: true }}
+                    PaperPropsSx={{ textTransform: 'capitalize' }}
+                  >
+                    {[
+                      MemberTier.Tier_1,
+                      MemberTier.Tier_2,
+                    ].map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {tierNames[option]}
+                      </MenuItem>
+                    ))}
+                  </RHFSelect>
 
-              <DatePicker
-                disabled={!adminViewer || allDisabled}
-                tz={user?.member?.org?.timezone!}
-                tierUntil={tierUntil}
-                helperText={tierUntilHelpText || formErrors.tierUntil?.message as any}
-                error={!!formErrors.tierUntil}
-                onChange={(hasValue) => {
-                  const result = getValues()
-                  if (result.tier === MemberTier.Tier_2 && !hasValue) {
-                    setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
-                    return;
-                  }
-                  clearErrors('tierUntil')
-                }}
-                setTierUntil={(value: any) => setValue('tierUntil', value)}
-              />
+                  <DatePicker
+                    disabled={!adminViewer || allDisabled}
+                    tz={user?.member?.org?.timezone!}
+                    tierUntil={tierUntil}
+                    helperText={tierUntilHelpText || formErrors.tierUntil?.message as any}
+                    error={!!formErrors.tierUntil}
+                    onChange={(hasValue) => {
+                      const result = getValues()
+                      if (result.tier === MemberTier.Tier_2 && !hasValue) {
+                        setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
+                        return;
+                      }
+                      clearErrors('tierUntil')
+                    }}
+                    setTierUntil={(value: any) => setValue('tierUntil', value)}
+                  />
+                </>
+              }
             </Box>
             <Divider sx={{ mt: 4, mb: 2 }} />
             <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Contact Info</Typography>

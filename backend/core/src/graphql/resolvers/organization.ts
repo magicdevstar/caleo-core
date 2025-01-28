@@ -73,6 +73,14 @@ export const organization = {
           label: 'Monthly Max Hours'
         },
         {
+          value: 'weeklyMaxShifts',
+          label: 'Weekly Max Shifts'
+        },
+        {
+          value: 'disabledTiers',
+          label: 'Disable tiers'
+        },
+        {
           value: 'venueContractDates',
           label: 'Venue Contract Dates'
         },
@@ -198,6 +206,8 @@ export const organization = {
       eventCheckIn: (parent: OrganizationFeatures) => !!parent.eventCheckIn,
       interestLists: (parent: OrganizationFeatures) => !!parent.interestLists,
       monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
+      weeklyMaxShifts: (parent: OrganizationFeatures) => !!parent.weeklyMaxShifts,
+      disabledTiers: (parent: OrganizationFeatures) => !!parent.disabledTiers,
       externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
       sso: (parent: OrganizationFeatures) => !!parent.sso,
       equipment: (parent: OrganizationFeatures) => !!parent.equipment,

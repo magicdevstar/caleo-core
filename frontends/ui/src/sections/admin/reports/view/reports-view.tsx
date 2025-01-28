@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import EventsByDate from '../reports/events-by-date';
@@ -63,6 +65,7 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
 });
 
 export default function ReportsView() {
+  const { lottery } = useFeatures();
   const settings = useSettingsContext();
   const [reportType, setReportType] = useState(ReportType.EVENTS_BY_DATE);
 
@@ -86,7 +89,12 @@ export default function ReportsView() {
         value={reportType}
         onChange={onChange}
       >
-        {[...Object.values(ReportType)].map((option) => (
+        {[...Object.values(ReportType)].filter((type) => {
+          if (type === ReportType.RANKED_SHIFTS_BY_OFFICER && !lottery) {
+            return false;
+          }
+          return true;
+        }).map((option) => (
           <MenuItem key={option} value={option}>
             {ReportTypeNames[option]}
           </MenuItem>

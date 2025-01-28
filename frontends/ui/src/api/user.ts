@@ -29,6 +29,8 @@ const userDetailProperties = `
         eventCheckIn
         interestLists
         monthlyMaxHours
+        weeklyMaxShifts
+        disabledTiers
         externalEventRequests
         sso
         equipment

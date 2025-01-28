@@ -45,6 +45,8 @@ export default function Overtime({
     eventCheckIn,
     interestLists,
     monthlyMaxHours,
+    lottery,
+    weeklyMaxShifts,
   } = useFeatures();
   const mdUp = useResponsive('up', 'md');
 
@@ -166,7 +168,7 @@ export default function Overtime({
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
-        {mdUp && (
+        {mdUp && (weeklyMaxShifts || monthlyMaxHours) && (
           <Grid md={4}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>
               Shift Settings
@@ -176,30 +178,38 @@ export default function Overtime({
             </Typography>
           </Grid>
         )}
-        <Grid xs={12} md={8} sx={{ mb: 2 }}>
-          <Card>
-            {!mdUp && <CardHeader title="Shift Settings" />}
-            <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFTextField
-                type="number"
-                name="settings.shiftsPerWeek"
-                label="Max shifts per week"
-                helperText="The maximum number of overtime shifts a user can sign up for in a week"
-              />
+        {
+          (weeklyMaxShifts || monthlyMaxHours) && (
+            <Grid xs={12} md={8} sx={{ mb: 2 }}>
+              <Card>
+                {!mdUp && <CardHeader title="Shift Settings" />}
+                <Stack spacing={3} sx={{ p: 3 }}>
+                  {
+                    weeklyMaxShifts && (
+                      <RHFTextField
+                        type="number"
+                        name="settings.shiftsPerWeek"
+                        label="Max shifts per week"
+                        helperText="The maximum number of overtime shifts a user can sign up for in a week"
+                      />
+                    )
+                  }
 
-              {
-                monthlyMaxHours && (
-                  <RHFTextField
-                    type="number"
-                    name="settings.hoursPerMonth"
-                    label="Max hours per month"
-                    helperText="The maximum number of overtime hours a user can work per month"
-                  />
-                )
-              }
-            </Stack>
-          </Card>
-        </Grid>
+                  {
+                    monthlyMaxHours && (
+                      <RHFTextField
+                        type="number"
+                        name="settings.hoursPerMonth"
+                        label="Max hours per month"
+                        helperText="The maximum number of overtime hours a user can work per month"
+                      />
+                    )
+                  }
+                </Stack>
+              </Card>
+            </Grid>
+          )
+        }
 
         {
           eventCheckIn && (
@@ -273,7 +283,7 @@ export default function Overtime({
           )
         }
 
-        {mdUp && (
+        {mdUp && lottery && (
           <Grid md={4}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>
               Lottery
@@ -283,114 +293,118 @@ export default function Overtime({
             </Typography>
           </Grid>
         )}
-        <Grid xs={12} md={8} sx={{ mb: 2 }}>
-          <Card>
-            {!mdUp && <CardHeader title="Lottery" />}
-            <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFSwitch name="settings.lottery.enabled" disabled label="Enable lottery" />
-              <RHFTextField
-                type="number"
-                name="settings.lottery.notifyUsersBeforeClose"
-                label="Notification"
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">/Hours</InputAdornment>,
-                }}
-                helperText="The number of hours before the lottery closes that users will be notified"
-              />
-              <RHFTextField
-                type="number"
-                name="settings.lottery.fcfsShiftsDelay"
-                label="FCFS shifts delay"
-                InputProps={{
-                  endAdornment: <InputAdornment position='end'>/hours</InputAdornment>
-                }}
-                helperText="The number of hours after the lottery window closes that FCFS shifts will become available"
-              />
-
-              <Stack direction="row" alignItems="center" spacing={2} sx={{ pb: 2 }}>
-                <Stack sx={{ width: '100%' }} spacing={2}>
-                  <RHFSelect
-                    name="settings.lottery.open.dayOfWeek"
-                    disabled={window.location.hostname !== 'localhost'}
-                    label="Lottery Open"
-                    helperText="The day of the week the lottery opens"
-                  >
-                    {[
-                      DayOfWeek.Sunday,
-                      DayOfWeek.Monday,
-                      DayOfWeek.Tuesday,
-                      DayOfWeek.Wednesday,
-                      DayOfWeek.Thursday,
-                      DayOfWeek.Friday,
-                      DayOfWeek.Saturday,
-                    ].map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {capitalize(option)}
-                      </MenuItem>
-                    ))}
-                  </RHFSelect>
-                  <TimePicker
-                    label="Open"
-                    timezone={organization?.timezone}
-                    disabled={window.location.hostname !== 'localhost'}
-                    ampm={false}
-                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                    value={dayjs.utc(values.settings.lottery.open.time)}
-                    onChange={(newValue: any) => {
-                      setValue('settings.lottery.open.time', newValue);
+        {
+          lottery && (
+            <Grid xs={12} md={8} sx={{ mb: 2 }}>
+              <Card>
+                {!mdUp && <CardHeader title="Lottery" />}
+                <Stack spacing={3} sx={{ p: 3 }}>
+                  <RHFSwitch name="settings.lottery.enabled" disabled label="Enable lottery" />
+                  <RHFTextField
+                    type="number"
+                    name="settings.lottery.notifyUsersBeforeClose"
+                    label="Notification"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">/Hours</InputAdornment>,
                     }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        margin: 'normal',
-                      },
-                    }}
+                    helperText="The number of hours before the lottery closes that users will be notified"
                   />
-                </Stack>
-                <Stack sx={{ width: '100%' }} spacing={2}>
-                  <RHFSelect
-                    name="settings.lottery.close.dayOfWeek"
-                    label="Lottery Close"
-                    disabled={window.location.hostname !== 'localhost'}
-                    helperText="The day of the week the lottery closes"
-                  >
-                    {[
-                      DayOfWeek.Sunday,
-                      DayOfWeek.Monday,
-                      DayOfWeek.Tuesday,
-                      DayOfWeek.Wednesday,
-                      DayOfWeek.Thursday,
-                      DayOfWeek.Friday,
-                      DayOfWeek.Saturday,
-                    ].map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {capitalize(option)}
-                      </MenuItem>
-                    ))}
-                  </RHFSelect>
-                  <TimePicker
-                    label="Close"
-                    timezone={organization?.timezone}
-                    disabled={window.location.hostname !== 'localhost'}
-                    ampm={false}
-                    timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                    value={dayjs.utc(values.settings.lottery.close.time)}
-                    onChange={(newValue: any) => {
-                      setValue('settings.lottery.close.time', newValue);
+                  <RHFTextField
+                    type="number"
+                    name="settings.lottery.fcfsShiftsDelay"
+                    label="FCFS shifts delay"
+                    InputProps={{
+                      endAdornment: <InputAdornment position='end'>/hours</InputAdornment>
                     }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        margin: 'normal',
-                      },
-                    }}
+                    helperText="The number of hours after the lottery window closes that FCFS shifts will become available"
                   />
-                </Stack>
-              </Stack>
 
-            </Stack>
-          </Card>
-        </Grid>
+                  <Stack direction="row" alignItems="center" spacing={2} sx={{ pb: 2 }}>
+                    <Stack sx={{ width: '100%' }} spacing={2}>
+                      <RHFSelect
+                        name="settings.lottery.open.dayOfWeek"
+                        disabled={window.location.hostname !== 'localhost'}
+                        label="Lottery Open"
+                        helperText="The day of the week the lottery opens"
+                      >
+                        {[
+                          DayOfWeek.Sunday,
+                          DayOfWeek.Monday,
+                          DayOfWeek.Tuesday,
+                          DayOfWeek.Wednesday,
+                          DayOfWeek.Thursday,
+                          DayOfWeek.Friday,
+                          DayOfWeek.Saturday,
+                        ].map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {capitalize(option)}
+                          </MenuItem>
+                        ))}
+                      </RHFSelect>
+                      <TimePicker
+                        label="Open"
+                        timezone={organization?.timezone}
+                        disabled={window.location.hostname !== 'localhost'}
+                        ampm={false}
+                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                        value={dayjs.utc(values.settings.lottery.open.time)}
+                        onChange={(newValue: any) => {
+                          setValue('settings.lottery.open.time', newValue);
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            margin: 'normal',
+                          },
+                        }}
+                      />
+                    </Stack>
+                    <Stack sx={{ width: '100%' }} spacing={2}>
+                      <RHFSelect
+                        name="settings.lottery.close.dayOfWeek"
+                        label="Lottery Close"
+                        disabled={window.location.hostname !== 'localhost'}
+                        helperText="The day of the week the lottery closes"
+                      >
+                        {[
+                          DayOfWeek.Sunday,
+                          DayOfWeek.Monday,
+                          DayOfWeek.Tuesday,
+                          DayOfWeek.Wednesday,
+                          DayOfWeek.Thursday,
+                          DayOfWeek.Friday,
+                          DayOfWeek.Saturday,
+                        ].map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {capitalize(option)}
+                          </MenuItem>
+                        ))}
+                      </RHFSelect>
+                      <TimePicker
+                        label="Close"
+                        timezone={organization?.timezone}
+                        disabled={window.location.hostname !== 'localhost'}
+                        ampm={false}
+                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                        value={dayjs.utc(values.settings.lottery.close.time)}
+                        onChange={(newValue: any) => {
+                          setValue('settings.lottery.close.time', newValue);
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            margin: 'normal',
+                          },
+                        }}
+                      />
+                    </Stack>
+                  </Stack>
+
+                </Stack>
+              </Card>
+            </Grid>
+          )
+        }
 
         {mdUp && (
           <Grid md={4}>

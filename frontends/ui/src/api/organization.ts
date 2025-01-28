@@ -27,6 +27,8 @@ query ORGANIZATION {
       eventCheckIn
       interestLists
       monthlyMaxHours
+      weeklyMaxShifts
+      disabledTiers
       externalEventRequests
       sso
       equipment

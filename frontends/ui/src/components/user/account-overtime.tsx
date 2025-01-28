@@ -12,6 +12,8 @@ import Grid from '@mui/material/Unstable_Grid2';
 import ListItemText from '@mui/material/ListItemText';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import TextField from '@mui/material/TextField';
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import { FrontendUser, GET_USER, GET_USERS, UPDATE_USER } from 'src/api/user';
 import { DayAvailability, UserAvailability } from 'src/__generated__/resolvers-types';
@@ -61,6 +63,7 @@ export default function AccountOvertime({
   user: FrontendUser
   allDisabled?: boolean;
 }) {
+  const { weeklyMaxShifts } = useFeatures();
   const [updateUser] = useMutation(UPDATE_USER, {
     refetchQueries: [GET_USER, GET_USERS],
   });
@@ -95,34 +98,38 @@ export default function AccountOvertime({
 
   return (
     <Stack component={Card} spacing={3} sx={{ p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={4}>
-          <ListItemText
-            primary="Max Shifts"
-            secondary="The maximum number of overtime shifts you are willing to work per week"
-            primaryTypographyProps={{ typography: 'h6', mb: 0.5 }}
-            secondaryTypographyProps={{ component: 'span' }}
-          />
-        </Grid>
-        <Grid xs={12} md={8}>
-          <Stack spacing={1} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.neutral' }}>
-            <TextField
-              fullWidth
-              type="number"
-              value={maxShifts}
-              disabled={allDisabled}
-              InputProps={{ inputProps: { min: "0", max: "10", step: "1" } }}
-              helperText={`The maximum number of overtime shifts you are willing to work per week, cannot exceed ${user.member.org?.settings?.shiftsPerWeek} shifts per administrative settings.`}
-              onChange={(event) => {
-                const value = parseInt(event.target.value || '0', 10);
-                if (value <= user.member.org?.settings?.shiftsPerWeek!) {
-                  setMaxShifts(parseInt(event.target.value, 10));
-                }
-              }}
-            />
-          </Stack>
-        </Grid>
-      </Grid>
+      {
+        weeklyMaxShifts && (
+          <Grid container spacing={3}>
+            <Grid xs={12} md={4}>
+              <ListItemText
+                primary="Max Shifts"
+                secondary="The maximum number of overtime shifts you are willing to work per week"
+                primaryTypographyProps={{ typography: 'h6', mb: 0.5 }}
+                secondaryTypographyProps={{ component: 'span' }}
+              />
+            </Grid>
+            <Grid xs={12} md={8}>
+              <Stack spacing={1} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  value={maxShifts}
+                  disabled={allDisabled}
+                  InputProps={{ inputProps: { min: "0", max: "10", step: "1" } }}
+                  helperText={`The maximum number of overtime shifts you are willing to work per week, cannot exceed ${user.member.org?.settings?.shiftsPerWeek} shifts per administrative settings.`}
+                  onChange={(event) => {
+                    const value = parseInt(event.target.value || '0', 10);
+                    if (value <= user.member.org?.settings?.shiftsPerWeek!) {
+                      setMaxShifts(parseInt(event.target.value, 10));
+                    }
+                  }}
+                />
+              </Stack>
+            </Grid>
+          </Grid>
+        )
+      }
       {OVERTIME.map((overtime) => (
         <Grid key={overtime.dayOfWeek} container spacing={3}>
           <Grid xs={12} md={4}>

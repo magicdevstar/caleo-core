@@ -1019,7 +1019,9 @@
     eventCheckIn: Boolean!
     interestLists: Boolean!
     monthlyMaxHours: Boolean!
+    weeklyMaxShifts: Boolean!
     externalEventRequests: Boolean!
+    disabledTiers: Boolean!
     sso: Boolean!
     equipment: Boolean!
   }
@@ -1158,7 +1160,9 @@
     eventCheckIn: Boolean
     interestLists: Boolean
     monthlyMaxHours: Boolean
+    weeklyMaxShifts: Boolean
     externalEventRequests: Boolean
+    disabledTiers: Boolean
     sso: Boolean
     equipment: Boolean
   }

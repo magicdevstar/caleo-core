@@ -96,6 +96,10 @@ export const organization = {
           value: 'lasdEventFields',
           label: 'LASD Event Fields'
         },
+        {
+          value: 'profileTenor',
+          label: 'Profile Tenor'
+        },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
     activeLottery: (
@@ -216,6 +220,7 @@ export const organization = {
       sso: (parent: OrganizationFeatures) => !!parent.sso,
       equipment: (parent: OrganizationFeatures) => !!parent.equipment,
       lasdEventFields: (parent: OrganizationFeatures) => !!parent.lasdEventFields,
+      profileTenor: (parent: OrganizationFeatures) => !!parent.profileTenor,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

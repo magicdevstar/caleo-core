@@ -22,6 +22,7 @@ export interface IMember extends Omit<
   'rankId' |
   'startDate' |
   'tierUntil' |
+  'tenor' |
   '__typename'
 > {
   memberSkillIds: ObjectId[];
@@ -30,6 +31,7 @@ export interface IMember extends Omit<
   
   startDate: Date;
   tierUntil: Date;
+  tenor?: Date;
 }
 
 export interface IUser extends Omit<

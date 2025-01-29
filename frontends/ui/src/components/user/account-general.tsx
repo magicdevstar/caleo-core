@@ -23,6 +23,7 @@ import { GET_RANKS } from 'src/api/rank';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFAutocomplete,
+  RHFDatePicker,
   RHFSelect,
   RHFSwitch,
   RHFTextField,
@@ -115,7 +116,7 @@ export default function AccountGeneral({
   adminViewer: boolean;
   allDisabled?: boolean;
 }) {
-  const { disabledTiers } = useFeatures();
+  const { disabledTiers, profileTenor } = useFeatures();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
@@ -164,6 +165,7 @@ export default function AccountGeneral({
     status: Yup.string().required('Status is required'),
     tier: Yup.string().required('Tier is required'),
     tierUntil: Yup.date().nullable(),
+    tenor: profileTenor ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
     role: Yup.string().required('Role is required'),
     photoURL: Yup.mixed<any>().nullable(),
     tierExpiration: Yup.number(),
@@ -187,6 +189,7 @@ export default function AccountGeneral({
     status: (user?.member?.status) || MemberStatus.Active,
     tier: (user?.member?.tier) || MemberTier.Tier_1,
     tierUntil: user?.member?.tierUntil ? new Date(user?.member?.tierUntil) : null,
+    tenor: user?.member?.tenor ? new Date(user?.member?.tenor) : null,
     role: (user?.member?.role) || MemberRole.Member,
     tierExpiration: 0,
     deactivatedDate: 0,
@@ -286,6 +289,7 @@ export default function AccountGeneral({
             member: {
               orgId: user?.member?.orgId,
               pNumber: d.pNumber,
+              tenor: d.tenor,
               ...(adminViewer && {
                 rankId: d.rank.id,
                 role: d.role,
@@ -514,6 +518,11 @@ export default function AccountGeneral({
                     setTierUntil={(value: any) => setValue('tierUntil', value)}
                   />
                 </>
+              }
+              {
+                profileTenor && (
+                  <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Tenor" />
+                )
               }
             </Box>
             <Divider sx={{ mt: 4, mb: 2 }} />

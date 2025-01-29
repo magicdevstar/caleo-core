@@ -23,6 +23,7 @@ export const ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
+        profileTenor
       }
       sso {
         uiSubDomains
@@ -142,6 +143,7 @@ export const UPDATE_ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
+        profileTenor
       }
       sso {
         uiSubDomains
@@ -171,6 +173,7 @@ export const CREATE_ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
+        profileTenor
       }
       sso {
         uiSubDomains

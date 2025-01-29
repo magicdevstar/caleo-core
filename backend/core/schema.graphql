@@ -148,6 +148,7 @@
     role: MemberRole
     status: MemberStatus
     contactInfo: ContactInfo
+    tenor: String
     tier: MemberTier
     tierUntil: String
     tierResetOnNextLottery: Boolean
@@ -277,6 +278,7 @@
     startDate: String
     tier: MemberTier
     tierUntil: String
+    tenor: String
     inactivateUntil: String
     inactivationNote: String
     rankId: String
@@ -1032,6 +1034,7 @@
     sso: Boolean!
     equipment: Boolean!
     lasdEventFields: Boolean!
+    profileTenor: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1174,6 +1177,7 @@
     sso: Boolean
     equipment: Boolean
     lasdEventFields: Boolean
+    profileTenor: Boolean
   }
 
   input UpsertInterestListSetting {

@@ -546,6 +546,7 @@ export type Member = {
   role?: Maybe<MemberRole>;
   startDate?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MemberStatus>;
+  tenor?: Maybe<Scalars['String']['output']>;
   tier?: Maybe<MemberTier>;
   tierResetOnNextLottery?: Maybe<Scalars['Boolean']['output']>;
   tierUntil?: Maybe<Scalars['String']['output']>;
@@ -1027,6 +1028,7 @@ export type NewMember = {
   role?: InputMaybe<MemberRole>;
   startDate?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MemberStatus>;
+  tenor?: InputMaybe<Scalars['String']['input']>;
   tier?: InputMaybe<MemberTier>;
   tierUntil?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1134,6 +1136,7 @@ export type OrganizationFeatures = {
   lasdEventFields: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
+  profileTenor: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
   weeklyMaxShifts: Scalars['Boolean']['output'];
@@ -1971,6 +1974,7 @@ export type UpsertOrganizationFeatures = {
   lasdEventFields?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
+  profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
   weeklyMaxShifts?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2923,6 +2927,7 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   role?: Resolver<Maybe<ResolversTypes['MemberRole']>, ParentType, ContextType>;
   startDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['MemberStatus']>, ParentType, ContextType>;
+  tenor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tier?: Resolver<Maybe<ResolversTypes['MemberTier']>, ParentType, ContextType>;
   tierResetOnNextLottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   tierUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3140,6 +3145,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   lasdEventFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   weeklyMaxShifts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

@@ -19,6 +19,7 @@ const userDetailProperties = `
     orgId
     inactivateUntil
     inactivationNote
+    tenor
     org {
       id
       timezone
@@ -35,6 +36,7 @@ const userDetailProperties = `
         sso
         equipment
         lasdEventFields
+        profileTenor
       }
       settings {
         shiftsPerWeek

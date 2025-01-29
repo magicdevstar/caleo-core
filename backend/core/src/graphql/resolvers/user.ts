@@ -268,6 +268,7 @@ export const user = {
         ...(user.member.rankId && {rankId: new ObjectId(user.member.rankId!)}),
         ...(user.member.startDate && {startDate: new Date(user.member.startDate)}),
         ...(user.member.tierUntil && {tierUntil: new Date(user.member.tierUntil)}),
+        ...(user.member.tenor && {tierUntil: new Date(user.member.tenor)}),
         ...(user.member.inactivateUntil && {tierUntil: new Date(user.member.inactivateUntil)}),
       }
     } as any),
@@ -404,6 +405,7 @@ export const user = {
           ...existingUser.member,
           ...user.member,
           ...tierUpdates,
+          ...(user.member?.tenor && { tenor: new Date(user.member?.tenor) }),
           ...(user.member?.rankId && { rankId: new ObjectId(user.member.rankId) }),
           ...(user.member?.startDate && { startDate: new Date(user.member.startDate) }),
           orgId: new ObjectId(existingUser.member.orgId),
@@ -513,6 +515,7 @@ export const user = {
         return [];
       },
       tierUntil: (member: IMember) => member.tierUntil ? new Date(member.tierUntil).toISOString() : null,
+      tenor: (member: IMember) => member.tenor ? new Date(member.tenor).toISOString() : null,
       inactivateUntil: (member: IMember) => member.inactivateUntil ? new Date(member.inactivateUntil).toISOString() : null,
       org: async (member: IMember, _, { organizations }: Context) => {
         const result = await organizations.loader.load(member.orgId.toString());

@@ -33,6 +33,7 @@ query ORGANIZATION {
       sso
       equipment
       lasdEventFields
+      profileTenor
     }
     settings {
       shiftsPerWeek

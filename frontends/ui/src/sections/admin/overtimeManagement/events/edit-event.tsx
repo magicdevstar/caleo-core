@@ -24,6 +24,9 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import Checkbox from '@mui/material/Checkbox';
+import Chip from '@mui/material/Chip';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -38,6 +41,7 @@ import { RouterLink } from 'src/routes/components';
 // types
 import {
   Assignment,
+  Equipment,
   Event,
   EventStatus,
   LotteryCounter,
@@ -66,6 +70,7 @@ import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
 import { client } from 'src/utils/apollo';
 import { useFeatures } from 'src/hooks/use-features';
+import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 
 // ----------------------------------------------------------------------
 
@@ -102,7 +107,17 @@ const NewEventSchema = Yup.object().shape({
   createdById: Yup.string(),
   assignments: Yup.array(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
-});
+  requiredEquipment: Yup.array(),
+  adminTime: Yup.number().nullable(),
+  ocn: Yup
+    .string()
+    .nullable()
+    .notRequired()
+    .when('ocn', {
+        is: (value: string) => value?.length,
+        then: (rule) => rule.matches(/^ocn-[0-9]{6}$/, 'OCN must be in format ocn-123456'),
+    }),
+}, [['ocn', 'ocn']]);
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -115,6 +130,8 @@ export default function EditEvent({ currentEvent }: Props) {
     interestLists,
     lottery,
     externalEventRequests,
+    lasdEventFields,
+    equipment: equipmentFeature
   } = useFeatures();
 
   const eventStatuses = useMemo(() => {
@@ -161,6 +178,16 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
 
+  const { data: equipmentData } = useQuery(GET_EQUIPMENT_SLIM, {
+      fetchPolicy: 'network-only', // Used for first execution
+      nextFetchPolicy: 'cache-first', // Used for subsequent executions
+      variables: {
+        input: {
+          active: true,
+        }
+      },
+    });
+
   const { data: venueRes, loading: venuesLoading } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -197,6 +224,7 @@ export default function EditEvent({ currentEvent }: Props) {
   });
   const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT);
 
+  const equipment = equipmentData?.equipments?.items || [];
   const venues = useMemo(() => venueRes?.venues?.items || [], [venueRes]);
   const mdUp = useResponsive('up', 'md');
 
@@ -237,6 +265,9 @@ export default function EditEvent({ currentEvent }: Props) {
       status: currentEvent?.status || EventStatus.Draft,
       notes: currentEvent?.notes || '',
       attachments: [],
+      ocn: currentEvent?.ocn || '',
+      adminTime: currentEvent?.adminTime || null,
+      requiredEquipment: currentEvent?.requiredEquipment || [],
       venueId: currentEvent?.venue || null,
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
@@ -378,6 +409,11 @@ export default function EditEvent({ currentEvent }: Props) {
             name: formData?.name,
             notes: formData?.notes,
             status: formData?.status,
+            ocn: formData?.ocn,
+            ...(formData?.requiredEquipment && formData.requiredEquipment.length > 0 && {
+              requiredEquipmentIds: formData?.requiredEquipment?.map(({ id }: Equipment) => id)
+            }),
+            adminTime: formData?.adminTime,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             ...(formData?.interestListTransition && { interestListTransition: formData?.interestListTransition }),
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
@@ -641,6 +677,28 @@ export default function EditEvent({ currentEvent }: Props) {
               disabled={allDisabled}
               helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
             />
+
+            {lasdEventFields && (
+              <Stack>
+                <Stack direction="row" spacing={1.5}>
+                  <RHFTextField
+                    name="ocn"
+                    label="OCN"
+                    disabled={allDisabled}
+                  />
+                  <RHFTextField
+                    type="number"
+                    name="adminTime"
+                    label="Admin Time"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">/Hours</InputAdornment>,
+                    }}
+                    disabled={allDisabled}
+                  />
+                </Stack>
+              </Stack>
+            )}
+
             <RHFAutocomplete
               openOnFocus
               name="venueId"
@@ -692,6 +750,40 @@ export default function EditEvent({ currentEvent }: Props) {
                 </Box>
               </Box>
             )}
+
+            {
+              equipmentFeature && (
+                <RHFAutocomplete
+                  name="requiredEquipment"
+                  placeholder="Required Equipment"
+                  disabled={allDisabled || isComplete}
+                  multiple
+                  disableCloseOnSelect
+                  helperText="Leave empty to not require any equipment"
+                  options={(equipment || [])}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  getOptionLabel={(e: any) => e?.name}
+                  renderOption={(props, option, { selected }) => (
+                    <li {...props} key={option?.id}>
+                      <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                      {option?.name}
+                    </li>
+                  )}
+                  renderTags={(selected, getTagProps) =>
+                    selected.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option?.id}
+                        label={option?.name}
+                        size="small"
+                        color="info"
+                        variant="soft"
+                      />
+                    ))
+                  }
+                />
+              )
+            }
 
             {
               currentEvent &&

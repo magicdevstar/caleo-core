@@ -260,6 +260,7 @@ export enum EquipmentStatus {
 
 export type Event = {
   __typename?: 'Event';
+  adminTime?: Maybe<Scalars['Int']['output']>;
   assignmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   assignments?: Maybe<Array<Assignment>>;
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -280,11 +281,14 @@ export type Event = {
   notes?: Maybe<Scalars['String']['output']>;
   notifyOnFirstComeFirstServe?: Maybe<Scalars['Boolean']['output']>;
   notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
+  ocn?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   requestDetails?: Maybe<EventRequestDetails>;
+  requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
+  requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   scheduledCloseInterestList?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   scheduledInterestList?: Maybe<Scalars['String']['output']>;
@@ -1127,6 +1131,7 @@ export type OrganizationFeatures = {
   eventCheckIn: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
+  lasdEventFields: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
@@ -1870,6 +1875,7 @@ export type UpsertEquipment = {
 };
 
 export type UpsertEvent = {
+  adminTime?: InputMaybe<Scalars['Int']['input']>;
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   createdById?: InputMaybe<Scalars['String']['input']>;
@@ -1880,7 +1886,9 @@ export type UpsertEvent = {
   notes?: InputMaybe<Scalars['String']['input']>;
   notifyOnFirstComeFirstServe?: InputMaybe<Scalars['Boolean']['input']>;
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
+  ocn?: InputMaybe<Scalars['String']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
+  requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -1960,6 +1968,7 @@ export type UpsertOrganizationFeatures = {
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
+  lasdEventFields?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2722,6 +2731,7 @@ export type EquipmentSearchResultResolvers<ContextType = any, ParentType extends
 }>;
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
+  adminTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   assignmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -2742,11 +2752,14 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   notifyOnFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  ocn?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
+  requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
+  requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   scheduledCloseInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3124,6 +3137,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  lasdEventFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

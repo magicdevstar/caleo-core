@@ -319,6 +319,7 @@ export const event = {
         id: event.id!,
         venueId: event.venueId ? new ObjectId(event.venueId) : undefined,
         assignmentIds: event.assignmentIds ? event.assignmentIds.map((id) => new ObjectId(id!)) : undefined,
+        requiredEquipmentIds: event.requiredEquipmentIds ? event.requiredEquipmentIds.map((id) => new ObjectId(id!)) : undefined,
         createdById: currentEvent ? currentEvent.createdById : user!._id!,
         ...(event.venueId && { venueId: new ObjectId(event.venueId) }),
         ...(event.requestDetails && {
@@ -529,6 +530,10 @@ export const event = {
       org: (event: IEvent, _, { organizations }: Context) => organizations.loader.load(event.orgId.toString()),
       venue: (event: IEvent, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId.toString()) : null,
       assignments: (event: IEvent, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []).map((id) => id.toString())),
+      requiredEquipment: (event: IEvent, _, { equipments }: Context) =>
+        event.requiredEquipmentIds && event.requiredEquipmentIds.length > 0 ?
+          equipments.loader.loadMany((event.requiredEquipmentIds || []).map((id) => id.toString())) :
+          [],
       startTime: (item: IEvent) => item.startTime ? new Date(item.startTime).toISOString() : null,
       endTime: (item: IEvent) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: IEvent) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,

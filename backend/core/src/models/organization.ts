@@ -60,6 +60,7 @@ export const getDefaultOrgFeatures = () => ({
   externalEventRequests: false,
   sso: false,
   equipment: false,
+  lasdEventFields: false,
 });
 
 export interface IOrganization extends Omit<

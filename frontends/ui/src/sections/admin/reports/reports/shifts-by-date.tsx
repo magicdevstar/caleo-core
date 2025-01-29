@@ -25,6 +25,7 @@ import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
+import { useFeatures } from 'src/hooks/use-features';
 
 const shiftStatusOptions = [
   {
@@ -71,6 +72,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
 
 export default function ShiftsByDate() {
   const { user } = useAuthContext();
+  const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'shifts-by-date',
@@ -144,6 +146,13 @@ export default function ShiftsByDate() {
         'Officer Last Name': shift.user?.lastName || '',
         'Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
         'Event Ref. #': shift?.event?.referenceId,
+        ...(lasdEventFields ? {
+          'OCN': shift?.event?.ocn || '-',
+          'Admin Time (Hours)': shift?.event?.adminTime || '-',
+        } : {}),
+        ...(equipment ? {
+          'Required Equipment': (shift?.event?.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+        } : {}),
         'Event Created By P#': shift.event?.createdBy?.member?.pNumber || '',
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',

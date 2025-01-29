@@ -12,6 +12,7 @@ const defaultFeatures: OrganizationFeatures = {
   externalEventRequests: false,
   sso: false,
   equipment: false,
+  lasdEventFields: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

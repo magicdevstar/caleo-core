@@ -34,6 +34,7 @@ const userDetailProperties = `
         externalEventRequests
         sso
         equipment
+        lasdEventFields
       }
       settings {
         shiftsPerWeek

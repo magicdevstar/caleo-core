@@ -371,6 +371,9 @@
     orgId: String!
     status: EventStatus!
     lotteryNumber: Int
+    ocn: String
+    adminTime: Int
+    requiredEquipmentIds: [String]
     scheduledInterestList: String
     scheduledCloseInterestList: String
     interestListTransition: EventStatus
@@ -390,6 +393,7 @@
     venue: Venue
     org: Organization!
     assignments: [Assignment!]
+    requiredEquipment: [Equipment]
     attachments: [String!]
     createdBy: User
     availableShifts: Int
@@ -645,6 +649,9 @@
     attachmentPaths: [String]
     status: EventStatus
     lotteryNumber: Int
+    ocn: String
+    adminTime: Int
+    requiredEquipmentIds: [String]
     interestListTransition: EventStatus
     scheduledInterestList: String
     scheduledCloseInterestList: String
@@ -1024,6 +1031,7 @@
     disabledTiers: Boolean!
     sso: Boolean!
     equipment: Boolean!
+    lasdEventFields: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1165,6 +1173,7 @@
     disabledTiers: Boolean
     sso: Boolean
     equipment: Boolean
+    lasdEventFields: Boolean
   }
 
   input UpsertInterestListSetting {

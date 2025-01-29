@@ -444,6 +444,12 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
           name
           startTime
           endTime
+          ocn
+          adminTime
+          requiredEquipment {
+            id
+            name
+          }
           createdBy {
             id
             name

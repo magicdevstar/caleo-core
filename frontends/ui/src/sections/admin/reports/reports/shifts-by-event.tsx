@@ -22,6 +22,7 @@ import { GET_ALL_EVENTS_SLIM, GET_EVENT_FOR_REPORT } from 'src/api/event';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
+import { useFeatures } from 'src/hooks/use-features';
 
 const eventsByShiftSchema = Yup.object().shape({
   event: Yup.mixed<Event | string>()
@@ -32,6 +33,7 @@ const eventsByShiftSchema = Yup.object().shape({
 
 export default function ShiftsByEvent() {
   const { user } = useAuthContext();
+  const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'shifts-by-event',
@@ -116,6 +118,13 @@ export default function ShiftsByEvent() {
       const formattedJson = shifts.map((shift: Shift) => ({
         'Event Name': shift.event.name,
         'Event Ref. #': shift.event.referenceId,
+        ...(lasdEventFields ? {
+          'OCN': event.ocn || '-',
+          'Admin Time (Hours)': event.adminTime || '-',
+        } : {}),
+        ...(equipment ? {
+          'Required Equipment': (event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+        } : {}),
         'Venue Name': shift.event.venue?.name || '',
         'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
         'Event Start Date': shift.event.startTime

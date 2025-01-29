@@ -25,6 +25,7 @@ import { client } from 'src/utils/apollo';
 import { GET_ALL_EVENTS } from 'src/api/event';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
+import { useFeatures } from 'src/hooks/use-features';
 
 const eventStatusOptions = [
   {
@@ -75,6 +76,7 @@ const eventsByDateSchema = Yup.object().shape({
 
 export default function EventsByDate() {
   const { user } = useAuthContext();
+  const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'events-by-date',
@@ -145,8 +147,15 @@ export default function EventsByDate() {
       const formattedJson = events.map((event: Event) => ({
         'Event Name': event.name,
         'Event Ref. #': event.referenceId,
+        ...(lasdEventFields ? {
+          'OCN': event.ocn || '-',
+          'Admin Time (Hours)': event.adminTime || '-',
+        } : {}),
         'Event Created By P#': event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
+        ...(equipment ? {
+          'Required Equipment': (event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+        } : {}),
         'Event Start Date': event.startTime
           ? convertDate({ date: event.startTime, user }).format(dateTimeFormat)
           : '',

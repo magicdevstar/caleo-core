@@ -12,7 +12,7 @@ import { useFeatures } from "./use-features";
 export const useEventSummary = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuthContext();
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'event-summary',
@@ -67,6 +67,10 @@ export const useEventSummary = () => {
         return {
           'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
           'Event Ref. #': shift.event.referenceId,
+          ...(lasdEventFields ? {
+            'OCN': shift.event.ocn || '-',
+            'Admin Time (Hours)': shift.event.adminTime || '-',
+          } : {}),
           'Event Name': shift.event.name,
           'Venue Name': shift.event.venue?.name || '',
           'Event Start Date': shift.event.startTime ? convertDate({date: event.startTime, user}).format(dateFormat) : '',
@@ -78,6 +82,9 @@ export const useEventSummary = () => {
           'Required Skills': (shift.assignment.requiredSkills || [])?.map(({ name }: any) => name).join(','),
           'Ranks': (shift.assignment.ranks || [])?.map(({ name }: any) => name).join(','),
           'Equipment Needed': shift.assignment.bwNeeded ? 'yes' : 'no',
+          ...(equipment ? {
+            'Required Equipment': (shift.event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+          } : {}),
           'Assignee Officer P#': shift.user?.member?.pNumber || '',
           'Assignee Officer First Name': shift.user?.firstName || '',
           'Assignee Officer Last Name': shift.user?.lastName || '',
@@ -93,7 +100,14 @@ export const useEventSummary = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, eventCheckIn, enqueueSnackbar, download]);
+  }, [
+    user,
+    eventCheckIn,
+    lasdEventFields,
+    equipment,
+    enqueueSnackbar,
+    download
+  ]);
 
   return {
     generateEventDownload,

@@ -32,6 +32,7 @@ query ORGANIZATION {
       externalEventRequests
       sso
       equipment
+      lasdEventFields
     }
     settings {
       shiftsPerWeek

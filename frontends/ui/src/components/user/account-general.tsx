@@ -521,7 +521,7 @@ export default function AccountGeneral({
               }
               {
                 profileTenor && (
-                  <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Tenor" />
+                  <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Hire Date" />
                 )
               }
             </Box>

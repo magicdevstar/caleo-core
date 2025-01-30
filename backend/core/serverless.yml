@@ -18,6 +18,7 @@ params:
     appUrl: https://dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
+    cognitoURL: https://caleo-dev.auth.us-west-2.amazoncognito.com
   prod:
     dbName: caleo-prod
     poolName: lvmpd-oms-prod
@@ -32,6 +33,7 @@ params:
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
+    cognitoURL: https://caleo.auth.us-west-2.amazoncognito.com
 
 provider:
   name: aws
@@ -73,6 +75,8 @@ provider:
     LOG_SAMPLE_RATE: ${param:LOG_SAMPLE_RATE}
     SLACK_TOKEN: ${ssm:/caleo/slackToken}
     ENABLED_ALERTS: ${param:ENABLED_ALERTS}
+    COGNITO_URL: ${param:cognitoURL}
+    COGNITO_CLIENT_ID: ${param:uiClientId}
   iam:
     role:
       statements:

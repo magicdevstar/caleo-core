@@ -1655,7 +1655,24 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
     } else if (input.template === MailerEvents.OfficerUserAccountInvitation) {
-      const { inviteEmail, user, organization } = input.data;
+      const { inviteEmail, user, organization }: {
+        inviteEmail: string;
+        user: IUser;
+        organization: IOrganization;
+      } = input.data;
+
+      let url = `${process.env.REGISTER_URL || ''}?orgId=${organization.id}&email=${inviteEmail}`;
+
+      if ((organization as IOrganization).features.sso) {
+        input.template = MailerEvents.OfficerUserAccountInvitationSSO;
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
 
       Addresses = {
         ...Addresses,
@@ -1665,7 +1682,7 @@ const sendEmail = async (input: MailerEvent) => {
             "admin.first_name": [user.firstName],
             "admin.last_name": [user.lastName],
             "system.metro_name": [organization.name],
-            "system.registration_url": [`${process.env.REGISTER_URL || ''}?orgId=${organization.id}&email=${inviteEmail}`],
+            "system.registration_url": [url],
           },
         },
       };

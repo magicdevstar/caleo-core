@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSnackbar } from "notistack";
 import { useQuery } from "@apollo/client";
+import dayjs from 'dayjs';
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
@@ -12,6 +13,7 @@ import Grid from "@mui/material/Grid";
 import Switch from "@mui/material/Switch";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 // components
 import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
@@ -21,6 +23,8 @@ import { MemberRole, MemberTier, Rank } from "src/__generated__/resolvers-types"
 import { tierNames } from "src/utils/mapped.enums";
 import { client } from "src/utils/apollo";
 import { SEND_INVITATION } from "src/api/user";
+import { useFeatures } from "src/hooks/use-features";
+import { useAuthContext } from "src/auth/hooks";
 
 // eslint-disable-next-line no-control-regex
 const emailValidator = (email: string) => /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(email);
@@ -31,10 +35,12 @@ const defaultUser = {
     tier: '',
     role: MemberRole.Member,
     rankId: '',
+    tenor: new Date(),
+    pNumber: '',
   },
 };
 
-const defaultValidEmail = {
+const defaultValidField = {
   touched: false,
   valid: false,
 };
@@ -44,6 +50,8 @@ export default function InviteUserModal({
 }: {
   inviteUser: UseBooleanReturnType;
 }) {
+  const { user: { member: { orgId } } } = useAuthContext();
+  const { profileTenor, disabledTiers } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { data } = useQuery(GET_RANKS, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -57,20 +65,42 @@ export default function InviteUserModal({
   const allRanks = data?.ranks?.items || [];
 
   const [submitting, setSubmitting] = useState(false);
-  const [validEmail, setValidEmail] = useState(defaultValidEmail);
-  const [user, setUser] = useState(defaultUser);
+  const [validEmail, setValidEmail] = useState(defaultValidField);
+  const [validPNumber, setValidPNumber] = useState(defaultValidField);
+  const [validTenor, setValidTenor] = useState(defaultValidField);
+  const [user, setUser] = useState({
+    ...defaultUser,
+    orgId,
+  });
 
-  const valid = useMemo(() =>
-    user.email.trim() !== '' && emailValidator(user.email) &&
-      user.member.tier.trim() !== '' &&
+  const valid = useMemo(() => {
+    const validTier = disabledTiers ? true : user.member.tier.trim() !== '';
+    const validDate = profileTenor ? user.member.tenor !== null : true;
+    const validP = profileTenor ? user.member.pNumber.trim() !== '' : true;
+
+    return user.email.trim() !== '' && emailValidator(user.email) &&
+      validTier &&
+      validDate &&
+      validP &&
       user.member.role.trim() !== '' &&
-      user.member.rankId.trim() !== '',
-  [user]);
+      user.member.rankId.trim() !== '';
+  }, [user, disabledTiers, profileTenor]);
 
   const resetForm = useCallback(() => {
-    setUser(defaultUser);
-    setValidEmail(defaultValidEmail);
-  }, [setUser, setValidEmail]);
+    setUser({
+      ...defaultUser,
+      orgId,
+    });
+    setValidEmail(defaultValidField);
+    setValidPNumber(defaultValidField);
+    setValidTenor(defaultValidField);
+  }, [
+    orgId,
+    setUser,
+    setValidEmail,
+    setValidPNumber,
+    setValidTenor
+  ]);
 
   const handleClose = useCallback(() => {
     inviteUser.onFalse();
@@ -109,7 +139,7 @@ export default function InviteUserModal({
       title="Invite User"
       content={(
         <Grid sx={{ mt: 1 }} container spacing={2}>
-          <Grid item sm={12} md={4}>
+          <Grid item sm={12} md={6}>
             <TextField
               fullWidth
               error={validEmail.touched && !validEmail.valid}
@@ -134,31 +164,93 @@ export default function InviteUserModal({
               }}
             />
           </Grid>
-          <Grid item sm={12} md={4}>
-            <FormControl fullWidth>
-              <InputLabel>Tier</InputLabel>
-              <Select
-                value={user.member.tier}
-                label="Tier"
-                onChange={(event) => {
-                  setUser((c) => ({
-                    ...c,
-                    member: {
-                      ...c.member,
-                      tier: event.target.value,
-                    },
-                  }));
-                }}
-              >
-                {Object.values(MemberTier).map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {tierNames[option]}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item sm={12} md={4}>
+          {
+            !disabledTiers && (
+              <Grid item sm={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Tier</InputLabel>
+                  <Select
+                    value={user.member.tier}
+                    label="Tier"
+                    onChange={(event) => {
+                      setUser((c) => ({
+                        ...c,
+                        member: {
+                          ...c.member,
+                          tier: event.target.value,
+                        },
+                      }));
+                    }}
+                  >
+                    {Object.values(MemberTier).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {tierNames[option]}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )
+          }
+          {
+            profileTenor && (
+              <>
+                <Grid item sm={12} md={6}>
+                  <DatePicker
+                    label="Hire Date"
+                    onChange={(newValue) => {
+                      setValidTenor((c) => ({
+                        touched: true,
+                        valid: true,
+                      }));
+                      setUser((c) => ({
+                        ...c,
+                        member: {
+                          ...c.member,
+                          tenor: newValue!.toDate(),
+                        }
+                      }));
+                    }}
+                    value={dayjs(user.member.tenor)} // keeps field empty if value is null or undefined
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: validTenor.touched && !validTenor.valid,
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item sm={12} md={6}>
+                  <TextField
+                    fullWidth
+                    error={validPNumber.touched && !validPNumber.valid}
+                    label="PNumber"
+                    value={user.member.pNumber}
+                    onBlur={() => {
+                      setValidPNumber((c) => ({
+                        ...c,
+                        touched: true,
+                      }));
+                    }}
+                    onChange={(event) => {
+                      setValidPNumber((c) => ({
+                        ...c,
+                        valid: event.target.value.trim() !== '',
+                      }));
+                      setUser((c) => ({
+                        ...c,
+                        member: {
+                          ...c.member,
+                          pNumber: event.target.value,
+                        }
+                      }));
+                    }}
+                  />
+                </Grid>
+              </>
+            )
+          }
+          <Grid item sm={12} md={6}>
             <FormControl fullWidth>
               <InputLabel>Rank</InputLabel>
               <Select
@@ -182,7 +274,7 @@ export default function InviteUserModal({
               </Select>
             </FormControl>
           </Grid>
-          <Grid item sm={12} md={4}>
+          <Grid item sm={12} md={12}>
             <FormGroup>
               <FormControlLabel
                 label="Admin"

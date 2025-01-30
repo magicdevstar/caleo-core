@@ -27,6 +27,7 @@ import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { addHours, endOfWeek, format, startOfWeek } from "date-fns";
 import logger from "../../utils/logger";
 import { IMember, IUser } from "../../types/common";
+import { defaultUserAvailability } from "../../models/user";
 
 const lambda = new LambdaClient();
 const cognito = new CognitoIdentityProviderClient({});
@@ -159,7 +160,8 @@ export const user = {
         superAdmin: false,
         member: {
           orgId: organization!._id,
-          pNumber: '',
+          pNumber: inputUser.member.pNumber || '',
+          tenor: inputUser.member.tenor ? new Date(inputUser.member.tenor) : undefined,
           role: inputUser.member.role || MemberRole.Member,
           status: MemberStatus.Invited,
           contactInfo: {
@@ -172,36 +174,7 @@ export const user = {
               receiveEmails: true,
             },
           },
-          availability: {
-            monday: {
-              available: false,
-              times: [],
-            },
-            tuesday: {
-              available: false,
-              times: [],
-            },
-            wednesday: {
-              available: false,
-              times: [],
-            },
-            thursday: {
-              available: false,
-              times: [],
-            },
-            friday: {
-              available: false,
-              times: [],
-            },
-            saturday: {
-              available: false,
-              times: [],
-            },
-            sunday: {
-              available: false,
-              times: [],
-            },
-          },
+          availability: defaultUserAvailability,
           tier: inputUser.member.tier || MemberTier.Tier_1,
           ...(inputUser.member.rankId && { rankId: new ObjectId(inputUser.member.rankId) }),
           maxShifts: organization?.settings?.shiftsPerWeek,

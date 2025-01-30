@@ -267,8 +267,10 @@
 
   input InviteMember {
     tier: MemberTier
+    pNumber: String
     role: MemberRole
     rankId: String
+    tenor: String
   }
 
   input NewMember {

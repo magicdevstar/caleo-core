@@ -24,9 +24,11 @@ import { GET_RANKS } from 'src/api/rank';
 // Components
 import FormProvider, {
   RHFAutocomplete,
+  RHFDatePicker,
   RHFSelect,
   RHFTextField,
 } from 'src/components/hook-form';
+import { useFeatures } from "src/hooks/use-features";
 
 const tierNames = {
   [MemberTier.Tier_1]: 'Tier 1',
@@ -38,44 +40,6 @@ const roleNames = {
   [MemberRole.Member]: 'Member',
 };
 
-const reviewUserSchema = Yup.object().shape({
-  firstName: Yup.string(),
-  lastName: Yup.string(),
-  member: Yup.object().shape({
-    rank: Yup.object().when('$approve', ([approve], schema) => approve ? schema.required('Rank is required') : schema.nullable()),
-    pNumber: Yup.string(),
-    rankId: Yup.string().nullable().when(['$approve', 'rank'], ([approve, rank], schema) => approve ? schema.transform(() => rank?.id) : schema),
-    tier: Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
-    role: Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)).required('Role is required'),
-    adminNote: Yup.string().nullable().transform((value) => value || null),
-    status: Yup.string().when('$approve', ([approve], schema) => schema.transform(() => approve ? MemberStatus.Active : MemberStatus.Inactive)),
-    contactInfo: Yup.object().shape({
-      primaryPhone: Yup.object().shape({
-        number: Yup.string(),
-      }),
-      primaryEmail: Yup.object().shape({
-        number: Yup.string(),
-      }),
-    })
-  }),
-});
-
-const updateUserSchema = Yup.object().shape({
-  id: Yup.string(),
-  cognitoId: Yup.string(),
-  firstName: Yup.string(),
-  lastName: Yup.string(),
-  member: Yup.object().shape({
-    adminNote: Yup.string().nullable(),
-    orgId: Yup.string(),
-    pNumber: Yup.string(),
-    rankId: Yup.string().nullable(),
-    role: Yup.string(),
-    status: Yup.string(),
-    tier: Yup.string(),
-  }),
-});
-
 export default function AccountRequestsDialog({
   userRequest,
   open,
@@ -85,8 +49,49 @@ export default function AccountRequestsDialog({
   open: boolean,
   onClose: VoidFunction
 }) {
+  const { disabledTiers, profileTenor } = useFeatures();
   const [updateUser] = useMutation(UPDATE_USER, {
     refetchQueries: [ GET_ACCOUNT_REQUEST_USERS ]
+  });
+
+  const reviewUserSchema = Yup.object().shape({
+    firstName: Yup.string(),
+    lastName: Yup.string(),
+    member: Yup.object().shape({
+      rank: Yup.object().when('$approve', ([approve], schema) => approve ? schema.required('Rank is required') : schema.nullable()),
+      pNumber: Yup.string().required('PNumber is required'),
+      rankId: Yup.string().nullable().when(['$approve', 'rank'], ([approve, rank], schema) => approve ? schema.transform(() => rank?.id) : schema),
+      tenor: profileTenor ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
+      tier: disabledTiers ? Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)) : Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
+      role: Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)).required('Role is required'),
+      adminNote: Yup.string().nullable().transform((value) => value || null),
+      status: Yup.string().when('$approve', ([approve], schema) => schema.transform(() => approve ? MemberStatus.Active : MemberStatus.Inactive)),
+      contactInfo: Yup.object().shape({
+        primaryPhone: Yup.object().shape({
+          number: Yup.string(),
+        }),
+        primaryEmail: Yup.object().shape({
+          number: Yup.string(),
+        }),
+      })
+    }),
+  });
+  
+  const updateUserSchema = Yup.object().shape({
+    id: Yup.string(),
+    cognitoId: Yup.string(),
+    firstName: Yup.string(),
+    lastName: Yup.string(),
+    member: Yup.object().shape({
+      adminNote: Yup.string().nullable(),
+      orgId: Yup.string(),
+      pNumber: Yup.string(),
+      rankId: Yup.string().nullable(),
+      role: Yup.string(),
+      status: Yup.string(),
+      tier: Yup.string(),
+      tenor: Yup.date().nullable(),
+    }),
   });
 
   const methods = useForm({
@@ -153,7 +158,7 @@ export default function AccountRequestsDialog({
               >
                 <RHFTextField name="firstName" label="First Name" disabled/>
                 <RHFTextField name="lastName" label="Last Name" disabled />
-                <RHFTextField name="member.pNumber" label="PNumber" disabled />
+                <RHFTextField name="member.pNumber" label="PNumber" />
               </Box>
               <Box
                 display="grid"
@@ -228,22 +233,34 @@ export default function AccountRequestsDialog({
                     </MenuItem>
                   ))}
                 </RHFSelect>
-                <RHFSelect
-                  fullWidth
-                  name="member.tier"
-                  label="Tier"
-                  InputLabelProps={{ shrink: true }}
-                  PaperPropsSx={{ textTransform: 'capitalize' }}
-                >
-                  {[
-                    MemberTier.Tier_1,
-                    MemberTier.Tier_2,
-                  ].map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {tierNames[option]}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+                {
+                  !disabledTiers && (
+                    <RHFSelect
+                      fullWidth
+                      name="member.tier"
+                      label="Tier"
+                      InputLabelProps={{ shrink: true }}
+                      PaperPropsSx={{ textTransform: 'capitalize' }}
+                    >
+                      {[
+                        MemberTier.Tier_1,
+                        MemberTier.Tier_2,
+                      ].map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {tierNames[option]}
+                        </MenuItem>
+                      ))}
+                    </RHFSelect>
+                  )
+                }
+                {
+                  profileTenor && (
+                    <RHFDatePicker
+                      name="member.tenor"
+                      label="Hire Date"
+                    />
+                  )
+                }
               </Box>
               <Box
                 display="grid"

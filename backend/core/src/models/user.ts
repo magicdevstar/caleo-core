@@ -44,6 +44,37 @@ import { IUser } from '../types/common';
 
 const cognito = new CognitoIdentityProviderClient({});
 
+export const defaultUserAvailability = {
+  monday: {
+    available: false,
+    times: [],
+  },
+  tuesday: {
+    available: false,
+    times: [],
+  },
+  wednesday: {
+    available: false,
+    times: [],
+  },
+  thursday: {
+    available: false,
+    times: [],
+  },
+  friday: {
+    available: false,
+    times: [],
+  },
+  saturday: {
+    available: false,
+    times: [],
+  },
+  sunday: {
+    available: false,
+    times: [],
+  },
+};
+
 export class UserModel extends BaseMongo<IUser> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;

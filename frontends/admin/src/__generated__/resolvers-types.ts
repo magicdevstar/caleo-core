@@ -448,8 +448,10 @@ export type InterestListSetting = {
 };
 
 export type InviteMember = {
+  pNumber?: InputMaybe<Scalars['String']['input']>;
   rankId?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<MemberRole>;
+  tenor?: InputMaybe<Scalars['String']['input']>;
   tier?: InputMaybe<MemberTier>;
 };
 

@@ -36,6 +36,7 @@ export enum MailerEvents {
   OfficerRemovedFromShift = 'OfficerRemovedFromShift',
   OfficerShiftStartingNotification = 'OfficerShiftStartingNotification',
   OfficerUserAccountInvitation = 'OfficerUserAccountInvitation',
+  OfficerUserAccountInvitationSSO = 'OfficerUserAccountInvitationSSO',
   OfficerUserAccountDeactivated = 'OfficerUserAccountDeactivated',
   OfficerUserAccountReactivated = 'OfficerUserAccountReactivated',
   OfficerShiftAutoCheckout = 'OfficerShiftAutoCheckout',

@@ -59,11 +59,11 @@ export default function AccountRequestsDialog({
     lastName: Yup.string(),
     member: Yup.object().shape({
       rank: Yup.object().when('$approve', ([approve], schema) => approve ? schema.required('Rank is required') : schema.nullable()),
-      pNumber: Yup.string().required('PNumber is required'),
+      pNumber: userRequest?.approve ? Yup.string().required('PNumber is required') : Yup.string(),
       rankId: Yup.string().nullable().when(['$approve', 'rank'], ([approve, rank], schema) => approve ? schema.transform(() => rank?.id) : schema),
-      tenor: profileTenor ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
-      tier: disabledTiers ? Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)) : Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
-      role: Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)).required('Role is required'),
+      tenor: profileTenor && userRequest?.approve ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
+      tier: disabledTiers && userRequest?.approve ? Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)) : Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
+      role: userRequest?.approve ? Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)).required('Role is required') : Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)),
       adminNote: Yup.string().nullable().transform((value) => value || null),
       status: Yup.string().when('$approve', ([approve], schema) => schema.transform(() => approve ? MemberStatus.Active : MemberStatus.Inactive)),
       contactInfo: Yup.object().shape({

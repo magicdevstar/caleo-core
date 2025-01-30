@@ -269,7 +269,7 @@ export const user = {
 
       // If we are updating the users status
       let inactivateSchedule: Promise<any> = Promise.resolve();
-      if (user.member?.status) {
+      if (user.member?.status && existingUser.member.status !== MemberStatus.Pending) {
         if (user.member.status === MemberStatus.Inactive) {
           if (user.member?.inactivateUntil) {
             const inactivateUntil = new Date(user.member?.inactivateUntil);
@@ -391,6 +391,37 @@ export const user = {
 
       const res = await users.update(updateUser as any);
       await inactivateSchedule;
+
+      if (existingUser.member.status === MemberStatus.Pending) {
+        if (updateUser.member.status === MemberStatus.Active) {
+          await lambda.send(new InvokeCommand({
+            FunctionName: process.env.MAILER_LAMBDA!,
+            InvocationType: 'Event',
+            Payload: JSON.stringify({
+              action: Action.Email,
+              template: MailerEvents.OfficerUserAccountApproved,
+              data: {
+                user: updateUser,
+                organization,
+              },
+            } as MailerEvent),
+          }));
+        } else if (updateUser.member.status === MemberStatus.Inactive) {
+          await lambda.send(new InvokeCommand({
+            FunctionName: process.env.MAILER_LAMBDA!,
+            InvocationType: 'Event',
+            Payload: JSON.stringify({
+              action: Action.Email,
+              template: MailerEvents.OfficerUserAccountDenial,
+              data: {
+                user: updateUser,
+                organization,
+              },
+            } as MailerEvent),
+          }));
+        }
+      }
+
       return res;
     },
     profilePhotoUploadUrl: async (

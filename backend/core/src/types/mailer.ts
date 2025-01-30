@@ -11,6 +11,8 @@ export enum MailerEvents {
   AdminUserAccountRequested = 'AdminUserAccountRequested',
   AdminUserAccountRestored = 'AdminUserAccountRestored',
   LotteryWindowClosing = 'LotteryWindowClosing',
+  OfficerUserAccountApproved = 'OfficerUserAccountApproved',
+  OfficerUserAccountDenial = 'OfficerUserAccountDenial',
   OfficerAdminApprovedSkill = 'OfficerAdminApprovedSkil',
   OfficerAdminApprovedEquipment = 'OfficerAdminApprovedEquipment',
   OfficerAdminAssignedShift = 'OfficerAdminAssignedShift',

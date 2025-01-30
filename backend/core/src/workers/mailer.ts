@@ -2230,6 +2230,46 @@ const sendEmail = async (input: MailerEvent) => {
           },
         },
       };
+    } else if (
+      input.template === MailerEvents.OfficerUserAccountApproved ||
+      input.template === MailerEvents.OfficerUserAccountDenial
+    ) {
+      const { user, organization }: {
+        user: IUser;
+        organization: IOrganization;
+      } = input.data;
+
+      const email = user.member.contactInfo?.primaryEmail.address;
+      if (!email) {
+        logger.error('User email not found', { input, user });
+        return;
+      }
+
+      let url = process.env.LOGIN_URL || '';
+
+      if ((organization as IOrganization).features.sso) {
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
+
+      Addresses = {
+        ...Addresses,
+        [email]: {
+          ChannelType: 'EMAIL',
+          Substitutions: {
+            "user.first_name": [user.firstName],
+            "system.metro_name": [organization.name],
+            ...(input.template === MailerEvents.OfficerUserAccountApproved && {
+              "system.login_url": [url],
+            }),
+          },
+        },
+      };
     }
 
     if (Object.keys(Addresses).length === 0) {

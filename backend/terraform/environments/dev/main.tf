@@ -2,13 +2,6 @@ locals {
   amplify_id = "d1devc1e4gname"
   user_pool_id = "us-west-2_8023dPQwv"
 
-  hosted_zones = {
-    "dev" = "dev.caleopro.com"
-    # SSO Config
-    "azure" = "azure.caleopro.com"
-    "lasd-dev" = "lasd-dev.caleopro.com"
-  }
-
   sso_configurations = {
     "azure" = {
       metadata_url = "https://login.microsoftonline.com/810fe9e3-a982-4f6b-be51-fd90dafed5aa/federationmetadata/2007-06/federationmetadata.xml?appid=6ce0aa1b-6609-4ba2-a405-470d467768dc"
@@ -26,6 +19,15 @@ locals {
     }
   }
 
+  base_hosted_zones = {
+    "dev" = "dev.caleopro.com"
+  }
+
+  sso_hosted_zones = {
+    for k, _ in local.sso_configurations : k => "${k}.caleopro.com"
+  }
+
+  hosted_zones = merge(local.base_hosted_zones, local.sso_hosted_zones)
 }
 
 module "domains" {

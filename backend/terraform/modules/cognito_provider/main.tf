@@ -4,7 +4,7 @@ resource "aws_cognito_identity_provider" "provider" {
   provider_type = "SAML"
 
   provider_details = {
-    IDPInit                 = true
+    IDPInit                 = false
     IDPSignout              = false
     EncryptedResponses      = true
     MetadataURL             = var.metadata_url

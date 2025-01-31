@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import useSWR from 'swr';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,9 +15,10 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 import { useSearchParams, useRouter } from 'src/routes/hooks';
 // config
-import { APOLLO_API, PATH_AFTER_LOGIN } from 'src/config-global';
+import { PATH_AFTER_LOGIN } from 'src/config-global';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
+import { useShowSSO } from 'src/hooks/use-show-sso';
 // auth
 import { useAuthContext } from 'src/auth/hooks';
 // components
@@ -27,29 +27,14 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
-const ignoreDomains = ['localhost:3000', 'dev', 'lvmpd', 'app'];
-const url = `${APOLLO_API}/public/sso`;
 const [subdomain] = window.location.host.split('.');
-const checkSSOConfig = !ignoreDomains.includes(subdomain);
 
 export default function AmplifyLoginView() {
   const { federatedLogin, login } = useAuthContext();
 
   const router = useRouter();
 
-  const { data: showSSO } = useSWR(
-    checkSSOConfig ? [url] : null,
-    async () => {
-      const res = await fetch(`${url}?subdomain=${subdomain}`);
-      if (!res.ok) {
-        return false;
-      }
-      return true;
-    },
-    {
-      refreshInterval: 0,
-    },
-  );
+  const { showSSO } = useShowSSO();
 
   const [errorMsg, setErrorMsg] = useState('');
 

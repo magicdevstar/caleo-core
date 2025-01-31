@@ -18,7 +18,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Button from '@mui/material/Button';
 import LoadingButton from '@mui/lab/LoadingButton';
 // __generated__
-import { DayOfWeek, Organization, OrganizationFeatureOptions } from 'src/__generated__/resolvers-types';
+import { DayOfWeek, Organization, OrganizationFeatureOptions, OrganizationFeatures } from 'src/__generated__/resolvers-types';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // utils
@@ -106,6 +106,7 @@ export default function OrganizationForm({
   const {
     handleSubmit,
     formState: { isSubmitting, isDirty },
+    getValues,
   } = methods;
 
   const onSubmit = handleSubmit(async (values) => {
@@ -334,7 +335,12 @@ export default function OrganizationForm({
 
         {renderActions}
       </Grid>
-      <InviteUserModal orgId={currentOrganization?.id || ''} inviteUser={inviteModal}  />
+      <InviteUserModal
+        orgId={currentOrganization?.id || ''}
+        inviteUser={inviteModal}
+        disabledTiers={(getValues().features as OrganizationFeatures).disabledTiers}
+        profileTenor={(getValues().features as OrganizationFeatures).profileTenor}
+      />
     </FormProvider>
   );
 }

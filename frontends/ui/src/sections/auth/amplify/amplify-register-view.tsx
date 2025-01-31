@@ -22,6 +22,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
+import { showSSO } from 'src/hooks/use-show-sso';
 
 // ----------------------------------------------------------------------
 
@@ -37,11 +38,17 @@ const paramEmail = incomingSearchParams.get('email') ?
   '';
 
 export default function AmplifyRegisterView() {
+  const router = useRouter();
   const { register } = useAuthContext();
+
+  useEffect(() => {
+    if (showSSO) {
+      router.replace(paths.auth.amplify.login);
+    }
+  }, [router]);
 
   const [errorMsg, setErrorMsg] = useState('');
 
-  const router = useRouter();
 
   const password = useBoolean();
 

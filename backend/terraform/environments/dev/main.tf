@@ -40,10 +40,7 @@ module "domains" {
 
 module "amplify_domains" {
   source = "../../modules/amplify-domain"
-
-  # They sadly don't have a data attribute for this :(
   app_id = local.amplify_id
-
   domains = local.hosted_zones
 }
 
@@ -59,9 +56,4 @@ module "cognito_providers" {
   family_name_attribute = each.value.family_name_attribute
   given_name_attribute = each.value.given_name_attribute
   phone_number_attribute = each.value.phone_number_attribute
-}
-
-import {
-  to = module.cognito_providers["azure"].aws_cognito_identity_provider.provider
-  id = "${local.user_pool_id}:azure"
 }

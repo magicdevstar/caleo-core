@@ -667,19 +667,19 @@ export class ShiftModel extends BaseMongo<IShift> {
       acc[day] = {} as {startTime: Date; endTime: Date;};
       if (index === startDay) {
         if (endDay !== startDay) {
-          acc[day].endTime = endOfDay(new Date(0));
+          acc[day]!.endTime = endOfDay(new Date(0));
         }
         const withHoursSet = setHours(new Date(0), getHours(startTime));
         const withMinutesSet = setMinutes(withHoursSet, getMinutes(startTime));
-        acc[day].startTime = withMinutesSet;
+        acc[day]!.startTime = withMinutesSet;
       }
       if (index === endDay) {
         if (endDay !== startDay) {
-          acc[day].startTime = new Date(0);
+          acc[day]!.startTime = new Date(0);
         }
         const withHoursSet = setHours(new Date(0), getHours(endTime));
         const withMinutesSet = setMinutes(withHoursSet, getMinutes(endTime));
-        acc[day].endTime = withMinutesSet;
+        acc[day]!.endTime = withMinutesSet;
       }
       if (inBetweenDays.includes(index)) {
         acc[day] = {

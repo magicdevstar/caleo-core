@@ -354,6 +354,7 @@ export const shift = {
       {
         user,
         shifts,
+        organization,
       }: Context
     ): Promise<string> => {
       adminOnly(user);
@@ -363,10 +364,19 @@ export const shift = {
         throw new GraphQLError('No shifts found');
       }
 
+      // Be sure to re-calculate availability if the start or end time is updated
+      const startTime = updates.startTime ? setSeconds(setMilliseconds(new Date(updates.startTime), 0), 0) : existingShifts[0].startTime;
+      const endTime = updates.endTime ? setSeconds(setMilliseconds(new Date(updates.endTime), 0), 0) : existingShifts[0].endTime;
+      const availability = shifts.createAvailability({
+        startTime,
+        endTime,
+      } as any, organization?.timezone!);
+
       await shifts.updateByShiftGroupId(shiftId, {
         modifiedById: user?._id!,
-        ...(updates.startTime && { startTime: setSeconds(setMilliseconds(new Date(updates.startTime), 0), 0) }),
-        ...(updates.endTime && { endTime: setSeconds(setMilliseconds(new Date(updates.endTime), 0), 0) }),
+        ...((updates.endTime || updates.startTime) && { availability }),
+        ...(updates.startTime && { startTime }),
+        ...(updates.endTime && { endTime }),
       });
 
       return shiftId;
@@ -677,8 +687,8 @@ export const shift = {
         }),
       lotteryRequest: (shift: IShift, _, { shiftLotteryRequests, user, organization }: Context) =>
         shiftLotteryRequests.requestLoader.load({
-          userId: user?._id!,
-          orgId: organization?._id!,
+          userId: user?._id!.toString()!,
+          orgId: organization?._id!.toString()!,
           shiftGroupId: shift.shiftId,
         }),
       otherShiftSlots: (

@@ -87,7 +87,7 @@ export const useEventSummary = () => {
           ...(equipment ? {
             'Required Equipment': (shift.event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
           } : {}),
-          'Assignee Officer P#': shift.user?.member?.pNumber || '',
+          [`Assignee Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
           'Assignee Officer First Name': shift.user?.firstName || '',
           'Assignee Officer Last Name': shift.user?.lastName || '',
           'Assignee Primary Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',

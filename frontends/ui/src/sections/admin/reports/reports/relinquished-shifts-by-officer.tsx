@@ -184,7 +184,7 @@ export default function RelinquishedShiftsByOfficer() {
           <RHFAutocomplete
             openOnFocus
             name="officer"
-            label="Officer Name or P# *"
+            label={`Officer Name or ${pNumberLabel} *`}
             options={users}
             inputValue={text || ''}
             loading={usersLoading}

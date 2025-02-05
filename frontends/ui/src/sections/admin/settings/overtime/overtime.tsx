@@ -26,12 +26,8 @@ import { useFeatures } from 'src/hooks/use-features';
 // Components
 import { useResponsive } from 'src/hooks/use-responsive';
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
-import { DayOfWeek, MemberTier, Organization, OrganizationOvertimeSettings } from 'src/__generated__/resolvers-types';
-
-const tierNames = {
-  [MemberTier.Tier_1]: 'Tier 1',
-  [MemberTier.Tier_2]: 'Tier 2',
-};
+import { DayOfWeek, Organization, OrganizationOvertimeSettings } from 'src/__generated__/resolvers-types';
+import { useTiers } from 'src/hooks/use-tiers';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -48,6 +44,7 @@ export default function Overtime({
     lottery,
     weeklyMaxShifts,
   } = useFeatures();
+  const { tierNames, enabledTiers } = useTiers();
   const mdUp = useResponsive('up', 'md');
 
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION, {
@@ -471,12 +468,9 @@ export default function Overtime({
                   label="Tier"
                   helperText="The tier to set a user to after relinquishing a shift"
                 >
-                  {[
-                    MemberTier.Tier_1,
-                    MemberTier.Tier_2,
-                  ].map((option) => (
+                  {enabledTiers.map((option) => (
                     <MenuItem key={option} value={option}>
-                      {(tierNames as any)[option]}
+                      {tierNames[option]}
                     </MenuItem>
                   ))}
                 </RHFSelect>

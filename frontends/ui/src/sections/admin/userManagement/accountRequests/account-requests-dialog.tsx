@@ -29,11 +29,8 @@ import FormProvider, {
   RHFTextField,
 } from 'src/components/hook-form';
 import { useFeatures } from "src/hooks/use-features";
-
-const tierNames = {
-  [MemberTier.Tier_1]: 'Tier 1',
-  [MemberTier.Tier_2]: 'Tier 2',
-};
+import { usePNumberLabel } from "src/hooks/use-pNumber-label";
+import { useTiers } from "src/hooks/use-tiers";
 
 const roleNames = {
   [MemberRole.Admin]: 'Admin',
@@ -49,6 +46,8 @@ export default function AccountRequestsDialog({
   open: boolean,
   onClose: VoidFunction
 }) {
+  const { tierNames, enabledTiers } = useTiers();
+  const { pNumberLabel } = usePNumberLabel();
   const { disabledTiers, profileTenor } = useFeatures();
   const [updateUser] = useMutation(UPDATE_USER, {
     refetchQueries: [ GET_ACCOUNT_REQUEST_USERS ]
@@ -59,7 +58,7 @@ export default function AccountRequestsDialog({
     lastName: Yup.string(),
     member: Yup.object().shape({
       rank: Yup.object().when('$approve', ([approve], schema) => approve ? schema.required('Rank is required') : schema.nullable()),
-      pNumber: userRequest?.approve ? Yup.string().required('PNumber is required') : Yup.string(),
+      pNumber: userRequest?.approve ? Yup.string().required(`${pNumberLabel} is required`) : Yup.string(),
       rankId: Yup.string().nullable().when(['$approve', 'rank'], ([approve, rank], schema) => approve ? schema.transform(() => rank?.id) : schema),
       tenor: profileTenor && userRequest?.approve ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
       tier: disabledTiers && userRequest?.approve ? Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)) : Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
@@ -158,7 +157,7 @@ export default function AccountRequestsDialog({
               >
                 <RHFTextField name="firstName" label="First Name" disabled/>
                 <RHFTextField name="lastName" label="Last Name" disabled />
-                <RHFTextField name="member.pNumber" label="PNumber" />
+                <RHFTextField name="member.pNumber" label={pNumberLabel} />
               </Box>
               <Box
                 display="grid"
@@ -242,10 +241,7 @@ export default function AccountRequestsDialog({
                       InputLabelProps={{ shrink: true }}
                       PaperPropsSx={{ textTransform: 'capitalize' }}
                     >
-                      {[
-                        MemberTier.Tier_1,
-                        MemberTier.Tier_2,
-                      ].map((option) => (
+                      {enabledTiers.map((option) => (
                         <MenuItem key={option} value={option}>
                           {tierNames[option]}
                         </MenuItem>

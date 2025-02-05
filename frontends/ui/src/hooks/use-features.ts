@@ -9,6 +9,7 @@ const defaultFeatures: OrganizationFeatures = {
   monthlyMaxHours: false,
   weeklyMaxShifts: false,
   disabledTiers: false,
+  disabledTierUntil: false,
   externalEventRequests: false,
   sso: false,
   equipment: false,

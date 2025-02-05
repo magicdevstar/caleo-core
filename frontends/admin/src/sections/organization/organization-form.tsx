@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import * as Yup from 'yup';
+import omit from 'omit-deep';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { capitalize } from 'lodash';
@@ -18,7 +19,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Button from '@mui/material/Button';
 import LoadingButton from '@mui/lab/LoadingButton';
 // __generated__
-import { DayOfWeek, Organization, OrganizationFeatureOptions, OrganizationFeatures } from 'src/__generated__/resolvers-types';
+import { DayOfWeek, Organization, OrganizationCustomizations, OrganizationFeatureOptions, OrganizationFeatures } from 'src/__generated__/resolvers-types';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // utils
@@ -40,6 +41,8 @@ type Props = {
   features: OrganizationFeatureOptions[];
   loadingFeatures: boolean;
 };
+
+const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 export default function OrganizationForm({
   currentOrganization,
@@ -65,6 +68,27 @@ export default function OrganizationForm({
       weekBegins: Yup.string(),
       timezone: Yup.string(),
       zip: Yup.string(),
+      customizations: Yup.object().shape({
+        pNumber: Yup.string(),
+        tiers: Yup.object().shape({
+          TIER_1: Yup.object().shape({
+            label: Yup.string(),
+            enabled: Yup.boolean(),
+          }),
+          TIER_2: Yup.object().shape({
+            label: Yup.string(),
+            enabled: Yup.boolean(),
+          }),
+          TIER_3: Yup.object().shape({
+            label: Yup.string(),
+            enabled: Yup.boolean(),
+          }),
+          TIER_4: Yup.object().shape({
+            label: Yup.string(),
+            enabled: Yup.boolean(),
+          }),
+        })
+      }),
       features: Yup.object().shape(features.reduce((obj, { value }) => ({
         ...obj,
         [value]: Yup.boolean()
@@ -88,6 +112,7 @@ export default function OrganizationForm({
       weekBegins: currentOrganization?.weekBegins || 'SUNDAY',
       timezone: currentOrganization?.timezone || 'America/Los_Angeles',
       features: currentOrganization?.flatFeatures ? JSON.parse(currentOrganization?.flatFeatures) as {} : {},
+      customizations: omit(clone(currentOrganization?.customizations!), ['__typename']) as OrganizationCustomizations,
       sso: (currentOrganization?.sso ? {
         uiSubDomains: (currentOrganization?.sso.uiSubDomains || []).join(','),
         enablePasswordLogin: currentOrganization?.sso.enablePasswordLogin || false,
@@ -266,6 +291,53 @@ export default function OrganizationForm({
     </>
   );
 
+  const renderOrganizationCustomizations = (
+    <>
+      {mdUp && (
+        <Grid md={4}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            Customizations
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Customizations for the organization
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid xs={12} md={8}>
+        <Card>
+          {!mdUp && <CardHeader title="Customizations" />}
+
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <RHFTextField name="customizations.pNumber" label="P# Alias" disabled={isSubmitting} />
+
+            <Stack spacing={3} direction={{ xs: 'column', md: 'row' }}>
+              <Stack spacing={3}>
+                <RHFTextField name="customizations.tiers.TIER_1.label" label="Tier 1 Display Name" disabled={isSubmitting} />
+                <RHFSwitch name="customizations.tiers.TIER_1.enabled" label="Tier 1 Enabled" disabled helperText="This tier is required" />
+              </Stack>
+
+              <Stack spacing={3}>
+                <RHFTextField name="customizations.tiers.TIER_2.label" label="Tier 2 Display Name" disabled={isSubmitting} />
+                <RHFSwitch name="customizations.tiers.TIER_2.enabled" label="Tier 2 Enabled" disabled helperText="This tier is required" />
+              </Stack>
+
+              <Stack spacing={3}>
+                <RHFTextField name="customizations.tiers.TIER_3.label" label="Tier 3 Display Name" disabled={isSubmitting} />
+                <RHFSwitch name="customizations.tiers.TIER_3.enabled" label="Tier 3 Enabled" disabled={isSubmitting} />
+              </Stack>
+
+              <Stack spacing={3}>
+                <RHFTextField name="customizations.tiers.TIER_4.label" label="Tier 4 Display Name" disabled={isSubmitting} />
+                <RHFSwitch name="customizations.tiers.TIER_4.enabled" label="Tier 4 Enabled" disabled={isSubmitting} />
+              </Stack>
+            </Stack>
+          </Stack>
+        </Card>
+      </Grid>
+    </>
+  )
+
   const renderSSOSettings = (
     <>
       {mdUp && (
@@ -328,6 +400,8 @@ export default function OrganizationForm({
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
         {renderDetails}
+
+        {renderOrganizationCustomizations}
 
         {renderFeatures}
 

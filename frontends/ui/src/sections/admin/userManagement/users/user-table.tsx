@@ -10,15 +10,19 @@ import red from "@mui/material/colors/red";
 import { MemberStatus, MemberTier, User } from "src/__generated__/resolvers-types";
 import GQLTable from "src/components/table/gql/table"
 // Components
-import { TableConfig, getBooleanFilters, getStatusFilter, getTierFilter } from "src/components/table/table-config"
+import { TableConfig, getBooleanFilters, getStatusFilter } from "src/components/table/table-config"
 import { GET_USERS, REMOVE_USER } from "src/api/user";
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { useBoolean } from "src/hooks/use-boolean";
 import { client } from "src/utils/apollo";
 import { GET_RANKS } from "src/api/rank";
+import { usePNumberLabel } from "src/hooks/use-pNumber-label";
+import { useTiers } from "src/hooks/use-tiers";
 import StatusConfirmDialog from "./deactivate-confirm-dialog";
 
 export default function UserTable() {
+  const { pNumberLabel } = usePNumberLabel();
+  const { tierNames, getTierFilter } = useTiers();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const [removeUser, setRemoveUser] = useState<User | null>(null);
@@ -111,7 +115,7 @@ export default function UserTable() {
       },
       {
         id: 'member.pNumber',
-        label: 'P#',
+        label: pNumberLabel,
         width: 200,
         columnType: 'string',
         renderValue: (val) => val || '-',
@@ -122,15 +126,7 @@ export default function UserTable() {
         label: 'Tier',
         width: 160,
         columnType: 'string',
-        renderValue: (tier: MemberTier) => {
-          switch(tier) {
-            case MemberTier.Tier_2:
-              return 'Tier 2';
-            case MemberTier.Tier_1:
-            default:
-              return 'Tier 1';
-          }
-        }
+        renderValue: (tier: MemberTier) => tierNames[tier]
       },
       {
         id: 'member.status',
@@ -168,7 +164,7 @@ export default function UserTable() {
       {
         id: 'pNumber',
         type: 'text',
-        label: 'P#',
+        label: pNumberLabel,
         defaultValue: '',
         value: '',
       },

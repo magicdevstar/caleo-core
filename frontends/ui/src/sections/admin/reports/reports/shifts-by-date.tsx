@@ -26,6 +26,7 @@ import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { useFeatures } from 'src/hooks/use-features';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 const shiftStatusOptions = [
   {
@@ -72,6 +73,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
 
 export default function ShiftsByDate() {
   const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
   const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
@@ -141,7 +143,7 @@ export default function ShiftsByDate() {
         return;
       }
       const formattedJson = shifts.map((shift: Shift) => ({
-        'Officer P#': shift.user?.member?.pNumber || '',
+        [`Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
         'Officer First Name': shift.user?.firstName || '',
         'Officer Last Name': shift.user?.lastName || '',
         'Phone Number': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
@@ -153,7 +155,7 @@ export default function ShiftsByDate() {
         ...(equipment ? {
           'Required Equipment': (shift?.event?.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
         } : {}),
-        'Event Created By P#': shift.event?.createdBy?.member?.pNumber || '',
+        [`Event Created By ${pNumberLabel}`]: shift.event?.createdBy?.member?.pNumber || '',
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',
         'Event Start Date': shift.event?.startTime

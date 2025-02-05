@@ -8,8 +8,10 @@ import { Assignment, Shift } from "src/__generated__/resolvers-types";
 import { useDownloadCsv } from "./use-download-csv";
 import { convertDate, dateFormat, dateTimeFormat } from "./use-datejs";
 import { useFeatures } from "./use-features";
+import { usePNumberLabel } from "./use-pNumber-label";
 
 export const useEventSummary = () => {
+  const { pNumberLabel } = usePNumberLabel();
   const [loading, setLoading] = useState(false);
   const { user } = useAuthContext();
   const { eventCheckIn, equipment, lasdEventFields } = useFeatures();
@@ -65,7 +67,7 @@ export const useEventSummary = () => {
         }
 
         return {
-          'Event Created By P#': shift.event.createdBy?.member?.pNumber || '',
+          [`Event Created By ${pNumberLabel}`]: shift.event.createdBy?.member?.pNumber || '',
           'Event Ref. #': shift.event.referenceId,
           ...(lasdEventFields ? {
             'OCN': shift.event.ocn || '-',
@@ -105,6 +107,7 @@ export const useEventSummary = () => {
     eventCheckIn,
     lasdEventFields,
     equipment,
+    pNumberLabel,
     enqueueSnackbar,
     download
   ]);

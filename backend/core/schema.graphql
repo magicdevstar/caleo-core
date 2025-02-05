@@ -90,6 +90,8 @@
   enum MemberTier {
     TIER_1
     TIER_2
+    TIER_3
+    TIER_4
   }
 
   enum MemberStatus {
@@ -1020,8 +1022,37 @@
     features: OrganizationFeatures!
     flatFeatures: String!
     sso: OrganizationSSOSettings
-
+    customizations: OrganizationCustomizations
     modifiedBy: User
+  }
+
+  type OrganizationCustomizations {
+    # Alias for the name of pNumber
+    pNumber: String!
+    # Alias for tier names
+    tiers: OrganizationCustomizationsTiers!
+  }
+
+  type OrganizationCustomizationsTiers {
+    TIER_1: OrganizationCustomizationsTier!
+    TIER_2: OrganizationCustomizationsTier!
+    TIER_3: OrganizationCustomizationsTier!
+    TIER_4: OrganizationCustomizationsTier!
+  }
+
+  type OrganizationCustomizationsTier {
+    enabled: Boolean!
+    label: String!
+  }
+
+  type OrganizationCustomizationsFields {
+    pNumber: String!
+    tiers: [MemberTier!]!
+  }
+
+  type OrganizationCustomizationsFieldsCustomization {
+    label: String!
+    possibleValues: [String!]!
   }
 
   type OrganizationFeatures {
@@ -1033,6 +1064,7 @@
     weeklyMaxShifts: Boolean!
     externalEventRequests: Boolean!
     disabledTiers: Boolean!
+    disabledTierUntil: Boolean!
     sso: Boolean!
     equipment: Boolean!
     lasdEventFields: Boolean!
@@ -1147,7 +1179,25 @@
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
     features: UpsertOrganizationFeatures
+    customizations: UpsertOrganizationCustomizations
     sso: UpsertOrganizationSSOSettings
+  }
+
+  input UpsertOrganizationCustomizations {
+    pNumber: String!
+    tiers: UpsertOrganizationCustomizationsTiers!
+  }
+
+  input UpsertOrganizationCustomizationsTiers {
+    TIER_1: UpsertOrganizationCustomizationsTier!
+    TIER_2: UpsertOrganizationCustomizationsTier!
+    TIER_3: UpsertOrganizationCustomizationsTier!
+    TIER_4: UpsertOrganizationCustomizationsTier!
+  }
+
+  input UpsertOrganizationCustomizationsTier {
+    enabled: Boolean!
+    label: String!
   }
 
   input UpsertOrganizationOvertimeSettings {
@@ -1176,6 +1226,7 @@
     weeklyMaxShifts: Boolean
     externalEventRequests: Boolean
     disabledTiers: Boolean
+    disabledTierUntil: Boolean
     sso: Boolean
     equipment: Boolean
     lasdEventFields: Boolean

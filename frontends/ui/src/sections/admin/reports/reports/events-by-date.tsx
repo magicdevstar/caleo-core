@@ -26,6 +26,7 @@ import { GET_ALL_EVENTS } from 'src/api/event';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { useFeatures } from 'src/hooks/use-features';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 const eventStatusOptions = [
   {
@@ -76,6 +77,7 @@ const eventsByDateSchema = Yup.object().shape({
 
 export default function EventsByDate() {
   const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
   const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
@@ -151,7 +153,7 @@ export default function EventsByDate() {
           'OCN': event.ocn || '-',
           'Admin Time (Hours)': event.adminTime || '-',
         } : {}),
-        'Event Created By P#': event.createdBy?.member?.pNumber || '',
+        [`Event Created By ${pNumberLabel}`]: event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
         ...(equipment ? {
           'Required Equipment': (event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),

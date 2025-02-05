@@ -30,6 +30,7 @@ import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { GET_LOTTERY_DATES } from 'src/api/lotteryCounter';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 const shiftsByOfficerSchema = Yup.object().shape({
   officer: Yup.mixed<User | string>()
@@ -43,6 +44,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
 
 export default function RankedShiftsByOfficer() {
   const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'ranked-shifts-by-officer',
@@ -146,7 +148,7 @@ export default function RankedShiftsByOfficer() {
       const formattedJson = requests.map((request: ShiftLotteryRequest) => ({
         'Officer First Name': request.user?.firstName,
         'Officer Last Name': request.user?.lastName,
-        'Officer P#': request.user?.member?.pNumber,
+        [`Officer ${pNumberLabel}`]: request.user?.member?.pNumber,
         'Lottery Date': convertDate({
           date: request.event?.lotteryCounter?.start || new Date(),
           user,

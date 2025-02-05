@@ -8,11 +8,13 @@ import {
   OrganizationFeatures,
   OrganizationFeatureOptions,
   OrganizationSearchInput,
-  CreateOrganization
+  CreateOrganization,
+  OrganizationCustomizations,
+  OrganizationCustomizationsTiers
 } from "../../__generated__/resolvers-types";
 import { adminOnly, isSuperAdmin, superAdminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { getDefaultOrg, getDefaultOrgFeatures, getDefaultOrgSettings, IOrganization } from "../../models/organization";
+import { getDefaultOrg, getDefaultOrgCustomizations, getDefaultOrgFeatures, getDefaultOrgSettings, IOrganization } from "../../models/organization";
 
 export const organization = {
   Query: {
@@ -79,6 +81,10 @@ export const organization = {
         {
           value: 'disabledTiers',
           label: 'Disable tiers'
+        },
+        {
+          value: 'disabledTierUntil',
+          label: 'Disable tier until'
         },
         {
           value: 'venueContractDates',
@@ -185,6 +191,7 @@ export const organization = {
     Organization: {
       ...commonResolvers,
       flatFeatures: (parent: IOrganization) => JSON.stringify(parent.features),
+      customizations: (parent: IOrganization) => parent.customizations || getDefaultOrgCustomizations(),
     },
     OrganizationOvertimeSettings: {
       hoursPerMonth: (parent: any) => parent.hoursPerMonth || 100,
@@ -216,6 +223,7 @@ export const organization = {
       monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
       weeklyMaxShifts: (parent: OrganizationFeatures) => !!parent.weeklyMaxShifts,
       disabledTiers: (parent: OrganizationFeatures) => !!parent.disabledTiers,
+      disabledTierUntil: (parent: OrganizationFeatures) => !!parent.disabledTierUntil,
       externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
       sso: (parent: OrganizationFeatures) => !!parent.sso,
       equipment: (parent: OrganizationFeatures) => !!parent.equipment,

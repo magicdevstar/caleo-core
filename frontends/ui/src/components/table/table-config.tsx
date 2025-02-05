@@ -1,5 +1,5 @@
 import { DocumentNode } from "graphql";
-import { MemberStatus, MemberTier } from "src/__generated__/resolvers-types";
+import { MemberStatus } from "src/__generated__/resolvers-types";
 
 export interface TableConfig<T> {
   header: {
@@ -116,11 +116,6 @@ export const getStatusFilter = () => Promise.resolve([
   { value: MemberStatus.Pending, label: 'Pending' },
   { value: MemberStatus.Invited, label: 'Invited' },
   { value: MemberStatus.Removed, label: 'Removed' },
-]);
-
-export const getTierFilter = () => Promise.resolve([
-  { value: MemberTier.Tier_1, label: 'Tier 1' },
-  { value: MemberTier.Tier_2, label: 'Tier 2' },
 ]);
 
 export const resolveFilterValue = (filter: Filter) => {

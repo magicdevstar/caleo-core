@@ -32,11 +32,33 @@ const userDetailProperties = `
         monthlyMaxHours
         weeklyMaxShifts
         disabledTiers
+        disabledTierUntil
         externalEventRequests
         sso
         equipment
         lasdEventFields
         profileTenor
+      }
+      customizations {
+        pNumber
+        tiers {
+          TIER_1 {
+            label
+            enabled
+          }
+          TIER_2 {
+            label
+            enabled
+          }
+          TIER_3 {
+            label
+            enabled
+          }
+          TIER_4 {
+            label
+            enabled
+          }
+        }
       }
       settings {
         shiftsPerWeek

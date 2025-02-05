@@ -19,12 +19,13 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
 import { GET_RANKS } from "src/api/rank";
-import { MemberRole, MemberTier, Rank } from "src/__generated__/resolvers-types";
-import { tierNames } from "src/utils/mapped.enums";
+import { MemberRole, Rank } from "src/__generated__/resolvers-types";
 import { client } from "src/utils/apollo";
 import { SEND_INVITATION } from "src/api/user";
 import { useFeatures } from "src/hooks/use-features";
 import { useAuthContext } from "src/auth/hooks";
+import { usePNumberLabel } from "src/hooks/use-pNumber-label";
+import { useTiers } from "src/hooks/use-tiers";
 
 // eslint-disable-next-line no-control-regex
 const emailValidator = (email: string) => /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/.test(email);
@@ -51,6 +52,8 @@ export default function InviteUserModal({
   inviteUser: UseBooleanReturnType;
 }) {
   const { user: { member: { orgId } } } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
+  const { tierNames, enabledTiers } = useTiers();
   const { profileTenor, disabledTiers } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { data } = useQuery(GET_RANKS, {
@@ -182,7 +185,7 @@ export default function InviteUserModal({
                       }));
                     }}
                   >
-                    {Object.values(MemberTier).map((option) => (
+                    {enabledTiers.map((option) => (
                       <MenuItem key={option} value={option}>
                         {tierNames[option]}
                       </MenuItem>
@@ -224,7 +227,7 @@ export default function InviteUserModal({
                   <TextField
                     fullWidth
                     error={validPNumber.touched && !validPNumber.valid}
-                    label="PNumber"
+                    label={pNumberLabel}
                     value={user.member.pNumber}
                     onBlur={() => {
                       setValidPNumber((c) => ({

@@ -35,10 +35,12 @@ import { fData } from 'src/utils/format-number';
 import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
-import { roleNames, tierNames } from 'src/utils/mapped.enums';
+import { roleNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
 import { convertDate, dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
+import { useTiers } from 'src/hooks/use-tiers';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 // ----------------------------------------------------------------------
 
@@ -116,7 +118,9 @@ export default function AccountGeneral({
   adminViewer: boolean;
   allDisabled?: boolean;
 }) {
-  const { disabledTiers, profileTenor } = useFeatures();
+  const { disabledTiers, disabledTierUntil, profileTenor } = useFeatures();
+  const { tierNames, enabledTiers } = useTiers();
+  const { pNumberLabel } = usePNumberLabel();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
@@ -161,7 +165,7 @@ export default function AccountGeneral({
     firstName: Yup.string().required('First name is required'),
     lastName: Yup.string().required('Last name is required'),
     rank: Yup.object().required('Rank is required'),
-    pNumber: Yup.string().required('P# Number is required'),
+    pNumber: Yup.string().required(`${pNumberLabel} is required`),
     status: Yup.string().required('Status is required'),
     tier: Yup.string().required('Tier is required'),
     tierUntil: Yup.date().nullable(),
@@ -257,7 +261,7 @@ export default function AccountGeneral({
 
   const onSubmit = handleSubmit(async (d) => {
     try {
-      if (adminViewer && d.tier === MemberTier.Tier_2 && !d.tierUntil && !user.member.tierResetOnNextLottery) {
+      if (adminViewer && d.tier === MemberTier.Tier_2 && !d.tierUntil && !user.member.tierResetOnNextLottery && !disabledTierUntil) {
         setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
         return;
       }
@@ -435,7 +439,7 @@ export default function AccountGeneral({
                   );
                 }}
               />
-              <RHFTextField disabled={!adminViewer || allDisabled} name="pNumber" label="PNumber" />
+              <RHFTextField disabled={!adminViewer || allDisabled} name="pNumber" label={pNumberLabel} />
 
               <RHFSelect
                 fullWidth
@@ -491,32 +495,33 @@ export default function AccountGeneral({
                     InputLabelProps={{ shrink: true }}
                     PaperPropsSx={{ textTransform: 'capitalize' }}
                   >
-                    {[
-                      MemberTier.Tier_1,
-                      MemberTier.Tier_2,
-                    ].map((option) => (
+                    {enabledTiers.map((option) => (
                       <MenuItem key={option} value={option}>
                         {tierNames[option]}
                       </MenuItem>
                     ))}
                   </RHFSelect>
 
-                  <DatePicker
-                    disabled={!adminViewer || allDisabled}
-                    tz={user?.member?.org?.timezone!}
-                    tierUntil={tierUntil}
-                    helperText={tierUntilHelpText || formErrors.tierUntil?.message as any}
-                    error={!!formErrors.tierUntil}
-                    onChange={(hasValue) => {
-                      const result = getValues()
-                      if (result.tier === MemberTier.Tier_2 && !hasValue) {
-                        setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
-                        return;
-                      }
-                      clearErrors('tierUntil')
-                    }}
-                    setTierUntil={(value: any) => setValue('tierUntil', value)}
-                  />
+                  {
+                    !disabledTierUntil && (
+                      <DatePicker
+                        disabled={!adminViewer || allDisabled}
+                        tz={user?.member?.org?.timezone!}
+                        tierUntil={tierUntil}
+                        helperText={tierUntilHelpText || formErrors.tierUntil?.message as any}
+                        error={!!formErrors.tierUntil}
+                        onChange={(hasValue) => {
+                          const result = getValues()
+                          if (result.tier === MemberTier.Tier_2 && !hasValue) {
+                            setError('tierUntil', { message: 'This field is required if tier 2 is selected' });
+                            return;
+                          }
+                          clearErrors('tierUntil')
+                        }}
+                        setTierUntil={(value: any) => setValue('tierUntil', value)}
+                      />
+                    )
+                  }
                 </>
               }
               {

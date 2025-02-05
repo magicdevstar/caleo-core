@@ -49,6 +49,7 @@ import Iconify from 'src/components/iconify';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -75,6 +76,7 @@ export default function EditShift({
 }: Props) {
   const router = useRouter();
   const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
   const { eventCheckIn, interestLists } = useFeatures();
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const editCheckInOutModal = useBoolean();
@@ -388,7 +390,7 @@ export default function EditShift({
           return phoneNum;
         }
       },
-      { id: 'user.member.pNumber', label: 'P #', columnType: 'string', width: '25%' },
+      { id: 'user.member.pNumber', label: pNumberLabel, columnType: 'string', width: '25%' },
       { id: '', width: '5%', columnType: 'action', label: '' },
     ],
     filters: []

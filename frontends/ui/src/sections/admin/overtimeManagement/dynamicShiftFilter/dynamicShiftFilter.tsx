@@ -14,8 +14,10 @@ import { paths } from 'src/routes/paths';
 import { useFeatures } from 'src/hooks/use-features';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 export default function DynamicShiftFilter() {
+  const { pNumberLabel } = usePNumberLabel();
   const { eventCheckIn } = useFeatures();
   const editCheckInOutModal = useBoolean();
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
@@ -155,7 +157,7 @@ export default function DynamicShiftFilter() {
             } catch(error) {
               console.error(error);
             }
-            return `${row.user?.name} P# ${row.user?.member.pNumber} ${phoneNumber}`;
+            return `${row.user?.name} ${pNumberLabel} ${row.user?.member.pNumber} ${phoneNumber}`;
           }
           return 'Not Assigned';
         },

@@ -49,6 +49,27 @@ export const getDefaultOrgSettings = () => ({
     unit: ShiftReminderUnit.Hour,
   },
 });
+export const getDefaultOrgCustomizations = () => ({
+  pNumber: 'P#',
+  tiers: {
+    TIER_1: {
+      label: 'Tier 1',
+      enabled: true,
+    },
+    TIER_2: {
+      label: 'Tier 2',
+      enabled: true,
+    },
+    TIER_3: {
+      label: 'Tier 3',
+      enabled: false,
+    },
+    TIER_4: {
+      label: 'Tier 4',
+      enabled: false,
+    },
+  },
+});
 export const getDefaultOrgFeatures = () => ({
   lottery: false,
   venueContractDates: false,
@@ -57,6 +78,7 @@ export const getDefaultOrgFeatures = () => ({
   monthlyMaxHours: false,
   weeklyMaxShifts: false,
   disabledTiers: false,
+  disabledTierUntil: false,
   externalEventRequests: false,
   sso: false,
   equipment: false,

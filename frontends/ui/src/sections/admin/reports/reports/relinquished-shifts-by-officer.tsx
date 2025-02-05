@@ -24,6 +24,7 @@ import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
 import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 const relinquishedShiftsByOfficerSchema = Yup.object().shape({
   officer: Yup.mixed<User | string>()
@@ -35,6 +36,7 @@ const relinquishedShiftsByOfficerSchema = Yup.object().shape({
 
 export default function RelinquishedShiftsByOfficer() {
   const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'relinquished-shifts-by-officer',
@@ -122,7 +124,7 @@ export default function RelinquishedShiftsByOfficer() {
       const formattedJson = shifts.map((shift: Shift) => ({
         'Officer First Name': shift.user?.firstName || '',
         'Officer Last Name': shift.user?.lastName || '',
-        'Officer P#': shift.user?.member?.pNumber || '',
+        [`Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
         'Relinquished On': shift?.removedAt
           ? convertDate({ date: shift.removedAt, user }).format(dateFormat)
           : '',

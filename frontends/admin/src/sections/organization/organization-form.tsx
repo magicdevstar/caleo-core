@@ -278,7 +278,7 @@ export default function OrganizationForm({
                   features.map(({ value, label }) => {
                     const key = `features.${value}`;
                     return (
-                      <Grid xs={12} md={6} lg={4} xl={2} key={value}>
+                      <Grid xs={12} md={6} lg={4} key={value}>
                         <RHFSwitch name={key} label={label} disabled={isSubmitting} />
                       </Grid>
                     );

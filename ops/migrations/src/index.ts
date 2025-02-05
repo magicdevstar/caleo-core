@@ -26,6 +26,8 @@ import { unassignedShiftsCounter } from "./utils/unassignedShifts";
 import { migrateCollectionToV2 } from "./utils/migrateCollectionToV2";
 import { removeOldShifts } from './utils/remove-old-shifts';
 import { lottoAnalysis } from './utils/lotto-analysis';
+import { fixShiftAvailability } from "./utils/fix-shift-availability";
+import { analysisLotto58 } from "./utils/analysis-lotto-58";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -37,7 +39,9 @@ import { lottoAnalysis } from './utils/lotto-analysis';
     // const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
-    await lottoAnalysis(mongoClientProd, 57);
+    await analysisLotto58(mongoClientProd);
+    // await fixShiftAvailability(mongoClientProd);
+    // await lottoAnalysis(mongoClientProd, 57);
     // await removeOldShifts(mongoClientProd);
     // await migrateCollectionToV2(mongoClient.collection('memberNotifications'));
     // await unassignedShiftsCounter(mongoClientProd);

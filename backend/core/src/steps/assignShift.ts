@@ -92,7 +92,8 @@ const assignShift = async ({
     assignedUserRequests,
     unassignedUserRequests,
   } = initialRequests.reduce((acc, req) => {
-    if (state.assignedUsers.includes(req.user._id)) {
+    const foundAssignment = state.assignedUsers.find((id) => id.toString() === req.user._id.toString());
+    if (foundAssignment) {
       acc.assignedUserRequests.push(req);
     } else {
       acc.unassignedUserRequests.push(req);

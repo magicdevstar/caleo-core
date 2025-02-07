@@ -1,6 +1,6 @@
 import middy from '@middy/core';
 import { ObjectId } from 'mongodb';
-import { subMinutes } from 'date-fns';
+import { subHours, subMinutes } from 'date-fns';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
@@ -40,7 +40,7 @@ const ocnReminders = async () => {
           {
             $or: [
               { lastDepartmentNotificationDate: { $exists: false } },
-              { lastDepartmentNotificationDate: { $lte: subMinutes(new Date(), 1) } },
+              { lastDepartmentNotificationDate: { $lte: subHours(new Date(), 72) } },
             ]
           },
         ],

@@ -44,8 +44,6 @@ export interface IEvent extends Omit<
   'scheduledFirstComeFirstServe' |
   'venueId' |
   'venue' |
-  'requiredEquipmentIds' |
-  'requiredEquipment' |
   'assignmentIds' |
   'assignments' |
   'createdById' |
@@ -60,7 +58,6 @@ export interface IEvent extends Omit<
   modifiedById: ObjectId;
   venueId?: ObjectId;
   assignmentIds?: ObjectId[];
-  requiredEquipmentIds?: ObjectId[];
   createdById?: ObjectId;
 
   requestDetails?: IEventRequestDetails;

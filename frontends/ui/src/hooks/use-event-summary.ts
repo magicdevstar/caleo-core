@@ -85,7 +85,7 @@ export const useEventSummary = () => {
           'Ranks': (shift.assignment.ranks || [])?.map(({ name }: any) => name).join(','),
           'Equipment Needed': shift.assignment.bwNeeded ? 'yes' : 'no',
           ...(equipment ? {
-            'Required Equipment': (shift.event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+            'Required Equipment': (shift.assignment.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
           } : {}),
           [`Assignee Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
           'Assignee Officer First Name': shift.user?.firstName || '',

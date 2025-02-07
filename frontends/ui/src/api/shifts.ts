@@ -446,10 +446,6 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
           endTime
           ocn
           adminTime
-          requiredEquipment {
-            id
-            name
-          }
           createdBy {
             id
             name
@@ -465,6 +461,10 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
         assignment {
           id
           name
+          requiredEquipment {
+            id
+            name
+          }
         }
       }
       total

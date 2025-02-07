@@ -78,7 +78,7 @@ const eventsByDateSchema = Yup.object().shape({
 export default function EventsByDate() {
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
-  const { equipment, lasdEventFields } = useFeatures();
+  const { lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'events-by-date',
@@ -155,9 +155,6 @@ export default function EventsByDate() {
         } : {}),
         [`Event Created By ${pNumberLabel}`]: event.createdBy?.member?.pNumber || '',
         'Venue Name': event.venue?.name || '',
-        ...(equipment ? {
-          'Required Equipment': (event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
-        } : {}),
         'Event Start Date': event.startTime
           ? convertDate({ date: event.startTime, user }).format(dateTimeFormat)
           : '',

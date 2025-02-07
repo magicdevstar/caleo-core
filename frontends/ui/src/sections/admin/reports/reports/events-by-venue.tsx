@@ -79,7 +79,7 @@ const eventsByVenueSchema = Yup.object().shape({
 export default function EventsByVenue() {
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
-  const { equipment, lasdEventFields } = useFeatures();
+  const { lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'events-by-venue',
@@ -154,9 +154,6 @@ export default function EventsByVenue() {
         ...(lasdEventFields ? {
           'OCN': event.ocn || '-',
           'Admin Time (Hours)': event.adminTime || '-',
-        } : {}),
-        ...(equipment ? {
-          'Required Equipment': (event.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
         } : {}),
         [`Event Created By ${pNumberLabel}`]: event.createdBy?.member?.pNumber || '',
         'Event Start Date': event.startTime

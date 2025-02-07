@@ -20,7 +20,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 // types
-import { Assignment, EventStatus, Rank, Shift, ShiftStatus, Skill } from 'src/__generated__/resolvers-types';
+import { Assignment, Equipment, EventStatus, Rank, Shift, ShiftStatus, Skill } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -39,6 +39,8 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { GET_ALL_SHIFTS, REMOVE_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
+import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -51,6 +53,7 @@ export default function EditAssignment({
   eventId,
   currentAssignment,
 }: Props) {
+  const { equipment: equipmentFeature } = useFeatures();
   const router = useRouter();
 
   const [removeShiftId, setRemoveShiftId] = useState<string | null>();
@@ -91,6 +94,15 @@ export default function EditAssignment({
   [currentAssignment?.shifts]);
 
   const { data: rankData } = useQuery(GET_RANKS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        active: true,
+      }
+    },
+  });
+  const { data: equipmentData } = useQuery(GET_EQUIPMENT_SLIM, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -140,13 +152,14 @@ export default function EditAssignment({
     deleteConfirm.onFalse();
   }, [removeShifts, setRemoveShiftId, removeShiftId, deleteConfirm]);
 
+  const equipment = equipmentData?.equipments?.items || [];
   const skills = skillData?.skills?.items || [];
   const ranks = rankData?.ranks?.items || [];
   const mdUp = useResponsive('up', 'md');
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const NewEventSchema = Yup.object().shape({
+  const NewAssignmentSchema = Yup.object().shape({
     id: Yup.string(),
     name: Yup.string().required('Name is required'),
     description: Yup.string(),
@@ -154,6 +167,7 @@ export default function EditAssignment({
     bwNeeded: Yup.boolean(),
     notifyWhenFullyStaffed: Yup.boolean(),
     requiredSkills: Yup.array(),
+    requiredEquipment: Yup.array(),
     ranks: Yup.array().min(1).required('At least one rank is required'),
     shifts: Yup.array(),
   });
@@ -167,6 +181,7 @@ export default function EditAssignment({
       bwNeeded: currentAssignment?.bwNeeded || false,
       notifyWhenFullyStaffed: currentAssignment?.notifyWhenFullyStaffed || false,
       requiredSkills: currentAssignment?.requiredSkills || [],
+      requiredEquipment: currentAssignment?.requiredEquipment || [],
       ranks: currentAssignment?.ranks || [],
       shifts: currentAssignment?.shifts || [],
     }),
@@ -174,7 +189,7 @@ export default function EditAssignment({
   );
 
   const methods = useForm({
-    resolver: yupResolver(NewEventSchema),
+    resolver: yupResolver(NewAssignmentSchema),
     defaultValues,
   });
 
@@ -289,6 +304,9 @@ export default function EditAssignment({
             eventId,
             bwNeeded: formData?.bwNeeded,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
+            ...(formData?.requiredEquipment && formData.requiredEquipment.length > 0 && {
+              requiredEquipmentIds: formData?.requiredEquipment?.map(({ id }: Equipment) => id)
+            }),
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             rankIds: formData?.ranks?.map(({ id }: Rank) => id),
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
@@ -400,6 +418,41 @@ export default function EditAssignment({
                 ))
               }
             />
+
+            {
+              equipmentFeature && (
+                <RHFAutocomplete
+                  name="requiredEquipment"
+                  placeholder="Required Equipment"
+                  disabled={allDisabled || isComplete}
+                  multiple
+                  disableCloseOnSelect
+                  helperText="Leave empty to not require any equipment"
+                  options={(equipment || [])}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  getOptionLabel={(e: any) => e?.name}
+                  renderOption={(props, option, { selected }) => (
+                    <li {...props} key={option?.id}>
+                      <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                      {option?.name}
+                    </li>
+                  )}
+                  renderTags={(selected, getTagProps) =>
+                    selected.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option?.id}
+                        label={option?.name}
+                        size="small"
+                        color="info"
+                        variant="soft"
+                      />
+                    ))
+                  }
+                />
+              )
+            }
+
 
             <Stack direction="row" spacing={2}>
               <RHFSwitch disabled={allDisabled || isComplete} name="bwNeeded" label="B&W Needed" />

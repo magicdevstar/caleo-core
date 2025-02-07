@@ -26,6 +26,8 @@ export interface IAssignment extends Omit<
   'shiftIds' |
   'requiredSkills' |
   'requiredSkillIds' |
+  'requiredEquipmentIds' |
+  'requiredEquipment' |
   'ranks' |
   'rankIds' |
   '__typename'
@@ -37,6 +39,7 @@ export interface IAssignment extends Omit<
   eventId: ObjectId;
   shiftIds: ObjectId[];
   requiredSkillIds: ObjectId[];
+  requiredEquipmentIds?: ObjectId[];
   rankIds: ObjectId[];
   modifiedById: ObjectId;
   assignmentId: ObjectId;

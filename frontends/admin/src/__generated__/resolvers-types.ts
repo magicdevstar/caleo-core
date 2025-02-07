@@ -60,6 +60,8 @@ export type Assignment = {
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
+  requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
+  requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkills?: Maybe<Array<Maybe<Skill>>>;
   shiftIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -287,8 +289,6 @@ export type Event = {
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   requestDetails?: Maybe<EventRequestDetails>;
-  requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
-  requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   scheduledCloseInterestList?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   scheduledInterestList?: Maybe<Scalars['String']['output']>;
@@ -1897,6 +1897,7 @@ export type UpsertAssignment = {
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
@@ -1929,7 +1930,6 @@ export type UpsertEvent = {
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   ocn?: InputMaybe<Scalars['String']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
-  requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -2709,6 +2709,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
+  requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   shiftIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -2835,8 +2837,6 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
-  requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
-  requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   scheduledCloseInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

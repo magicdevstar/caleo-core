@@ -58,18 +58,17 @@ export const equipment = {
         modifiedById: userId,
       });
 
-      // TODO: Circle back when we implement on assignments :)
-      // const requiredSkillId = new ObjectId(id);
-      // await assignments.collection.updateMany({
-      //   requiredSkillIds: requiredSkillId,
-      // }, {
-      //   $set: {
-      //     modifiedById: userId,
-      //   },
-      //   $pull: {
-      //     requiredSkillIds: requiredSkillId,
-      //   },
-      // } as any);
+      const requiredEquipmentId = new ObjectId(id);
+      await assignments.collection.updateMany({
+        requiredSkillIds: requiredEquipmentId,
+      }, {
+        $set: {
+          modifiedById: userId,
+        },
+        $pull: {
+          requiredSkillIds: requiredEquipmentId,
+        },
+      } as any);
 
       return id;
     },

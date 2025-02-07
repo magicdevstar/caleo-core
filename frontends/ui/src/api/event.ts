@@ -49,10 +49,6 @@ export const GET_ALL_EVENTS = gql`
         scheduledInterestList
         scheduledFirstComeFirstServe
         status
-        requiredEquipment {
-          id
-          name
-        }
         createdBy {
           member {
             pNumber
@@ -109,10 +105,6 @@ query GetEvent($id: String!) {
         pNumber
       }
     }
-    requiredEquipment {
-      id
-      name
-    }
     venue {
       id
       name
@@ -120,6 +112,10 @@ query GetEvent($id: String!) {
     assignments {
       id
       name
+      requiredEquipment {
+        id
+        name
+      }
       shifts {
         id
         startTime
@@ -161,10 +157,6 @@ export const GET_EVENT_FOR_SUMMARY = gql`
           pNumber
         }
       }
-      requiredEquipment {
-        id
-        name
-      }
       venue {
         id
         name
@@ -172,6 +164,10 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       assignments {
         id
         name
+        requiredEquipment {
+          id
+          name
+        }
         requiredSkills {
           id
           name
@@ -260,11 +256,6 @@ export const GET_EVENT = gql`
         counter
         start
         end
-      }
-
-      requiredEquipment {
-        id
-        name
       }
 
       venue {

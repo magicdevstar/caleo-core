@@ -153,7 +153,7 @@ export default function ShiftsByDate() {
           'Admin Time (Hours)': shift?.event?.adminTime || '-',
         } : {}),
         ...(equipment ? {
-          'Required Equipment': (shift?.event?.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
+          'Required Equipment': (shift?.assignment?.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),
         } : {}),
         [`Event Created By ${pNumberLabel}`]: shift.event?.createdBy?.member?.pNumber || '',
         'Event Name': shift?.event?.name || '',

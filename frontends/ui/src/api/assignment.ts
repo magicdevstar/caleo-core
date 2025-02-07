@@ -17,6 +17,11 @@ export const GET_ALL_ASSIGNMENT = gql`
         bwNeeded
         createdAt
 
+        requiredEquipment {
+          id
+          name
+        }
+
         requiredSkills {
           id
           name
@@ -50,6 +55,12 @@ export const GET_ASSIGNMENT = gql`
       bwNeeded
       createdAt
       removedAt
+
+      requiredEquipment {
+        id
+        name
+        active
+      }
 
       requiredSkills {
         id

@@ -379,7 +379,6 @@
     lotteryNumber: Int
     ocn: String
     adminTime: Int
-    requiredEquipmentIds: [String]
     scheduledInterestList: String
     scheduledCloseInterestList: String
     interestListTransition: EventStatus
@@ -399,7 +398,6 @@
     venue: Venue
     org: Organization!
     assignments: [Assignment!]
-    requiredEquipment: [Equipment]
     attachments: [String!]
     createdBy: User
     availableShifts: Int
@@ -426,6 +424,7 @@
     notifyWhenFullyStaffed: Boolean
     docType: DocType!
     requiredSkillIds: [String]
+    requiredEquipmentIds: [String]
     rankIds: [String]
     bwNeeded: Boolean!
     shiftIds: [String]
@@ -436,6 +435,7 @@
 
     event: Event!
     requiredSkills: [Skill]
+    requiredEquipment: [Equipment]
     ranks: [Rank]
     shifts: [Shift]
     availableShifts: Int
@@ -657,7 +657,6 @@
     lotteryNumber: Int
     ocn: String
     adminTime: Int
-    requiredEquipmentIds: [String]
     interestListTransition: EventStatus
     scheduledInterestList: String
     scheduledCloseInterestList: String
@@ -709,6 +708,7 @@
     eventId: String!
     notifyWhenFullyStaffed: Boolean
     requiredSkillIds: [String]
+    requiredEquipmentIds: [String]
     rankIds: [String]
     bwNeeded: Boolean
     shiftIds: [String]

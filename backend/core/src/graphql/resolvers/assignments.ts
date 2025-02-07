@@ -96,6 +96,7 @@ export const assignments = {
         ...(assignment.eventId && { eventId: new ObjectId(assignment.eventId) }),
         ...(assignment.requiredSkillIds && { requiredSkillIds: assignment.requiredSkillIds.map((id) => new ObjectId(id)) }),
         ...(assignment.rankIds && { rankIds: assignment.rankIds.map((id) => new ObjectId(id)) }),
+        ...(assignment.requiredEquipmentIds && { requiredEquipmentIds: assignment.requiredEquipmentIds.map((id) => new ObjectId(id)) }),
         orgId: new ObjectId(user?.member.orgId!),
         modifiedById: new ObjectId(user!.id),
       });
@@ -117,6 +118,10 @@ export const assignments = {
       org: (assignment: IAssignment, _, { organizations }: Context) => organizations.loader.load(assignment.orgId.toString()),
       event: (assignment: IAssignment, _, { events }: Context) => events.loader.load(assignment.eventId.toString()),
       requiredSkills: (assignment: IAssignment, _, { skills }: Context) => skills.loader.loadMany((assignment.requiredSkillIds || []).map((id) => id.toString())),
+      requiredEquipment: (event: IAssignment, _, { equipments }: Context) =>
+              event.requiredEquipmentIds && event.requiredEquipmentIds.length > 0 ?
+                equipments.loader.loadMany((event.requiredEquipmentIds || []).map((id) => id.toString())) :
+                [],
       ranks: (assignment: IAssignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []).map((id) => id.toString())),
       shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
       availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.assignmentShiftCount.load(item.id?.toString()!),

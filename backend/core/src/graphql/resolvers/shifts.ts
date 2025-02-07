@@ -473,6 +473,8 @@ export const shift = {
         removeType: EventRemoveEventType.shiftUpdate,
         orgId: user?.member.orgId!,
         modifiedById: user!._id!,
+        lasdEventFields: organization?.features.lasdEventFields,
+        timezone: organization?.timezone,
       });
 
       // TODO: Bulk update shift notifications

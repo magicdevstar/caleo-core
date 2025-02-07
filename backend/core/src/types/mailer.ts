@@ -49,6 +49,7 @@ export enum MailerEvents {
   EventRequestedConfirm = 'EventRequestedConfirm',
   EventRequestedApproved = 'EventRequestedApproved',
   EventRequestedRejected = 'EventRequestedRejected',
+  MissingOCN = 'MissingOCN',
 };
 
 export enum SMSEvents {

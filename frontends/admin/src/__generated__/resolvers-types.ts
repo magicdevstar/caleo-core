@@ -1096,8 +1096,8 @@ export type NotificationSearchResult = {
 
 export type Organization = {
   __typename?: 'Organization';
-  address: Scalars['String']['output'];
-  city: Scalars['String']['output'];
+  address?: Maybe<Scalars['String']['output']>;
+  city?: Maybe<Scalars['String']['output']>;
   contact?: Maybe<OrganizationContact>;
   createdAt: Scalars['String']['output'];
   customizations?: Maybe<OrganizationCustomizations>;
@@ -1112,35 +1112,23 @@ export type Organization = {
   settings?: Maybe<OrganizationOvertimeSettings>;
   sso?: Maybe<OrganizationSsoSettings>;
   ssoAppName?: Maybe<Scalars['String']['output']>;
-  state: Scalars['String']['output'];
+  state?: Maybe<Scalars['String']['output']>;
   timezone: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
-  weekBegins: DayOfWeek;
-  zip: Scalars['String']['output'];
+  weekBegins?: Maybe<DayOfWeek>;
+  zip?: Maybe<Scalars['String']['output']>;
 };
 
 export type OrganizationContact = {
   __typename?: 'OrganizationContact';
-  email: Scalars['String']['output'];
-  phone: Scalars['String']['output'];
+  email?: Maybe<Scalars['String']['output']>;
+  phone?: Maybe<Scalars['String']['output']>;
 };
 
 export type OrganizationCustomizations = {
   __typename?: 'OrganizationCustomizations';
   pNumber: Scalars['String']['output'];
   tiers: OrganizationCustomizationsTiers;
-};
-
-export type OrganizationCustomizationsFields = {
-  __typename?: 'OrganizationCustomizationsFields';
-  pNumber: Scalars['String']['output'];
-  tiers: Array<MemberTier>;
-};
-
-export type OrganizationCustomizationsFieldsCustomization = {
-  __typename?: 'OrganizationCustomizationsFieldsCustomization';
-  label: Scalars['String']['output'];
-  possibleValues: Array<Scalars['String']['output']>;
 };
 
 export type OrganizationCustomizationsTier = {
@@ -2425,8 +2413,6 @@ export type ResolversTypes = ResolversObject<{
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
   OrganizationCustomizations: ResolverTypeWrapper<OrganizationCustomizations>;
-  OrganizationCustomizationsFields: ResolverTypeWrapper<OrganizationCustomizationsFields>;
-  OrganizationCustomizationsFieldsCustomization: ResolverTypeWrapper<OrganizationCustomizationsFieldsCustomization>;
   OrganizationCustomizationsTier: ResolverTypeWrapper<OrganizationCustomizationsTier>;
   OrganizationCustomizationsTiers: ResolverTypeWrapper<OrganizationCustomizationsTiers>;
   OrganizationFeatureOptions: ResolverTypeWrapper<OrganizationFeatureOptions>;
@@ -2595,8 +2581,6 @@ export type ResolversParentTypes = ResolversObject<{
   Organization: Organization;
   OrganizationContact: OrganizationContact;
   OrganizationCustomizations: OrganizationCustomizations;
-  OrganizationCustomizationsFields: OrganizationCustomizationsFields;
-  OrganizationCustomizationsFieldsCustomization: OrganizationCustomizationsFieldsCustomization;
   OrganizationCustomizationsTier: OrganizationCustomizationsTier;
   OrganizationCustomizationsTiers: OrganizationCustomizationsTiers;
   OrganizationFeatureOptions: OrganizationFeatureOptions;
@@ -3174,8 +3158,8 @@ export type NotificationSearchResultResolvers<ContextType = any, ParentType exte
 }>;
 
 export type OrganizationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = ResolversObject<{
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['OrganizationContact']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   customizations?: Resolver<Maybe<ResolversTypes['OrganizationCustomizations']>, ParentType, ContextType>;
@@ -3190,35 +3174,23 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   settings?: Resolver<Maybe<ResolversTypes['OrganizationOvertimeSettings']>, ParentType, ContextType>;
   sso?: Resolver<Maybe<ResolversTypes['OrganizationSSOSettings']>, ParentType, ContextType>;
   ssoAppName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  weekBegins?: Resolver<ResolversTypes['DayOfWeek'], ParentType, ContextType>;
-  zip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  weekBegins?: Resolver<Maybe<ResolversTypes['DayOfWeek']>, ParentType, ContextType>;
+  zip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationContact'] = ResolversParentTypes['OrganizationContact']> = ResolversObject<{
-  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type OrganizationCustomizationsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationCustomizations'] = ResolversParentTypes['OrganizationCustomizations']> = ResolversObject<{
   pNumber?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   tiers?: Resolver<ResolversTypes['OrganizationCustomizationsTiers'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type OrganizationCustomizationsFieldsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationCustomizationsFields'] = ResolversParentTypes['OrganizationCustomizationsFields']> = ResolversObject<{
-  pNumber?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  tiers?: Resolver<Array<ResolversTypes['MemberTier']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type OrganizationCustomizationsFieldsCustomizationResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationCustomizationsFieldsCustomization'] = ResolversParentTypes['OrganizationCustomizationsFieldsCustomization']> = ResolversObject<{
-  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  possibleValues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3721,8 +3693,6 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Organization?: OrganizationResolvers<ContextType>;
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
   OrganizationCustomizations?: OrganizationCustomizationsResolvers<ContextType>;
-  OrganizationCustomizationsFields?: OrganizationCustomizationsFieldsResolvers<ContextType>;
-  OrganizationCustomizationsFieldsCustomization?: OrganizationCustomizationsFieldsCustomizationResolvers<ContextType>;
   OrganizationCustomizationsTier?: OrganizationCustomizationsTierResolvers<ContextType>;
   OrganizationCustomizationsTiers?: OrganizationCustomizationsTiersResolvers<ContextType>;
   OrganizationFeatureOptions?: OrganizationFeatureOptionsResolvers<ContextType>;

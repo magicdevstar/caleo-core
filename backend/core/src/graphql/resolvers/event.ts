@@ -15,6 +15,7 @@ import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { MailerEvents } from "../../types/mailer";
 import { IEvent, IUpsertEvent } from "../../models/event";
 import { ObjectId } from "mongodb";
+import { truncateToMinute } from "../../utils/date.helpers";
 
 export const event = {
   Query: {
@@ -297,22 +298,22 @@ export const event = {
 
       let scheduledFirstComeFirstServe: Date | undefined;
       if (event.status === EventStatus.FirstComeFirstServe && scheduledFCFS) {
-        scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(scheduledFCFS), 0), 0);
+        scheduledFirstComeFirstServe = truncateToMinute(scheduledFCFS);
       } else if (event.status === EventStatus.FirstComeFirstServe && !scheduledFCFS) {
-        scheduledFirstComeFirstServe = setMilliseconds(setSeconds(new Date(), 0), 0);
+        scheduledFirstComeFirstServe = truncateToMinute(new Date());
       }
       let scheduledInterestList: Date | undefined;
       if (event.status === EventStatus.InterestList && scheduledInterest) {
-        scheduledInterestList = setMilliseconds(setSeconds(new Date(scheduledInterest), 0), 0);
+        scheduledInterestList = truncateToMinute(scheduledInterest);
       } else if (event.status === EventStatus.InterestList && !scheduledInterest) {
-        scheduledInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
+        scheduledInterestList = truncateToMinute(new Date());
       }
       let scheduledCloseInterestList: Date | undefined;
       if (event.status === EventStatus.InterestList && scheduledCloseInterest) {
-        scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(scheduledCloseInterest), 0), 0);
+        scheduledCloseInterestList = truncateToMinute(scheduledCloseInterest);
       } else if (event.status === EventStatus.InterestList && !scheduledCloseInterest) {
         // TODO: Use organization default
-        scheduledCloseInterestList = setMilliseconds(setSeconds(new Date(), 0), 0);
+        scheduledCloseInterestList = truncateToMinute(new Date());
       }
       const inputEvent = {
         ...event,

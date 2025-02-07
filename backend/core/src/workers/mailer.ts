@@ -2270,6 +2270,49 @@ const sendEmail = async (input: MailerEvent) => {
           },
         },
       };
+    } else if (
+      input.template === MailerEvents.MissingOCN
+    ) {
+      const { eventIds, orgId }: {
+        eventIds: string[];
+        orgId: string;
+      } = input.data;
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+
+      const events = await context.events.collection.find({
+        _id: { $in: eventIds.map((id) => new ObjectId(id)) },
+      }).toArray();
+
+      if (events.length === 0) {
+        logger.warn('Events not found', { input, eventIds });
+        return;
+      }
+
+      // Mark events as notified
+      const ids = events.map((e) => e._id);
+      await context.events.collection.updateMany({
+        _id: { $in: ids },
+      }, {
+        $set: {
+          lastDepartmentNotificationDate: new Date(),
+        }
+      });
+
+      Addresses = {
+        ...Addresses,
+        [organization.contact?.email!]: {
+          ChannelType: 'EMAIL',
+          Substitutions: {
+            "system.metro_name": [organization.name],
+            "event_names": [`- ${events.map((e) => e.name).join('<br/>- ')}`],
+          },
+        },
+      };
     }
 
     if (Object.keys(Addresses).length === 0) {

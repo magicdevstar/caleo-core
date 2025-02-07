@@ -223,6 +223,9 @@ functions:
   checkoutNotifications:
     handler: src/steps/checkoutNotifications.handler
     timeout: 300
+  ocnReminders:
+    handler: src/steps/ocnReminders.handler
+    timeout: 300
 
   # Test function
   scheduleTask:
@@ -351,5 +354,12 @@ stepFunctions:
                     Type: Task
                     Resource:
                       Fn::GetAtt: [markEventAsComplete, Arn]
+                    End: true
+              - StartAt: OCNReminders
+                States:
+                  OCNReminders:
+                    Type: Task
+                    Resource:
+                      Fn::GetAtt: [ocnReminders, Arn]
                     End: true
   validate: true

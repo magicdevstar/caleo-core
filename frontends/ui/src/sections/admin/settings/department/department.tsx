@@ -70,7 +70,7 @@ export default function Department({ organization }: Props) {
       contact: organization?.contact || {
         phone: organization?.contact?.phone || '',
         email: organization?.contact?.email || '',
-      },
+      } as any,
     }),
     [organization]
   );

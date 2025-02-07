@@ -2,7 +2,6 @@ import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
 import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import logger from '../utils/logger';
 import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';

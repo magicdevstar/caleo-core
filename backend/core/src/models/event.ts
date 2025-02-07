@@ -15,6 +15,8 @@ import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
 import { IOrganization } from './organization';
+import { utcToZonedTime } from 'date-fns-tz';
+import { addMonths, isBefore } from 'date-fns';
 
 const lambda = new LambdaClient({});
 
@@ -71,6 +73,7 @@ export interface IEvent extends Omit<
   createdAt?: Date;
   updatedAt?: Date;
   removedAt?: Date;
+  lastDepartmentNotificationDate?: Date;
 }
 
 export interface IUpsertEvent extends Omit<UpsertEvent, 'createdById'> {
@@ -170,6 +173,8 @@ export class EventModel extends BaseMongo<IEvent> {
     removeEnd,
     orgId,
     modifiedById,
+    lasdEventFields,
+    timezone,
   }: {
     eventId: ObjectId;
     removeId: string;
@@ -178,6 +183,8 @@ export class EventModel extends BaseMongo<IEvent> {
     removeStart?: Date;
     removeEnd?: Date;
     modifiedById: ObjectId;
+    lasdEventFields?: boolean;
+    timezone?: string;
   }) {
     const event = await this.get(eventId);
 
@@ -243,6 +250,30 @@ export class EventModel extends BaseMongo<IEvent> {
         },
         ...(pullAssignmentIds && { $pull: pullAssignmentIds }),
       });
+
+      if (
+        lasdEventFields && timezone &&
+        (!event.ocn || event.ocn.length !== 10) &&
+        event.lastDepartmentNotificationDate === undefined &&
+        isBefore(
+          utcToZonedTime(new Date(startTime), timezone!),
+          addMonths(utcToZonedTime(new Date(), timezone!), 1)
+        )
+      ) {
+        // invoke mailer lambda
+        await lambda.send(new InvokeCommand({
+          FunctionName: process.env.MAILER_LAMBDA,
+          InvocationType: 'Event',
+          Payload: JSON.stringify({
+            action: Action.Email,
+            template: MailerEvents.MissingOCN,
+            data: {
+              eventIds: [eventId],
+              orgId,
+            }
+          } as MailerEvent),
+        }));
+      }
     }
     return true;
   }

@@ -16,6 +16,8 @@ export interface IMember extends Omit<
   Member,
   'memberSkills' |
   'memberSkillIds' |
+  'memberEquipmentIds' |
+  'memberEquipment' |
   'orgId' |
   'org' |
   'rank' |
@@ -28,6 +30,7 @@ export interface IMember extends Omit<
   memberSkillIds: ObjectId[];
   orgId: ObjectId;
   rankId: ObjectId;
+  memberEquipmentIds: ObjectId[];
   
   startDate: Date;
   tierUntil: Date;

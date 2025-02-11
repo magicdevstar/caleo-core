@@ -41,6 +41,7 @@ import { IOrganization } from './organization';
 import { BaseMongo } from './base.v2';
 import { IMemberSkill } from './memberSkill';
 import { IUser } from '../types/common';
+import { IMemberEquipment } from './memberEquipment';
 
 const cognito = new CognitoIdentityProviderClient({});
 
@@ -78,6 +79,7 @@ export const defaultUserAvailability = {
 export class UserModel extends BaseMongo<IUser> {
   documentBasePath: string = 'profilePhotos';
   memberSkillsCollection: Collection;
+  memberEquipmentCollection: Collection;
 
   constructor(
     db: Db,
@@ -91,6 +93,7 @@ export class UserModel extends BaseMongo<IUser> {
   ) {
     super(db, DocType.User, 'users');
     this.memberSkillsCollection = this.db.collection('memberSkills');
+    this.memberEquipmentCollection = this.db.collection('memberEquipments');
   }
 
   findByCognitoId(cognitoId: string) {
@@ -350,19 +353,45 @@ export class UserModel extends BaseMongo<IUser> {
       skillIds = skillList.map(({ skillId }) => skillId.toString());
     }
 
+    // Fetch member equipment
+    let equipmentIds: string[] = [];
+    if ((user.member.memberEquipmentIds || []).length > 0) {
+      const equipmentList = await this.memberEquipmentCollection.find<IMemberEquipment>({
+        orgId: new ObjectId(organization.id),
+        _id: {
+          $in: user.member.memberEquipmentIds || [],
+        },
+        removedAt: { $exists: false },
+      }).toArray();
+      equipmentIds = equipmentList.map(({ equipmentId }) => equipmentId.toString());
+    }
+
     logger.info('Skills Ids', { skillIds });
 
     // Filter shifts that the user does not have a proper rank and skill for
     const rankAndSkillFilteredShifts = shifts.filter((shift) => {
-      const { requiredSkillIds: rawRequiredSkillIds, rankIds: rawRankIds } = shift.assignment;
+      const {
+        requiredSkillIds: rawRequiredSkillIds,
+        rankIds: rawRankIds,
+        requiredEquipmentIds: rawRequiredEquipmentIds,
+      } = shift.assignment;
+
       const requiredSkillIds = rawRequiredSkillIds?.map((id) => id!.toString());
-      const rankIds = rawRankIds?.map((id) => id!.toString());
-      const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!.toString());
       let hasQualifiedSkills = !Array.isArray(requiredSkillIds) || requiredSkillIds.length === 0;
       if (!hasQualifiedSkills) {
         hasQualifiedSkills = difference(requiredSkillIds || [], skillIds).length === 0;
       }
-      return hasQualifiedRank && hasQualifiedSkills;
+
+      const requiredEquipmentIds = rawRequiredEquipmentIds?.map((id) => id!.toString());
+      let hasQualifiedEquipment = !Array.isArray(requiredEquipmentIds) || requiredEquipmentIds.length === 0;
+      if (!hasQualifiedEquipment) {
+        hasQualifiedEquipment = difference(requiredEquipmentIds || [], equipmentIds).length === 0;
+      }
+
+      const rankIds = rawRankIds?.map((id) => id!.toString());
+      const hasQualifiedRank = (rankIds || []).includes(user.member.rankId!.toString());
+
+      return hasQualifiedRank && hasQualifiedSkills && hasQualifiedEquipment;
     });
 
     if (rankAndSkillFilteredShifts.length === 0) {
@@ -510,7 +539,7 @@ export class UserModel extends BaseMongo<IUser> {
     if (!organization.features.weeklyMaxShifts) {
       return false;
     }
-    const weekStartsOn: any = dayMap[organization.weekBegins] - 1;
+    const weekStartsOn: any = dayMap[organization.weekBegins!] - 1;
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
     const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
     const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });

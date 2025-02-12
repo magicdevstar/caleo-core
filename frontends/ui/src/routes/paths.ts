@@ -45,6 +45,7 @@ export const paths = {
       settings: {
         root: `${ROOTS.DASHBOARD}/admin/settings`,
         ranksAndSkill: `${ROOTS.DASHBOARD}/admin/settings/ranks-and-skills`,
+        unitAndDivision: `${ROOTS.DASHBOARD}/admin/settings/unit-and-division`,
         department: `${ROOTS.DASHBOARD}/admin/settings/department`,
         notifications: `${ROOTS.DASHBOARD}/admin/settings/notifications`,
         notificationDetails: `${ROOTS.DASHBOARD}/admin/settings/notifications/:id`,

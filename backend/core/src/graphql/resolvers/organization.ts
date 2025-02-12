@@ -103,8 +103,8 @@ export const organization = {
           label: 'LASD Event Fields'
         },
         {
-          value: 'profileTenor',
-          label: 'Profile Tenor'
+          value: 'lasdUserFields',
+          label: 'LASD User Fields'
         },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
@@ -229,6 +229,7 @@ export const organization = {
       equipment: (parent: OrganizationFeatures) => !!parent.equipment,
       lasdEventFields: (parent: OrganizationFeatures) => !!parent.lasdEventFields,
       profileTenor: (parent: OrganizationFeatures) => !!parent.profileTenor,
+      lasdUserFields: (parent: OrganizationFeatures) => !!parent.lasdUserFields,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

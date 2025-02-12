@@ -34,7 +34,7 @@ query ORGANIZATION {
       sso
       equipment
       lasdEventFields
-      profileTenor
+      lasdUserFields
     }
     customizations {
       pNumber

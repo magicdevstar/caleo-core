@@ -177,6 +177,8 @@ export const user = {
           availability: defaultUserAvailability,
           tier: inputUser.member.tier || MemberTier.Tier_1,
           ...(inputUser.member.rankId && { rankId: new ObjectId(inputUser.member.rankId) }),
+          ...(inputUser.member.unitId && { unitId: new ObjectId(inputUser.member.unitId) }),
+          ...(inputUser.member.divisionId && { divisionId: new ObjectId(inputUser.member.divisionId) }),
           maxShifts: organization?.settings?.shiftsPerWeek,
         },
       } as any);
@@ -239,6 +241,8 @@ export const user = {
         orgId: organization!._id,
         memberSkillIds: (user.member.memberSkillIds || []).map((id) => new ObjectId(id!)),
         ...(user.member.rankId && {rankId: new ObjectId(user.member.rankId!)}),
+        ...(user.member.unitId && {unitId: new ObjectId(user.member.unitId!)}),
+        ...(user.member.divisionId && {divisionId: new ObjectId(user.member.divisionId!)}),
         ...(user.member.startDate && {startDate: new Date(user.member.startDate)}),
         ...(user.member.tierUntil && {tierUntil: new Date(user.member.tierUntil)}),
         ...(user.member.tenor && {tierUntil: new Date(user.member.tenor)}),
@@ -380,6 +384,8 @@ export const user = {
           ...tierUpdates,
           ...(user.member?.tenor && { tenor: new Date(user.member?.tenor) }),
           ...(user.member?.rankId && { rankId: new ObjectId(user.member.rankId) }),
+          ...(user.member?.unitId && { unitId: new ObjectId(user.member.unitId) }),
+          ...(user.member?.divisionId && { divisionId: new ObjectId(user.member.divisionId) }),
           ...(user.member?.startDate && { startDate: new Date(user.member.startDate) }),
           orgId: new ObjectId(existingUser.member.orgId),
           contactInfo: user.member?.contactInfo || existingUser.member?.contactInfo,
@@ -504,6 +510,16 @@ export const user = {
       rank: async (member: IMember, _, { ranks }: Context) => {
         const result = await (member.rankId ? ranks.loader.load(member.rankId.toString()) : null);
         logger.info('Member rank', { member, result, rankId: member?.rankId?.toString() });
+        return result;
+      },
+      unit: async (member: IMember, _, { unit }: Context) => {
+        const result = await (member.unitId ? unit.loader.load(member.unitId.toString()) : null);
+        logger.info('Member unit', { member, result, unitId: member?.unitId?.toString() });
+        return result;
+      },
+      division: async (member: IMember, _, { division }: Context) => {
+        const result = await (member.divisionId ? division.loader.load(member.divisionId.toString()) : null);
+        logger.info('Member division', { member, result, divisionId: member?.divisionId?.toString() });
         return result;
       },
       memberSkills: (member: IMember, _, { memberSkills }: Context) => {

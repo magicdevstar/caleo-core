@@ -22,6 +22,10 @@ export interface IMember extends Omit<
   'org' |
   'rank' |
   'rankId' |
+  'unit' |
+  'unitId' |
+  'division' |
+  'divisionId' |
   'startDate' |
   'tierUntil' |
   'tenor' |
@@ -30,6 +34,8 @@ export interface IMember extends Omit<
   memberSkillIds: ObjectId[];
   orgId: ObjectId;
   rankId: ObjectId;
+  unitId?: ObjectId;
+  divisionId?: ObjectId;
   memberEquipmentIds: ObjectId[];
   
   startDate: Date;

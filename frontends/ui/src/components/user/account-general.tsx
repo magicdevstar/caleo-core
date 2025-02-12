@@ -20,6 +20,8 @@ import Divider from '@mui/material/Divider';
 // components
 import { CREATE_PROFILE_PHOTO_UPLOAD_URL, FrontendUser, GET_USER, ME, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
+import { GET_UNITS } from 'src/api/unit';
+import { GET_DIVISIONS } from 'src/api/division';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFAutocomplete,
@@ -32,7 +34,7 @@ import FormProvider, {
 import Image from 'src/components/image';
 // utils
 import { fData } from 'src/utils/format-number';
-import { MemberRole, MemberStatus, MemberTier, Rank } from 'src/__generated__/resolvers-types';
+import { Division, MemberRole, MemberStatus, MemberTier, Rank, Unit } from 'src/__generated__/resolvers-types';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames } from 'src/utils/mapped.enums';
@@ -118,7 +120,7 @@ export default function AccountGeneral({
   adminViewer: boolean;
   allDisabled?: boolean;
 }) {
-  const { disabledTiers, disabledTierUntil, profileTenor } = useFeatures();
+  const { disabledTiers, disabledTierUntil, lasdUserFields } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
@@ -150,6 +152,24 @@ export default function AccountGeneral({
   });
   const { ranks: { items: ranks } } = data || { ranks: { items: [] } };
 
+  const { data: unitData } = useQuery(GET_UNITS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {},
+    },
+  });
+  const units = unitData?.units?.items || [];
+
+  const { data: divisionsData } = useQuery(GET_DIVISIONS, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {},
+    },
+  });
+  const divisions = divisionsData?.divisions?.items || [];
+
   const tierUntilHelpText = useMemo(() => {
     if (user?.member?.tier === MemberTier.Tier_1 || !user?.member?.tierResetOnNextLottery) {
       return '';
@@ -169,7 +189,9 @@ export default function AccountGeneral({
     status: Yup.string().required('Status is required'),
     tier: Yup.string().required('Tier is required'),
     tierUntil: Yup.date().nullable(),
-    tenor: profileTenor ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
+    tenor: lasdUserFields ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
+    unit: lasdUserFields ? Yup.object().nullable().required('Unit is required') : Yup.object().nullable(),
+    division: lasdUserFields ? Yup.object().nullable().required('Division is required') : Yup.object().nullable(),
     role: Yup.string().required('Role is required'),
     photoURL: Yup.mixed<any>().nullable(),
     tierExpiration: Yup.number(),
@@ -189,6 +211,8 @@ export default function AccountGeneral({
     firstName: (user?.firstName as string) || '',
     lastName: (user?.lastName as string) || '',
     rank: (user?.member?.rank as Rank) || undefined,
+    division: (user?.member?.division as Division),
+    unit: (user?.member?.unit as Unit),
     pNumber: (user?.member?.pNumber as string) || '',
     status: (user?.member?.status) || MemberStatus.Active,
     tier: (user?.member?.tier) || MemberTier.Tier_1,
@@ -296,6 +320,8 @@ export default function AccountGeneral({
               tenor: d.tenor,
               ...(adminViewer && {
                 rankId: d.rank.id,
+                ...(d.division?.id && {divisionId: d.division.id}),
+                ...(d.unit?.id && {unitId: d.unit.id}),
                 role: d.role,
                 tier: d.tier,
                 tierUntil: d.tierUntil,
@@ -525,8 +551,58 @@ export default function AccountGeneral({
                 </>
               }
               {
-                profileTenor && (
-                  <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Hire Date" />
+                lasdUserFields && (
+                  <>
+                    <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Hire Date" />
+
+                    <RHFAutocomplete
+                      name="unit"
+                      label="Unit of Assignment"
+                      disabled={allDisabled}
+                      options={units}
+                      getOptionLabel={(option: any) => (option as Unit).name}
+                      isOptionEqualToValue={(option, value) => option.id === value.id}
+                      renderOption={(props, option) => {
+                        const unit = units.find(
+                          (u: Unit) => u.id === option.id,
+                        );
+
+                        if (!unit) {
+                          return null;
+                        }
+
+                        return (
+                          <li {...props} key={unit.id}>
+                            {unit.name}
+                          </li>
+                        );
+                      }}
+                    />
+
+                    <RHFAutocomplete
+                      name="division"
+                      label="Division"
+                      disabled={allDisabled}
+                      options={divisions}
+                      getOptionLabel={(option: any) => (option as Division).name}
+                      isOptionEqualToValue={(option, value) => option.id === value.id}
+                      renderOption={(props, option) => {
+                        const division = divisions.find(
+                          (d: Division) => d.id === option.id,
+                        );
+
+                        if (!division) {
+                          return null;
+                        }
+
+                        return (
+                          <li {...props} key={division.id}>
+                            {division.name}
+                          </li>
+                        );
+                      }}
+                    />
+                  </>
                 )
               }
             </Box>
@@ -543,7 +619,7 @@ export default function AccountGeneral({
             >
               <Box>
                 <RHFPhoneField disabled={!adminViewer || allDisabled} name="primaryPhone" label="Primary Phone" />
-                <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryPhoneReceive" label="Receive text messages" />
+                {!lasdUserFields && (<RHFSwitch disabled={!adminViewer || allDisabled} name="primaryPhoneReceive" label="Receive text messages" />)}
               </Box>
 
               <Box>
@@ -553,7 +629,7 @@ export default function AccountGeneral({
 
               <Box>
                 <RHFPhoneField disabled={allDisabled} name="secondaryPhone" label="Secondary Phone" />
-                <RHFSwitch disabled={allDisabled} name="secondaryPhoneReceive" label="Receive text messages" />
+                {!lasdUserFields && (<RHFSwitch disabled={allDisabled} name="secondaryPhoneReceive" label="Receive text messages" />)}
               </Box>
 
               <Box>

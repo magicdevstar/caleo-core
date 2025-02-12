@@ -413,7 +413,7 @@ export default function OrganizationForm({
         orgId={currentOrganization?.id || ''}
         inviteUser={inviteModal}
         disabledTiers={(getValues().features as OrganizationFeatures).disabledTiers}
-        profileTenor={(getValues().features as OrganizationFeatures).profileTenor}
+        lasdUserFields={(getValues().features as OrganizationFeatures).lasdUserFields}
       />
     </FormProvider>
   );

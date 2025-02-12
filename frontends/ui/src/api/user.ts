@@ -37,7 +37,7 @@ const userDetailProperties = `
         sso
         equipment
         lasdEventFields
-        profileTenor
+        lasdUserFields
       }
       customizations {
         pNumber
@@ -183,6 +183,14 @@ const userDetailProperties = `
       id
       name
     }
+    unit {
+      id
+      name
+    }
+    division {
+      id
+      name
+    }
     role
     status
     tier
@@ -322,6 +330,14 @@ export const GET_USERS = gql`
             id
             name
           }
+          unit {
+            id
+            name
+          }
+          division {
+            id
+            name
+          }
           tier
           status
         }
@@ -347,6 +363,8 @@ export const GET_ACCOUNT_REQUEST_USERS = gql`
           role
           adminNote
           rankId
+          unitId
+          divisionId
           contactInfo {
             primaryEmail {
               address
@@ -356,6 +374,14 @@ export const GET_ACCOUNT_REQUEST_USERS = gql`
             }
           }
           rank {
+            id
+            name
+          }
+          unit {
+            id
+            name
+          }
+          division {
             id
             name
           }

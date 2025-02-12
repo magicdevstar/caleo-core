@@ -21,6 +21,8 @@
     LOTTERY_STATE
     BROWSER_NOTIFICATION_SETTING
     USER_ANALYTICS
+    UNIT
+    DIVISION
   }
   enum DayOfWeek {
     SUNDAY
@@ -158,6 +160,8 @@
     inactivateUntil: String
     inactivationNote: String
     rankId: String
+    unitId: String
+    divisionId: String
     memberSkillIds: [String]
     memberEquipmentIds: [String]
     adminNote: String
@@ -166,6 +170,8 @@
 
     availability: UserAvailability!
     rank: Rank
+    unit: Unit
+    division: Division
     memberSkills: [MemberSkill]
     memberEquipments: [MemberEquipment]
     org: Organization
@@ -272,6 +278,8 @@
     pNumber: String
     role: MemberRole
     rankId: String
+    unitId: String
+    divisionId: String
     tenor: String
   }
 
@@ -286,6 +294,8 @@
     inactivateUntil: String
     inactivationNote: String
     rankId: String
+    unitId: String
+    divisionId: String
     memberSkillIds: [String]
     memberEquipmentIds: [String]
     adminNote: String
@@ -919,6 +929,52 @@
   }
 ###### END Rank ######
 
+###### START Unit ######
+  type Unit {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertUnit {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END Unit ######
+
+###### START Division ######
+  type Division {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertDivision {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END Unit ######
+
 ###### START Equipment ######
   enum EquipmentStatus {
     APPROVED
@@ -1059,6 +1115,7 @@
     equipment: Boolean!
     lasdEventFields: Boolean!
     profileTenor: Boolean!
+    lasdUserFields: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1221,6 +1278,7 @@
     equipment: Boolean
     lasdEventFields: Boolean
     profileTenor: Boolean
+    lasdUserFields: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1390,6 +1448,34 @@
 
   type RankSearchResult {
     items: [Rank]
+    total: Int!
+  }
+
+  input UnitSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
+  type UnitSearchResult {
+    items: [Unit]
+    total: Int!
+  }
+
+  input DivisionSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
+  type DivisionSearchResult {
+    items: [Division]
     total: Int!
   }
 
@@ -1709,6 +1795,12 @@ type Query {
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult
+
+  unit(id: String!): Unit
+  units(input: UnitSearchInput): UnitSearchResult
+
+  division(id: String!): Division
+  divisions(input: DivisionSearchInput): DivisionSearchResult
   
   skill(id: String!): Skill
   skills(input: SkillSearchInput): SkillSearchResult
@@ -1769,6 +1861,12 @@ type Mutation {
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!
+
+  unit(unit: UpsertUnit!): Unit
+  removeUnit(id: String!): ID!
+
+  division(division: UpsertDivision!): Division
+  removeDivision(id: String!): ID!
 
   skill(skill: UpsertSkill!): Skill
   removeSkill(id: String!): ID!

@@ -1,7 +1,6 @@
 import { Db } from "mongodb";
 import mongodb from './mongo';
 
-import { User } from "../__generated__/resolvers-types";
 import { AssignmentModel } from "../models/assignment";
 import { EventModel } from "../models/event";
 import { MemberNotificationModel } from "../models/memberNotification";
@@ -28,6 +27,8 @@ import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 import { IUser } from "../types/common";
 import { EquipmentModel } from "../models/equipment";
 import { MemberEquipmentModel } from "../models/memberEquipment";
+import { UnitModel } from "../models/unit";
+import { DivisionModel } from "../models/division";
 
 let db: Db;
 
@@ -43,6 +44,8 @@ export interface Context {
   lotteryCounter: LotteryCounterModel;
   users: UserModel;
   ranks: RankModel;
+  unit: UnitModel;
+  division: DivisionModel;
   skills: SkillModel;
   memberSkills: MemberSkillModel;
   equipments: EquipmentModel;
@@ -82,6 +85,8 @@ export const createContext = async (): Promise<Context> => {
   const assignments = new AssignmentModel(db);
   const skills = new SkillModel(db);
   const ranks = new RankModel(db);
+  const division = new DivisionModel(db);
+  const unit = new UnitModel(db);
   const equipments = new EquipmentModel(db);
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
   const shiftLotteryRequests = new ShiftLotteryRequestModel(db, lotteryCounter);
@@ -128,5 +133,7 @@ export const createContext = async (): Promise<Context> => {
     shiftInterestRequests,
     equipments,
     memberEquipments,
+    division,
+    unit,
   };
 };

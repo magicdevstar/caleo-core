@@ -29,7 +29,7 @@ const userDetailProperties = `
         eventCheckIn
         interestLists
         monthlyMaxHours
-        profileTenor
+        lasdUserFields
       }
       settings {
         shiftsPerWeek

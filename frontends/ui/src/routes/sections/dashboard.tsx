@@ -17,6 +17,7 @@ const UpcomingOvertime = lazyWithRetry(() => import('src/pages/dashboard/upcomin
 const RankOvertime = lazyWithRetry(() => import('src/pages/dashboard/rankOvertime'));
 const MyProfile = lazyWithRetry(() => import('src/pages/dashboard/user/account'));
 const RanksAndSkills = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
+const UnitAndDivision = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/unitAndDivision'));
 const AdminNotifications = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/notifications'));
 const EditNotification = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
@@ -94,6 +95,7 @@ export const dashboardRoutes = [
             children: [
               { element: <OvertimeSettings />, index: true },
               { path: 'ranks-and-skills', element: <RanksAndSkills /> },
+              { path: 'unit-and-division', element: <UnitAndDivision /> },
               { path: 'department', element: <DepartmentSettings /> },
               { path: 'notifications', element: <AdminNotifications /> },
               { path: 'notifications/:id', element: <EditNotification /> },

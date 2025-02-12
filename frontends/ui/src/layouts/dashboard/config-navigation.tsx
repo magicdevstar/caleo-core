@@ -48,7 +48,7 @@ const ICONS = {
 
 export function useNavData() {
   const { user } = useAuthContext()
-  const { equipment, lottery } = useFeatures();
+  const { equipment, lottery, lasdUserFields } = useFeatures();
 
   const data = useMemo(
     () => [
@@ -109,6 +109,7 @@ export function useNavData() {
               children: [
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
                 { title: equipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
+                ...(lasdUserFields ? [{ title: 'Unit and Division', path: paths.dashboard.admin.settings.unitAndDivision }] : []),
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
                 { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
               ],
@@ -117,7 +118,7 @@ export function useNavData() {
         },
       ] : [])
     ],
-    [user?.role, equipment, lottery]
+    [user?.role, equipment, lottery, lasdUserFields]
   );
 
   return data;

@@ -84,6 +84,7 @@ export const getDefaultOrgFeatures = () => ({
   equipment: false,
   lasdEventFields: false,
   profileTenor: false,
+  lasdUserFields: false,
 });
 
 export interface IOrganization extends Omit<

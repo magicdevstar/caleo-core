@@ -15,6 +15,7 @@ const defaultFeatures: OrganizationFeatures = {
   equipment: false,
   lasdEventFields: false,
   profileTenor: false,
+  lasdUserFields: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

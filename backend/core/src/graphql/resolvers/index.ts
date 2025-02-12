@@ -16,6 +16,8 @@ import { siteLock } from './siteLock';
 import { browserNotificationSubscriptions } from './browserNotificationSubscriptions';
 import { lotteryAnalytics } from './lotteryAnalytics';
 import { shiftInterestRequests } from './shiftInterestRequests';
+import { unit } from './unit';
+import { division } from './division';
 
 export default {
   Query: {
@@ -37,6 +39,8 @@ export default {
     ...lotteryAnalytics.Query,
     ...shiftInterestRequests.Query,
     ...equipment.Query,
+    ...unit.Query,
+    ...division.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -57,6 +61,8 @@ export default {
     ...lotteryAnalytics.Mutation,
     ...shiftInterestRequests.Mutation,
     ...equipment.Mutation,
+    ...unit.Mutation,
+    ...division.Mutation,
   },
   ...health.fields,
   ...organization.fields,
@@ -76,4 +82,6 @@ export default {
   ...lotteryAnalytics.fields,
   ...shiftInterestRequests.fields,
   ...equipment.fields,
+  ...unit.fields,
+  ...division.fields,
 };

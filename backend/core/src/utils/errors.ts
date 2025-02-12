@@ -7,6 +7,16 @@ export const rankErrors = {
   NAME_MUST_BE_UNIQUE: 'RANK_NAME_MUST_BE_UNIQUE',
 };
 
+export const unitErrors = {
+  NOT_FOUND: 'UNIT_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'UNIT_NAME_MUST_BE_UNIQUE',
+};
+
+export const divisionErrors = {
+  NOT_FOUND: 'DIVISION_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'DIVISION_NAME_MUST_BE_UNIQUE',
+};
+
 export const skillErrors = {
   NOT_FOUND: 'SKILL_NOT_FOUND',
   NAME_MUST_BE_UNIQUE: 'SKILL_NAME_MUST_BE_UNIQUE',

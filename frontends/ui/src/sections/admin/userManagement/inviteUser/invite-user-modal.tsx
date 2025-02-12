@@ -54,7 +54,7 @@ export default function InviteUserModal({
   const { user: { member: { orgId } } } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
   const { tierNames, enabledTiers } = useTiers();
-  const { profileTenor, disabledTiers } = useFeatures();
+  const { lasdUserFields, disabledTiers } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { data } = useQuery(GET_RANKS, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -78,8 +78,8 @@ export default function InviteUserModal({
 
   const valid = useMemo(() => {
     const validTier = disabledTiers ? true : user.member.tier.trim() !== '';
-    const validDate = profileTenor ? user.member.tenor !== null : true;
-    const validP = profileTenor ? user.member.pNumber.trim() !== '' : true;
+    const validDate = lasdUserFields ? user.member.tenor !== null : true;
+    const validP = lasdUserFields ? user.member.pNumber.trim() !== '' : true;
 
     return user.email.trim() !== '' && emailValidator(user.email) &&
       validTier &&
@@ -87,7 +87,7 @@ export default function InviteUserModal({
       validP &&
       user.member.role.trim() !== '' &&
       user.member.rankId.trim() !== '';
-  }, [user, disabledTiers, profileTenor]);
+  }, [user, disabledTiers, lasdUserFields]);
 
   const resetForm = useCallback(() => {
     setUser({
@@ -196,7 +196,7 @@ export default function InviteUserModal({
             )
           }
           {
-            profileTenor && (
+            lasdUserFields && (
               <>
                 <Grid item sm={12} md={6}>
                   <DatePicker

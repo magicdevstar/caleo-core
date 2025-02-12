@@ -48,7 +48,7 @@ export default function AccountRequestsDialog({
 }) {
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
-  const { disabledTiers, profileTenor } = useFeatures();
+  const { disabledTiers, lasdUserFields } = useFeatures();
   const [updateUser] = useMutation(UPDATE_USER, {
     refetchQueries: [ GET_ACCOUNT_REQUEST_USERS ]
   });
@@ -60,7 +60,7 @@ export default function AccountRequestsDialog({
       rank: Yup.object().when('$approve', ([approve], schema) => approve ? schema.required('Rank is required') : schema.nullable()),
       pNumber: userRequest?.approve ? Yup.string().required(`${pNumberLabel} is required`) : Yup.string(),
       rankId: Yup.string().nullable().when(['$approve', 'rank'], ([approve, rank], schema) => approve ? schema.transform(() => rank?.id) : schema),
-      tenor: profileTenor && userRequest?.approve ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
+      tenor: lasdUserFields && userRequest?.approve ? Yup.date().nullable().required('Tenor is required') : Yup.date().nullable(),
       tier: disabledTiers && userRequest?.approve ? Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)) : Yup.mixed<MemberTier>().oneOf(Object.values(MemberTier)).required('Tier is required'),
       role: userRequest?.approve ? Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)).required('Role is required') : Yup.mixed<MemberRole>().oneOf(Object.values(MemberRole)),
       adminNote: Yup.string().nullable().transform((value) => value || null),
@@ -250,7 +250,7 @@ export default function AccountRequestsDialog({
                   )
                 }
                 {
-                  profileTenor && (
+                  lasdUserFields && (
                     <RHFDatePicker
                       name="member.tenor"
                       label="Hire Date"

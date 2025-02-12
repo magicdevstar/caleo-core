@@ -23,7 +23,7 @@ export const ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
-        profileTenor
+        lasdUserFields
       }
       customizations {
         pNumber
@@ -185,7 +185,7 @@ export const UPDATE_ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
-        profileTenor
+        lasdUserFields
       }
       customizations {
         pNumber
@@ -236,7 +236,7 @@ export const CREATE_ORGANIZATION = gql`
         monthlyMaxHours
         sso
         equipment
-        profileTenor
+        lasdUserFields
       }
       customizations {
         pNumber

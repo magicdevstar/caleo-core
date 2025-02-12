@@ -15,8 +15,6 @@ export default function RanksAndSkillsView() {
   const { user } = useAuthContext();
   const settings = useSettingsContext();
 
-  console.log(user.member.org);
-
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ pb: { xs: 1, md: 2, lg: 4 } }}>
       <RankTable />

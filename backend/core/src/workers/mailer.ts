@@ -30,7 +30,7 @@ const convertDate = (unixDate: number | Date, organization: IOrganization) => {
   };
 };
 
-const sendInChunks = async (input: any, Addresses: any, Version: string) => {
+const sendInChunks = async (input: any, Addresses: any, Version: string, fromEmail: string) => {
   if (Object.keys(Addresses).length > 100) {
     const chunks = chunk(Object.keys(Addresses), 100, undefined).map((chunk) => {
       const obj = {} as Record<string, AddressConfiguration>;
@@ -47,7 +47,7 @@ const sendInChunks = async (input: any, Addresses: any, Version: string) => {
           Addresses: chunk as any,
           MessageConfiguration: {
             EmailMessage: {
-              FromAddress: process.env.FROM_EMAIL,
+              FromAddress: fromEmail,
             },
           },
           TemplateConfiguration: {
@@ -70,7 +70,7 @@ const sendInChunks = async (input: any, Addresses: any, Version: string) => {
         Addresses: Addresses as any,
         MessageConfiguration: {
           EmailMessage: {
-            FromAddress: process.env.FROM_EMAIL,
+            FromAddress: fromEmail,
           },
         },
         TemplateConfiguration: {
@@ -163,9 +163,10 @@ const sendEmail = async (input: MailerEvent) => {
     const context = await createContext();
     let Addresses: Record<string, AddressConfiguration> = {};
     let templateVersion: string = '1';
+    let fromEmail: string = process.env.FROM_EMAIL!;
     if (input.template === MailerEvents.OfficerEventRemoved) {
       const { event, organization, modifiedById } = input.data;
-
+      fromEmail = organization.fromEmail;
       const allShifts = context.shifts.collection.aggregate<IShiftExpanded>(JSON.parse(JSON.stringify([
         {
           $match: {
@@ -258,6 +259,7 @@ const sendEmail = async (input: MailerEvent) => {
       input.template === MailerEvents.OfficerAdminDeniedSkill
     ) {
       const { user, skill, organization } = input.data;
+      fromEmail = organization.fromEmail;
 
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
@@ -295,6 +297,7 @@ const sendEmail = async (input: MailerEvent) => {
       input.template === MailerEvents.OfficerAdminDeniedEquipment
     ) {
       const { user, equipment, memberEquipment, organization } = input.data;
+      fromEmail = organization.fromEmail;
 
       if (user.member.contactInfo?.primaryEmail.receiveEmails) {
         Addresses = {
@@ -329,6 +332,7 @@ const sendEmail = async (input: MailerEvent) => {
 
     } else if (input.template === MailerEvents.AdminPendingShiftRequested) {
       const { shift, createdShiftBuffer, shiftBufferShift, user, organization } = input.data;
+      fromEmail = organization.fromEmail;
       
       const event = await context.events.get(shift.eventId);
       if (!event) {
@@ -438,6 +442,7 @@ const sendEmail = async (input: MailerEvent) => {
       input.template === MailerEvents.OfficerPendingShiftDenied
     ) {
       const { shift, request, organization } = input.data;
+      fromEmail = organization.fromEmail;
 
       const user = await context.users.get(request.userId);
       if (!user) {
@@ -537,7 +542,7 @@ const sendEmail = async (input: MailerEvent) => {
                 await sendInChunks({
                   ...input,
                   template: MailerEvents.AdminEventFullyStaffed,
-                }, finalAddresses, templateVersion);
+                }, finalAddresses, templateVersion, fromEmail);
               }
             }
           }
@@ -612,7 +617,7 @@ const sendEmail = async (input: MailerEvent) => {
                 await sendInChunks({
                   ...input,
                   template: MailerEvents.AdminEventShiftsFilled,
-                }, finalAddresses, templateVersion);
+                }, finalAddresses, templateVersion, fromEmail);
               }
             }
           }
@@ -666,6 +671,7 @@ const sendEmail = async (input: MailerEvent) => {
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAdminAssignedShift) {
       const { adminAssignedShift, shift, organization } = input.data;
+      fromEmail = organization.fromEmail;
       const event = await context.events.get(shift.eventId);
       if (!event) {
         logger.error('Event not found', { input, event });
@@ -823,7 +829,7 @@ const sendEmail = async (input: MailerEvent) => {
             await sendInChunks({
               ...input,
               template: MailerEvents.AdminEventFullyStaffed,
-            }, finalAddresses, templateVersion);
+            }, finalAddresses, templateVersion, fromEmail);
           }
         }
       }
@@ -899,7 +905,7 @@ const sendEmail = async (input: MailerEvent) => {
             await sendInChunks({
               ...input,
               template: MailerEvents.AdminEventShiftsFilled,
-            }, finalAddresses, templateVersion);
+            }, finalAddresses, templateVersion, fromEmail);
           }
         }
       }
@@ -907,6 +913,7 @@ const sendEmail = async (input: MailerEvent) => {
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerRemovedFromShift) {
       const { shift, removeUser, existingUserId, organization } = input.data;
+      fromEmail = organization.fromEmail;
 
       const event = await context.events.get(shift.eventId);
       if (!event) {
@@ -1029,7 +1036,7 @@ const sendEmail = async (input: MailerEvent) => {
           await sendInChunks({
             ...input,
             template: MailerEvents.AdminUnassignOfficerShift,
-          }, EmailAddresses, templateVersion);
+          }, EmailAddresses, templateVersion, fromEmail);
         } catch(error) {
           logger.error('Failed to send admin notification', { error });
         }
@@ -1038,6 +1045,7 @@ const sendEmail = async (input: MailerEvent) => {
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.AdminShiftRelinquished) {
       const { existingUserId, shift, organization } = input.data;
+      fromEmail = organization.fromEmail;
 
       const event = await context.events.get(shift.eventId);
       if (!event) {
@@ -1117,6 +1125,7 @@ const sendEmail = async (input: MailerEvent) => {
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAssignmentRemoved) {
       const { assignment, organization, modifiedById } = input.data;
+      fromEmail = organization.fromEmail;
 
       const event = await context.events.get(assignment.eventId);
       if (!event) {
@@ -1219,6 +1228,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, organization });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const event = await context.events.get(shift.eventId);
       if (!event) {
@@ -1283,6 +1293,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, organization });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const allUsers = await context.users.collection.find<IUser>({
         'member.orgId': new ObjectId(orgId),
@@ -1368,6 +1379,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, organization });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const allUsers = await context.users.collection.find<IUser>({
         'member.orgId': new ObjectId(orgId),
@@ -1404,6 +1416,7 @@ const sendEmail = async (input: MailerEvent) => {
       } while(user);
     } else if (input.template === MailerEvents.OfficerFcfsShiftAvailable) {
       const { shiftId, organization } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const shift = await context.shifts.collection.findOne<IShift>({
         shiftId,
@@ -1521,6 +1534,7 @@ const sendEmail = async (input: MailerEvent) => {
       }
     } else if (input.template === MailerEvents.OfficerFcfsEventAvailable) {
       const { eventId, organization } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const event = await context.events.get(eventId);
       if (!event) {
@@ -1660,6 +1674,7 @@ const sendEmail = async (input: MailerEvent) => {
         user: IUser;
         organization: IOrganization;
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       let url = `${process.env.REGISTER_URL || ''}?orgId=${organization.id}&email=${inviteEmail}`;
 
@@ -1695,6 +1710,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, organization });
         return;
      }
+     fromEmail = organization.fromEmail || fromEmail;
 
       const allAdmins = await context.users.getAllAdmins({
         orgId: new ObjectId(orgId),
@@ -1747,6 +1763,7 @@ const sendEmail = async (input: MailerEvent) => {
         inactivateUntil,
         inactivationNote,
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const user = await context.users.get(inputUser.id);
       if (!user) {
@@ -1794,6 +1811,7 @@ const sendEmail = async (input: MailerEvent) => {
         organization,
         orgId,
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const user = await context.users.get(inputUser.id);
       if (!user) {
@@ -1836,6 +1854,7 @@ const sendEmail = async (input: MailerEvent) => {
         shiftIds,
         organization,
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const shifts = await context.shifts.collection.find<IShift>({
         _id: { $in: shiftIds.map((id: string) => new ObjectId(id)) },
@@ -1934,6 +1953,7 @@ const sendEmail = async (input: MailerEvent) => {
         shift: IShift,
         organization: IOrganization,
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const user = await context.users.get(shift.userId!);
       if (!user) {
@@ -1992,6 +2012,7 @@ const sendEmail = async (input: MailerEvent) => {
       });
     } else if (input.template === MailerEvents.OfficerInterestListClosing || input.template === MailerEvents.OfficerInterestListOpening) {
       const { eventId, organization } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const event = await context.events.get(eventId);
       if (!event) {
@@ -2114,6 +2135,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, orgId });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const venue = await context.venues.get(venueId);
       if (!venue) {
@@ -2190,6 +2212,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, orgId });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const venue = await context.venues.get(event.venueId);
       if (!venue) {
@@ -2238,6 +2261,7 @@ const sendEmail = async (input: MailerEvent) => {
         user: IUser;
         organization: IOrganization;
       } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
 
       const email = user.member.contactInfo?.primaryEmail.address;
       if (!email) {
@@ -2283,6 +2307,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Organization not found', { input, orgId });
         return;
       }
+      fromEmail = organization.fromEmail || fromEmail;
 
       const events = await context.events.collection.find({
         _id: { $in: eventIds.map((id) => new ObjectId(id)) },
@@ -2322,7 +2347,7 @@ const sendEmail = async (input: MailerEvent) => {
       });
       return;
     }
-    await sendInChunks(input, Addresses, templateVersion);
+    await sendInChunks(input, Addresses, templateVersion, fromEmail);
   } catch(error) {
     logger.error('Error sending email', { error, input });
     throw error;

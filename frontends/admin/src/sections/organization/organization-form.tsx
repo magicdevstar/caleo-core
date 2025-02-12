@@ -67,6 +67,7 @@ export default function OrganizationForm({
       city: Yup.string(),
       weekBegins: Yup.string(),
       timezone: Yup.string(),
+      fromEmail: Yup.string().nullable(),
       zip: Yup.string(),
       customizations: Yup.object().shape({
         pNumber: Yup.string(),
@@ -111,6 +112,7 @@ export default function OrganizationForm({
       zip: currentOrganization?.zip || '',
       weekBegins: currentOrganization?.weekBegins || 'SUNDAY',
       timezone: currentOrganization?.timezone || 'America/Los_Angeles',
+      fromEmail: currentOrganization?.fromEmail,
       features: currentOrganization?.flatFeatures ? JSON.parse(currentOrganization?.flatFeatures) as {} : {},
       customizations: omit(clone(currentOrganization?.customizations!), ['__typename']) as OrganizationCustomizations,
       sso: (currentOrganization?.sso ? {
@@ -192,6 +194,13 @@ export default function OrganizationForm({
             <RHFTextField name="name" label="Name *" disabled={isSubmitting} />
 
             <RHFTextField name="address" label="Address" disabled={isSubmitting} />
+
+            <RHFTextField
+              name="fromEmail"
+              label="From Email"
+              helperText="Custom email address that will be used to send email communication through"
+              disabled={isSubmitting}
+            />
 
             <Stack spacing={3} direction={{ xs: 'column', md: 'row' }}>
               <RHFTextField name="city" label="City" disabled={isSubmitting} />

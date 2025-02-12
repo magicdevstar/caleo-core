@@ -1074,6 +1074,7 @@
     removedAt: String
     modifiedById: String
     ssoAppName: String
+    fromEmail: String
     settings: OrganizationOvertimeSettings
     features: OrganizationFeatures!
     flatFeatures: String!
@@ -1208,6 +1209,7 @@
     zip: String
     weekBegins: DayOfWeek
     timezone: String
+    fromEmail: String
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
     features: UpsertOrganizationFeatures
@@ -1223,6 +1225,7 @@
     zip: String
     weekBegins: DayOfWeek
     timezone: String
+    fromEmail: String
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
     features: UpsertOrganizationFeatures

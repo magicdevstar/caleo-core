@@ -155,6 +155,7 @@ export type CreateOrganization = {
   city?: InputMaybe<Scalars['String']['input']>;
   contact?: InputMaybe<UpsertOrganizationContact>;
   features?: InputMaybe<UpsertOrganizationFeatures>;
+  fromEmail?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
   sso?: InputMaybe<UpsertOrganizationSsoSettings>;
@@ -1168,6 +1169,7 @@ export type Organization = {
   docType: DocType;
   features: OrganizationFeatures;
   flatFeatures: Scalars['String']['output'];
+  fromEmail?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -2102,6 +2104,7 @@ export type UpsertOrganization = {
   contact?: InputMaybe<UpsertOrganizationContact>;
   customizations?: InputMaybe<UpsertOrganizationCustomizations>;
   features?: InputMaybe<UpsertOrganizationFeatures>;
+  fromEmail?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   settings?: InputMaybe<UpsertOrganizationOvertimeSettings>;
@@ -3343,6 +3346,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   features?: Resolver<ResolversTypes['OrganizationFeatures'], ParentType, ContextType>;
   flatFeatures?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fromEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

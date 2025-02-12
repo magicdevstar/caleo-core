@@ -26,7 +26,7 @@ params:
     uiClientId: 6eb59tb72ti81bh5oh3vf9hvq1
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
-    fromEmail: lvmpd@caleopro.com
+    fromEmail: app@caleopro.com
     LOG_LEVEL: warn
     LOG_SAMPLE_RATE: 0
     ENABLED_ALERTS: 'true'

@@ -8,6 +8,7 @@ export const ORGANIZATION = gql`
       address
       city
       zip
+      fromEmail
       contact {
         email
         phone
@@ -118,6 +119,7 @@ export const ORGANIZATION_BY_ID = gql`
       zip
       state
       timezone
+      fromEmail
       weekBegins
       flatFeatures
       customizations {
@@ -176,6 +178,7 @@ export const UPDATE_ORGANIZATION = gql`
       zip
       state
       timezone
+      fromEmail
       weekBegins
       features {
         lottery
@@ -227,6 +230,7 @@ export const CREATE_ORGANIZATION = gql`
       zip
       state
       timezone
+      fromEmail
       weekBegins
       features {
         lottery

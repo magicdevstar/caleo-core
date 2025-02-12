@@ -27,6 +27,7 @@ import { RouterLink } from 'src/routes/components';
 import {
   EventStatus,
   Venue,
+  OrganizationFeatures,
 } from 'src/__generated__/resolvers-types';
 // components
 import { useSnackbar } from 'src/components/snackbar';
@@ -45,6 +46,7 @@ import { states } from 'src/utils/states';
 
 // ----------------------------------------------------------------------
 
+const PUBLIC_ORGANIZATION_FEATURES_ENDPOINT = `${APOLLO_API}/public/organizations/:id/features`;
 const PUBLIC_VENUE_ENDPOINT = `${APOLLO_API}/public/venues`;
 const PUBLIC_EVENT_ENDPOINT = `${APOLLO_API}/public/event`;
 const NEW_VENUE_ID = 'new-venue';
@@ -107,11 +109,28 @@ export default function EventRequest() {
   });
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
 
+  const { data: orgFeatures, isLoading: featuresLoading } = useSWR<OrganizationFeatures>(
+    [
+      PUBLIC_ORGANIZATION_FEATURES_ENDPOINT.replace(':id', orgId || ''),
+    ],
+    async () => {
+      if (!orgId) {
+        return undefined;
+      }
+      const res = await fetch(PUBLIC_ORGANIZATION_FEATURES_ENDPOINT.replace(':id', orgId || ''));
+      return res.json();
+    },
+    {
+      refreshInterval: 0,
+    },
+  );
+
   useEffect(() => {
-    if (!orgId) {
+    console.log(orgId, featuresLoading, orgFeatures?.externalEventRequests);
+    if (!orgId || (!featuresLoading && !orgFeatures?.externalEventRequests)) {
       window.location.href = '/';
     }
-  }, [orgId]);
+  }, [orgId, orgFeatures, featuresLoading]);
 
   const { data: venueRes, isLoading: venuesLoading } = useSWR(
     [

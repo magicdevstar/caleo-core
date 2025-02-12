@@ -37,6 +37,7 @@ export const handler = async (event: APIGatewayEvent) => {
       limit: params?.limit ? parseInt(params.limit) : 10,
       query: params?.query,
       status: VenueStatus.Active,
+      orgId: organization._id!,
     });
     
     return {

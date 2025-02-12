@@ -159,6 +159,13 @@ functions:
       - httpApi:
           path: /public/event
           method: POST
+  orgFeatures:
+    handler: src/public/orgFeatures.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /public/organizations/{orgId}/features
+          method: GET
 
   uiErrors:
     handler: src/uiErrors.handler

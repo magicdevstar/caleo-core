@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useSnackbar } from 'notistack';
+import copy from 'copy-to-clipboard';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 // @apollo/client
@@ -27,7 +28,7 @@ import { useFeatures } from 'src/hooks/use-features';
 export default function EventsTable() {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
-  const { venueContractDates } = useFeatures();
+  const { venueContractDates, externalEventRequests } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
@@ -41,13 +42,26 @@ export default function EventsTable() {
   const config: TableConfig<Event> = {
     header: {
       title: 'Events',
-      button: {
-        text: 'Add Event',
-        icon: 'ic:baseline-add',
-        onClick: () => {
-          navigate('/dashboard/admin/overtime/events/new');
-        },
-      }
+      buttons: [
+        ...(externalEventRequests ? [
+          {
+            key: 'copy-event-request-url',
+            text: 'Copy Event Request URL',
+            icon: 'ic:baseline-content-copy',
+            onClick: () => {
+              copy(`${window.location.origin}/external/request/event?orgId=${user?.member?.org?.id}`);
+            },
+          },
+        ] : []),
+        {
+          key: 'add-event',
+          text: 'Add Event',
+          icon: 'ic:baseline-add',
+          onClick: () => {
+            navigate('/dashboard/admin/overtime/events/new');
+          },
+        }
+      ]
     },
     search: {
       defaultTableConfig: {

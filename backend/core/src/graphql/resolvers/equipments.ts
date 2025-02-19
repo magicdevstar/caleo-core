@@ -29,6 +29,8 @@ export const equipment = {
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
+      orderBy: input.orderBy || 'name',
+      order:  input.order || 'asc',
       ...(rankOnlyIds ? {
         $or: [
           { rankOnlyIds: [] },

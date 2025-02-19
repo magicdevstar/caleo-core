@@ -354,6 +354,7 @@ export const shift = {
       {
         user,
         shifts,
+        events,
         organization,
       }: Context
     ): Promise<string> => {
@@ -378,6 +379,18 @@ export const shift = {
         ...(updates.startTime && { startTime }),
         ...(updates.endTime && { endTime }),
       });
+
+      if (updates.endTime || updates.startTime) {
+        await events.updateEvent({
+          eventId: new ObjectId(existingShifts[0].eventId),
+          removeId: shiftId,
+          removeType: EventRemoveEventType.shiftUpdate,
+          orgId: user?.member.orgId!,
+          modifiedById: user!._id!,
+          lasdEventFields: organization?.features.lasdEventFields,
+          timezone: organization?.timezone,
+        });
+      }
 
       return shiftId;
     },

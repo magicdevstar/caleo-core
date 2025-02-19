@@ -2328,13 +2328,17 @@ const sendEmail = async (input: MailerEvent) => {
         }
       });
 
+      const eventNames = events.map((e) =>
+        `<a href="${process.env.APP_URL || ''}/dashboard/admin/overtime/events/${e._id.toString()}" target="_blank">${e.name}</a>`
+      ).join('<br/>- ');
+
       Addresses = {
         ...Addresses,
         [organization.contact?.email!]: {
           ChannelType: 'EMAIL',
           Substitutions: {
             "system.metro_name": [organization.name],
-            "event_names": [`- ${events.map((e) => e.name).join('<br/>- ')}`],
+            "event_names": [`- ${eventNames}`],
           },
         },
       };

@@ -26,6 +26,7 @@ import FormProvider, {
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
 import { states } from 'src/utils/states';
 import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,7 @@ type Props = {
 };
 
 export default function Department({ organization }: Props) {
+  const { lasdEventFields } = useFeatures();
   const mdUp = useResponsive('up', 'md');
 
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION, {
@@ -45,15 +47,15 @@ export default function Department({ organization }: Props) {
   const OrganizationSchema = Yup.object().shape({
     id: Yup.string().required(),
     name: Yup.string().required('Name is required'),
-    address: Yup.string().required('Address is required'),
-    state: Yup.string().required('State is required'),
-    city: Yup.string().required('City is required'),
-    zip: Yup.string().required('Zip code is required'),
+    address: Yup.string().default(''),
+    state: Yup.string().default(''),
+    city: Yup.string().default(''),
+    zip: Yup.string().default(''),
     weekBegins: Yup.string().required('Week begins is required'),
     timezone: Yup.string().required('Timezone is required'),
     contact: Yup.object().shape({
-      phone: Yup.string().required('Phone is required'),
-      email: Yup.string().required('Email is required'),
+      phone: Yup.string().default('5555555555'),
+      email: Yup.string().default(''),
     }),
   });
 
@@ -68,7 +70,7 @@ export default function Department({ organization }: Props) {
       weekBegins: organization?.weekBegins || '',
       timezone: organization?.timezone || '',
       contact: organization?.contact || {
-        phone: organization?.contact?.phone || '',
+        phone: organization?.contact?.phone,
         email: organization?.contact?.email || '',
       } as any,
     }),
@@ -249,7 +251,7 @@ export default function Department({ organization }: Props) {
               <RHFTextField
                 type="email"
                 name="contact.email"
-                label="Email"
+                label={lasdEventFields ? "OCN Reminder Email" : "Email"}
                 helperText="The email contact for your department"
               />
             </Stack>

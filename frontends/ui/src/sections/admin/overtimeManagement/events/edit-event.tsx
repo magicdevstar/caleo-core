@@ -811,12 +811,7 @@ export default function EditEvent({ currentEvent }: Props) {
                         value={
                           currentFormValues?.scheduledInterestList ?
                           dayjs(new Date(currentFormValues?.scheduledInterestList)) :
-                          dayjs(
-                            currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-                          ).subtract(
-                            user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
-                            'hours'
-                          )
+                          dayjs(new Date())
                         }
                         onChange={(date) => {
                           setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')

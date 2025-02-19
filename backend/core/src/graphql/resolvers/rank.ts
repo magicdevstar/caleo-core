@@ -20,6 +20,8 @@ export const rank = {
       orgId: user?.member.orgId!,
       queryField: 'name',
       ...input,
+      orderBy: input.orderBy || 'name',
+      order:  input.order || 'asc',
     }),
   },
   Mutation: {

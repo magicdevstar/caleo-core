@@ -19,6 +19,7 @@ params:
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
     cognitoURL: https://caleo-dev.auth.us-west-2.amazoncognito.com
+    docusignBase: https://account-d.docusign.com
   prod:
     dbName: caleo-prod
     poolName: lvmpd-oms-prod
@@ -34,6 +35,7 @@ params:
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
     cognitoURL: https://caleo.auth.us-west-2.amazoncognito.com
+    docusignBase: https://account.docusign.com
 
 provider:
   name: aws
@@ -77,6 +79,8 @@ provider:
     ENABLED_ALERTS: ${param:ENABLED_ALERTS}
     COGNITO_URL: ${param:cognitoURL}
     COGNITO_CLIENT_ID: ${param:uiClientId}
+    NODE_OPTIONS: --enable-source-maps
+    DOCUSIGN_BASE: ${param:docusignBase}
   iam:
     role:
       statements:
@@ -88,6 +92,7 @@ provider:
             - 'scheduler:*'
             - 'states:*'
             - 'mobiletargeting:*'
+            - 'secretsmanager:GetSecretValue'
             - cognito-idp:AdminSetUserPassword
             - cognito-idp:AdminUpdateUserAttributes
           Resource: '*'
@@ -98,6 +103,7 @@ plugins:
   - serverless-step-functions
 
 package:
+  individually: true
   patterns:
     - schema.graphql
 
@@ -112,21 +118,15 @@ custom:
     apiType: http
   esbuild:
     bundle: true
-    minify: false
+    minify: true
     packager: yarn
     external:
       - 'saslprep'
-    exclude:
-      - '@aws-sdk'
 
-# Create the authorizer
-# Create a hook that will create a user when a new user signs up
 functions:
-  # testFun:
-  #   handler: src/workers/test.handler
   # GQL API
   graphql:
-    handler: src/index.handler
+    handler: src/handlers/api/graphql.handler
     memorySize: 2048
     timeout: 15
     events:
@@ -138,29 +138,36 @@ functions:
       - httpApi:
           path: /
           method: GET
+  docusign:
+    handler: src/handlers/api/public/docusign.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /docusign
+          method: POST
   getVenues:
-    handler: src/public/getVenues.handler
+    handler: src/handlers/api/public/getVenues.handler
     timeout: 15
     events:
       - httpApi:
           path: /public/venues
           method: GET
   getSSOConfig:
-    handler: src/public/getSSOConfig.handler
+    handler: src/handlers/api/public/getSSOConfig.handler
     timeout: 15
     events:
       - httpApi:
           path: /public/sso
           method: GET
   eventRequest:
-    handler: src/public/eventRequest.handler
+    handler: src/handlers/api/public/eventRequest.handler
     timeout: 15
     events:
       - httpApi:
           path: /public/event
           method: POST
   orgFeatures:
-    handler: src/public/orgFeatures.handler
+    handler: src/handlers/api/public/orgFeatures.handler
     timeout: 15
     events:
       - httpApi:
@@ -168,7 +175,7 @@ functions:
           method: GET
 
   uiErrors:
-    handler: src/uiErrors.handler
+    handler: src/handlers/api/uiErrors.handler
     events:
       - httpApi:
           path: /errors
@@ -178,7 +185,7 @@ functions:
 
   # Register Cognito User Hook
   registerUser:
-    handler: src/workers/register.handler
+    handler: src/handlers/cognito/registerUser.handler
     events:
       - cognitoUserPool:
           pool: ${param:poolName}
@@ -186,57 +193,77 @@ functions:
           existing: true
           forceDeploy: true
 
+  updateSSOUser:
+    handler: src/handlers/cognito/updateSSOUser.handler
+    events:
+      - cognitoUserPool:
+          pool: ${param:poolName}
+          trigger: PostAuthentication
+          existing: true
+          forceDeploy: true
+
+  preSignUpDebug:
+    handler: src/handlers/cognito/preSignUpDebug.handler
+    events:
+      - cognitoUserPool:
+          pool: ${param:poolName}
+          trigger: PreSignUp
+          existing: true
+          forceDeploy: true
+
   # Scheduled Tasks
   scheduledEvents:  
-    handler: src/scheduled/scheduledEvents.handler
+    handler: src/handlers/eventBridge/scheduledEvents.handler
+
+  refreshDSTokens:
+    handler: src/handlers/eventBridge/refreshDSToken.handler
+    timeout: 120
+    events:
+      - schedule: rate(30 minutes)
 
   # Lotto Step Function
   fetchShifts:
-    handler: src/steps/fetchShifts.handler
+    handler: src/handlers/steps/lottery/fetchShifts.handler
     memorySize: 2048
     timeout: 300
   assignShift:
-    handler: src/steps/assignShift.handler
+    handler: src/handlers/steps/lottery/assignShift.handler
     memorySize: 2048
     timeout: 300
   finalizeLottery:
-    handler: src/steps/finalizeLottery.handler
+    handler: src/handlers/steps/lottery/finalizeLottery.handler
     timeout: 300
   postFCFSShifts:
-    handler: src/steps/postFCFSShifts.handler
+    handler: src/handlers/steps/lottery/postFCFSShifts.handler
     timeout: 300
   lotteryAnalytics:
-    handler: src/steps/lotteryAnalytics.handler
+    handler: src/handlers/steps/lottery/lotteryAnalytics.handler
     timeout: 300
 
   shiftNotificationScheduler:
-    handler: src/workers/shiftNotificationScheduler.handler
+    handler: src/handlers/invoke/shiftNotificationScheduler.handler
     timeout: 300
   mailer:
-    handler: src/workers/mailer.handler
+    handler: src/handlers/invoke/mailer.handler
     memorySize: 2048
     timeout: 300
 
   # Data sync functions
   memberStatusSync:
-    handler: src/steps/memberStatusSync.handler
+    handler: src/handlers/steps/sync/memberStatusSync.handler
     timeout: 300
   tierResetSync:
-    handler: src/steps/tierResetSync.handler
+    handler: src/handlers/steps/sync/tierResetSync.handler
     timeout: 300
   markEventAsComplete:
-    handler: src/steps/markEventAsComplete.handler
+    handler: src/handlers/steps/sync/markEventAsComplete.handler
     timeout: 300
   checkoutNotifications:
-    handler: src/steps/checkoutNotifications.handler
+    handler: src/handlers/steps/sync/checkoutNotifications.handler
     timeout: 300
   ocnReminders:
-    handler: src/steps/ocnReminders.handler
+    handler: src/handlers/steps/sync/ocnReminders.handler
     timeout: 300
-
-  # Test function
-  scheduleTask:
-    handler: src/scheduled/test.handler
 
 resources:
   Resources:

@@ -3,8 +3,8 @@ import { WebClient } from '@slack/web-api';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import type { APIGatewayProxyEventV2WithLambdaAuthorizer } from 'aws-lambda';
 
-import logger from './utils/logger';
-import { User } from './__generated__/resolvers-types';
+import logger from '../../utils/logger';
+import { User } from '../../__generated__/resolvers-types';
 
 const slack = new WebClient(process.env.SLACK_TOKEN);
 

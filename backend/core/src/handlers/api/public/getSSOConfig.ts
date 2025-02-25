@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
-import logger from "../utils/logger";
-import { createContext } from "../utils/createContext";
+import logger from "../../../utils/logger";
+import { createContext } from "../../../utils/createContext";
 
 export const handler = async (event: APIGatewayEvent) => {
   try {

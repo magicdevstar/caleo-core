@@ -1,9 +1,6 @@
-import { ObjectId } from "mongodb";
-import difference from 'lodash.difference';
-import uniq from 'lodash.uniq';
-import { Assignment, VenueStatus } from "../__generated__/resolvers-types";
-import { createContext } from "../utils/createContext";
-import logger from "../utils/logger";
+import { VenueStatus } from "../../../__generated__/resolvers-types";
+import { createContext } from "../../../utils/createContext";
+import logger from "../../../utils/logger";
 import { APIGatewayEvent } from "aws-lambda";
 
 export const handler = async (event: APIGatewayEvent) => {

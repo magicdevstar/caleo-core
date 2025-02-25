@@ -6,12 +6,11 @@ import {
   handlers
 } from '@as-integrations/aws-lambda';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
-import typeDefs from './graphql/typedefs';
-import logger, { loggerMiddleware } from './utils/logger';
-import resolvers from './graphql/resolvers';
-import { Context, createContext } from './utils/createContext';
-import { User } from './__generated__/resolvers-types';
-import { userFromEvent } from './utils/userFromEvent';
+import typeDefs from '../../graphql/typedefs';
+import logger, { loggerMiddleware } from '../../utils/logger';
+import resolvers from '../../graphql/resolvers';
+import { Context, createContext } from '../../utils/createContext';
+import { userFromEvent } from '../../utils/userFromEvent';
 
 const server = new ApolloServer({
   typeDefs,

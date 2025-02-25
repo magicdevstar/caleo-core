@@ -1,8 +1,8 @@
 import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
-import logger from '../utils/logger';
-import { createContext } from '../utils/createContext';
+import logger from '../../../utils/logger';
+import { createContext } from '../../../utils/createContext';
 import { FinalizeOutput } from './finalizeLottery';
 
 const lotteryAnalytics = async ({

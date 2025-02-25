@@ -2,9 +2,9 @@ import middy from '@middy/core';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
-import logger from '../utils/logger';
-import { createContext } from '../utils/createContext';
-import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import logger from '../../../utils/logger';
+import { createContext } from '../../../utils/createContext';
+import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
 import { subHours } from 'date-fns';
 
 const lambda = new LambdaClient({});

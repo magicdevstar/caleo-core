@@ -2,8 +2,8 @@ import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
-import logger from '../utils/logger';
-import { Action, MailerEvent, MailerEvents } from '../types/mailer';
+import logger from '../../../utils/logger';
+import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
 import { FinalizeOutput } from './finalizeLottery';
 
 const lambda = new LambdaClient({});

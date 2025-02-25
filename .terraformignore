@@ -1,5 +1,4 @@
-backend/core
-backend/ops
-frontend
-migrations
-admin
+backend/core/
+backend/ops/
+ops/
+frontends/

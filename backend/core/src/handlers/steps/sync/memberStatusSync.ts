@@ -2,11 +2,11 @@ import middy from '@middy/core';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
-import logger from '../utils/logger';
-import { createContext } from '../utils/createContext';
-import { MemberStatus } from '../__generated__/resolvers-types';
-import { Action, MailerEvent, MailerEvents } from '../types/mailer';
-import { IOrganization } from '../models/organization';
+import logger from '../../../utils/logger';
+import { createContext } from '../../../utils/createContext';
+import { MemberStatus } from '../../../__generated__/resolvers-types';
+import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
+import { IOrganization } from '../../../models/organization';
 
 const lambda = new LambdaClient();
 

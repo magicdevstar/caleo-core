@@ -1,10 +1,10 @@
 import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
-import logger from '../utils/logger';
-import { createContext } from '../utils/createContext';
+import logger from '../../../utils/logger';
+import { createContext } from '../../../utils/createContext';
 import { addHours, addSeconds, setMilliseconds, setSeconds } from 'date-fns';
-import { EventStatus } from '../__generated__/resolvers-types';
+import { EventStatus } from '../../../__generated__/resolvers-types';
 import { ObjectId } from 'mongodb';
 
 interface InputEvent {
@@ -62,8 +62,8 @@ const finalizeLottery = async (input: InputEvent): Promise<FinalizeOutput> => {
 
   const fcfsScheduledTime = setMilliseconds(
     setSeconds(
-      // addSeconds(new Date(), 30),
-      addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1),
+      addSeconds(new Date(), 30),
+      // addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1),
       0
     ),
     0

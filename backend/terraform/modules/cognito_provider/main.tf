@@ -6,7 +6,7 @@ resource "aws_cognito_identity_provider" "provider" {
   provider_details = {
     IDPInit                 = false
     IDPSignout              = false
-    EncryptedResponses      = true
+    EncryptedResponses      = false
     MetadataURL             = var.metadata_url
     RequestSigningAlgorithm = "rsa-sha256"
   }

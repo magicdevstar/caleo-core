@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb";
-import { VenueStatus } from "../__generated__/resolvers-types";
-import { IEvent } from "../models/event";
-import { MailerEvents } from "../types/mailer";
-import { createContext } from "../utils/createContext";
-import logger from "../utils/logger";
+import { VenueStatus } from "../../../__generated__/resolvers-types";
+import { IEvent } from "../../../models/event";
+import { MailerEvents } from "../../../types/mailer";
+import { createContext } from "../../../utils/createContext";
+import logger from "../../../utils/logger";
 import { APIGatewayEvent } from "aws-lambda";
-import { IIVenue } from "../models/venue";
+import { IIVenue } from "../../../models/venue";
 
 export const handler = async (inputEvent: APIGatewayEvent) => {
   try {

@@ -4,11 +4,11 @@ import { subHours, subMinutes } from 'date-fns';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
-import logger from '../utils/logger';
-import { Action, MailerEvent, MailerEvents } from '../types/mailer';
-import { createContext } from '../utils/createContext';
-import { IOrganization } from '../models/organization';
-import { EventStatus } from '../__generated__/resolvers-types';
+import logger from '../../../utils/logger';
+import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
+import { createContext } from '../../../utils/createContext';
+import { IOrganization } from '../../../models/organization';
+import { EventStatus } from '../../../__generated__/resolvers-types';
 
 const lambda = new LambdaClient({});
 

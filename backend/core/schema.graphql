@@ -23,6 +23,7 @@
     USER_ANALYTICS
     UNIT
     DIVISION
+    DS_TOKEN
   }
   enum DayOfWeek {
     SUNDAY

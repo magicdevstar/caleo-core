@@ -222,6 +222,7 @@ export enum DocType {
   Assignment = 'ASSIGNMENT',
   BrowserNotificationSetting = 'BROWSER_NOTIFICATION_SETTING',
   Division = 'DIVISION',
+  DsToken = 'DS_TOKEN',
   Equipment = 'EQUIPMENT',
   Event = 'EVENT',
   InAppNotification = 'IN_APP_NOTIFICATION',

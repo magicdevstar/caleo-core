@@ -3,8 +3,8 @@ import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { v4 as uuid } from 'uuid';
 
-import logger from '../utils/logger';
-import { Context, createContext } from '../utils/createContext';
+import logger from '../../utils/logger';
+import { Context, createContext } from '../../utils/createContext';
 import {
   BaseNotificationEvent,
   NotificationType,
@@ -13,8 +13,8 @@ import {
   ShiftRemoveNotification,
   ShiftUpsertAllNotifications,
   ShiftUpsertNotification
-} from '../types/notifications';
-import { ScheduleEvent } from '../models/scheduler';
+} from '../../types/notifications';
+import { ScheduleEvent } from '../../models/scheduler';
 import { ObjectId } from 'mongodb';
 import { utcToZonedTime } from 'date-fns-tz';
 import { format, subHours } from 'date-fns';

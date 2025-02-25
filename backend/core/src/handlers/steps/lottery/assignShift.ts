@@ -6,12 +6,13 @@ import difference from 'lodash.difference';
 import shuffle from 'lodash.shuffle';
 import uniqBy from 'lodash.uniqby';
 
-import logger from '../utils/logger';
-import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../__generated__/resolvers-types';
-import { createContext } from '../utils/createContext';
-import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../types/notifications';
-import { LotteryState } from '../models/lotteryState';
-import { IStagedShiftLotteryRequest } from '../models/shiftLotteryRequest';
+import logger from '../../../utils/logger';
+import { MemberTier, ShiftLotteryRequestStatus, ShiftStatus } from '../../../__generated__/resolvers-types';
+import { createContext } from '../../../utils/createContext';
+import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../../../types/notifications';
+import { LotteryState } from '../../../models/lotteryState';
+import { IStagedShiftLotteryRequest } from '../../../models/shiftLotteryRequest';
+import { IShift } from '../../../models/shift';
 
 interface InputEvent {
   _id: string;
@@ -61,13 +62,13 @@ const assignShift = async ({
   });
 
   if (shifts.length === 0) {
-    if (reRun) {
-      return {
-        tier1Assignments: [],
-        dryRun: !!dryRun,
-      }
+    const shift = await shiftsModel.collection.findOne<IShift>({ shiftId: shiftGroupId });
+    return {
+      orgId: shift?.orgId || shifts[0].orgId,
+      tier1Assignments: [],
+      dryRun: !!dryRun,
+      acceptedRequestIds: [],
     }
-    throw new Error('Shifts not found');
   }
   
   // Fetch requests

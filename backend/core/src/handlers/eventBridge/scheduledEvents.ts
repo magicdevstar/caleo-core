@@ -3,11 +3,11 @@ import middy from '@middy/core';
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
-import logger from '../utils/logger';
-import { ScheduleEvent } from '../models/scheduler';
-import { createContext } from '../utils/createContext';
-import { EventStatus, MemberStatus, MemberTier } from '../__generated__/resolvers-types';
-import { Action, MailerEvents, MailerEvent } from '../types/mailer';
+import logger from '../../utils/logger';
+import { ScheduleEvent } from '../../models/scheduler';
+import { createContext } from '../../utils/createContext';
+import { EventStatus, MemberStatus, MemberTier } from '../../__generated__/resolvers-types';
+import { Action, MailerEvents, MailerEvent } from '../../types/mailer';
 import { ObjectId } from 'mongodb';
 
 const client = new SFNClient({});

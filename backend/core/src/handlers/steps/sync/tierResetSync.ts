@@ -1,9 +1,9 @@
 import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 
-import logger from '../utils/logger';
-import { createContext } from '../utils/createContext';
-import { MemberStatus, MemberTier } from '../__generated__/resolvers-types';
+import logger from '../../../utils/logger';
+import { createContext } from '../../../utils/createContext';
+import { MemberStatus, MemberTier } from '../../../__generated__/resolvers-types';
 
 const tierResetSync = async () => {
   const { users } = await createContext();

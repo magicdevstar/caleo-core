@@ -1,5 +1,14 @@
+data "aws_ses_email_identity" "from_email" {
+  email = var.from_email
+}
+
 resource "aws_cognito_user_pool" "pool" {
   name = var.user_pool_name
+
+  auto_verified_attributes = ["email"]
+  username_attributes      = ["email"]
+  
+  mfa_configuration = "OFF"
 
   schema {
     attribute_data_type = "String"
@@ -50,8 +59,9 @@ resource "aws_cognito_user_pool" "pool" {
   }
 
   email_configuration {
+    source_arn            = data.aws_ses_email_identity.from_email.arn
     email_sending_account = "DEVELOPER"
-    from_email_address    = var.from_email
+    from_email_address    = "support@${data.aws_ses_email_identity.from_email.email}"
   }
 }
 

@@ -1,7 +1,8 @@
 locals {
+  stage         = "dev"
   caleo_zone_id = "Z04140351SPNE9TCKBJWA"
-  amplify_id = "d3pd2r6xuxvieq"
-  user_pool_id = "us-west-2_3enNflKSo"
+  amplify_id    = "d3pd2r6xuxvieq"
+  user_pool_id  = "us-west-2_3enNflKSo"
 
   sso_configurations = {
     "lasd" = {
@@ -23,6 +24,14 @@ locals {
   }
 
   domains = merge(local.base_domains, local.sso_domains)
+
+  cognito_client_urls = concat(
+    [
+      "https://app.caleopro.com",
+      "https://lvmpd.caleopro.com"
+    ],
+    [for key in keys(local.sso_configurations) : "https://${key}.caleopro.com"]
+  )
 }
 
 data "tfe_outputs" "caleo_core_dev" {
@@ -46,16 +55,6 @@ module "amplify_domains" {
   domains = local.domains
 }
 
-import {
-  to = module.amplify_domains.aws_amplify_domain_association.domain["app"]
-  id = "${local.amplify_id}/app.caleopro.com"
-}
-
-import {
-  to = module.amplify_domains.aws_amplify_domain_association.domain["lvmpd"]
-  id = "${local.amplify_id}/lvmpd.caleopro.com"
-}
-
 module "cognito_providers" {
   for_each = local.sso_configurations
 
@@ -68,4 +67,16 @@ module "cognito_providers" {
   family_name_attribute = each.value.family_name_attribute
   given_name_attribute = each.value.given_name_attribute
   phone_number_attribute = each.value.phone_number_attribute
+}
+
+module "cognito" {
+  source = "../../modules/cognito"
+
+  user_pool_name     = "caleo-${local.stage}"
+  client_name        = "caleo-${local.stage}"
+  callback_urls      = local.cognito_client_urls
+  logout_urls        = local.cognito_client_urls
+  cognito_domain     = "caleo-pro-${local.stage}"
+  from_email         = "caleopro.com"
+  sso_configurations = local.sso_configurations
 }

@@ -1,4 +1,5 @@
 locals {
+  stage        = "dev"
   amplify_id   = "d1devc1e4gname"
   user_pool_id = "us-west-2_8023dPQwv"
 
@@ -69,17 +70,11 @@ module "cognito_providers" {
 module "cognito" {
   source = "../../modules/cognito"
 
-  user_pool_name = "caleo-dev"
-  client_name    = "caleo-dev"
-  callback_urls = [
-    "http://localhost:3000",
-    "https://dev.caleopro.com"
-  ]
-  logout_urls = [
-    "http://localhost:3000",
-    "https://dev.caleopro.com"
-  ]
-  cognito_domain     = "caleo-pro-dev"
-  from_email         = "dev.caleopro.com"
+  user_pool_name = "caleo-${local.stage}"
+  client_name    = "caleo-${local.stage}"
+  callback_urls = local.cognito_client_urls
+  logout_urls = local.cognito_client_urls
+  cognito_domain     = "caleo-pro-${local.stage}"
+  from_email         = "${local.stage}.caleopro.com"
   sso_configurations = local.sso_configurations
 }

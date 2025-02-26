@@ -1,5 +1,5 @@
 locals {
-  stage         = "dev"
+  stage         = "prod"
   caleo_zone_id = "Z04140351SPNE9TCKBJWA"
   amplify_id    = "d3pd2r6xuxvieq"
   user_pool_id  = "us-west-2_3enNflKSo"

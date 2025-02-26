@@ -70,11 +70,13 @@ module "cognito_providers" {
 module "cognito" {
   source = "../../modules/cognito"
 
-  user_pool_name = "caleo-${local.stage}"
-  client_name    = "caleo-${local.stage}"
-  callback_urls = local.cognito_client_urls
-  logout_urls = local.cognito_client_urls
+  user_pool_name     = "caleo-${local.stage}"
+  client_name        = "caleo-${local.stage}"
+  callback_urls      = local.cognito_client_urls
+  logout_urls        = local.cognito_client_urls
   cognito_domain     = "caleo-pro-${local.stage}"
   from_email         = "${local.stage}.caleopro.com"
   sso_configurations = local.sso_configurations
+  stage              = local.stage
+  installHooks       = true
 }

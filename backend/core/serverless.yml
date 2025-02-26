@@ -4,9 +4,13 @@ frameworkVersion: '3'
 params:
   default:
     dbName: caleo-dev
-    poolName: lvmpd-oms-uat
-    poolId: us-west-2_8023dPQwv
-    uiClientId: 1jqluc6upa0sk661jeoai1sj9l
+    poolName: caleo-${sls:stage}
+    legacyPoolName: lvmpd-oms-uat
+    legacyPoolId: us-west-2_8023dPQwv
+    legacyClientId: 1jqluc6upa0sk661jeoai1sj9l
+    poolId: us-west-2_Dfdyon256
+    uiClientId: 16cvbpqqdatp1p39n22e2icq0k
+    cognitoURL: https://caleo-pro-${sls:stage}.auth.us-west-2.amazoncognito.com
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}
     domainName: dev-api.caleopro.com
@@ -18,13 +22,14 @@ params:
     appUrl: https://dev.caleopro.com
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
-    cognitoURL: https://caleo-dev.auth.us-west-2.amazoncognito.com
     docusignBase: https://account-d.docusign.com
   prod:
     dbName: caleo-prod
-    poolName: lvmpd-oms-prod
-    poolId: us-west-2_3enNflKSo
-    uiClientId: 6eb59tb72ti81bh5oh3vf9hvq1
+    legacyPoolName: lvmpd-oms-prod
+    legacyPoolId: us-west-2_3enNflKSo
+    legacyClientId: 6eb59tb72ti81bh5oh3vf9hvq1
+    poolId: us-west-2_VRi4vpA7y
+    uiClientId: 194hcard9krifeplo6qgbci33a
     domainName: api.caleopro.com
     pinpointId: ff5f1d58543f4fd78ee3c3c1b6588921
     fromEmail: app@caleopro.com
@@ -34,7 +39,6 @@ params:
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
-    cognitoURL: https://caleo.auth.us-west-2.amazoncognito.com
     docusignBase: https://account.docusign.com
 
 provider:
@@ -78,6 +82,8 @@ provider:
     SLACK_TOKEN: ${ssm:/caleo/slackToken}
     ENABLED_ALERTS: ${param:ENABLED_ALERTS}
     COGNITO_URL: ${param:cognitoURL}
+    LEGACY_CLIENT_ID: ${param:legacyClientId}
+    LEGACY_POOL_ID: ${param:legacyPoolId}
     COGNITO_CLIENT_ID: ${param:uiClientId}
     NODE_OPTIONS: --enable-source-maps
     DOCUSIGN_BASE: ${param:docusignBase}
@@ -95,6 +101,8 @@ provider:
             - 'secretsmanager:GetSecretValue'
             - cognito-idp:AdminSetUserPassword
             - cognito-idp:AdminUpdateUserAttributes
+            - cognito-idp:Admin*
+            - cognito-idp:ListUsers
           Resource: '*'
 
 plugins:
@@ -183,12 +191,25 @@ functions:
           authorizer:
             name: cognitoAuthorizer
 
+  # Cognito Triggers Added via Terraform
+  postConfirmation:
+    handler: src/handlers/cognito/registerUser.handler
+    timeout: 30
+
+  postAuthentication:
+    handler: src/handlers/cognito/updateSSOUser.handler
+    timeout: 30
+
+  userMigration:
+    handler: src/handlers/cognito/userMigration.handler
+    timeout: 30
+
   # Register Cognito User Hook
   registerUser:
     handler: src/handlers/cognito/registerUser.handler
     events:
       - cognitoUserPool:
-          pool: ${param:poolName}
+          pool: ${param:legacyPoolName}
           trigger: PostConfirmation
           existing: true
           forceDeploy: true
@@ -197,17 +218,8 @@ functions:
     handler: src/handlers/cognito/updateSSOUser.handler
     events:
       - cognitoUserPool:
-          pool: ${param:poolName}
+          pool: ${param:legacyPoolName}
           trigger: PostAuthentication
-          existing: true
-          forceDeploy: true
-
-  preSignUpDebug:
-    handler: src/handlers/cognito/preSignUpDebug.handler
-    events:
-      - cognitoUserPool:
-          pool: ${param:poolName}
-          trigger: PreSignUp
           existing: true
           forceDeploy: true
 

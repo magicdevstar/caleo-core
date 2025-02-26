@@ -79,4 +79,6 @@ module "cognito" {
   cognito_domain     = "caleo-pro-${local.stage}"
   from_email         = "caleopro.com"
   sso_configurations = local.sso_configurations
+  stage              = local.stage
+  installHooks       = false
 }

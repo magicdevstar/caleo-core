@@ -1,5 +1,11 @@
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 data "aws_ses_email_identity" "from_email" {
   email = var.from_email
+}
+
+locals {
+  function_prefix = "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:caleo-core-${var.stage}"
 }
 
 resource "aws_cognito_user_pool" "pool" {
@@ -9,6 +15,16 @@ resource "aws_cognito_user_pool" "pool" {
   username_attributes      = ["email"]
   
   mfa_configuration = "OFF"
+
+  dynamic "lambda_config" {
+    for_each = var.installHooks == true ? toset([]) : toset([1])
+
+    content {
+      post_confirmation   = "${local.function_prefix}-postConfirmation"
+      post_authentication = "${local.function_prefix}-postAuthentication"
+      user_migration      = "${local.function_prefix}-userMigration"
+    }
+  }
 
   schema {
     attribute_data_type = "String"

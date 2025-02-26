@@ -39,3 +39,14 @@ variable "sso_configurations" {
   description = "Map of SSO configurations"
   default     = {}
 }
+
+variable "stage" {
+  type        = string
+  description = "Environment stage (e.g., dev, prod)"
+}
+
+variable "installHooks" {
+  type        = bool
+  description = "Flag to install lambda hooks"
+  default     = false
+}

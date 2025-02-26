@@ -4,7 +4,7 @@ import {
   AdminSetUserPasswordCommand,
   AdminUpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import difference from 'lodash.difference';
 import {
   DocType,

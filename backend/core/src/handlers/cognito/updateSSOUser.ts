@@ -7,6 +7,7 @@ import { createContext } from "../../utils/createContext";
 interface IUserAttributes {
   sub: string
   "cognito:user_status": string
+  "custom:legacy_sub": string
   identities?: string
   email_verified: string
   phone_number_verified: string
@@ -35,6 +36,21 @@ const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
           updatedAt: new Date(),
         }
       });
+    }
+
+    if (attributes["custom:legacy_sub"]) {
+      const foundUser = await services.users.findByCognitoId(attributes.sub);
+      if (!foundUser) {
+        await services.users.collection.updateOne({
+          cognitoId: attributes["custom:legacy_sub"],
+        }, {
+          $set: {
+            cognitoId: attributes.sub,
+            legacyCognitoId: attributes["custom:legacy_sub"],
+            updatedAt: new Date(),
+          }
+        });
+      }
     }
 
     return event;

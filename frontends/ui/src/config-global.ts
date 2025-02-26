@@ -21,6 +21,8 @@ export const AMPLIFY_API = {
   userPoolId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_ID!,
   userPoolWebClientId: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID!,
   region: process.env.REACT_APP_AWS_AMPLIFY_REGION!,
+  // We need this so migration works
+  authenticationFlowType: 'USER_PASSWORD_AUTH',
   oauth: {
     domain: process.env.REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN!,
     scope: ['email', 'openid', 'phone'],

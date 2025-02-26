@@ -28,6 +28,14 @@ locals {
   }
 
   hosted_zones = merge(local.base_hosted_zones, local.sso_hosted_zones)
+
+  cognito_client_urls = concat(
+    [
+      "http://localhost:3000",
+      "https://dev.caleopro.com"
+    ],
+    [for key in keys(local.sso_configurations) : "https://${key}.caleopro.com"]
+  )
 }
 
 module "domains" {

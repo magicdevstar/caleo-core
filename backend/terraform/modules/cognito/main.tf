@@ -17,7 +17,7 @@ resource "aws_cognito_user_pool" "pool" {
   mfa_configuration = "OFF"
 
   dynamic "lambda_config" {
-    for_each = var.installHooks == true ? toset([]) : toset([1])
+    for_each = var.installHooks == false ? toset([]) : toset([1])
 
     content {
       post_confirmation   = "${local.function_prefix}-postConfirmation"

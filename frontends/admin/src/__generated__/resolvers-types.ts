@@ -145,7 +145,7 @@ export type CheckInOutSetting = {
 export type ContactInfo = {
   __typename?: 'ContactInfo';
   primaryEmail: Email;
-  primaryPhone: Phone;
+  primaryPhone?: Maybe<Phone>;
   secondaryEmail?: Maybe<Email>;
   secondaryPhone?: Maybe<Phone>;
 };
@@ -1070,7 +1070,7 @@ export type MutationVenueArgs = {
 
 export type NewContactInfo = {
   primaryEmail: NewEmail;
-  primaryPhone: NewPhone;
+  primaryPhone?: InputMaybe<NewPhone>;
   secondaryEmail?: InputMaybe<NewEmail>;
   secondaryPhone?: InputMaybe<NewPhone>;
 };
@@ -1104,8 +1104,8 @@ export type NewMember = {
 };
 
 export type NewPhone = {
-  number: Scalars['String']['input'];
-  receiveTexts: Scalars['Boolean']['input'];
+  number?: InputMaybe<Scalars['String']['input']>;
+  receiveTexts?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type NewUser = {
@@ -1273,8 +1273,8 @@ export type OrganizationSearchResult = {
 
 export type Phone = {
   __typename?: 'Phone';
-  number: Scalars['String']['output'];
-  receiveTexts: Scalars['Boolean']['output'];
+  number?: Maybe<Scalars['String']['output']>;
+  receiveTexts?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type ProfilePhotoAttachmentUpload = {
@@ -2902,7 +2902,7 @@ export type CheckInOutSettingResolvers<ContextType = any, ParentType extends Res
 
 export type ContactInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContactInfo'] = ResolversParentTypes['ContactInfo']> = ResolversObject<{
   primaryEmail?: Resolver<ResolversTypes['Email'], ParentType, ContextType>;
-  primaryPhone?: Resolver<ResolversTypes['Phone'], ParentType, ContextType>;
+  primaryPhone?: Resolver<Maybe<ResolversTypes['Phone']>, ParentType, ContextType>;
   secondaryEmail?: Resolver<Maybe<ResolversTypes['Email']>, ParentType, ContextType>;
   secondaryPhone?: Resolver<Maybe<ResolversTypes['Phone']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -3440,8 +3440,8 @@ export type OrganizationSearchResultResolvers<ContextType = any, ParentType exte
 }>;
 
 export type PhoneResolvers<ContextType = any, ParentType extends ResolversParentTypes['Phone'] = ResolversParentTypes['Phone']> = ResolversObject<{
-  number?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  receiveTexts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  number?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  receiveTexts?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

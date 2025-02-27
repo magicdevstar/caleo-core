@@ -53,7 +53,8 @@ const TABS = [
   {
     value: 'security',
     label: 'Password',
-    visible: () => true,
+    visible: (hidden = false) => !hidden,
+    userKey: 'member.org.features.lasdUserFields',
     icon: <Iconify icon="ic:round-vpn-key" width={24} />,
   },
 ];

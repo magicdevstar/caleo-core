@@ -67,7 +67,7 @@ export default function AccountRequestsDialog({
       status: Yup.string().when('$approve', ([approve], schema) => schema.transform(() => approve ? MemberStatus.Active : MemberStatus.Inactive)),
       contactInfo: Yup.object().shape({
         primaryPhone: Yup.object().shape({
-          number: Yup.string(),
+          number: Yup.string().nullable(),
         }),
         primaryEmail: Yup.object().shape({
           number: Yup.string(),

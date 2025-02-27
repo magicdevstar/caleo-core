@@ -131,8 +131,8 @@
   }
 
   type Phone {
-    number: String!
-    receiveTexts: Boolean!
+    number: String
+    receiveTexts: Boolean
   }
 
   type Email {
@@ -141,7 +141,7 @@
   }
 
   type ContactInfo {
-    primaryPhone: Phone!
+    primaryPhone: Phone
     primaryEmail: Email!
     secondaryPhone: Phone
     secondaryEmail: Email
@@ -258,8 +258,8 @@
   }
 
   input NewPhone {
-    number: String!
-    receiveTexts: Boolean!
+    number: String
+    receiveTexts: Boolean
   }
 
   input NewEmail {
@@ -268,7 +268,7 @@
   }
 
   input NewContactInfo {
-    primaryPhone: NewPhone!
+    primaryPhone: NewPhone
     primaryEmail: NewEmail!
     secondaryPhone: NewPhone
     secondaryEmail: NewEmail

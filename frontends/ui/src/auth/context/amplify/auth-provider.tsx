@@ -45,7 +45,7 @@ const reducer = (state: AuthStateType, action: Action) => {
   if (action.type === Types.INITIAL) {
     if(window && (window as any).Beacon) {
       (window as any).Beacon('identify', {
-        email: action.payload.user?.email,
+        email: action.payload.user?.email.toLowerCase(),
         name: action.payload.user?.displayName,
       });
     }
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: Props) {
               ...me,
               id: me.id,
               displayName: `${me.firstName} ${me.lastName}`,
-              email: me.member.contactInfo?.primaryEmail?.address || 'na@caleo.com',
+              email: (me.member.contactInfo?.primaryEmail?.address || 'na@caleo.com').toLowerCase(),
               family_name: me.lastName,
               photoURL: me.image || _mock.image.avatar(24),
               role: me.member.role?.toLowerCase(),
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: Props) {
 
   // LOGIN
   const login = useCallback(async (email: string, password: string) => {
-    const currentUser = await Auth.signIn(email, password);
+    const currentUser = await Auth.signIn(email.toLowerCase(), password);
 
     const { data: { me } } = await client.query<{ me: User }>({
       query: ME,
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: Props) {
           ...me,
           id: me.id,
           displayName: `${me.firstName} ${me.lastName}`,
-          email: currentUser.attributes.email,
+          email: currentUser.attributes.email.toLowerCase(),
           family_name: currentUser.attributes.family_name,
           photoURL: me.image || _mock.image.avatar(24),
           role: me.member.role?.toLowerCase(),
@@ -168,10 +168,10 @@ export function AuthProvider({ children }: Props) {
   const register = useCallback(
     async (email: string, password: string, firstName: string, lastName: string, phoneNumber: string, pNumber: string, orgId: string) => {
       await Auth.signUp({
-        username: email,
+        username: email.toLowerCase(),
         password,
         attributes: {
-          email,
+          email: email.toLowerCase(),
           given_name: firstName,
           family_name: lastName,
           'custom:org_id': orgId,
@@ -186,12 +186,12 @@ export function AuthProvider({ children }: Props) {
 
   // CONFIRM REGISTER
   const confirmRegister = useCallback(async (email: string, code: string) => {
-    await Auth.confirmSignUp(email, code);
+    await Auth.confirmSignUp(email.toLowerCase(), code);
   }, []);
 
   // RESEND CODE REGISTER
   const resendCodeRegister = useCallback(async (email: string) => {
-    await Auth.resendSignUp(email);
+    await Auth.resendSignUp(email.toLowerCase());
   }, []);
 
   // LOGOUT
@@ -204,12 +204,12 @@ export function AuthProvider({ children }: Props) {
 
   // FORGOT PASSWORD
   const forgotPassword = useCallback(async (email: string) => {
-    await Auth.forgotPassword(email);
+    await Auth.forgotPassword(email.toLowerCase());
   }, []);
 
   // NEW PASSWORD
   const newPassword = useCallback(async (email: string, code: string, password: string) => {
-    await Auth.forgotPasswordSubmit(email, code, password);
+    await Auth.forgotPasswordSubmit(email.toLowerCase(), code, password);
   }, []);
 
   // Update profile photo

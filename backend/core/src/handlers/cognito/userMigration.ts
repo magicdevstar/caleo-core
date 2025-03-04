@@ -39,12 +39,12 @@ const userMigration: UserMigrationTriggerHandler = async (event) => {
           phone_number: decoded.phone_number,
           family_name: decoded.family_name,
           given_name: decoded.given_name,
-          email: decoded.email,
+          email: decoded.email.toLowerCase(),
           // Saving this here so we can reconnect the users in our system in post authentication
           'custom:legacy_sub': decoded.sub,
           email_verified: "true",
           phone_number_verified: "true"
-        }
+        };
   
         event.response.finalUserStatus = "CONFIRMED";
         event.response.messageAction = "SUPPRESS";
@@ -75,9 +75,10 @@ const userMigration: UserMigrationTriggerHandler = async (event) => {
     return event;
   } catch(error) {
     if (['NotAuthorizedException'].includes(error.name)) {
+      logger.error('Failed to migrate user', { event });
       throw error;
     }
-    logger.error('Failed to migrate user', { error });
+    logger.error('Failed to migrate user', { error, event });
     throw new Error('Something went wrong please try again.');
   }
 }

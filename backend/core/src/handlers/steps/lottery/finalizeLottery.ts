@@ -62,8 +62,8 @@ const finalizeLottery = async (input: InputEvent): Promise<FinalizeOutput> => {
 
   const fcfsScheduledTime = setMilliseconds(
     setSeconds(
-      addSeconds(new Date(), 30),
-      // addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1),
+      // addSeconds(new Date(), 30),
+      addHours(new Date(), organization.settings?.lottery.fcfsShiftsDelay || 1),
       0
     ),
     0

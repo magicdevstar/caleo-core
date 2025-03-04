@@ -103,7 +103,6 @@ const NewEventSchema = Yup.object().shape({
   createdById: Yup.string(),
   assignments: Yup.array(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
-  adminTime: Yup.number().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -249,7 +248,6 @@ export default function EditEvent({ currentEvent }: Props) {
       notes: currentEvent?.notes || '',
       attachments: [],
       ocn: currentEvent?.ocn || '',
-      adminTime: currentEvent?.adminTime || null,
       venueId: currentEvent?.venue || null,
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
@@ -392,7 +390,6 @@ export default function EditEvent({ currentEvent }: Props) {
             notes: formData?.notes,
             status: formData?.status,
             ocn: formData?.ocn,
-            adminTime: formData?.adminTime,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             ...(formData?.interestListTransition && { interestListTransition: formData?.interestListTransition }),
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
@@ -663,15 +660,6 @@ export default function EditEvent({ currentEvent }: Props) {
                   <RHFTextField
                     name="ocn"
                     label="OCN"
-                    disabled={allDisabled}
-                  />
-                  <RHFTextField
-                    type="number"
-                    name="adminTime"
-                    label="Admin Time"
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">/Hours</InputAdornment>,
-                    }}
                     disabled={allDisabled}
                   />
                 </Stack>

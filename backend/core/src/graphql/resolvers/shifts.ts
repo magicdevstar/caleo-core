@@ -212,7 +212,7 @@ export const shift = {
           adminNotes,
         }
       }: { input: ShiftCheckInOutEvent },
-      { shifts, user }: Context
+      { shifts, docusign, organization, user }: Context
     ): Promise<IShift> => {
       const shift = await shifts.get(id);
       if (!shift) {
@@ -234,8 +234,15 @@ export const shift = {
         adminNotes: finalAdminNote,
         user: user!,
       });
+      const updatedShift = await shifts.get(id);
 
-      return (await shifts.get(id))!;
+      await docusign.submitEndOfShiftEnvelope({
+        shift: updatedShift!,
+        user: user!,
+        organization: organization!,
+      });
+
+      return updatedShift!;
     },
     notifyUsersOfShift: async (
       _parent: unknown,

@@ -345,6 +345,23 @@ export class ShiftModel extends BaseMongo<IShift> {
     this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
   }
 
+  async setDocusignEnvelopeId({
+    _id,
+    envelopeId
+  }: {
+    _id: ObjectId;
+    envelopeId: string;
+  }) {
+    await this.collection.updateOne({
+      _id,
+    }, {
+      $set: {
+        docusignEnvelopeId: envelopeId,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
   async editCheckInOut({
     id,
     checkInTime,

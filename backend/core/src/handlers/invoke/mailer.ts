@@ -11,7 +11,7 @@ import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../../types/mailer";
 import { Context, createContext } from "../../utils/createContext";
-import { Event, EventStatus, MemberStatus, Shift, User } from "../../__generated__/resolvers-types";
+import { EventStatus, MemberStatus } from "../../__generated__/resolvers-types";
 import { InAppTemplates } from "../../types/inAppTemplates";
 import { IAssignment } from "../../models/assignment";
 import { IOrganization } from "../../models/organization";
@@ -1212,11 +1212,14 @@ const sendEmail = async (input: MailerEvent) => {
       }
     } else if (input.template === MailerEvents.OfficerShiftStartingNotification) {
       templateVersion = '2';
-      const { userId, shiftId } = input.data;
+      let { userId, shiftId } = input.data;
       const shift = await context.shifts.get(shiftId);
       if (!shift || shift.userId !== userId) {
-        logger.warn('Shift is not assigned to this user', { input, shift });
-        return;
+        if (!shift?.userId) {
+          logger.warn('Shift is not assigned to this user', { input, shift });
+          return;
+        }
+        userId = shift.userId;
       }
       const user = await context.users.get(userId);
       if (!user) {

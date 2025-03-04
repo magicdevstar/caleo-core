@@ -1,5 +1,7 @@
-import ds, { EnvelopeDefinition, EnvelopeRecipients, Recipients, TemplateRole } from 'docusign-esign';
+import ds, { EnvelopeDefinition, TemplateRole } from 'docusign-esign';
 import { Db, ObjectId } from "mongodb";
+import { utcToZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 import {
   SecretsManagerClient,
   GetSecretValueCommand
@@ -11,6 +13,9 @@ import logger from "../utils/logger";
 import { IShift } from './shift';
 import { IEvent } from './event';
 import { IUser } from '../types/common';
+import { IRank } from './rank';
+import { IUnit } from './unit';
+import { IIVenue } from './venue';
 
 const client = new ds.ApiClient();
 client.setOAuthBasePath(
@@ -79,20 +84,28 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     }
   }
 
-  async createEnvelope({
+  async createLASDShiftEnvelope({
     org,
-    templateId,
     shift,
     event,
-    user
+    venue,
+    user,
+    userRank,
+    unit,
+    supervisor
   }: {
     org: IOrganization;
-    templateId: string;
     shift: IShift;
     user: IUser;
+    venue: IIVenue;
+    userRank: IRank;
+    unit: IUnit;
+    supervisor: IUser;
     event: IEvent;
   }) {
-    const tokenRecord = await this.get(org._id!);
+    const tokenRecord = await this.collection.findOne({
+      orgId: org._id,
+    });
     if (!tokenRecord) {
       throw new Error('No docusign token found');
     }
@@ -104,19 +117,18 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       {
         roleName: 'officer',
         routingOrder: '1',
-        email: 'danwakeem+officer@caleopro.com',
-        name: 'Dan J',
+        email: user.member.contactInfo?.primaryEmail.address,
+        name: user.name,
       },
       {
         roleName: 'lieutenant',
         routingOrder: '2',
-        email: 'danwakeem+lieutenant@gmail.com',
-        name: 'Dan Jar',
+        email: supervisor.member.contactInfo?.primaryEmail.address,
+        name: supervisor.name,
       }
     ];
     const envDef: EnvelopeDefinition = {
       templateId: org.docusign.templateId,
-      signerCanSignOnMobile: 'true',
       expireEnabled: 'false',
       status: 'created',
       templateRoles
@@ -128,96 +140,120 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     const tabResponse = await envAPI.getDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1');
     const tabs = (tabResponse as unknown as { prefillTabs: ds.Tabs }).prefillTabs;
 
-    await envAPI.createDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1', {
-      prefillTabs: {
-        dateTabs: [
-          {
-            tabId: tabs.dateTabs![0].tabId,
-            tabLabel: "shiftDate",
-            value: "02-20-2025"
-          }
-        ],
-        textTabs: [
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerName')?.tabId,
-            tabLabel: "officerName",
-            value: "John Doe"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerRank')?.tabId,
-            tabLabel: "officerRank",
-            value: "Rank 1"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerUnitOfAssignment')?.tabId,
-            tabLabel: "officerUnitOfAssignment",
-            value: "Unit 1"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerDivision')?.tabId,
-            tabLabel: "officerDivision",
-            value: "Division 1"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerEmployeeNumber')?.tabId,
-            tabLabel: "officerEmployeeNumber",
-            value: "1234567890"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'shiftHours')?.tabId,
-            tabLabel: "shiftHours",
-            value: "3"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkinTime')?.tabId,
-            tabLabel: "checkinTime",
-            value: "12:30"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkoutTime')?.tabId,
-            tabLabel: "checkoutTime",
-            value: "15:30"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'ocn')?.tabId,
-            tabLabel: "ocn",
-            value: "ocn-123"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderName')?.tabId,
-            tabLabel: "incidentCommanderName",
-            value: "Josh Smith"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderEmployeeNumber')?.tabId,
-            tabLabel: "incidentCommanderEmployeeNumber",
-            value: "09876"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'lieutenantEmployeeNumber')?.tabId,
-            tabLabel: "lieutenantEmployeeNumber",
-            value: "45678765"
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'orgId')?.tabId,
-            tabLabel: "orgId",
-            value: '64cd5e262c436093a2b7e680'
-          },
-          {
-            tabId: tabs.textTabs?.find((x) => x.tabLabel === 'shiftId')?.tabId,
-            tabLabel: "shiftId",
-            value: '67ac2f38f621acf75308c5a4'
-          }
-        ]
+    const startTime = utcToZonedTime(shift.startTime, org.timezone);
+
+    const prefillTabs = {
+      tabs: {
+        prefillTabs: {
+          dateTabs: [
+            {
+              tabId: tabs.dateTabs![0].tabId,
+              tabLabel: "shiftDate",
+              value: format(startTime, 'MM/dd/yyyy')
+            }
+          ],
+          textTabs: [
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerName')?.tabId,
+              tabLabel: "officerName",
+              value: `${user.lastName} ${user.firstName}`
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerRank')?.tabId,
+              tabLabel: "officerRank",
+              value: userRank.name,
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerUnitOfAssignment')?.tabId,
+              tabLabel: "officerUnitOfAssignment",
+              value: unit.name,
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'outsideOrgCode')?.tabId,
+              tabLabel: "outsideOrgCode",
+              value: event.outsideOrgCode || 'outsideOrgCode123'
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerEmployeeNumber')?.tabId,
+              tabLabel: "officerEmployeeNumber",
+              value: user.member.pNumber
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'shiftHours')?.tabId,
+              tabLabel: "shiftHours",
+              value: "3"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkinTime')?.tabId,
+              tabLabel: "checkinTime",
+              value: "12:30"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkoutTime')?.tabId,
+              tabLabel: "checkoutTime",
+              value: "15:30"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'ocn')?.tabId,
+              tabLabel: "ocn",
+              value: event.ocn
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderName')?.tabId,
+              tabLabel: "incidentCommanderName",
+              value: "Josh Smith"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderEmployeeNumber')?.tabId,
+              tabLabel: "incidentCommanderEmployeeNumber",
+              value: "09876"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'lieutenantEmployeeNumber')?.tabId,
+              tabLabel: "lieutenantEmployeeNumber",
+              value: "45678765"
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'orgId')?.tabId,
+              tabLabel: "orgId",
+              value: org._id!.toString()
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'shiftId')?.tabId,
+              tabLabel: "shiftId",
+              value: shift._id!.toString()
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'overtimeReasonCode')?.tabId,
+              tabLabel: "overtimeReasonCode",
+              value: event.overtimeReasonCode || '301'
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'budgetActivityCode')?.tabId,
+              tabLabel: "budgetActivityCode",
+              value: event.budgetActivityCode || 'DN6S'
+            },
+            {
+              tabId: tabs.textTabs?.find((x) => x.tabLabel === 'automaticDetails')?.tabId,
+              tabLabel: "automaticDetails",
+              // TODO: Replace last sentence with equipment details
+              value: `Worked ${event.name} @ ${venue.address} ${venue.city} in the ${venue.contract?.name}.\nSpecial Event Contract: ${venue.contract?.name}.\nEmployee received a total of 1 hour of travel time.`,
+            }
+          ]
+        }
       }
-    });
+    };
+    logger.info('tabs', { tabs, prefillTabs, tabResponse });
+
+    await envAPI.updateDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1', prefillTabs);
 
     await envAPI.update(tokenRecord.accountId, envelope.envelopeId!, {
+      mergeRolesOnDraft: true,
       envelope: {
-        status: 'sent',
+        status: 'sent'
       }
     });
 
-    // TODO: Save envelopId to shift
+    return envelope.envelopeId!;
   }
 }

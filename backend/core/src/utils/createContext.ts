@@ -30,6 +30,7 @@ import { MemberEquipmentModel } from "../models/memberEquipment";
 import { UnitModel } from "../models/unit";
 import { DivisionModel } from "../models/division";
 import { DocusignModel } from "../models/docusign";
+import { Docusign } from "../services/docusign.service";
 
 let db: Db;
 
@@ -38,7 +39,7 @@ export interface Context {
   analytics: UserAnalyticsModel;
   inAppNotifications: InAppNotificationModel;
   lotteryState: LotteryStateModel;
-  docusign: DocusignModel;
+  docusign: Docusign;
   siteLock: SiteLockModel;
   browserNotificationSubscriptions: BrowserNotificationSubscription;
   eventReferenceNumber: EventReferenceNumber;
@@ -109,7 +110,17 @@ export const createContext = async (): Promise<Context> => {
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
   const inAppNotifications = new InAppNotificationModel(db);
   const analytics = new UserAnalyticsModel(db);
-  const docusign = new DocusignModel(db, organizations);
+  const docusignModel = new DocusignModel(db, organizations);
+  const docusign = new Docusign(
+    organizations,
+    users,
+    venues,
+    events,
+    ranks,
+    unit,
+    shifts,
+    docusignModel,
+  );
 
   return {
     organizations,

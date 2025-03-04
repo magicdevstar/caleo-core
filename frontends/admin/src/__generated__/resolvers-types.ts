@@ -296,12 +296,12 @@ export enum EquipmentStatus {
 
 export type Event = {
   __typename?: 'Event';
-  adminTime?: Maybe<Scalars['Int']['output']>;
   assignmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   assignments?: Maybe<Array<Assignment>>;
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   attachments?: Maybe<Array<Scalars['String']['output']>>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
+  budgetActivityCode?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
@@ -320,6 +320,8 @@ export type Event = {
   ocn?: Maybe<Scalars['String']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
+  outsideOrgCode?: Maybe<Scalars['String']['output']>;
+  overtimeReasonCode?: Maybe<Scalars['String']['output']>;
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   requestDetails?: Maybe<EventRequestDetails>;
@@ -329,6 +331,8 @@ export type Event = {
   searchAttribute: Scalars['String']['output'];
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
+  supervisor?: Maybe<User>;
+  supervisorId?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
   venue?: Maybe<Venue>;
   venueId: Scalars['String']['output'];
@@ -2033,9 +2037,9 @@ export type UpsertEquipment = {
 };
 
 export type UpsertEvent = {
-  adminTime?: InputMaybe<Scalars['Int']['input']>;
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
@@ -2045,11 +2049,14 @@ export type UpsertEvent = {
   notifyOnFirstComeFirstServe?: InputMaybe<Scalars['Boolean']['input']>;
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   ocn?: InputMaybe<Scalars['String']['input']>;
+  outsideOrgCode?: InputMaybe<Scalars['String']['input']>;
+  overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
+  supervisorId?: InputMaybe<Scalars['String']['input']>;
   venueId: Scalars['String']['input'];
 };
 
@@ -2967,12 +2974,12 @@ export type EquipmentSearchResultResolvers<ContextType = any, ParentType extends
 }>;
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
-  adminTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   assignmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2991,6 +2998,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   ocn?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  outsideOrgCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  overtimeReasonCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
@@ -3000,6 +3009,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   searchAttribute?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
+  supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType>;
   venueId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

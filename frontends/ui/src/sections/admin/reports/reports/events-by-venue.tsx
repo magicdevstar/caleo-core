@@ -153,7 +153,6 @@ export default function EventsByVenue() {
         'Event Ref. #': event.referenceId,
         ...(lasdEventFields ? {
           'OCN': event.ocn || '-',
-          'Admin Time (Hours)': event.adminTime || '-',
         } : {}),
         [`Event Created By ${pNumberLabel}`]: event.createdBy?.member?.pNumber || '',
         'Event Start Date': event.startTime

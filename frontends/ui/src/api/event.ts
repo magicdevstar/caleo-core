@@ -44,7 +44,6 @@ export const GET_ALL_EVENTS = gql`
         startTime
         endTime
         ocn
-        adminTime
         availableShifts
         scheduledInterestList
         scheduledFirstComeFirstServe
@@ -99,7 +98,6 @@ query GetEvent($id: String!) {
     startTime
     endTime
     ocn
-    adminTime
     createdBy {
       member {
         pNumber
@@ -151,7 +149,6 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       startTime
       endTime
       ocn
-      adminTime
       createdBy {
         member {
           pNumber
@@ -229,7 +226,6 @@ export const GET_EVENT = gql`
       status
       venueId
       ocn
-      adminTime
       notes
       assignmentIds
       attachmentPaths

@@ -445,7 +445,6 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
           startTime
           endTime
           ocn
-          adminTime
           createdBy {
             id
             name

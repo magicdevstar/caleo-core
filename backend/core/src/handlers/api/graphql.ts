@@ -31,7 +31,6 @@ export const handler = startServerAndCreateLambdaHandler(
         logger.setPersistentLogAttributes({
           apiGatewayRequestId: event.requestContext.requestId,
         });
-        logger.info('RAW EVENT', { event });
         const classContext = await createContext();
         const { user, originalUser } = await userFromEvent(event, classContext.users);
         classContext.user = user;

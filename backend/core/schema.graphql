@@ -388,8 +388,6 @@
     orgId: String!
     status: EventStatus!
     lotteryNumber: Int
-    ocn: String
-    adminTime: Int
     scheduledInterestList: String
     scheduledCloseInterestList: String
     interestListTransition: EventStatus
@@ -406,6 +404,13 @@
     removedAt: String
     modifiedById: String
 
+    # LASD specific fields
+    ocn: String
+    outsideOrgCode: String
+    overtimeReasonCode: String
+    budgetActivityCode: String
+    supervisorId: String
+
     venue: Venue
     org: Organization!
     assignments: [Assignment!]
@@ -414,6 +419,7 @@
     availableShifts: Int
     modifiedBy: User
     lotteryCounter: LotteryCounter
+    supervisor: User
   }
 
   type EventRequestDetails {
@@ -666,8 +672,6 @@
     attachmentPaths: [String]
     status: EventStatus
     lotteryNumber: Int
-    ocn: String
-    adminTime: Int
     interestListTransition: EventStatus
     scheduledInterestList: String
     scheduledCloseInterestList: String
@@ -679,6 +683,13 @@
     notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
     createdById: String
+
+    # LASD specific fields
+    ocn: String
+    outsideOrgCode: String
+    overtimeReasonCode: String
+    budgetActivityCode: String
+    supervisorId: String
   }
 
   input InputEventRequestDetails {

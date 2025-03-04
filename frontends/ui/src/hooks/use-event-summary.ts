@@ -71,7 +71,6 @@ export const useEventSummary = () => {
           'Event Ref. #': shift.event.referenceId,
           ...(lasdEventFields ? {
             'OCN': shift.event.ocn || '-',
-            'Admin Time (Hours)': shift.event.adminTime || '-',
           } : {}),
           'Event Name': shift.event.name,
           'Venue Name': shift.event.venue?.name || '',

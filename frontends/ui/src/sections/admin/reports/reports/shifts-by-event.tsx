@@ -122,7 +122,6 @@ export default function ShiftsByEvent() {
         'Event Ref. #': shift.event.referenceId,
         ...(lasdEventFields ? {
           'OCN': event.ocn || '-',
-          'Admin Time (Hours)': event.adminTime || '-',
         } : {}),
         ...(equipment ? {
           'Required Equipment': (shift.assignment.requiredEquipment || [{name: 'N/A'}])?.map(({ name }: any) => name).join(','),

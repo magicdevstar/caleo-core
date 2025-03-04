@@ -126,7 +126,7 @@ custom:
     apiType: http
   esbuild:
     bundle: true
-    minify: true
+    minify: false
     packager: yarn
     external:
       - 'saslprep'

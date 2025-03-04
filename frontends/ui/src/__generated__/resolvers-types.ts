@@ -309,6 +309,8 @@ export type Event = {
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   interestListTransition?: Maybe<EventStatus>;
+  lieutenant?: Maybe<User>;
+  lieutenantId?: Maybe<Scalars['String']['output']>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryNumber?: Maybe<Scalars['Int']['output']>;
   modifiedBy?: Maybe<User>;
@@ -2043,6 +2045,7 @@ export type UpsertEvent = {
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
+  lieutenantId?: InputMaybe<Scalars['String']['input']>;
   lotteryNumber?: InputMaybe<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
@@ -2987,6 +2990,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
+  lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType>;
   lotteryNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;

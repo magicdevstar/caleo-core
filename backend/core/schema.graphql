@@ -410,6 +410,7 @@
     overtimeReasonCode: String
     budgetActivityCode: String
     supervisorId: String
+    lieutenantId: String
 
     venue: Venue
     org: Organization!
@@ -420,6 +421,7 @@
     modifiedBy: User
     lotteryCounter: LotteryCounter
     supervisor: User
+    lieutenant: User
   }
 
   type EventRequestDetails {
@@ -690,6 +692,7 @@
     overtimeReasonCode: String
     budgetActivityCode: String
     supervisorId: String
+    lieutenantId: String
   }
 
   input InputEventRequestDetails {

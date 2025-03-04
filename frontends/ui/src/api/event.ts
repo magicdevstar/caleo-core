@@ -226,6 +226,9 @@ export const GET_EVENT = gql`
       status
       venueId
       ocn
+      outsideOrgCode
+      overtimeReasonCode
+      budgetActivityCode
       notes
       assignmentIds
       attachmentPaths
@@ -245,6 +248,16 @@ export const GET_EVENT = gql`
         newVenue
         numberOfOfficers
         estimatedAttendees
+      }
+
+      supervisor {
+        id
+        name
+      }
+
+      lieutenant {
+        id
+        name
       }
 
       lotteryCounter {

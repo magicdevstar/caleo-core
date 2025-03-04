@@ -16,6 +16,7 @@ import { IUser } from '../types/common';
 import { IRank } from './rank';
 import { IUnit } from './unit';
 import { IIVenue } from './venue';
+import { docusignDates } from '../utils/date.helpers';
 
 const client = new ds.ApiClient();
 client.setOAuthBasePath(
@@ -92,7 +93,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     user,
     userRank,
     unit,
-    supervisor
+    supervisor,
+    lieutenant,
   }: {
     org: IOrganization;
     shift: IShift;
@@ -101,6 +103,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     userRank: IRank;
     unit: IUnit;
     supervisor: IUser;
+    lieutenant: IUser;
     event: IEvent;
   }) {
     const tokenRecord = await this.collection.findOne({
@@ -123,8 +126,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       {
         roleName: 'lieutenant',
         routingOrder: '2',
-        email: supervisor.member.contactInfo?.primaryEmail.address,
-        name: supervisor.name,
+        email: lieutenant.member.contactInfo?.primaryEmail.address,
+        name: lieutenant.name,
       }
     ];
     const envDef: EnvelopeDefinition = {
@@ -140,7 +143,15 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     const tabResponse = await envAPI.getDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1');
     const tabs = (tabResponse as unknown as { prefillTabs: ds.Tabs }).prefillTabs;
 
-    const startTime = utcToZonedTime(shift.startTime, org.timezone);
+    const {
+      startTime,
+      endTime,
+      formattedDiff,
+    }  = docusignDates({
+      startTime: shift.shiftCheckInOut!.checkInTime!,
+      endTime: shift.shiftCheckInOut!.checkOutTime!,
+      timezone: org.timezone as any,
+    });
 
     const prefillTabs = {
       tabs: {
@@ -181,17 +192,17 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'shiftHours')?.tabId,
               tabLabel: "shiftHours",
-              value: "3"
+              value: formattedDiff,
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkinTime')?.tabId,
               tabLabel: "checkinTime",
-              value: "12:30"
+              value: format(startTime, 'HH:mm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkoutTime')?.tabId,
               tabLabel: "checkoutTime",
-              value: "15:30"
+              value: format(endTime, 'HH:mm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'ocn')?.tabId,
@@ -201,17 +212,17 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderName')?.tabId,
               tabLabel: "incidentCommanderName",
-              value: "Josh Smith"
+              value: supervisor.name
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'incidentCommanderEmployeeNumber')?.tabId,
               tabLabel: "incidentCommanderEmployeeNumber",
-              value: "09876"
+              value: supervisor.member.pNumber,
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'lieutenantEmployeeNumber')?.tabId,
               tabLabel: "lieutenantEmployeeNumber",
-              value: "45678765"
+              value: lieutenant.member.pNumber,
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'orgId')?.tabId,
@@ -243,7 +254,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         }
       }
     };
-    logger.info('tabs', { tabs, prefillTabs, tabResponse });
 
     await envAPI.updateDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1', prefillTabs);
 

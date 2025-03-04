@@ -10,7 +10,7 @@ export interface IUserSearchResult extends Omit<
   'items' 
 > {
   items: IUser[];
-} 
+}
 
 export interface IMember extends Omit<
   Member,

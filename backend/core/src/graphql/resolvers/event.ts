@@ -321,6 +321,8 @@ export const event = {
         venueId: event.venueId ? new ObjectId(event.venueId) : undefined,
         assignmentIds: event.assignmentIds ? event.assignmentIds.map((id) => new ObjectId(id!)) : undefined,
         createdById: currentEvent ? currentEvent.createdById : user!._id!,
+        ...(event.supervisorId && { supervisorId: new ObjectId(event.supervisorId) }),
+        ...(event.lieutenantId && { lieutenantId: new ObjectId(event.lieutenantId) }),
         ...(event.venueId && { venueId: new ObjectId(event.venueId) }),
         ...(event.requestDetails && {
           requestDetails: {
@@ -527,6 +529,8 @@ export const event = {
     Event: {
       ...commonResolvers,
       createdBy: (event: IEvent, _, { users }: Context) => event.createdById ? users.loader.load(event.createdById.toString()) : null,
+      supervisor: (event: IEvent, _, { users }: Context) => event.supervisorId ? users.loader.load(event.supervisorId.toString()) : null,
+      lieutenant: (event: IEvent, _, { users }: Context) => event.lieutenantId ? users.loader.load(event.lieutenantId.toString()) : null,
       org: (event: IEvent, _, { organizations }: Context) => organizations.loader.load(event.orgId.toString()),
       venue: (event: IEvent, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId.toString()) : null,
       assignments: (event: IEvent, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []).map((id) => id.toString())),

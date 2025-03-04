@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useCallback, useState } from 'react';
+import { useDebounce } from "react-use";
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -24,7 +25,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
+import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -46,8 +48,10 @@ import {
   ShiftStatus,
   Venue,
   VenueStatus,
+  MemberStatus,
 } from 'src/__generated__/resolvers-types';
 import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } from 'src/api/event';
+import { GET_USERS_SLIM } from 'src/api/user';
 import { GET_VENUE_LIST } from 'src/api/venues';
 import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 // components
@@ -103,6 +107,11 @@ const NewEventSchema = Yup.object().shape({
   createdById: Yup.string(),
   assignments: Yup.array(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
+  outsideOrgCode: Yup.string().nullable(),
+  overtimeReasonCode: Yup.string().nullable(),
+  budgetActivityCode: Yup.string().nullable(),
+  supervisor: Yup.object().nullable(),
+  lieutenant: Yup.object().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -126,6 +135,12 @@ export default function EditEvent({ currentEvent }: Props) {
     externalEventRequests,
     lasdEventFields,
   } = useFeatures();
+  const [userSearch, setUserSearch] = useState('');
+  const [queryText, setQueryText] = useState('');
+
+  useDebounce(() => {
+    setQueryText(userSearch);
+  }, 500, [userSearch, setQueryText]);
 
   const eventStatuses = useMemo(() => {
     const statuses = [
@@ -170,6 +185,19 @@ export default function EditEvent({ currentEvent }: Props) {
   }, [currentEvent?.endTime, currentEvent?.status]);
 
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
+
+  const { data: usersData, loading: loadingUser } = useQuery(GET_USERS_SLIM, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        query: queryText,
+        limit: 10,
+        statuses: [MemberStatus.Active],
+      }
+    },
+  });
+  const users = usersData?.users?.items || [];
 
   const { data: venueRes, loading: venuesLoading } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -258,6 +286,11 @@ export default function EditEvent({ currentEvent }: Props) {
       scheduledCloseInterestList: currentEvent?.scheduledCloseInterestList || '',
       assignments: currentEvent?.assignments || [],
       createdById: currentEvent?.createdById || user?.id,
+      outsideOrgCode: currentEvent?.outsideOrgCode,
+      overtimeReasonCode: currentEvent?.overtimeReasonCode,
+      budgetActivityCode: currentEvent?.budgetActivityCode,
+      supervisor: currentEvent?.supervisor || null,
+      lieutenant: currentEvent?.lieutenant || null,
     }),
     [currentEvent, user]
   );
@@ -403,6 +436,11 @@ export default function EditEvent({ currentEvent }: Props) {
             ].map(({ attachmentPath }) => attachmentPath),
             venueId: formData?.venueId,
             createdById: formData?.createdById,
+            outsideOrgCode: formData?.outsideOrgCode,
+            overtimeReasonCode: formData?.overtimeReasonCode,
+            budgetActivityCode: formData?.budgetActivityCode,
+            supervisorId: formData?.supervisor?.id,
+            lieutenantId: formData?.lieutenant?.id,
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
             ),
@@ -656,11 +694,100 @@ export default function EditEvent({ currentEvent }: Props) {
 
             {lasdEventFields && (
               <Stack>
-                <Stack direction="row" spacing={1.5}>
+                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
                   <RHFTextField
                     name="ocn"
                     label="OCN"
                     disabled={allDisabled}
+                  />
+                  <RHFTextField
+                    name="outsideOrgCode"
+                    label="Outside Org Code"
+                    disabled={allDisabled}
+                  />
+                </Stack>
+                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                  <RHFTextField
+                    name="overtimeReasonCode"
+                    label="Overtime Reason Code"
+                    disabled={allDisabled}
+                  />
+                  <RHFTextField
+                    name="budgetActivityCode"
+                    label="Budget activity code"
+                    disabled={allDisabled}
+                  />
+                </Stack>
+                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                  <RHFAutocomplete
+                    name="supervisor"
+                    sx={{ width: '100%' }}
+                    placeholder="Supervisor"
+                    disabled={allDisabled}
+                    loading={loadingUser}
+                    textFieldChange={(event) => {
+                      setUserSearch((event as any).target.value);
+                    }}
+                    helperText="Incident commander that oversees the event and will be included on all shift documents"
+                    options={users}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    getOptionLabel={(u: any) => u?.name}
+                    renderOption={(props, option, { selected }) => (
+                      <li {...props} key={option?.id}>
+                        <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                        {option?.name}
+                      </li>
+                    )}
+                    renderTags={(selected, getTagProps) => {
+                      console.log(selected);
+                      return selected.map((option, index) => (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={option?.id}
+                          label={option?.name}
+                          size="small"
+                          color="info"
+                          variant="soft"
+                        />
+                      ))
+
+                    }
+                    }
+                  />
+                  <RHFAutocomplete
+                    name="lieutenant"
+                    placeholder="Lieutenant"
+                    disabled={allDisabled}
+                    loading={loadingUser}
+                    sx={{ width: '100%' }}
+                    textFieldChange={(event) => {
+                      setUserSearch((event as any).target.value);
+                    }}
+                    helperText="Lieutenant that will sign off all shift confirmation documents"
+                    options={users}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    getOptionLabel={(u: any) => u?.name}
+                    renderOption={(props, option, { selected }) => (
+                      <li {...props} key={option?.id}>
+                        <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                        {option?.name}
+                      </li>
+                    )}
+                    renderTags={(selected, getTagProps) => {
+                      console.log(selected);
+                      return selected.map((option, index) => (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={option?.id}
+                          label={option?.name}
+                          size="small"
+                          color="info"
+                          variant="soft"
+                        />
+                      ))
+
+                    }
+                    }
                   />
                 </Stack>
               </Stack>

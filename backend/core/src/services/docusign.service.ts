@@ -21,6 +21,10 @@ export class Docusign {
     private docusign: DocusignModel,
   ) {}
 
+  async updateAllDSOrgKeys() {
+    return this.docusign.updateAllDSOrgKeys();
+  }
+
   async submitEndOfShiftEnvelope ({
     shift,
     user,
@@ -36,7 +40,8 @@ export class Docusign {
         const unit = await this.units.get(user.member.unitId!);
         const rank = await this.ranks.get(user.member.rankId!);
         const venue = await this.venues.get(event?.venueId!);
-        // TODO: Add supervisor to the events
+        const supervisor = await this.users.get(event?.supervisorId!);
+        const lieutenant = await this.users.get(event?.lieutenantId!);
 
         const envelopeId = await this.docusign.createLASDShiftEnvelope({
           org: organization,
@@ -45,8 +50,9 @@ export class Docusign {
           venue: venue!,
           userRank: rank!,
           unit: unit!,
-          supervisor: user,
           event: event!,
+          lieutenant: lieutenant!,
+          supervisor: supervisor!,
         });
 
         await this.shifts.setDocusignEnvelopeId({

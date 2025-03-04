@@ -31,6 +31,7 @@ import { analysisLotto58 } from "./utils/analysis-lotto-58";
 import { importRank } from './utils/import-rank';
 import { importEquipment } from './utils/import-equipment';
 import { importSkills } from "./utils/import-skills";
+import { correctEmails } from "./utils/correct-emails";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -42,7 +43,8 @@ import { importSkills } from "./utils/import-skills";
     const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
-    await importSkills(mongoClient);
+    await correctEmails(mongoClient);
+    // await importSkills(mongoClient);
     // await importEquipment(mongoClient);
     // await importRank(mongoClient);
     // await analysisLotto58(mongoClientProd);

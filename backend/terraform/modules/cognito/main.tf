@@ -76,6 +76,18 @@ resource "aws_cognito_user_pool" "pool" {
 
   schema {
     attribute_data_type = "String"
+    name                = "phony"
+    required            = false
+    mutable             = true
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 256
+    }
+  }
+
+  schema {
+    attribute_data_type = "String"
     name                = "legacy_sub"
     required            = false
     mutable             = true
@@ -107,10 +119,10 @@ resource "aws_cognito_identity_provider" "provider" {
   }
 
   attribute_mapping = {
-    email        = each.value.email_attribute
-    family_name  = each.value.family_name_attribute
-    given_name   = each.value.given_name_attribute
-    phone_number = each.value.phone_number_attribute
+    email           = each.value.email_attribute
+    family_name     = each.value.family_name_attribute
+    given_name      = each.value.given_name_attribute
+    "custom:phoney" = each.value.phone_number_attribute
   }
 }
 

@@ -114,7 +114,7 @@ export default function OrganizationForm({
       timezone: currentOrganization?.timezone || 'America/Los_Angeles',
       fromEmail: currentOrganization?.fromEmail,
       features: currentOrganization?.flatFeatures ? JSON.parse(currentOrganization?.flatFeatures) as {} : {},
-      customizations: omit(clone(currentOrganization?.customizations!), ['__typename']) as OrganizationCustomizations,
+      customizations: omit(clone(currentOrganization?.customizations! || {}), ['__typename']) as OrganizationCustomizations,
       sso: (currentOrganization?.sso ? {
         uiSubDomains: (currentOrganization?.sso.uiSubDomains || []).join(','),
         enablePasswordLogin: currentOrganization?.sso.enablePasswordLogin || false,
@@ -137,15 +137,26 @@ export default function OrganizationForm({
   } = methods;
 
   const onSubmit = handleSubmit(async (values) => {
+    const getCustomizations = (customizations: OrganizationCustomizations) => {
+      const { tiers } = customizations;
+      if (Object.keys(tiers.TIER_1).length === 0) {
+        return {};
+      }
+      return {
+        customizations
+      };
+    }
     if (currentOrganization) {
+      const { customizations, ...rest } = values;
       try {
         await updateOrg({
           variables: {
             organization: {
-              ...values,
-              sso: (values.sso ? {
-                ...values.sso,
-                uiSubDomains: values.sso.uiSubDomains ? values.sso.uiSubDomains.split(',').map((domain) => domain.trim()) : [],
+              ...rest,
+              ...getCustomizations(customizations as any),
+              sso: (rest.sso ? {
+                ...rest.sso,
+                uiSubDomains: rest.sso.uiSubDomains ? rest.sso.uiSubDomains.split(',').map((domain) => domain.trim()) : [],
               } : {})
             },
           },
@@ -157,9 +168,13 @@ export default function OrganizationForm({
       }
     } else {
       try {
+        const { customizations, ...rest } = values;
         const createOrgResponse = await createOrg({
           variables: {
-            organization: values,
+            organization: {
+              ...rest,
+              ...getCustomizations(customizations as any),
+            },
           },
         });
         enqueueSnackbar('Organization created successfully!');

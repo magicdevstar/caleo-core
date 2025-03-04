@@ -8,8 +8,8 @@ params:
     legacyPoolName: lvmpd-oms-uat
     legacyPoolId: us-west-2_8023dPQwv
     legacyClientId: 1jqluc6upa0sk661jeoai1sj9l
-    poolId: us-west-2_Dfdyon256
-    uiClientId: 16cvbpqqdatp1p39n22e2icq0k
+    poolId: us-west-2_tMGZ40JBk
+    uiClientId: 5q25tnubfiuvaectqc781trppj
     cognitoURL: https://caleo-pro-${sls:stage}.auth.us-west-2.amazoncognito.com
     serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
     bucketName: caleo-docs-${sls:stage}

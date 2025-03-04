@@ -1227,6 +1227,7 @@
     fromEmail: String
     contact: UpsertOrganizationContact
     settings: UpsertOrganizationOvertimeSettings
+    customizations: UpsertOrganizationCustomizations
     features: UpsertOrganizationFeatures
     sso: UpsertOrganizationSSOSettings
   }

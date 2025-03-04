@@ -154,6 +154,7 @@ export type CreateOrganization = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
   contact?: InputMaybe<UpsertOrganizationContact>;
+  customizations?: InputMaybe<UpsertOrganizationCustomizations>;
   features?: InputMaybe<UpsertOrganizationFeatures>;
   fromEmail?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];

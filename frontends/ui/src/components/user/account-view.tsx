@@ -15,6 +15,7 @@ import AccountChangePassword from './account-change-password';
 import AccountNewPassword from './account-new-password';
 import AccountLotteryAnalytics from './account-lottery-analytics';
 import AccountEquipments from './account-equiptment';
+import AccountDocusign from './account-docusign';
 
 // ----------------------------------------------------------------------
 
@@ -45,9 +46,17 @@ const TABS = [
     icon: <Iconify icon="ic:baseline-directions-car" width={24} />,
   },
   {
+    value: 'docusignEvents',
+    label: 'Docusign events',
+    visible: (canView = true) => canView,
+    userKey: 'member.org.docusign.templateId',
+    icon: <Iconify icon="ic:round-insert-drive-file" width={24} />,
+  },
+  {
     value: 'lottoAnalytics',
     label: 'Lottery Analytics',
     visible: (canView = true) => canView,
+    userKey: 'member.org.features.lottery',
     icon: <Iconify icon="ic:baseline-area-chart" width={24} />,
   },
   {
@@ -112,6 +121,8 @@ export default function MainAccountView({
       {currentTab === 'equipment' && <AccountEquipments adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
       
       {currentTab === 'lottoAnalytics' && <AccountLotteryAnalytics user={user} />}
+      
+      {currentTab === 'docusignEvents' && <AccountDocusign user={user} />}
 
       {securityTab}
     </>

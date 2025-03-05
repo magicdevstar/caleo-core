@@ -31,6 +31,7 @@ import { UnitModel } from "../models/unit";
 import { DivisionModel } from "../models/division";
 import { DocusignModel } from "../models/docusign";
 import { Docusign } from "../services/docusign.service";
+import { DocusignEventModel } from "../models/docusignEvent";
 
 let db: Db;
 
@@ -111,6 +112,7 @@ export const createContext = async (): Promise<Context> => {
   const inAppNotifications = new InAppNotificationModel(db);
   const analytics = new UserAnalyticsModel(db);
   const docusignModel = new DocusignModel(db, organizations);
+  const docusignEventModel = new DocusignEventModel(db);
   const docusign = new Docusign(
     organizations,
     users,
@@ -120,6 +122,8 @@ export const createContext = async (): Promise<Context> => {
     unit,
     shifts,
     docusignModel,
+    docusignEventModel,
+    document,
   );
 
   return {

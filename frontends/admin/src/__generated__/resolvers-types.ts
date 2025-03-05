@@ -223,6 +223,7 @@ export enum DocType {
   Assignment = 'ASSIGNMENT',
   BrowserNotificationSetting = 'BROWSER_NOTIFICATION_SETTING',
   Division = 'DIVISION',
+  DsEvents = 'DS_EVENTS',
   DsToken = 'DS_TOKEN',
   Equipment = 'EQUIPMENT',
   Event = 'EVENT',
@@ -245,6 +246,43 @@ export enum DocType {
   UserAnalytics = 'USER_ANALYTICS',
   Venue = 'VENUE'
 }
+
+export type DocusignEvent = {
+  __typename?: 'DocusignEvent';
+  assignmentId: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  documentUrl?: Maybe<Scalars['String']['output']>;
+  envelopeId: Scalars['String']['output'];
+  eventId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  shift?: Maybe<Shift>;
+  shiftId: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+};
+
+export type DocusignEventSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['String']['input'];
+};
+
+export type DocusignEventSearchResult = {
+  __typename?: 'DocusignEventSearchResult';
+  items?: Maybe<Array<Maybe<DocusignEvent>>>;
+  total: Scalars['Int']['output'];
+};
+
+export type DocusignSettings = {
+  __typename?: 'DocusignSettings';
+  templateId?: Maybe<Scalars['String']['output']>;
+};
 
 export type Email = {
   __typename?: 'Email';
@@ -1175,6 +1213,7 @@ export type Organization = {
   createdAt: Scalars['String']['output'];
   customizations?: Maybe<OrganizationCustomizations>;
   docType: DocType;
+  docusign?: Maybe<DocusignSettings>;
   features: OrganizationFeatures;
   flatFeatures: Scalars['String']['output'];
   fromEmail?: Maybe<Scalars['String']['output']>;
@@ -1300,6 +1339,7 @@ export type Query = {
   availableShifts?: Maybe<ShiftSearchResult>;
   division?: Maybe<Division>;
   divisions?: Maybe<DivisionSearchResult>;
+  docusignEvents?: Maybe<DocusignEventSearchResult>;
   equipment?: Maybe<Equipment>;
   equipments?: Maybe<EquipmentSearchResult>;
   event?: Maybe<Event>;
@@ -1373,6 +1413,11 @@ export type QueryDivisionArgs = {
 
 export type QueryDivisionsArgs = {
   input?: InputMaybe<DivisionSearchInput>;
+};
+
+
+export type QueryDocusignEventsArgs = {
+  input: DocusignEventSearchInput;
 };
 
 
@@ -1597,6 +1642,7 @@ export type Shift = {
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
   docType: DocType;
+  docusignEvent?: Maybe<DocusignEvent>;
   endTime: Scalars['String']['output'];
   event: Event;
   eventId: Scalars['String']['output'];
@@ -2503,6 +2549,10 @@ export type ResolversTypes = ResolversObject<{
   DivisionSearchInput: DivisionSearchInput;
   DivisionSearchResult: ResolverTypeWrapper<DivisionSearchResult>;
   DocType: DocType;
+  DocusignEvent: ResolverTypeWrapper<DocusignEvent>;
+  DocusignEventSearchInput: DocusignEventSearchInput;
+  DocusignEventSearchResult: ResolverTypeWrapper<DocusignEventSearchResult>;
+  DocusignSettings: ResolverTypeWrapper<DocusignSettings>;
   Email: ResolverTypeWrapper<Email>;
   Equipment: ResolverTypeWrapper<Equipment>;
   EquipmentSearchInput: EquipmentSearchInput;
@@ -2685,6 +2735,10 @@ export type ResolversParentTypes = ResolversObject<{
   Division: Division;
   DivisionSearchInput: DivisionSearchInput;
   DivisionSearchResult: DivisionSearchResult;
+  DocusignEvent: DocusignEvent;
+  DocusignEventSearchInput: DocusignEventSearchInput;
+  DocusignEventSearchResult: DocusignEventSearchResult;
+  DocusignSettings: DocusignSettings;
   Email: Email;
   Equipment: Equipment;
   EquipmentSearchInput: EquipmentSearchInput;
@@ -2943,6 +2997,35 @@ export type DivisionResolvers<ContextType = any, ParentType extends ResolversPar
 export type DivisionSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['DivisionSearchResult'] = ResolversParentTypes['DivisionSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Division']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DocusignEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignEvent'] = ResolversParentTypes['DocusignEvent']> = ResolversObject<{
+  assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  envelopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
+  shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DocusignEventSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignEventSearchResult'] = ResolversParentTypes['DocusignEventSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['DocusignEvent']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DocusignSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignSettings'] = ResolversParentTypes['DocusignSettings']> = ResolversObject<{
+  templateId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3362,6 +3445,7 @@ export type OrganizationResolvers<ContextType = any, ParentType extends Resolver
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   customizations?: Resolver<Maybe<ResolversTypes['OrganizationCustomizations']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  docusign?: Resolver<Maybe<ResolversTypes['DocusignSettings']>, ParentType, ContextType>;
   features?: Resolver<ResolversTypes['OrganizationFeatures'], ParentType, ContextType>;
   flatFeatures?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fromEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3477,6 +3561,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   availableShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryAvailableShiftsArgs>>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<QueryDivisionArgs, 'id'>>;
   divisions?: Resolver<Maybe<ResolversTypes['DivisionSearchResult']>, ParentType, ContextType, Partial<QueryDivisionsArgs>>;
+  docusignEvents?: Resolver<Maybe<ResolversTypes['DocusignEventSearchResult']>, ParentType, ContextType, RequireFields<QueryDocusignEventsArgs, 'input'>>;
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<QueryEquipmentArgs, 'id'>>;
   equipments?: Resolver<Maybe<ResolversTypes['EquipmentSearchResult']>, ParentType, ContextType, Partial<QueryEquipmentsArgs>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventArgs, 'id'>>;
@@ -3546,6 +3631,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3889,6 +3975,9 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Division?: DivisionResolvers<ContextType>;
   DivisionSearchResult?: DivisionSearchResultResolvers<ContextType>;
+  DocusignEvent?: DocusignEventResolvers<ContextType>;
+  DocusignEventSearchResult?: DocusignEventSearchResultResolvers<ContextType>;
+  DocusignSettings?: DocusignSettingsResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
   Equipment?: EquipmentResolvers<ContextType>;
   EquipmentSearchResult?: EquipmentSearchResultResolvers<ContextType>;

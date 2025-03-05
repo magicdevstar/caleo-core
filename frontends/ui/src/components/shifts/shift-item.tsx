@@ -304,6 +304,26 @@ export default function ShiftItem({
               <Label variant="soft" color="info" sx={labelSx}>
                 Check out: {checkOut ? convertDate({ date: new Date(checkOut), user }).format(dateTimeFormat) : '-'}
               </Label>
+              {
+                shift.docusignEvent && (
+                  <Label
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (shift.docusignEvent?.documentUrl) {
+                        window.open(shift.docusignEvent.documentUrl, '_blank');
+                      }
+                    }}
+                    variant="soft"
+                    color={shift.docusignEvent.status === 'completed' ? "info" : "warning"}
+                    sx={{
+                      ...labelSx,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Docusign: {shift.docusignEvent.status}
+                  </Label>
+                )
+              }
             </Box>
           </Stack>
         </Grid>

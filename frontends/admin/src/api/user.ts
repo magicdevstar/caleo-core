@@ -23,6 +23,9 @@ const userDetailProperties = `
       id
       timezone
       weekBegins
+      docusign {
+        templateId
+      }
       features {
         lottery
         venueContractDates

@@ -75,6 +75,7 @@ export interface IShift extends Omit<
   assignmentId: ObjectId;
   eventId: ObjectId;
   userId?: ObjectId | null;
+  docusignEnvelopeId?: string;
 
   order?: number;
 

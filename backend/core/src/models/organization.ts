@@ -103,7 +103,6 @@ export interface IOrganization extends Omit<
   id: string;
   orgId: ObjectId;
   modifiedById: ObjectId;
-  docusignHMAC?: string;
   docusign: {
     hmac: string;
     clientId: string;

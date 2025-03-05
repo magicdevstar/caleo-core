@@ -10,8 +10,8 @@ const equipment = [
   {name: "Mounted Enforcement",requiresAdminApproval: true,requiresCertificate: false, rankNames: "Deputy, Generalist; Deputy, Bonus I; Deputy, Bonus II; Deputy, Bonus I - SEB/ESD; Deputy, Bonus II (Arson/Explosives); Deputy, Bonus II (Hazardous Materials); Deputy, Bonus II; Sergeant, (SEB/ESD); Sergeant; Sergeant, (Arson/Explosives); Sergeant, (Hazardous Materials); Sergeant, (SEB/ESD) "}
 ];
 
-const orgId = new ObjectId("679843c6bc5fc11585a745b6");
-const createdById = new ObjectId("6798464cbc5fc11585a745b7");
+const orgId = new ObjectId("67c78e42035889550ba0baca");
+const createdById = new ObjectId("67c78e86afc5d0ad1c94bcca");
 
 export const importEquipment = async (db: Db) => {
   const rankCollection = db.collection('ranks');

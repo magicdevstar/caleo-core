@@ -134,7 +134,19 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       templateId: org.docusign.templateId,
       expireEnabled: 'false',
       status: 'created',
-      templateRoles
+      templateRoles,
+      customFields: {
+        textCustomFields: [
+          {
+            name: 'shiftId',
+            value: shift._id!.toString(),
+          },
+          {
+            name: 'orgId',
+            value: org._id!.toString(),
+          }
+        ]
+      }
     };
     const envelope = await envAPI.createEnvelope(tokenRecord.accountId, {
       envelopeDefinition: envDef,
@@ -265,5 +277,30 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     });
 
     return envelope.envelopeId!;
+  }
+
+  async getDocument({
+    envelopeId,
+    orgId,
+  }: {
+    envelopeId: string;
+    orgId: string;
+  }): Promise<string> {
+    const tokenRecord = await this.collection.findOne({
+      orgId: new ObjectId(orgId),
+    });
+    if (!tokenRecord) {
+      throw new Error('No docusign token found');
+    }
+    client.setBasePath(tokenRecord.basePath);
+    client.addDefaultHeader('Authorization', 'Bearer ' + tokenRecord.token);
+
+    const envAPI = new ds.EnvelopesApi(client);
+    return (envAPI.getDocument as any)(
+      tokenRecord.accountId,
+      envelopeId,
+      '1',
+      null
+    );
   }
 }

@@ -21,6 +21,9 @@ query ORGANIZATION {
     state
     timezone
     weekBegins
+    docusign {
+      templateId
+    }
     features {
       lottery
       venueContractDates

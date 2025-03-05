@@ -43,10 +43,13 @@ import { correctEmails } from "./utils/correct-emails";
     const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
-    await correctEmails(mongoClient);
-    // await importSkills(mongoClient);
-    // await importEquipment(mongoClient);
-    // await importRank(mongoClient);
+    
+    // await correctEmails(mongoClient);
+
+    // await importSkills(mongoClientProd);
+    // await importEquipment(mongoClientProd);
+    // await importRank(mongoClientProd);
+    
     // await analysisLotto58(mongoClientProd);
     // await fixShiftAvailability(mongoClientProd);
     // await lottoAnalysis(mongoClientProd, 57);

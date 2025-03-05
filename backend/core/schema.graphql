@@ -24,6 +24,7 @@
     UNIT
     DIVISION
     DS_TOKEN
+    DS_EVENTS
   }
   enum DayOfWeek {
     SUNDAY
@@ -641,6 +642,7 @@
     org: Organization!
     createdBy: User
     modifiedBy: User
+    docusignEvent: DocusignEvent
   }
 
   input ShiftCheckInOutEvent {
@@ -758,6 +760,27 @@
     endTime: String
   }
 ###### END Events ######
+
+###### START Docusign Events ######
+type DocusignEvent {
+  id: ID!
+  envelopeId: String!
+  eventId: String!
+  assignmentId: String!
+  shiftId: String!
+  userId: String!
+  orgId: String!
+  status: String!
+  docType: DocType!
+
+  createdAt: String!
+  updatedAt: String!
+  removedAt: String
+
+  shift: Shift
+  documentUrl: String
+}
+###### END Docusign Events ######
 
 ###### START LotteryCounter ######
   type LotteryCounter {
@@ -1096,6 +1119,11 @@
     sso: OrganizationSSOSettings
     customizations: OrganizationCustomizations
     modifiedBy: User
+    docusign: DocusignSettings
+  }
+
+  type DocusignSettings {
+    templateId: String
   }
 
   type OrganizationCustomizations {
@@ -1449,6 +1477,19 @@
     query: String
     orderBy: String
     order: String
+  }
+
+  input DocusignEventSearchInput {
+    limit: Int
+    skip: Int
+    userId: String!
+    orderBy: String
+    order: String
+  }
+
+  type DocusignEventSearchResult {
+    items: [DocusignEvent]
+    total: Int!
   }
 
   type LotteryCounterSearchResult {
@@ -1811,6 +1852,7 @@ type Query {
   allUsers(input: AllUsersSearchInput): UserSearchResult
   users(input: UserSearchInput): UserSearchResult
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
+  docusignEvents(input: DocusignEventSearchInput!): DocusignEventSearchResult
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

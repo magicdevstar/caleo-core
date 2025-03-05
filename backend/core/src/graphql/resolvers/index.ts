@@ -18,6 +18,7 @@ import { lotteryAnalytics } from './lotteryAnalytics';
 import { shiftInterestRequests } from './shiftInterestRequests';
 import { unit } from './unit';
 import { division } from './division';
+import { docusignEvents } from './docusignEvents';
 
 export default {
   Query: {
@@ -41,6 +42,7 @@ export default {
     ...equipment.Query,
     ...unit.Query,
     ...division.Query,
+    ...docusignEvents.Query,
   },
   Mutation: {
     ...health.Mutation,
@@ -84,4 +86,5 @@ export default {
   ...equipment.fields,
   ...unit.fields,
   ...division.fields,
+  ...docusignEvents.fields,
 };

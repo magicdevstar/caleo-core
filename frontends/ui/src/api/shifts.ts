@@ -320,6 +320,11 @@ export const GET_ALL_SHIFTS = gql`
           checkInTime
           checkOutTime
         }
+        docusignEvent {
+          id
+          status
+          documentUrl
+        }
         event {
           id
           referenceId

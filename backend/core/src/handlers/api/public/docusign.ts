@@ -7,14 +7,8 @@ import { createContext } from "../../../utils/createContext";
 import { DocusignEvent } from "../../../types/docusign";
 
 const findAttributeValue = (key: string) => (webhookData: DocusignEvent) => {
-  const envelopeDocuments = webhookData.data.envelopeSummary.envelopeDocuments;
-  return envelopeDocuments.reduce((orgId, doc) => {
-    const orgTab = doc.tabs?.prefillTabs.textTabs.find((tab) => tab.tabLabel === key);
-    if (orgTab) {
-      return orgTab.value;
-    }
-    return orgId;
-  }, undefined as string | undefined);
+  const textCustomFields = webhookData.data.envelopeSummary.customFields.textCustomFields;
+  return textCustomFields?.find((field) => field.name === key)?.value;
 };
 
 const findOrgId = findAttributeValue('orgId');
@@ -22,20 +16,23 @@ const findShiftId = findAttributeValue('shiftId');
 
 export const docusignEvent = async (event: APIGatewayEvent) => {
   try {
-    const webhookData = JSON.parse(event.body || '{}');
+    const webhookData = JSON.parse(event.body || '{}') as DocusignEvent;
     const orgId = findOrgId(webhookData);
     const shiftId = findShiftId(webhookData);
 
     if (!orgId) {
       throw new Error('Organization ID not found in webhook data');
     }
+    if (!shiftId) {
+      throw new Error('Organization ID not found in webhook data');
+    }
 
     const services = await createContext();
     const org = await services.organizations.get(orgId);
-    if (!org || !org.docusignHMAC) {
+    if (!org || !org.docusign.hmac) {
       throw new Error('Organization not found');
     }
-    const hmac = org.docusignHMAC;
+    const hmac = org.docusign.hmac;
     
     // Get the signature from headers
     const signature = event.headers['x-docusign-signature-1'];
@@ -60,6 +57,12 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
     }
 
     logger.info('Webhook details', { shiftId, orgId });
+
+    await services.docusign.saveEvent({
+      shiftId,
+      status: webhookData.data.envelopeSummary.status,
+      envelopeId: webhookData.data.envelopeId,
+    });
 
     return {
       statusCode: 200,

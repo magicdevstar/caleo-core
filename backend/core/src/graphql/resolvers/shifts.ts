@@ -718,6 +718,10 @@ export const shift = {
         _,
         { shifts }: Context
       ) => shifts.loadOtherShiftSlots.load(shift.shiftId),
+      docusignEvent: (item: IShift, _, context: Context) => {
+        if (!item.docusignEnvelopeId) return null;
+        return context.docusign.loadEventsByShiftId((item.id?.toString() || item._id?.toString())!);
+      },
     },
     ShiftCheckInOut: {
       checkInTime: (item: IShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,

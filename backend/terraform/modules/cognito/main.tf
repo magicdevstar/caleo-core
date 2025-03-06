@@ -122,7 +122,7 @@ resource "aws_cognito_identity_provider" "provider" {
     email           = each.value.email_attribute
     family_name     = each.value.family_name_attribute
     given_name      = each.value.given_name_attribute
-    "custom:phoney" = each.value.phone_number_attribute
+    "custom:phony" = each.value.phone_number_attribute
   }
 }
 

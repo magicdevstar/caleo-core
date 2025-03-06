@@ -29,7 +29,7 @@ export default function FileThumbnail({
 
   const format = fileFormat(path || preview);
   const renderContent =
-    format === 'image' && imageView ? (
+    (format === 'image' && imageView || preview.includes('.s3.us-west-2.amazonaws.com')) ? (
       <Box
         component="img"
         src={preview}

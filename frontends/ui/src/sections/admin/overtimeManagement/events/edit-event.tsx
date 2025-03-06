@@ -738,9 +738,8 @@ export default function EditEvent({ currentEvent }: Props) {
                         {option?.name}
                       </li>
                     )}
-                    renderTags={(selected, getTagProps) => {
-                      console.log(selected);
-                      return selected.map((option, index) => (
+                    renderTags={(selected, getTagProps) =>
+                      selected.map((option, index) => (
                         <Chip
                           {...getTagProps({ index })}
                           key={option?.id}
@@ -751,7 +750,6 @@ export default function EditEvent({ currentEvent }: Props) {
                         />
                       ))
 
-                    }
                     }
                   />
                   <RHFAutocomplete
@@ -773,9 +771,8 @@ export default function EditEvent({ currentEvent }: Props) {
                         {option?.name}
                       </li>
                     )}
-                    renderTags={(selected, getTagProps) => {
-                      console.log(selected);
-                      return selected.map((option, index) => (
+                    renderTags={(selected, getTagProps) =>
+                      selected.map((option, index) => (
                         <Chip
                           {...getTagProps({ index })}
                           key={option?.id}
@@ -785,8 +782,6 @@ export default function EditEvent({ currentEvent }: Props) {
                           variant="soft"
                         />
                       ))
-
-                    }
                     }
                   />
                 </Stack>
@@ -1099,7 +1094,6 @@ export default function EditEvent({ currentEvent }: Props) {
               </Stack>
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2" sx={{ml: 0.5}}>Attachments</Typography>
-                {/* TODO: Implement attachments */}
                 <RHFUpload
                   multiple
                   thumbnail

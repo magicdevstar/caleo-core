@@ -34,7 +34,7 @@ export default function RHFAutocomplete<
   ...other
 }: Omit<Props<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'>) {
   const { control } = useFormContext();
-
+  console.log(other.isOptionEqualToValue)
   return (
     <Controller
       name={name}

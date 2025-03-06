@@ -1026,6 +1026,7 @@ type DocusignEvent {
     active: Boolean!
     requiresAdminApproval: Boolean!
     requiresCert: Boolean!
+    requiresEquipmentTime: Boolean!
     docType: DocType!
     orgId: String!
     rankOnlyIds: [String]
@@ -1070,6 +1071,7 @@ type DocusignEvent {
     name: String
     active: Boolean
     requiresAdminApproval: Boolean
+    requiresEquipmentTime: Boolean
     requiresCert: Boolean
     rankOnlyIds: [String]
   }
@@ -1586,6 +1588,7 @@ type DocusignEvent {
     limit: Int
     skip: Int
     query: String
+    requiresEquipmentTime: Boolean
     requiresCert: Boolean
     rankOnlyIds: [String]
     requiresAdminApproval: Boolean

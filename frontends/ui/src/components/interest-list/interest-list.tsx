@@ -153,7 +153,6 @@ export function InterestList({
               return 'default';
           }
         }
-
       },
       {
         id: '',

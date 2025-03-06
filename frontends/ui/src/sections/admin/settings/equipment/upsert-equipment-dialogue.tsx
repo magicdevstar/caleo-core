@@ -29,6 +29,7 @@ interface InputProps {
 const defaultEquipment = {
   name: '',
   active: true,
+  requiresEquipmentTime: false,
   requiresAdminApproval: false,
   requiresCert: false,
   ranksOnly: [],
@@ -64,6 +65,7 @@ export default function UpsertEquipmentDialogue({
       setEquipmentMod({
         name: equipment.name,
         active: equipment.active,
+        requiresEquipmentTime: equipment.requiresEquipmentTime,
         requiresAdminApproval: equipment.requiresAdminApproval,
         requiresCert: equipment.requiresCert,
         ranksOnly: (equipment.ranksOnly || []) as any,
@@ -85,6 +87,7 @@ export default function UpsertEquipmentDialogue({
             id: equipment?.id,
             name: equipmentMod.name.trim(),
             active: equipmentMod.active,
+            requiresEquipmentTime: equipmentMod.requiresEquipmentTime,
             requiresAdminApproval: equipmentMod.requiresAdminApproval,
             requiresCert: equipmentMod.requiresCert,
             rankOnlyIds: equipmentMod.rankOnlyIds,
@@ -165,6 +168,21 @@ export default function UpsertEquipmentDialogue({
           />
 
           <FormGroup sx={{ mt: 1 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  onChange={
+                    (_, checked) =>
+                      setEquipmentMod((c) =>
+                      ({
+                        ...c,
+                        requiresEquipmentTime: checked
+                      }))
+                  }
+                  checked={equipmentMod.requiresEquipmentTime} />
+              }
+              label="Requires equipment time"
+            />
             <FormControlLabel
               control={
                 <Switch

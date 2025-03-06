@@ -16,6 +16,11 @@ export default function AccountDocusign({
       header: {
         title: 'End of Shift Documents',
       },
+      table: {
+        sx: {
+          minWidth: '100%'
+        },
+      },
       search: {
         query: GET_DOCUSIGN_EVENTS,
         processResult: (data) => {
@@ -37,13 +42,50 @@ export default function AccountDocusign({
         }
       ],
       columns: [
-        { id: 'shift.event.referenceId', label: 'Event Ref#', columnType: 'string' },
-        { id: 'shift.event.name', label: 'Event Name', columnType: 'string' },
-        { id: 'shift.assignment.name', label: 'Assignment Name', columnType: 'string' },
-        { id: 'status', label: 'Status', columnType: 'string', renderValue: (value: string) => value.toUpperCase() },
+        {
+          id: 'shift.event.referenceId',
+          label: 'Event Ref#',
+          columnType: 'string',
+          width: '10%',
+          noSort: true,
+        },
+        {
+          id: 'shift.event.name',
+          label: 'Event Name',
+          columnType: 'string',
+          width: '40%',
+          noSort: true,
+        },
+        {
+          id: 'shift.assignment.name',
+          label: 'Assignment Name',
+          columnType: 'string',
+          width: '30%',
+          noSort: true,
+        },
+        {
+          id: 'status',
+          label: 'Status',
+          columnType: 'string',
+          getLabelColor: (event: any) => {
+            switch (event.status.toUpperCase()) {
+              case 'COMPLETED':
+                return 'success';
+              case 'SENT':
+                return 'warning';
+              case 'VOIDED':
+                return 'error';
+              default:
+                return 'default';
+            }
+          },
+          renderValue: (value: string) => value.toUpperCase(),
+          width: '10%',
+          noSort: true,
+        },
         {
           id: '',
-          width: 88,
+          width: '10%',
           columnType: 'action',
           label: 'Download',
           renderValue: (_value: any, _index: number, row: DocusignEvent) => (
@@ -53,6 +95,7 @@ export default function AccountDocusign({
               <Iconify icon="ic:round-download" />
             </IconButton>
           ),
+          noSort: true,
         },
       ],
       filters: [

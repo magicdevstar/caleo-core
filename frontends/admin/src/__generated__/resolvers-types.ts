@@ -306,6 +306,7 @@ export type Equipment = {
   removedAt?: Maybe<Scalars['String']['output']>;
   requiresAdminApproval: Scalars['Boolean']['output'];
   requiresCert: Scalars['Boolean']['output'];
+  requiresEquipmentTime: Scalars['Boolean']['output'];
   updatedAt: Scalars['String']['output'];
 };
 
@@ -318,6 +319,7 @@ export type EquipmentSearchInput = {
   rankOnlyIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
   requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
+  requiresEquipmentTime?: InputMaybe<Scalars['Boolean']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -2083,6 +2085,7 @@ export type UpsertEquipment = {
   rankOnlyIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiresAdminApproval?: InputMaybe<Scalars['Boolean']['input']>;
   requiresCert?: InputMaybe<Scalars['Boolean']['input']>;
+  requiresEquipmentTime?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpsertEvent = {
@@ -3050,6 +3053,7 @@ export type EquipmentResolvers<ContextType = any, ParentType extends ResolversPa
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requiresAdminApproval?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   requiresCert?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  requiresEquipmentTime?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

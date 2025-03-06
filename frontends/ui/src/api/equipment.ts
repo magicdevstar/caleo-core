@@ -47,6 +47,7 @@ export const GET_EQUIPMENTS = gql`
         id
         name
         active
+        requiresEquipmentTime
         requiresAdminApproval
         requiresCert
         rankOnlyIds
@@ -94,6 +95,7 @@ export const UPSERT_EQUIPMENT = gql`
 
 export type EquipmentTableFilters = {
   name: string;
+  time: string[];
   cert: string[];
   admin: string[];
   active: string[];
@@ -103,6 +105,7 @@ export type EquipmentTableFilterValue = string | string[];
 
 export type IEquipmentTableFilters = {
   name: string;
+  time: string[];
   cert: string[];
   admin: string[];
   active: string[];

@@ -3,11 +3,13 @@ import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { PostAuthenticationTriggerEvent } from "aws-lambda";
 import logger from "../../utils/logger";
 import { createContext } from "../../utils/createContext";
+import { phoneNumberParser } from "../../utils/phone";
 
 interface IUserAttributes {
   sub: string
   "cognito:user_status": string
   "custom:legacy_sub": string
+  "custom:phony": string
   identities?: string
   email_verified: string
   phone_number_verified: string
@@ -16,7 +18,6 @@ interface IUserAttributes {
   family_name: string
   email: string
 }
-
 
 const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
   try {
@@ -29,7 +30,7 @@ const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
       }, {
         $set: {
           'member.contactInfo.primaryEmail.address': attributes.email,
-          'member.contactInfo.primaryPhone.number': attributes.phone_number,
+          'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
           firstName: attributes.given_name,
           lastName: attributes.family_name,
           name: `${attributes.given_name} ${attributes.family_name}`,

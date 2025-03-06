@@ -760,7 +760,7 @@ export type Mutation = {
   assignment?: Maybe<Assignment>;
   browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
   checkIn: Shift;
-  checkOut: Shift;
+  checkOut: ShiftCheckOutResponse;
   createOrganization?: Maybe<Organization>;
   division?: Maybe<Division>;
   editCheckInOut: Shift;
@@ -1753,9 +1753,11 @@ export type ShiftCheckInOut = {
   __typename?: 'ShiftCheckInOut';
   adminNotes?: Maybe<Scalars['String']['output']>;
   checkInCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  checkInEquipmentTime?: Maybe<Scalars['Float']['output']>;
   checkInNote?: Maybe<Scalars['String']['output']>;
   checkInTime?: Maybe<Scalars['String']['output']>;
   checkOutCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  checkOutEquipmentTime?: Maybe<Scalars['Float']['output']>;
   checkOutNote?: Maybe<Scalars['String']['output']>;
   checkOutTime?: Maybe<Scalars['String']['output']>;
 };
@@ -1774,9 +1776,17 @@ export type ShiftCheckInOutCoordinates = {
 export type ShiftCheckInOutEvent = {
   adminNotes?: InputMaybe<Scalars['String']['input']>;
   coords?: InputMaybe<CheckInOutCoordinates>;
+  equipmentTime?: InputMaybe<Scalars['Float']['input']>;
   id: Scalars['String']['input'];
   note?: InputMaybe<Scalars['String']['input']>;
+  signNow?: InputMaybe<Scalars['Boolean']['input']>;
   time?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ShiftCheckOutResponse = {
+  __typename?: 'ShiftCheckOutResponse';
+  shift: Shift;
+  signingUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type ShiftDayTime = {
@@ -2644,6 +2654,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftCheckInOut: ResolverTypeWrapper<ShiftCheckInOut>;
   ShiftCheckInOutCoordinates: ResolverTypeWrapper<ShiftCheckInOutCoordinates>;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
+  ShiftCheckOutResponse: ResolverTypeWrapper<ShiftCheckOutResponse>;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
   ShiftInterestRequest: ResolverTypeWrapper<ShiftInterestRequest>;
   ShiftInterestRequestStatus: ShiftInterestRequestStatus;
@@ -2823,6 +2834,7 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftCheckInOut: ShiftCheckInOut;
   ShiftCheckInOutCoordinates: ShiftCheckInOutCoordinates;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
+  ShiftCheckOutResponse: ShiftCheckOutResponse;
   ShiftDayTime: ShiftDayTime;
   ShiftInterestRequest: ShiftInterestRequest;
   ShiftInterestRequestsSearchInput: ShiftInterestRequestsSearchInput;
@@ -3354,7 +3366,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
   browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
   checkIn?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckInArgs, 'input'>>;
-  checkOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
+  checkOut?: Resolver<ResolversTypes['ShiftCheckOutResponse'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
   createOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationCreateOrganizationArgs, 'organization'>>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<MutationDivisionArgs, 'division'>>;
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
@@ -3719,9 +3731,11 @@ export type ShiftBufferRequestsSearchResultResolvers<ContextType = any, ParentTy
 export type ShiftCheckInOutResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOut'] = ResolversParentTypes['ShiftCheckInOut']> = ResolversObject<{
   adminNotes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkInCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkInEquipmentTime?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   checkInNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkInTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutCoords?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
+  checkOutEquipmentTime?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   checkOutNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -3735,6 +3749,12 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
   latitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   longitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   speed?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftCheckOutResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckOutResponse'] = ResolversParentTypes['ShiftCheckOutResponse']> = ResolversObject<{
+  shift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
+  signingUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4032,6 +4052,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftBufferRequestsSearchResult?: ShiftBufferRequestsSearchResultResolvers<ContextType>;
   ShiftCheckInOut?: ShiftCheckInOutResolvers<ContextType>;
   ShiftCheckInOutCoordinates?: ShiftCheckInOutCoordinatesResolvers<ContextType>;
+  ShiftCheckOutResponse?: ShiftCheckOutResponseResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
   ShiftInterestRequest?: ShiftInterestRequestResolvers<ContextType>;
   ShiftInterestRequestsSearchResult?: ShiftInterestRequestsSearchResultResolvers<ContextType>;

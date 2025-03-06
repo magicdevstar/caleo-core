@@ -105,10 +105,12 @@ export class Docusign {
     shift,
     user,
     organization,
+    signNow,
   }: {
     shift: IShift;
     user: IUser;
     organization: IOrganization;
+    signNow: boolean;
   }) {
     if (organization.docusign && organization.docusign.templateId) {
       try {
@@ -119,7 +121,10 @@ export class Docusign {
         const supervisor = await this.users.get(event?.supervisorId!);
         const lieutenant = await this.users.get(event?.lieutenantId!);
 
-        const envelopeId = await this.docusign.createLASDShiftEnvelope({
+        const {
+          envelopeId,
+          signingUrl,
+        } = await this.docusign.createLASDShiftEnvelope({
           org: organization,
           shift,
           user,
@@ -129,12 +134,17 @@ export class Docusign {
           event: event!,
           lieutenant: lieutenant!,
           supervisor: supervisor!,
+          signNow,
         });
 
         await this.shifts.setDocusignEnvelopeId({
           _id: shift._id!,
           envelopeId,
         });
+        return {
+          envelopeId,
+          signingUrl,
+        };
       } catch(error) {
         logger.error('Error submitting end of shift envelope', {
           error,

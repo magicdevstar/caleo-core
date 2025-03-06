@@ -721,6 +721,7 @@ export default function EditEvent({ currentEvent }: Props) {
                 <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
                   <RHFAutocomplete
                     name="supervisor"
+                    label='Supervisor'
                     sx={{ width: '100%' }}
                     placeholder="Supervisor"
                     disabled={allDisabled}
@@ -754,6 +755,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   />
                   <RHFAutocomplete
                     name="lieutenant"
+                    label='Lieutenant'
                     placeholder="Lieutenant"
                     disabled={allDisabled}
                     loading={loadingUser}

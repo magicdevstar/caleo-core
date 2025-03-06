@@ -95,6 +95,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     unit,
     supervisor,
     lieutenant,
+    signNow,
   }: {
     org: IOrganization;
     shift: IShift;
@@ -105,6 +106,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor: IUser;
     lieutenant: IUser;
     event: IEvent;
+    signNow: boolean,
   }) {
     const tokenRecord = await this.collection.findOne({
       orgId: org._id,
@@ -115,6 +117,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     client.setBasePath(tokenRecord.basePath);
     client.addDefaultHeader('Authorization', 'Bearer ' + tokenRecord.token);
 
+    const clientUserId = '1001';
+
     const envAPI = new ds.EnvelopesApi(client);
     const templateRoles: TemplateRole[] = [
       {
@@ -122,6 +126,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         routingOrder: '1',
         email: user.member.contactInfo?.primaryEmail.address,
         name: user.name,
+        ...(signNow && { clientUserId }),
       },
       {
         roleName: 'lieutenant',
@@ -162,6 +167,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     }  = docusignDates({
       startTime: shift.shiftCheckInOut!.checkInTime!,
       endTime: shift.shiftCheckInOut!.checkOutTime!,
+      startEquipmentTime: shift.shiftCheckInOut!.checkInEquipmentTime || undefined,
+      endEquipmentTime: shift.shiftCheckInOut!.checkOutEquipmentTime || undefined,
       timezone: org.timezone as any,
     });
 
@@ -276,7 +283,27 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       }
     });
 
-    return envelope.envelopeId!;
+    let signingUrl;
+    if (signNow) {
+      const domain = org.sso?.uiSubDomains?.[0]!;
+      const baseDomain = `https://${domain}.caleopro.com`;
+      const viewRequest = {
+        returnUrl: `${baseDomain}/dashboard`,
+        authenticationMethod: 'none',
+        email: user.member.contactInfo?.primaryEmail.address,
+        userName: user.name,
+        clientUserId,
+        frameAncestors: [baseDomain],
+        messageOrigins: [baseDomain]
+      };
+      const recipientView = await envAPI.createRecipientView(tokenRecord.accountId, envelope.envelopeId!, { recipientViewRequest: viewRequest });
+      signingUrl = recipientView.url!;
+    }
+
+    return {
+      signingUrl,
+      envelopeId: envelope.envelopeId!
+    };
   }
 
   async getDocument({

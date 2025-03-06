@@ -173,6 +173,7 @@ export const shift = {
           time,
           note,
           adminNotes,
+          equipmentTime,
         }
       }: { input: ShiftCheckInOutEvent },
       { shifts, user }: Context
@@ -197,6 +198,7 @@ export const shift = {
         checkInNote,
         adminNotes: finalAdminNote,
         user: user!,
+        equipmentTime: equipmentTime || undefined,
       });
 
       return (await shifts.get(id))!;
@@ -210,10 +212,12 @@ export const shift = {
           time,
           note,
           adminNotes,
+          equipmentTime,
+          signNow
         }
       }: { input: ShiftCheckInOutEvent },
       { shifts, docusign, organization, user }: Context
-    ): Promise<IShift> => {
+    ): Promise<{shift: IShift, signingUrl?: string}> => {
       const shift = await shifts.get(id);
       if (!shift) {
         throw new GraphQLError("Shift not found");
@@ -233,16 +237,21 @@ export const shift = {
         checkOutNote,
         adminNotes: finalAdminNote,
         user: user!,
+        equipmentTime: equipmentTime || undefined,
       });
       const updatedShift = await shifts.get(id);
 
-      await docusign.submitEndOfShiftEnvelope({
+      const envelope = await docusign.submitEndOfShiftEnvelope({
         shift: updatedShift!,
         user: user!,
         organization: organization!,
+        signNow: !!signNow,
       });
 
-      return updatedShift!;
+      return {
+        shift: updatedShift!,
+        signingUrl: envelope?.signingUrl,
+      };
     },
     notifyUsersOfShift: async (
       _parent: unknown,

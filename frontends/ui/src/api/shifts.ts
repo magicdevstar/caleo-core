@@ -39,11 +39,14 @@ export const EDIT_CHECK_IN_OUT = gql`
 export const CHECK_OUT = gql`
   mutation CheckOut($input: ShiftCheckInOutEvent!) {
     checkOut(input: $input) {
-      id
-      shiftCheckInOut {
-        checkInTime
-        checkOutTime
+      shift {
+        id
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+        }
       }
+      signingUrl
     }
   }
 `;
@@ -352,6 +355,11 @@ export const GET_ALL_SHIFTS = gql`
           name
           bwNeeded
           description
+          requiredEquipment {
+            id
+            name
+            requiresEquipmentTime
+          }
           requiredSkills {
             id
             name

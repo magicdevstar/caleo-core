@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 import Card, { CardProps } from '@mui/material/Card';
 import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 // hooks
 import Carousel, { CarouselArrows, CarouselDots, useCarousel } from 'src/components/carousel';
 // types
@@ -31,8 +33,11 @@ interface Props extends CardProps {
 export default function CheckInOut({ title, subheader, currentShifts, ...other }: Props) {
   const confirm = useBoolean();
   const [loading, setLoading] = useState(false);
+  const [signNow, setSignNow] = useState(false);
   const [checkInOutConfirm, setCheckInOutConfirm] = useState<Shift | null>(null);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
+  const [equipmentTime, setEquipmentTime] = useState<number>(0);
+  const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime, [checkInOutConfirm]);
   const [checkIn] = useMutation(CHECK_IN, {
     refetchQueries: [GET_ALL_SHIFTS],
   });
@@ -46,11 +51,13 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
       setLoading(true);
       const location = await getLocation();
       const action = shift.shiftCheckInOut?.checkInTime ? checkOut : checkIn;
-      await action({
+      const response = await action({
         variables: {
           input: {
             id: shift.id,
             note: checkInOutNote,
+            equipmentTime,
+            signNow,
             ...(location && {
               coords: {
                 accuracy: location.coords.accuracy,
@@ -65,6 +72,12 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
           },
         }
       });
+
+      const url = response?.data?.checkOut?.signingUrl;
+      if (url) {
+        window.open(url);
+      }
+
       await client.refetchQueries({
         include: [GET_ALL_SHIFTS],
       });
@@ -74,7 +87,15 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
     } finally {
       setLoading(false);
     }
-  }, [checkIn, checkOut, setLoading, confirm, checkInOutNote]);
+  }, [
+    checkIn,
+    checkOut,
+    setLoading,
+    confirm,
+    checkInOutNote,
+    equipmentTime,
+    signNow,
+  ]);
 
   const recentNotifications: CheckInOutItemProps[] = useMemo(() => {
     const shiftList = currentShifts || [];
@@ -151,22 +172,43 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={checkInOutConfirm?.shiftCheckInOut?.checkInTime ? 'Confirm checking out?' : 'Confirm checking in?'}
+        title={isCheckout ? 'Confirm checking out?' : 'Confirm checking in?'}
         content={(
-          <TextField
-            label="Type to add a note"
-            multiline
-            fullWidth
-            sx={{ mt: 1 }}
-            rows={4}
-            onBlur={(event) => {
-              setCheckInOutNote(event.target.value)
-            }}
-          />
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Equipment time in hours"
+              type="number"
+              fullWidth
+              onBlur={(event) => {
+                setEquipmentTime(parseFloat(event.target.value))
+              }}
+            />
+            <TextField
+              label="Type to add a note"
+              multiline
+              fullWidth
+              rows={4}
+              onBlur={(event) => {
+                setCheckInOutNote(event.target.value)
+              }}
+            />
+            {
+              isCheckout && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      onChange={(_, checked) => setSignNow(checked)}
+                      checked={signNow} />
+                  }
+                  label="Sign shift document now"
+                />
+              )
+            }
+          </Stack>
         )}
         action={
           <LoadingButton loading={loading} variant="contained" onClick={() => handleCheckInOut(checkInOutConfirm!)}>
-            {checkInOutConfirm?.shiftCheckInOut?.checkInTime ? 'Check out' : 'Check in'}
+            {isCheckout ? 'Check out' : 'Check in'}
           </LoadingButton>
         }
       />

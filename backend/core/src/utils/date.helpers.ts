@@ -55,7 +55,9 @@ export const docusignDates = ({
   );
 
   const diff = differenceInMinutes(zoneEndTime, zoneStartTime, { roundingMethod: 'ceil' });
-  const formattedDiff = `${Math.floor(diff / 60)}:${diff % 60}`;
+  const formattedDiffHours = Math.floor(diff / 60).toString().padStart(2, '0');
+  const formattedDiffMinutes = (diff % 60).toString().padStart(2, '0');
+  const formattedDiff = `${formattedDiffHours}:${formattedDiffMinutes}`;
   
   return {
     startTime: zoneStartTime,

@@ -30,11 +30,8 @@ variable "from_email" {
 
 variable "sso_configurations" {
   type = map(object({
-    metadata_url           = string
-    email_attribute        = string
-    family_name_attribute  = string
-    given_name_attribute   = string
-    phone_number_attribute = string
+    metadata_url      = string
+    attribute_mapping = map(string)
   }))
   description = "Map of SSO configurations"
   default     = {}

@@ -26,7 +26,7 @@ provider "aws" {
     tags = {
       Repo        = "CaleoPro/caleo-core"
       Terraform   = true
-      Environment = "caleo-bootstrap"
+      Environment = "caleo-bootstrap-prod"
     }
   }
 }

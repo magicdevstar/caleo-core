@@ -76,6 +76,18 @@ resource "aws_cognito_user_pool" "pool" {
 
   schema {
     attribute_data_type = "String"
+    name                = "employee_date"
+    required            = false
+    mutable             = true
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 256
+    }
+  }
+
+  schema {
+    attribute_data_type = "String"
     name                = "phony"
     required            = false
     mutable             = true
@@ -118,12 +130,7 @@ resource "aws_cognito_identity_provider" "provider" {
     MetadataURL             = each.value.metadata_url
   }
 
-  attribute_mapping = {
-    email           = each.value.email_attribute
-    family_name     = each.value.family_name_attribute
-    given_name      = each.value.given_name_attribute
-    "custom:phony" = each.value.phone_number_attribute
-  }
+  attribute_mapping = each.value.attribute_mapping
 }
 
 resource "aws_cognito_user_pool_client" "client" {

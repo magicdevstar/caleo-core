@@ -1,22 +1,28 @@
 locals {
-  stage        = "dev"
-  amplify_id   = "d1devc1e4gname"
-  user_pool_id = "us-west-2_8023dPQwv"
+  stage         = "dev"
+  amplify_id    = "d1devc1e4gname"
+  caleo_zone_id = "Z04140351SPNE9TCKBJWA"
 
   sso_configurations = {
     "azure" = {
-      metadata_url           = "https://login.microsoftonline.com/810fe9e3-a982-4f6b-be51-fd90dafed5aa/federationmetadata/2007-06/federationmetadata.xml?appid=6ce0aa1b-6609-4ba2-a405-470d467768dc"
-      email_attribute        = "email"
-      family_name_attribute  = "surname"
-      given_name_attribute   = "givenname"
-      phone_number_attribute = "phone"
+      metadata_url      = "https://login.microsoftonline.com/810fe9e3-a982-4f6b-be51-fd90dafed5aa/federationmetadata/2007-06/federationmetadata.xml?appid=6ce0aa1b-6609-4ba2-a405-470d467768dc"
+      attribute_mapping = {
+        email           = "email"
+        family_name     = "surname"
+        given_name      = "givenname"
+        "custom:phony"  = "phone"
+      }
     }
     "lasd-dev" = {
-      metadata_url           = "https://login.microsoftonline.com/10912896-cd7e-496c-baf0-6a664593a177/federationmetadata/2007-06/federationmetadata.xml?appid=0977712d-b052-41ac-ba4d-6d5367b04e56"
-      email_attribute        = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-      family_name_attribute  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
-      given_name_attribute   = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-      phone_number_attribute = "user.telephonenumber"
+      metadata_url             = "https://login.microsoftonline.com/10912896-cd7e-496c-baf0-6a664593a177/federationmetadata/2007-06/federationmetadata.xml?appid=0977712d-b052-41ac-ba4d-6d5367b04e56"
+      attribute_mapping        = {
+        email                  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+        family_name            = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+        given_name             = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+        "custom:phony"         = "user.telephonenumber"
+        "custom:p_number"      = "employeeID"
+        "custom:employee_date" = "extensionAttribute10"
+      }
     }
   }
 
@@ -39,6 +45,35 @@ locals {
   )
 }
 
+resource "aws_route53_record" "subdomain" {
+  for_each = {
+    for name, zone in module.domains : name => [for ns in zone.name_servers : "${ns}."]
+  }
+
+  provider = aws.domain-account
+
+  zone_id = local.caleo_zone_id
+  name    = "${each.key}.caleopro.com"
+  type    = "NS"
+  ttl     = "60"
+  records = each.value
+}
+
+import {
+  to = aws_route53_record.subdomain["dev"]
+  id = "Z04140351SPNE9TCKBJWA_dev.caleopro.com_NS"
+}
+
+import {
+  to = aws_route53_record.subdomain["lasd-dev"]
+  id = "Z04140351SPNE9TCKBJWA_lasd-dev.caleopro.com_NS"
+}
+
+import {
+  to = aws_route53_record.subdomain["azure"]
+  id = "Z04140351SPNE9TCKBJWA_azure.caleopro.com_NS"
+}
+
 module "domains" {
   for_each = local.hosted_zones
 
@@ -51,20 +86,6 @@ module "amplify_domains" {
   source  = "../../modules/amplify-domain"
   app_id  = local.amplify_id
   domains = local.hosted_zones
-}
-
-module "cognito_providers" {
-  for_each = local.sso_configurations
-
-  source = "../../modules/cognito_provider"
-
-  user_pool_id           = local.user_pool_id
-  provider_name          = each.key
-  metadata_url           = each.value.metadata_url
-  email_attribute        = each.value.email_attribute
-  family_name_attribute  = each.value.family_name_attribute
-  given_name_attribute   = each.value.given_name_attribute
-  phone_number_attribute = each.value.phone_number_attribute
 }
 
 module "cognito" {

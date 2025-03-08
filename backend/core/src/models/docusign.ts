@@ -172,6 +172,12 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       timezone: org.timezone as any,
     });
 
+    const totalEquipmentTime = Math.round((shift.shiftCheckInOut!.checkInEquipmentTime || 0) + (shift.shiftCheckInOut!.checkOutEquipmentTime || 0));
+    const lastLineExplainer =
+      totalEquipmentTime ?
+      `Employee received a total of ${totalEquipmentTime} hours of equipment time.` :
+      'Employee received a total of 1 hour of travel time.'
+
     const prefillTabs = {
       tabs: {
         prefillTabs: {
@@ -266,8 +272,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'automaticDetails')?.tabId,
               tabLabel: "automaticDetails",
-              // TODO: Replace last sentence with equipment details
-              value: `Worked ${event.name} @ ${venue.address} ${venue.city} in the ${venue.contract?.name}.\nSpecial Event Contract: ${venue.contract?.name}.\nEmployee received a total of 1 hour of travel time.`,
+              value: `Worked ${event.name} @ ${venue.address} ${venue.city} in the ${venue.contract?.name}.\nSpecial Event Contract: ${venue.contract?.name}.\n${lastLineExplainer}`,
             }
           ]
         }

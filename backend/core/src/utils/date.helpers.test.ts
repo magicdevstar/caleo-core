@@ -1,8 +1,17 @@
 import {
+  jest,
   describe,
   expect,
   it
 } from '@jest/globals';
+
+// Mock the logger
+jest.mock('./logger', () => ({
+  info: jest.fn(),
+  debug: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn()
+}));
 
 describe('date helpers', () => {
   describe('docusignDates', () => {
@@ -14,7 +23,7 @@ describe('date helpers', () => {
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(30);
       expect(result.endTime.getMinutes()).toBe(45);
-      expect(result.formattedDiff).toBe('2:15');
+      expect(result.formattedDiff).toBe('02:15');
     });
 
     it('should handle exact 15-minute boundaries', () => {
@@ -25,7 +34,7 @@ describe('date helpers', () => {
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(15); // Should stay at 15
       expect(result.endTime.getMinutes()).toBe(30); // Should stay at 30
-      expect(result.formattedDiff).toBe('2:15');
+      expect(result.formattedDiff).toBe('02:15');
     });
 
     it('should handle very short durations', () => {
@@ -34,7 +43,7 @@ describe('date helpers', () => {
       const timezone = 'America/Los_Angeles';
       const { docusignDates } = require('./date.helpers');
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.formattedDiff).toBe('1:15'); // Should be minimum 1 hour and 15 minutes
+      expect(result.formattedDiff).toBe('01:15'); // Should be minimum 1 hour and 15 minutes
     });
 
     it('should handle dates close to day boundaries', () => {
@@ -53,7 +62,7 @@ describe('date helpers', () => {
       const timezone = 'America/Los_Angeles';
       const { docusignDates } = require('./date.helpers');
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.formattedDiff).toBe('1:15'); // Should pad or handle single digit minutes
+      expect(result.formattedDiff).toBe('01:15'); // Should pad or handle single digit minutes
     });
 
     it('should handle daylight savings time transitions', () => {
@@ -132,7 +141,7 @@ describe('date helpers', () => {
       expect(result.endTime.getHours()).toBe(8); // 13:00 UTC + 2 hours = 8:00 AM Pacific
       
       // Difference should be 4 hours (original 1 hour + 1 hour start + 2 hours end)
-      expect(result.formattedDiff.split(':')[0]).toBe('4');
+      expect(result.formattedDiff.split(':')[0]).toBe('04');
     });
 
     it('should use default 1 hour for end time when endEquipmentTime is 0', () => {

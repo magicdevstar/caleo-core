@@ -703,6 +703,7 @@ export default function EditEvent({ currentEvent }: Props) {
                   <RHFTextField
                     name="outsideOrgCode"
                     label="Outside Org Code"
+                    defaultValue="15778"
                     disabled={allDisabled}
                   />
                 </Stack>

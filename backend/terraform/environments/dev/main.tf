@@ -5,7 +5,7 @@ locals {
 
   sso_configurations = {
     "azure" = {
-      metadata_url      = "https://login.microsoftonline.com/810fe9e3-a982-4f6b-be51-fd90dafed5aa/federationmetadata/2007-06/federationmetadata.xml?appid=6ce0aa1b-6609-4ba2-a405-470d467768dc"
+      metadata_url      = "https://login.microsoftonline.com/bf3b4897-ea8a-41c9-adf2-15d15c6c91d1/federationmetadata/2007-06/federationmetadata.xml?appid=4a78ffa2-11ad-4edb-a437-74c980fad36c"
       attribute_mapping = {
         email           = "email"
         family_name     = "surname"

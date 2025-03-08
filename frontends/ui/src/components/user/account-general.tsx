@@ -445,7 +445,7 @@ export default function AccountGeneral({
               <RHFAutocomplete
                 name="rank"
                 label="Rank"
-                disabled={!adminViewer || allDisabled}
+                disabled={(!adminViewer && !lasdUserFields) || allDisabled}
                 options={ranks}
                 getOptionLabel={(option: any) => (option as Rank).name}
                 isOptionEqualToValue={(option, value) => option.id === value.id}

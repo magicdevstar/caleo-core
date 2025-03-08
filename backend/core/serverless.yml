@@ -204,25 +204,6 @@ functions:
     handler: src/handlers/cognito/userMigration.handler
     timeout: 30
 
-  # Register Cognito User Hook
-  registerUser:
-    handler: src/handlers/cognito/registerUser.handler
-    events:
-      - cognitoUserPool:
-          pool: ${param:legacyPoolName}
-          trigger: PostConfirmation
-          existing: true
-          forceDeploy: true
-
-  updateSSOUser:
-    handler: src/handlers/cognito/updateSSOUser.handler
-    events:
-      - cognitoUserPool:
-          pool: ${param:legacyPoolName}
-          trigger: PostAuthentication
-          existing: true
-          forceDeploy: true
-
   # Scheduled Tasks
   scheduledEvents:  
     handler: src/handlers/eventBridge/scheduledEvents.handler

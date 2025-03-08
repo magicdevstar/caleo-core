@@ -31,6 +31,8 @@ const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
         $set: {
           'member.contactInfo.primaryEmail.address': attributes.email,
           'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
+          'member.pNumber': attributes['custom:p_number'],
+          // TODO: Add hire date once we discover the format
           firstName: attributes.given_name,
           lastName: attributes.family_name,
           name: `${attributes.given_name} ${attributes.family_name}`,

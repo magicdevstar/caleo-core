@@ -1171,6 +1171,7 @@ type DocusignEvent {
     lasdEventFields: Boolean!
     profileTenor: Boolean!
     lasdUserFields: Boolean!
+    autoEnroll: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1337,6 +1338,7 @@ type DocusignEvent {
     lasdEventFields: Boolean
     profileTenor: Boolean
     lasdUserFields: Boolean
+    autoEnroll: Boolean
   }
 
   input UpsertInterestListSetting {

@@ -3,14 +3,11 @@ import merge from 'lodash.merge';
 import { Context } from "../../utils/createContext";
 import {
   UpsertOrganization,
-  Organization,
   CheckInOutSetting,
   OrganizationFeatures,
   OrganizationFeatureOptions,
   OrganizationSearchInput,
   CreateOrganization,
-  OrganizationCustomizations,
-  OrganizationCustomizationsTiers
 } from "../../__generated__/resolvers-types";
 import { adminOnly, isSuperAdmin, superAdminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -54,6 +51,10 @@ export const organization = {
       _context: Context
     ): OrganizationFeatureOptions[] => {
       return [
+        {
+          value: 'autoEnroll',
+          label: 'Auto Enroll On Login'
+        },
         {
           value: 'eventCheckIn',
           label: 'Event Check In'
@@ -230,6 +231,7 @@ export const organization = {
       lasdEventFields: (parent: OrganizationFeatures) => !!parent.lasdEventFields,
       profileTenor: (parent: OrganizationFeatures) => !!parent.profileTenor,
       lasdUserFields: (parent: OrganizationFeatures) => !!parent.lasdUserFields,
+      autoEnroll: (parent: OrganizationFeatures) => !!parent.autoEnroll,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

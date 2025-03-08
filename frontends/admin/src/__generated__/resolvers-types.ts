@@ -1268,6 +1268,7 @@ export type OrganizationFeatureOptions = {
 
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
+  autoEnroll: Scalars['Boolean']['output'];
   disabledTierUntil: Scalars['Boolean']['output'];
   disabledTiers: Scalars['Boolean']['output'];
   equipment: Scalars['Boolean']['output'];
@@ -2209,6 +2210,7 @@ export type UpsertOrganizationCustomizationsTiers = {
 };
 
 export type UpsertOrganizationFeatures = {
+  autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   equipment?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3514,6 +3516,7 @@ export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType ex
 }>;
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+  autoEnroll?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTierUntil?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTiers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   equipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

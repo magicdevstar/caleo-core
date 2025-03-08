@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSnackbar } from "notistack";
 import { useQuery } from "@apollo/client";
-import dayjs from 'dayjs';
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
@@ -13,7 +12,6 @@ import Grid from "@mui/material/Grid";
 import Switch from "@mui/material/Switch";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 // components
 import { ConfirmDialog } from "src/components/custom-dialog";
 // Types
@@ -70,7 +68,6 @@ export default function InviteUserModal({
   const [submitting, setSubmitting] = useState(false);
   const [validEmail, setValidEmail] = useState(defaultValidField);
   const [validPNumber, setValidPNumber] = useState(defaultValidField);
-  const [validTenor, setValidTenor] = useState(defaultValidField);
   const [user, setUser] = useState({
     ...defaultUser,
     orgId,
@@ -78,15 +75,14 @@ export default function InviteUserModal({
 
   const valid = useMemo(() => {
     const validTier = disabledTiers ? true : user.member.tier.trim() !== '';
-    const validDate = lasdUserFields ? user.member.tenor !== null : true;
-    const validP = lasdUserFields ? user.member.pNumber.trim() !== '' : true;
+    const validRank = !lasdUserFields ? user.member.rankId.trim() !== '' : true;
+    const validP = !lasdUserFields ? user.member.pNumber.trim() !== '' : true;
 
     return user.email.trim() !== '' && emailValidator(user.email) &&
       validTier &&
-      validDate &&
       validP &&
       user.member.role.trim() !== '' &&
-      user.member.rankId.trim() !== '';
+      validRank;
   }, [user, disabledTiers, lasdUserFields]);
 
   const resetForm = useCallback(() => {
@@ -96,13 +92,11 @@ export default function InviteUserModal({
     });
     setValidEmail(defaultValidField);
     setValidPNumber(defaultValidField);
-    setValidTenor(defaultValidField);
   }, [
     orgId,
     setUser,
     setValidEmail,
-    setValidPNumber,
-    setValidTenor
+    setValidPNumber
   ]);
 
   const handleClose = useCallback(() => {
@@ -196,61 +190,34 @@ export default function InviteUserModal({
             )
           }
           {
-            lasdUserFields && (
-              <>
-                <Grid item sm={12} md={6}>
-                  <DatePicker
-                    label="Hire Date"
-                    onChange={(newValue) => {
-                      setValidTenor((c) => ({
-                        touched: true,
-                        valid: true,
-                      }));
-                      setUser((c) => ({
-                        ...c,
-                        member: {
-                          ...c.member,
-                          tenor: newValue!.toDate(),
-                        }
-                      }));
-                    }}
-                    value={dayjs(user.member.tenor)} // keeps field empty if value is null or undefined
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: validTenor.touched && !validTenor.valid,
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item sm={12} md={6}>
-                  <TextField
-                    fullWidth
-                    error={validPNumber.touched && !validPNumber.valid}
-                    label={pNumberLabel}
-                    value={user.member.pNumber}
-                    onBlur={() => {
-                      setValidPNumber((c) => ({
-                        ...c,
-                        touched: true,
-                      }));
-                    }}
-                    onChange={(event) => {
-                      setValidPNumber((c) => ({
-                        ...c,
-                        valid: event.target.value.trim() !== '',
-                      }));
-                      setUser((c) => ({
-                        ...c,
-                        member: {
-                          ...c.member,
-                          pNumber: event.target.value,
-                        }
-                      }));
-                    }}
-                  />
-                </Grid>
-              </>
+            !lasdUserFields && (
+              <Grid item sm={12} md={6}>
+                <TextField
+                  fullWidth
+                  error={validPNumber.touched && !validPNumber.valid}
+                  label={pNumberLabel}
+                  value={user.member.pNumber}
+                  onBlur={() => {
+                    setValidPNumber((c) => ({
+                      ...c,
+                      touched: true,
+                    }));
+                  }}
+                  onChange={(event) => {
+                    setValidPNumber((c) => ({
+                      ...c,
+                      valid: event.target.value.trim() !== '',
+                    }));
+                    setUser((c) => ({
+                      ...c,
+                      member: {
+                        ...c.member,
+                        pNumber: event.target.value,
+                      }
+                    }));
+                  }}
+                />
+              </Grid>
             )
           }
           <Grid item sm={12} md={6}>

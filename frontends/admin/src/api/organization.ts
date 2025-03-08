@@ -25,6 +25,7 @@ export const ORGANIZATION = gql`
         sso
         equipment
         lasdUserFields
+        autoEnroll
       }
       customizations {
         pNumber
@@ -189,6 +190,7 @@ export const UPDATE_ORGANIZATION = gql`
         sso
         equipment
         lasdUserFields
+        autoEnroll
       }
       customizations {
         pNumber
@@ -241,6 +243,7 @@ export const CREATE_ORGANIZATION = gql`
         sso
         equipment
         lasdUserFields
+        autoEnroll
       }
       customizations {
         pNumber

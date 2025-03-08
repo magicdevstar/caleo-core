@@ -48,6 +48,7 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
       phone: event.request.userAttributes.phone_number,
       email: event.request.userAttributes.email,
       pNumber: event.request.userAttributes['custom:p_number'] || '',
+      // TODO: Add hire date once we discover the format
       role: event.request.userAttributes.role || MemberRole.Member
     }
 
@@ -61,6 +62,14 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
         'member.orgId': new ObjectId(orgId),
       });
       if (!user) {
+        const organization = await services.organizations.get(orgId);
+        const status = organization?.features.autoEnroll ? MemberStatus.Active : MemberStatus.Pending;
+        let tier = MemberTier.Tier_1;
+        if (/lasd/i.test(organization?.fromEmail || '')) {
+          tier = MemberTier.Tier_3;
+        }
+
+
         const createdUser = await services.users.create({
           firstName: userDetails.firstName,
           lastName: userDetails.lastName,
@@ -71,8 +80,8 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
             orgId: new ObjectId(orgId),
             pNumber: userDetails.pNumber,
             role: userDetails.role,
-            tier: MemberTier.Tier_1,
-            status: MemberStatus.Pending,
+            tier,
+            status,
             memberSkillIds: [],
             contactInfo: {
               primaryPhone: {

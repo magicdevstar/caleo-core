@@ -619,7 +619,7 @@ export default function AccountGeneral({
             >
               <Box>
                 <RHFPhoneField disabled={!adminViewer || allDisabled} name="primaryPhone" label="Primary Phone" />
-                {!lasdUserFields && (<RHFSwitch disabled={!adminViewer || allDisabled} name="primaryPhoneReceive" label="Receive text messages" />)}
+                <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>
@@ -629,7 +629,7 @@ export default function AccountGeneral({
 
               <Box>
                 <RHFPhoneField disabled={allDisabled} name="secondaryPhone" label="Secondary Phone" />
-                {!lasdUserFields && (<RHFSwitch disabled={allDisabled} name="secondaryPhoneReceive" label="Receive text messages" />)}
+                <RHFSwitch disabled={allDisabled} name="secondaryPhoneReceive" label="Receive text messages" />
               </Box>
 
               <Box>

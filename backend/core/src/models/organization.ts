@@ -85,6 +85,7 @@ export const getDefaultOrgFeatures = () => ({
   lasdEventFields: false,
   profileTenor: false,
   lasdUserFields: false,
+  autoEnroll: false,
 });
 
 export interface IOrganization extends Omit<

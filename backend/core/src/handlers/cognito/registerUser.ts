@@ -69,7 +69,6 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
           tier = MemberTier.Tier_3;
         }
 
-
         const createdUser = await services.users.create({
           firstName: userDetails.firstName,
           lastName: userDetails.lastName,
@@ -96,18 +95,20 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
             availability: defaultUserAvailability,
           }
         } as any);
-        await lambda.send(new InvokeCommand({
-          FunctionName: process.env.MAILER_LAMBDA!,
-          InvocationType: 'Event',
-          Payload: JSON.stringify({
-            action: Action.Email,
-            template: MailerEvents.AdminUserAccountRequested,
-            data: {
-              user: createdUser,
-              orgId,
-            },
-          } as MailerEvent),
-        }));
+        if (!organization?.features.autoEnroll) {
+          await lambda.send(new InvokeCommand({
+            FunctionName: process.env.MAILER_LAMBDA!,
+            InvocationType: 'Event',
+            Payload: JSON.stringify({
+              action: Action.Email,
+              template: MailerEvents.AdminUserAccountRequested,
+              data: {
+                user: createdUser,
+                orgId,
+              },
+            } as MailerEvent),
+          }));
+        }
       } else {
         user = {
           ...user,

@@ -126,7 +126,6 @@ export default function EventRequest() {
   );
 
   useEffect(() => {
-    console.log(orgId, featuresLoading, orgFeatures?.externalEventRequests);
     if (!orgId || (!featuresLoading && !orgFeatures?.externalEventRequests)) {
       window.location.href = '/';
     }
@@ -283,7 +282,7 @@ export default function EventRequest() {
         enqueueSnackbar('Successfully submitted event request', { variant: 'success', autoHideDuration: 5000 });
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       enqueueSnackbar('Failed to request event. Please try again.', { variant: 'error' });
     }
   }, [

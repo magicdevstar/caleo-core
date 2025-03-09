@@ -1,7 +1,9 @@
-import { FrontendUser } from "src/api/user";
-import { DocusignEvent } from "src/__generated__/resolvers-types";
-import { GET_DOCUSIGN_EVENTS } from "src/api/docusign";
 import IconButton from "@mui/material/IconButton";
+import { client } from "src/utils/apollo";
+import { FrontendUser } from "src/api/user";
+import { DocusignEvent, DocusignEventUserRole } from "src/__generated__/resolvers-types";
+import { GET_DOCUSIGN_EVENTS } from "src/api/docusign";
+import { GET_ALL_EVENTS_SLIM } from "src/api/event";
 
 import GQLTable from "../table/gql/table";
 import { TableConfig } from "../table/table-config";
@@ -104,6 +106,44 @@ export default function AccountDocusign({
           type: 'hidden',
           defaultValue: user.id,
           value: user.id,
+        },
+        {
+          id: 'role',
+          type: 'select',
+          label: 'Event Role',
+          value: DocusignEventUserRole.Officer,
+          selectOptions: {
+            multiple: false,
+          },
+          calculatedOptions: [
+            { value: DocusignEventUserRole.Officer, label: 'Officer' },
+            { value: DocusignEventUserRole.Lieutenant, label: 'Lieutenant' },
+            { value: DocusignEventUserRole.Supervisor, label: 'Supervisor' },
+          ],
+        },
+        {
+          id: 'eventIds',
+          type: 'autocomplete',
+          label: 'Event Name or Ref',
+          autoComplete: {
+            multiSelect: true,
+            inputLabel: 'Event Name or Ref',
+            inputPlaceholder: 'Search...',
+          },
+          async fetchOptions (query?: string) {
+            const { data } = await client.query({
+              query: GET_ALL_EVENTS_SLIM,
+              variables: {
+                input: {
+                  query,
+                  limit: 10,
+                  skip: 0,
+                },
+              },
+            });
+            const formattedOptions = data?.events?.items?.map(({ id, name, referenceId }: any) => ({ value: id, label: `${name} (Ref #${referenceId})` })) || [];
+            return formattedOptions;
+          },
         },
       ]
     };

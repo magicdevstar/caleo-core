@@ -11,7 +11,7 @@ import { UserModel } from "../models/user";
 import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
-import { DocusignEventSearchInput } from "../__generated__/resolvers-types";
+import { DocusignEventSearchInput, DocusignEventUserRole } from "../__generated__/resolvers-types";
 
 export class Docusign {
   constructor(
@@ -27,13 +27,37 @@ export class Docusign {
     private document: DocumentModel,
   ) {}
 
-  async findEventsByUserId(args: DocusignEventSearchInput) {
-    const userId = new ObjectId(args.userId!);
+  async findEventsByUserId({
+    role,
+    userId: uId,
+    eventIds,
+    ...args
+  }: DocusignEventSearchInput) {
+    const userId = new ObjectId(uId!);
+    let userInput: {
+      userId?: ObjectId;
+      lieutenantId?: ObjectId;
+      supervisorId?: ObjectId;
+    } = {
+      userId,
+    };
+
+    if (role === DocusignEventUserRole.Lieutenant) {
+      userInput = {
+        lieutenantId: userId,
+      };
+    }
+    if (role === DocusignEventUserRole.Supervisor) {
+      userInput = {
+        supervisorId: userId,
+      };
+    }
 
     return this.docusignEvent.search({
       ...args,
       limit: args.limit || 10,
-      userId,
+      ...userInput,
+      ...(eventIds && { eventId: { $in: eventIds.map((id) => new ObjectId(id)) } }),
       order: 'desc',
       orderBy: '_id',
     });
@@ -56,6 +80,10 @@ export class Docusign {
     if (!shift) {
       throw new Error('Shift not found');
     }
+    const event = await this.events.get(shift.eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
 
     // Save to collection
     await this.docusignEvent.upsertEvent({
@@ -63,6 +91,8 @@ export class Docusign {
       orgId: shift.orgId,
       eventId: shift.eventId,
       assignmentId: shift.assignmentId,
+      ...(event.lieutenantId && { lieutenantId: event.lieutenantId }),
+      ...(event.supervisorId && { supervisorId: event.supervisorId }),
       shiftId: shift._id!,
       userId: shift.userId!,
       status,

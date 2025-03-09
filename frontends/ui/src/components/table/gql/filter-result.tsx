@@ -31,7 +31,7 @@ export default function TableFiltersResult({ filters, onFilters, results, onRese
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
         {
           filters
-            .filter((filter) => (filter.type === 'select' || filter.type === 'autocomplete') && (filter.value || [])?.length)
+            .filter((filter) => (filter.type === 'select' || filter.type === 'autocomplete') && Array.isArray(filter.value) && (filter.value || [])?.length)
             .map((filter) => (
               <Block key={filter.id} label={`${filter.label}:`}>
                 {filter.value.map((item: any) => {

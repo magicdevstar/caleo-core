@@ -34,7 +34,6 @@ export default function RHFAutocomplete<
   ...other
 }: Omit<Props<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'>) {
   const { control } = useFormContext();
-  console.log(other.isOptionEqualToValue)
   return (
     <Controller
       name={name}
@@ -43,7 +42,6 @@ export default function RHFAutocomplete<
         <Autocomplete
           {...field}
           onChange={(event, newValue: any) => {
-            console.log(newValue);
             if (valueKey && !other.multiple) {
               field.onChange(newValue[valueKey]) // Currently breaks with Multiple selection
             } else {

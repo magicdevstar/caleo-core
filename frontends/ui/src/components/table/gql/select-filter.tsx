@@ -16,7 +16,7 @@ export default function SelectFilter({
   filter: Filter;
   onFilters: (id: string, value: any) => any;
 }) {
-  const [options, setOptions] = useState<any[]>([]);
+  const [options, setOptions] = useState<any[]>(filter.calculatedOptions || []);
 
   useEffect(() => {
     if (filter.fetchOptions) {
@@ -27,32 +27,52 @@ export default function SelectFilter({
     }
   }, [filter.fetchOptions]);
 
-  return (
-    <FormControl id={filter.id} fullWidth>
-      <InputLabel>{filter.label}</InputLabel>
+  let renderSelect = (
+    <Select
+      multiple
+      value={filter?.value || []}
+      onChange={(event) => {
+        const value = typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value;
+        onFilters(filter.id, value);
+      }}
+      input={<OutlinedInput label={filter.label} />}
+      renderValue={(selected) => selected.map((value: any) => options.find(({ value: v }) => v === value)?.label || value).join(', ')}
+      sx={{ textTransform: 'capitalize' }}
+    >
+      {options.map((option) => (
+        <MenuItem key={option.value} value={option.value}>
+          <Checkbox
+            disableRipple
+            size="small"
+            checked={!!filter?.value?.includes?.(option.value)}
+          />
+          {option.label}
+        </MenuItem>
+      ))}
+    </Select>
+  );
 
+  if ('multiple' in (filter.selectOptions || {}) && !filter.selectOptions?.multiple) {
+    renderSelect = (
       <Select
-        multiple
-        value={filter?.value || []}
-        onChange={(event) => {
-          const value = typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value;
-          onFilters(filter.id, value);
-        }}
-        input={<OutlinedInput label={filter.label} />}
-        renderValue={(selected) => selected.map((value: any) => options.find(({ value: v }) => v === value)?.label || value).join(', ')}
-        sx={{ textTransform: 'capitalize' }}
+        value={filter?.value || ''}
+        label={filter.label}
+        onChange={(event) => onFilters(filter.id, event.target.value)}
       >
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
-            <Checkbox
-              disableRipple
-              size="small"
-              checked={!!filter?.value?.includes(option.value)}
-            />
             {option.label}
           </MenuItem>
         ))}
       </Select>
+    );
+  }
+
+  return (
+    <FormControl id={filter.id} fullWidth>
+      <InputLabel>{filter.label}</InputLabel>
+
+      {renderSelect}
     </FormControl>
   );
 };

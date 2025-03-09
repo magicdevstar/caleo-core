@@ -110,6 +110,7 @@ export interface IOrganization extends Omit<
     userId: string;
     secretKey: string;
     templateId: string;
+    reserveTemplateId: string;
   }
 
   createdAt: Date;

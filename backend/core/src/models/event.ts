@@ -52,6 +52,8 @@ export interface IEvent extends Omit<
   'createdBy' |
   'requestDetails' |
   'referenceId' |
+  'supervisorId' |
+  'lieutenantId' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -61,6 +63,9 @@ export interface IEvent extends Omit<
   venueId?: ObjectId;
   assignmentIds?: ObjectId[];
   createdById?: ObjectId;
+
+  supervisorId?: ObjectId;
+  lieutenantId?: ObjectId;
 
   requestDetails?: IEventRequestDetails;
   referenceId?: number;

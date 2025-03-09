@@ -256,19 +256,23 @@ export type DocusignEvent = {
   envelopeId: Scalars['String']['output'];
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  lieutenantId?: Maybe<Scalars['String']['output']>;
   orgId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   shift?: Maybe<Shift>;
   shiftId: Scalars['String']['output'];
   status: Scalars['String']['output'];
+  supervisorId?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
 };
 
 export type DocusignEventSearchInput = {
+  eventIds?: InputMaybe<Array<Scalars['String']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<DocusignEventUserRole>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   userId: Scalars['String']['input'];
 };
@@ -278,6 +282,12 @@ export type DocusignEventSearchResult = {
   items?: Maybe<Array<Maybe<DocusignEvent>>>;
   total: Scalars['Int']['output'];
 };
+
+export enum DocusignEventUserRole {
+  Lieutenant = 'LIEUTENANT',
+  Officer = 'OFFICER',
+  Supervisor = 'SUPERVISOR'
+}
 
 export type DocusignSettings = {
   __typename?: 'DocusignSettings';
@@ -2567,6 +2577,7 @@ export type ResolversTypes = ResolversObject<{
   DocusignEvent: ResolverTypeWrapper<DocusignEvent>;
   DocusignEventSearchInput: DocusignEventSearchInput;
   DocusignEventSearchResult: ResolverTypeWrapper<DocusignEventSearchResult>;
+  DocusignEventUserRole: DocusignEventUserRole;
   DocusignSettings: ResolverTypeWrapper<DocusignSettings>;
   Email: ResolverTypeWrapper<Email>;
   Equipment: ResolverTypeWrapper<Equipment>;
@@ -3025,11 +3036,13 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   envelopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

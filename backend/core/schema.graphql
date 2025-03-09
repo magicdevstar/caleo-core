@@ -35,6 +35,11 @@
     FRIDAY
     SATURDAY
   }
+  enum DocusignEventUserRole {
+    SUPERVISOR
+    LIEUTENANT
+    OFFICER
+  }
 ###### END Common ######
 
 ###### START Site Lock ######
@@ -782,6 +787,9 @@ type DocusignEvent {
   status: String!
   docType: DocType!
 
+  supervisorId: String
+  lieutenantId: String
+
   createdAt: String!
   updatedAt: String!
   removedAt: String
@@ -1496,6 +1504,8 @@ type DocusignEvent {
     limit: Int
     skip: Int
     userId: String!
+    role: DocusignEventUserRole
+    eventIds: [String!]
     orderBy: String
     order: String
   }

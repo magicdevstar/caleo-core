@@ -82,6 +82,9 @@ export interface Filter {
   label?: string;
   defaultValue?: any;
   sizing?: ToolbarConfig;
+  selectOptions?: {
+    multiple?: boolean;
+  },
   autoComplete?: {
     multiSelect?: boolean;
     inputLabel?: string;
@@ -138,12 +141,14 @@ export const resolveFilterValue = (filter: Filter) => {
     return undefined;
   }
   if (filter.resolveAsBoolean && filter.type === 'select') {
+    if (!Array.isArray(filter.value)) return filter?.value?.value;
     if (filter.value.length > 1) return undefined;
     if (filter.value[0] === 'yes') return true;
     return false;
   }
   if (filter.type === 'autocomplete') {
     if (Array.isArray(filter.value) && filter.value.length === 0) return undefined;
+    if (!Array.isArray(filter.value)) return filter.value?.value;
     return filter.value.map((v: any) => v.value);
   }
   if (filter.type === 'select') {

@@ -14,9 +14,7 @@ export const docusignEvents = {
       context: Context
     ): Promise<SearchResults<IDocusignEvent>> => {
       try {
-        if (input.userId) {
-          adminOrOwnerOnly(input.userId, context.user);
-        }
+        adminOrOwnerOnly(input.userId, context.user);
         return context.docusign.findEventsByUserId(input);
       } catch(error) {
         logger.error('Failed to fetch docusign events', { error });

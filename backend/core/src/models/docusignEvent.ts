@@ -19,6 +19,8 @@ export interface IDocusignEvent extends Omit<
   'assignmentId' |
   'user' |
   'userId' |
+  'supervisorId' |
+  'lieutenantId' |
   'docType' |
   '__typename'
 > {
@@ -29,6 +31,8 @@ export interface IDocusignEvent extends Omit<
   eventId: ObjectId;
   assignmentId: ObjectId;
   shiftId: ObjectId;
+  lieutenantId?: ObjectId;
+  supervisorId?: ObjectId;
 
   createdAt: Date;
   updatedAt: Date;

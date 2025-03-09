@@ -119,6 +119,9 @@ export class DocusignModel extends BaseMongo<IDocusign> {
 
     const clientUserId = '1001';
 
+    const isReserve = userRank.name.toLowerCase().includes('deputy, reserve');
+    const templateId = isReserve ? org.docusign.reserveTemplateId : org.docusign.templateId;
+
     const envAPI = new ds.EnvelopesApi(client);
     const templateRoles: TemplateRole[] = [
       {
@@ -133,10 +136,18 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         routingOrder: '2',
         email: lieutenant.member.contactInfo?.primaryEmail.address,
         name: lieutenant.name,
-      }
+      },
+      ...(isReserve ? [
+        {
+          roleName: 'supervisor',
+          routingOrder: '3',
+          email: supervisor.member.contactInfo?.primaryEmail.address,
+          name: supervisor.name,
+        }
+      ] : []),
     ];
     const envDef: EnvelopeDefinition = {
-      templateId: org.docusign.templateId,
+      templateId,
       expireEnabled: 'false',
       status: 'created',
       templateRoles,

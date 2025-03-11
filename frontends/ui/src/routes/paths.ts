@@ -10,6 +10,7 @@ const ROOTS = {
 export const paths = {
   minimalUI: 'https://mui.com/store/items/minimal-dashboard/',
   notApproved: `/not-approved`,
+  lasdCompleteProfile: `/lasd/profile`,
   // AUTH
   auth: {
     amplify: {

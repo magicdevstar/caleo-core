@@ -43,6 +43,7 @@ import { convertDate, dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
 import { useTiers } from 'src/hooks/use-tiers';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -120,6 +121,7 @@ export default function AccountGeneral({
   adminViewer: boolean;
   allDisabled?: boolean;
 }) {
+  const { user: currentUser, reInitialize } = useAuthContext();
   const { disabledTiers, disabledTierUntil, lasdUserFields } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
@@ -318,10 +320,12 @@ export default function AccountGeneral({
               orgId: user?.member?.orgId,
               pNumber: d.pNumber,
               tenor: d.tenor,
-              ...(adminViewer && {
+              ...((adminViewer || lasdUserFields) && {
                 rankId: d.rank.id,
                 ...(d.division?.id && {divisionId: d.division.id}),
                 ...(d.unit?.id && {unitId: d.unit.id}),
+              }),
+              ...(adminViewer && {
                 role: d.role,
                 tier: d.tier,
                 tierUntil: d.tierUntil,
@@ -366,6 +370,9 @@ export default function AccountGeneral({
         });
       }
 
+      if (currentUser?.id === user.id) {
+        await reInitialize();
+      }
       await client.refetchQueries({
         include: [
           GET_USER,

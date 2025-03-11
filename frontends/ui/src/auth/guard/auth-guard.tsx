@@ -1,7 +1,10 @@
 import { useEffect, useCallback, useState } from 'react';
+import { isEmpty } from 'lodash';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
 //
 import { MemberStatus } from 'src/__generated__/resolvers-types';
 import { useAuthContext } from '../hooks';
@@ -22,6 +25,7 @@ export default function AuthGuard({ children }: Props) {
   const router = useRouter();
 
   const { user, authenticated, method } = useAuthContext();
+  const { lasdUserFields } = useFeatures();
 
   const [checked, setChecked] = useState(false);
 
@@ -38,10 +42,20 @@ export default function AuthGuard({ children }: Props) {
       router.replace(href);
     } else if ([MemberStatus.Pending, MemberStatus.Inactive, MemberStatus.Removed].includes(user.member.status || MemberStatus.Inactive)) {
       router.replace(paths.notApproved);
+    } else if (
+      lasdUserFields &&
+      (
+        isEmpty(user.member.rank) ||
+        isEmpty(user.member.unit) ||
+        isEmpty(user.member.division) ||
+        isEmpty(user.member.contactInfo?.primaryPhone?.number)
+      )
+    ) {
+      router.replace(paths.lasdCompleteProfile);
     } else {
       setChecked(true);
     }
-  }, [authenticated, method, router, user]);
+  }, [authenticated, lasdUserFields, method, router, user]);
 
   useEffect(() => {
     check();

@@ -82,6 +82,7 @@ export type AmplifyContextType = CanRemove & {
   authenticated: boolean;
   unauthenticated: boolean;
   impersonatingUser: boolean;
+  reInitialize: () => Promise<unknown>;
   login: (email: string, password: string) => Promise<unknown>;
   federatedLogin: (subdomain: string) => Promise<unknown>;
   register: (

@@ -246,6 +246,7 @@ export function AuthProvider({ children }: Props) {
       resendCodeRegister,
       updateProfilePhotoUrl,
       federatedLogin,
+      reInitialize: initialize,
     }),
     [
       status,
@@ -260,6 +261,7 @@ export function AuthProvider({ children }: Props) {
       resendCodeRegister,
       updateProfilePhotoUrl,
       federatedLogin,
+      initialize,
     ]
   );
 

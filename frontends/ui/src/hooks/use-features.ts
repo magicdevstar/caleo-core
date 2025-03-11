@@ -22,5 +22,5 @@ const defaultFeatures: OrganizationFeatures = {
 export const useFeatures = (): OrganizationFeatures => {
   const { user } = useAuthContext();
 
-  return user.member.org?.features || defaultFeatures;
+  return user?.member?.org?.features || defaultFeatures;
 }

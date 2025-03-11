@@ -62,6 +62,7 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
       shiftId,
       status: webhookData.data.envelopeSummary.status,
       envelopeId: webhookData.data.envelopeId,
+      signers: webhookData.data.envelopeSummary.recipients.signers,
     });
 
     return {
@@ -73,7 +74,7 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
   } catch (error) {
     logger.error('Failed to handle docusign hook', { error });
     return {
-      statusCode: 500,
+      statusCode: 200,
       body: JSON.stringify({
         message: 'Failed to handle docusign hook',
       }),

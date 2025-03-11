@@ -55,14 +55,21 @@ export default function AccountDocusign({
           id: 'shift.event.name',
           label: 'Event Name',
           columnType: 'string',
-          width: '40%',
+          width: '30%',
           noSort: true,
         },
         {
           id: 'shift.assignment.name',
           label: 'Assignment Name',
           columnType: 'string',
-          width: '30%',
+          width: '20%',
+          noSort: true,
+        },
+        {
+          id: 'shift.startTime',
+          label: 'Shift start time',
+          columnType: 'date',
+          width: '20%',
           noSort: true,
         },
         {

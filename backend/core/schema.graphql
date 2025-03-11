@@ -786,6 +786,7 @@ type DocusignEvent {
   orgId: String!
   status: String!
   docType: DocType!
+  signerDetails: [DocusignSignerDetails!]
 
   supervisorId: String
   lieutenantId: String
@@ -796,6 +797,13 @@ type DocusignEvent {
 
   shift: Shift
   documentUrl: String
+}
+
+type DocusignSignerDetails {
+  email: String!
+  status: String!
+  roleName: String!
+  routingOrder: String!
 }
 ###### END Docusign Events ######
 

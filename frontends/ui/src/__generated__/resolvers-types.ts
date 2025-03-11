@@ -261,6 +261,7 @@ export type DocusignEvent = {
   removedAt?: Maybe<Scalars['String']['output']>;
   shift?: Maybe<Shift>;
   shiftId: Scalars['String']['output'];
+  signerDetails?: Maybe<Array<DocusignSignerDetails>>;
   status: Scalars['String']['output'];
   supervisorId?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
@@ -292,6 +293,14 @@ export enum DocusignEventUserRole {
 export type DocusignSettings = {
   __typename?: 'DocusignSettings';
   templateId?: Maybe<Scalars['String']['output']>;
+};
+
+export type DocusignSignerDetails = {
+  __typename?: 'DocusignSignerDetails';
+  email: Scalars['String']['output'];
+  roleName: Scalars['String']['output'];
+  routingOrder: Scalars['String']['output'];
+  status: Scalars['String']['output'];
 };
 
 export type Email = {
@@ -2579,6 +2588,7 @@ export type ResolversTypes = ResolversObject<{
   DocusignEventSearchResult: ResolverTypeWrapper<DocusignEventSearchResult>;
   DocusignEventUserRole: DocusignEventUserRole;
   DocusignSettings: ResolverTypeWrapper<DocusignSettings>;
+  DocusignSignerDetails: ResolverTypeWrapper<DocusignSignerDetails>;
   Email: ResolverTypeWrapper<Email>;
   Equipment: ResolverTypeWrapper<Equipment>;
   EquipmentSearchInput: EquipmentSearchInput;
@@ -2766,6 +2776,7 @@ export type ResolversParentTypes = ResolversObject<{
   DocusignEventSearchInput: DocusignEventSearchInput;
   DocusignEventSearchResult: DocusignEventSearchResult;
   DocusignSettings: DocusignSettings;
+  DocusignSignerDetails: DocusignSignerDetails;
   Email: Email;
   Equipment: Equipment;
   EquipmentSearchInput: EquipmentSearchInput;
@@ -3041,6 +3052,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  signerDetails?: Resolver<Maybe<Array<ResolversTypes['DocusignSignerDetails']>>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3056,6 +3068,14 @@ export type DocusignEventSearchResultResolvers<ContextType = any, ParentType ext
 
 export type DocusignSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignSettings'] = ResolversParentTypes['DocusignSettings']> = ResolversObject<{
   templateId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DocusignSignerDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignSignerDetails'] = ResolversParentTypes['DocusignSignerDetails']> = ResolversObject<{
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  routingOrder?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4018,6 +4038,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   DocusignEvent?: DocusignEventResolvers<ContextType>;
   DocusignEventSearchResult?: DocusignEventSearchResultResolvers<ContextType>;
   DocusignSettings?: DocusignSettingsResolvers<ContextType>;
+  DocusignSignerDetails?: DocusignSignerDetailsResolvers<ContextType>;
   Email?: EmailResolvers<ContextType>;
   Equipment?: EquipmentResolvers<ContextType>;
   EquipmentSearchResult?: EquipmentSearchResultResolvers<ContextType>;

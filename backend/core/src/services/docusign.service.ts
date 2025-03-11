@@ -12,6 +12,7 @@ import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { DocusignEventSearchInput, DocusignEventUserRole } from "../__generated__/resolvers-types";
+import { Signer } from "docusign-esign";
 
 export class Docusign {
   constructor(
@@ -71,10 +72,12 @@ export class Docusign {
     shiftId,
     status,
     envelopeId,
+    signers,
   }: {
     shiftId: string;
     status: string;
     envelopeId: string;
+    signers: Signer[]
   }) {
     const shift = await this.shifts.get(shiftId, { removed: true });
     if (!shift) {
@@ -96,6 +99,12 @@ export class Docusign {
       shiftId: shift._id!,
       userId: shift.userId!,
       status,
+      signerDetails: signers.map((signer) => ({
+        email: signer.email!,
+        status: signer.status || 'n/a',
+        roleName: signer.roleName!,
+        routingOrder: signer.routingOrder!,
+      })),
     });
 
     // Save document to s3

@@ -9,7 +9,6 @@ import {
   ListUsersCommand,
   AdminInitiateAuthCommand
 } from "@aws-sdk/client-cognito-identity-provider";
-import { createContext } from "../../utils/createContext";
 
 const cognito = new CognitoIdentityProviderClient({});
 

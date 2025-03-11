@@ -52,9 +52,17 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
       role: event.request.userAttributes.role || MemberRole.Member
     }
 
-    let user = await services.users.collection.findOne<IUser>({
+    const query: any = {
       cognitoId,
-    });
+    };
+
+    if (event.request.userAttributes['custom:legacy_sub']) {
+      query.cognitoId = {
+        $in: [cognitoId, event.request.userAttributes['custom:legacy_sub']]
+      };
+    }
+
+    let user = await services.users.collection.findOne<IUser>(query);
     if (!user) {
       user = await services.users.collection.findOne<IUser>({
         'member.contactInfo.primaryEmail.address': userDetails.email,

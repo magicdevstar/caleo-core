@@ -127,6 +127,7 @@ custom:
   esbuild:
     bundle: true
     minify: false
+    sourcemap: true
     packager: yarn
     external:
       - 'saslprep'

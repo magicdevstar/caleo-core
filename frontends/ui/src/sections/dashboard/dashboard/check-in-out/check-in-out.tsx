@@ -157,6 +157,8 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
     );
   }, [recentNotifications, carousel]);
 
+  console.log(checkInOutConfirm);
+
   return (
     <>
       <Card {...other}>
@@ -175,14 +177,18 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
         title={isCheckout ? 'Confirm checking out?' : 'Confirm checking in?'}
         content={(
           <Stack spacing={2} mt={1}>
-            <TextField
-              label="Equipment time in hours"
-              type="number"
-              fullWidth
-              onBlur={(event) => {
-                setEquipmentTime(parseFloat(event.target.value))
-              }}
-            />
+            {
+              checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime) && (
+                <TextField
+                  label="Equipment time in hours"
+                  type="number"
+                  fullWidth
+                  onBlur={(event) => {
+                    setEquipmentTime(parseFloat(event.target.value))
+                  }}
+                />
+              )
+            }
             <TextField
               label="Type to add a note"
               multiline

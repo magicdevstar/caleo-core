@@ -307,9 +307,7 @@ export default function EditAssignment({
             eventId,
             bwNeeded: formData?.bwNeeded,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
-            ...(formData?.requiredEquipment && formData.requiredEquipment.length > 0 && {
-              requiredEquipmentIds: formData?.requiredEquipment?.map(({ id }: Equipment) => id)
-            }),
+            requiredEquipmentIds: formData?.requiredEquipment?.map(({ id }: Equipment) => id),
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             rankIds: formData?.ranks?.map(({ id }: Rank) => id),
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),

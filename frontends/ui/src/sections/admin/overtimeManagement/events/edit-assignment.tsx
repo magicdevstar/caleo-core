@@ -76,10 +76,12 @@ export default function EditAssignment({
         acc[shiftId] = {
           shiftId,
           openShifts: 0,
+          totalShifts: 0,
           startTime: shift!.startTime,
           endTime: shift!.endTime,
         };
       }
+      acc[shiftId].totalShifts += 1;
       acc[shiftId].openShifts += (shift?.userId || shift?.status === ShiftStatus.Locked) ? 0 : 1;
 
       if (isBefore(new Date(shift!.startTime), new Date(acc[shiftId].startTime))) {
@@ -287,7 +289,8 @@ export default function EditAssignment({
             .replace(':assignmentId', currentAssignment?.id || '')
             .replace(':shiftId', row.shiftId || ''),
       },
-      { id: 'openShifts', width: '50%', label: 'Open Shifts', columnType: 'string' },
+      { id: 'totalShifts', width: '20%', label: 'Total Shifts', columnType: 'string' },
+      { id: 'openShifts', width: '30%', label: 'Open Shifts', columnType: 'string' },
       { id: '', width: '10%', columnType: 'action', label: '' },
     ],
     filters: []

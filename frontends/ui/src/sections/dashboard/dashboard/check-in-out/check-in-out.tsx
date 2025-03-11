@@ -157,8 +157,6 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
     );
   }, [recentNotifications, carousel]);
 
-  console.log(checkInOutConfirm);
-
   return (
     <>
       <Card {...other}>

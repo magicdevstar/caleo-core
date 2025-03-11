@@ -283,7 +283,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'automaticDetails')?.tabId,
               tabLabel: "automaticDetails",
-              value: `Worked ${event.name} @ ${venue.address} ${venue.city} in the ${venue.contract?.name}.\nSpecial Event Contract: ${venue.contract?.name}.\n${lastLineExplainer}`,
+              value: `Worked ${event.name} @ ${venue.address || 'ADDRESS'} ${venue.city || 'CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`,
             }
           ]
         }

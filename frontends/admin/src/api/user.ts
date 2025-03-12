@@ -30,6 +30,7 @@ const userDetailProperties = `
         interestLists
         monthlyMaxHours
         lasdUserFields
+        docusign
       }
       settings {
         shiftsPerWeek

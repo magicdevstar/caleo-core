@@ -38,6 +38,7 @@ query ORGANIZATION {
       equipment
       lasdEventFields
       lasdUserFields
+      docusign
     }
     customizations {
       pNumber

@@ -107,6 +107,10 @@ export const organization = {
           value: 'lasdUserFields',
           label: 'LASD User Fields'
         },
+        {
+          value: 'docusign',
+          label: 'Docusign Integration'
+        },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
     activeLottery: (
@@ -232,6 +236,7 @@ export const organization = {
       profileTenor: (parent: OrganizationFeatures) => !!parent.profileTenor,
       lasdUserFields: (parent: OrganizationFeatures) => !!parent.lasdUserFields,
       autoEnroll: (parent: OrganizationFeatures) => !!parent.autoEnroll,
+      docusign: (parent: OrganizationFeatures) => !!parent.docusign,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

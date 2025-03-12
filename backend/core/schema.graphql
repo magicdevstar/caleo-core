@@ -1188,6 +1188,7 @@ type DocusignSignerDetails {
     profileTenor: Boolean!
     lasdUserFields: Boolean!
     autoEnroll: Boolean!
+    docusign: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1355,6 +1356,7 @@ type DocusignSignerDetails {
     profileTenor: Boolean
     lasdUserFields: Boolean
     autoEnroll: Boolean
+    docusign: Boolean
   }
 
   input UpsertInterestListSetting {

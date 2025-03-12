@@ -17,6 +17,7 @@ const defaultFeatures: OrganizationFeatures = {
   profileTenor: false,
   lasdUserFields: false,
   autoEnroll: false,
+  docusign: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

@@ -49,7 +49,7 @@ const TABS = [
     value: 'docusignEvents',
     label: 'Docusign events',
     visible: (canView = true) => canView,
-    userKey: 'member.org.docusign.templateId',
+    userKey: 'member.org.features.docusign',
     icon: <Iconify icon="ic:round-insert-drive-file" width={24} />,
   },
   {

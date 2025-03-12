@@ -26,6 +26,7 @@ export const ORGANIZATION = gql`
         equipment
         lasdUserFields
         autoEnroll
+        docusign
       }
       customizations {
         pNumber
@@ -191,6 +192,7 @@ export const UPDATE_ORGANIZATION = gql`
         equipment
         lasdUserFields
         autoEnroll
+        docusign
       }
       customizations {
         pNumber
@@ -244,6 +246,7 @@ export const CREATE_ORGANIZATION = gql`
         equipment
         lasdUserFields
         autoEnroll
+        docusign
       }
       customizations {
         pNumber

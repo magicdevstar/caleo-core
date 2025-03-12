@@ -397,6 +397,7 @@
     scheduledInterestList: String
     scheduledCloseInterestList: String
     interestListTransition: EventStatus
+    autoAssignInterestList: Boolean
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean
@@ -694,6 +695,7 @@
     scheduledInterestList: String
     scheduledCloseInterestList: String
     scheduledFirstComeFirstServe: String
+    autoAssignInterestList: Boolean
     notifyOnFirstComeFirstServe: Boolean
     requestDetails: InputEventRequestDetails
     notes: String

@@ -47,6 +47,7 @@ export const GET_ALL_EVENTS = gql`
         availableShifts
         scheduledInterestList
         scheduledFirstComeFirstServe
+        autoAssignInterestList
         status
         createdBy {
           member {
@@ -238,6 +239,7 @@ export const GET_EVENT = gql`
       scheduledCloseInterestList
       scheduledFirstComeFirstServe
       notifyOnFirstComeFirstServe
+      autoAssignInterestList
       startTime
       endTime
       createdById

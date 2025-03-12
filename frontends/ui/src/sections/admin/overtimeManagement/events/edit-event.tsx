@@ -101,8 +101,8 @@ const NewEventSchema = Yup.object().shape({
     .transform((value: Venue) => value?.id)
     .test('venue-required', 'Venue is Required', (value) => !!value),
   scheduledFirstComeFirstServe: Yup.string(),
-  interestListTransition: Yup.string().nullable(),
   scheduledInterestList: Yup.string(),
+  autoAssignInterestList: Yup.boolean().nullable(),
   scheduledCloseInterestList: Yup.string(),
   createdById: Yup.string(),
   assignments: Yup.array(),
@@ -280,7 +280,7 @@ export default function EditEvent({ currentEvent }: Props) {
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
-      interestListTransition: currentEvent?.interestListTransition,
+      autoAssignInterestList: currentEvent?.autoAssignInterestList || false,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       scheduledInterestList: currentEvent?.scheduledInterestList || '',
       scheduledCloseInterestList: currentEvent?.scheduledCloseInterestList || '',
@@ -424,7 +424,7 @@ export default function EditEvent({ currentEvent }: Props) {
             status: formData?.status,
             ocn: formData?.ocn,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
-            ...(formData?.interestListTransition && { interestListTransition: formData?.interestListTransition }),
+            autoAssignInterestList: formData?.autoAssignInterestList,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             scheduledInterestList: formData?.scheduledInterestList,
             scheduledCloseInterestList: formData?.scheduledCloseInterestList,
@@ -964,24 +964,9 @@ export default function EditEvent({ currentEvent }: Props) {
                           },
                         }}
                       />
+
                     </Stack>
-                    <RHFSelect
-                      fullWidth
-                      name="interestListTransition"
-                      label="Event status after interest list closes"
-                      PaperPropsSx={{ textTransform: 'capitalize' }}
-                    >
-                      <MenuItem value=''>Clear</MenuItem>
-                      {eventStatuses.filter((status) => ![
-                        EventStatus.Complete,
-                        EventStatus.Removed,
-                        EventStatus.InterestList,
-                      ].includes(status)).map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {(eventStatusNames as any)[option]}
-                        </MenuItem>
-                      ))}
-                    </RHFSelect>
+                    <RHFSwitch disabled={allDisabled || isComplete} name="autoAssignInterestList" label="Auto assign shifts when list closes" />
                   </>
                 )}
 

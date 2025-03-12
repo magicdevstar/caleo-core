@@ -360,6 +360,7 @@ export type Event = {
   assignments?: Maybe<Array<Assignment>>;
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   attachments?: Maybe<Array<Scalars['String']['output']>>;
+  autoAssignInterestList?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
@@ -2122,6 +2123,7 @@ export type UpsertEquipment = {
 export type UpsertEvent = {
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
@@ -3118,6 +3120,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  autoAssignInterestList?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

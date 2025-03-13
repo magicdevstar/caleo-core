@@ -10,8 +10,8 @@ locals {
         family_name            = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
         given_name             = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
         "custom:phony"         = "user.telephonenumber"
-        "custom:p_number"      = "employeeID"
-        "custom:employee_date" = "extensionAttribute10"
+        # "custom:p_number"      = "employeeID"
+        # "custom:employee_date" = "extensionAttribute10"
       }
     }
   }

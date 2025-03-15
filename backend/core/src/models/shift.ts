@@ -863,6 +863,83 @@ export class ShiftModel extends BaseMongo<IShift> {
     return res.reduce((sum, item) => sum + item.count, 0);
   }
 
+  async findOpenInterestListShiftsGroupedById({
+    orgId,
+  }: {
+    orgId: string;
+  }) {
+    const orgIdObj = new ObjectId(orgId);
+
+    const pipeline = [
+      {
+        $match: {
+          status: EventStatus.InterestList,
+          autoAssignInterestList: true,
+          orgId: orgIdObj,
+          removedAt: { $exists: false },
+        },
+      },
+      {
+        $lookup: {
+          from: "shifts",
+          localField: "_id",
+          foreignField: "eventId",
+          as: "shifts",
+        },
+      },
+      {
+        $unwind: {
+          path: "$shifts",
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shifts",
+        },
+      },
+      {
+        $match: {
+          $and: [
+            { removedAt: { $exists: false } },
+            {
+              $or: [
+                { userId: null },
+                {
+                  userId: {
+                    $exists: false,
+                  },
+                },
+              ],
+            },
+            {
+              $or: [
+                { locked: false },
+                {
+                  locked: {
+                    $exists: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: "$shiftId",
+        },
+      },
+    ];
+
+    const res = await this.eventsCollection.aggregate<{
+      _id: string;
+    }>(pipeline).toArray();
+
+    return {
+      items: res,
+    };
+  }
+
   async findOpenLotteryShiftsGroupedById({
     orgId,
   }: {

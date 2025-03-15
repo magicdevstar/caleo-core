@@ -97,6 +97,7 @@ export interface IOrganization extends Omit<
   'removedAt' |
   'modifiedById' |
   'modifiedBy' |
+  'fromEmail' |
   'orgId' |
   'org' |
   '__typename'
@@ -105,6 +106,7 @@ export interface IOrganization extends Omit<
   id: string;
   orgId: ObjectId;
   modifiedById: ObjectId;
+  fromEmail: string;
   docusign: {
     hmac: string;
     clientId: string;

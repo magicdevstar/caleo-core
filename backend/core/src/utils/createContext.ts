@@ -32,6 +32,7 @@ import { DivisionModel } from "../models/division";
 import { DocusignModel } from "../models/docusign";
 import { Docusign } from "../services/docusign.service";
 import { DocusignEventModel } from "../models/docusignEvent";
+import { InterestListService } from "../services/interestList.service";
 
 let db: Db;
 
@@ -64,6 +65,7 @@ export interface Context {
   memberNotifications: MemberNotificationModel;
   scheduler: SchedulerModel;
   organization?: IOrganization;
+  interestList: InterestListService;
   user?: IUser;
   originalUser?: IUser;
   lambdaEvent?: any;
@@ -125,6 +127,10 @@ export const createContext = async (): Promise<Context> => {
     docusignEventModel,
     document,
   );
+  const interestList = new InterestListService(
+    events,
+    scheduler,
+  );
 
   return {
     organizations,
@@ -154,5 +160,6 @@ export const createContext = async (): Promise<Context> => {
     division,
     unit,
     docusign,
+    interestList,
   };
 };

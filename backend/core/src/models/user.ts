@@ -224,7 +224,6 @@ export class UserModel extends BaseMongo<IUser> {
         {
           status: EventStatus.InterestList,
           scheduledInterestList: { $lte: new Date() },
-          scheduledCloseInterestList: { $gte: new Date() }
         },
       ],
     };

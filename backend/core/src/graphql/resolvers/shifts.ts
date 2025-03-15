@@ -291,7 +291,7 @@ export const shift = {
 
       // Remove any shift buffer requests
       await shiftBufferRequests.removeByShiftId(id, user!._id!);
-      // TODO: If there are no more shifts then I need to remove all shift lottery requests
+      // TODO: If there are no more shifts then I need to remove all shift interest/lottery requests
 
       // Update event status or update event start/end time if needed
       await events.updateEvent({
@@ -519,6 +519,7 @@ export const shift = {
         users,
         user,
         organization,
+        interestList,
       }: Context
     ): Promise<IShift> => {
       if (userId) {
@@ -696,6 +697,12 @@ export const shift = {
           },
         });
       }
+
+      await interestList.maybeTriggerNextAssignment({
+        shift: updatedShift!,
+        organization: organization!,
+        didRelinquish: !!removingShiftUser,
+      });
 
       return updatedShift!;
     }

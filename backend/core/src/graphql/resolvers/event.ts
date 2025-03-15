@@ -276,6 +276,7 @@ export const event = {
         eventReferenceNumber,
         user,
         organization,
+        interestList,
       }: Context
     ): Promise<IEvent> => {
       adminOnly(user);
@@ -403,89 +404,6 @@ export const event = {
             }),
           });
         }
-      } else if (
-          (currentEvent?.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
-          (inputEvent.status === EventStatus.InterestList && currentEvent?.scheduledInterestList !== inputEvent.scheduledInterestList)
-      ) {
-        logger.info('Interest list opening', { inputEvent, currentEvent });
-        if (isAfter(new Date(), addMinutes(scheduledInterestList!, -1))) {
-          await scheduler.removeSchedule({
-            event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
-            orgId: user?.member.orgId!,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent?.id}`,
-            ignoreError: true,
-          });
-          await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListOpening);
-        } else {
-          await scheduler.updateScheduledEvent({
-            event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
-            orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledInterestList!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
-            eventTimeZone: Timezone.UTC,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent?.id}`,
-            eventInput: JSON.stringify({
-              action: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
-              orgId: user?.member.orgId!,
-              eventId: currentEvent?.id,
-            }),
-          });
-        }
-      } else if (
-        (currentEvent?.status !== EventStatus.InterestList && inputEvent.status === EventStatus.InterestList) ||
-        (inputEvent.status === EventStatus.InterestList && currentEvent?.scheduledCloseInterestList !== inputEvent.scheduledCloseInterestList) ||
-        (inputEvent.status === EventStatus.InterestList && inputEvent.interestListTransition !== currentEvent?.interestListTransition)
-      ) {
-        const closingEvents = subHours(
-          scheduledCloseInterestList!,
-          organization?.settings?.interestList?.defaultNotificationTime || 24
-        );
-        if (isAfter(new Date(), addMinutes(scheduledCloseInterestList!, -1))) {
-          await scheduler.removeSchedule({
-            event: ScheduleEvent.EVENT_INTEREST_CLOSE,
-            orgId: user?.member.orgId!,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent?.id}`,
-            ignoreError: true,
-          });
-          await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListClosing);
-        } else {
-          await scheduler.updateScheduledEvent({
-            event: ScheduleEvent.EVENT_INTEREST_CLOSE,
-            orgId: user?.member.orgId!,
-            eventTime: `at(${format(scheduledCloseInterestList!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
-            eventTimeZone: Timezone.UTC,
-            customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${currentEvent?.id}`,
-            eventInput: JSON.stringify({
-              action: ScheduleEvent.EVENT_INTEREST_CLOSE,
-              orgId: user?.member.orgId!,
-              eventId: currentEvent?.id,
-              transition: inputEvent.interestListTransition,
-            }),
-          });
-
-          if (isAfter(new Date(), addMinutes(closingEvents, -1))) {
-            await scheduler.removeSchedule({
-              event: ScheduleEvent.EVENT_INTEREST_CLOSING,
-              orgId: user?.member.orgId!,
-              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent?.id}`,
-              ignoreError: true,
-            });
-            await shifts.notifyUsersOfEventInterestAvailability(currentEvent?.id!, organization!, MailerEvents.OfficerInterestListClosing);
-          } else {
-            await scheduler.updateScheduledEvent({
-              event: ScheduleEvent.EVENT_INTEREST_CLOSING,
-              orgId: user?.member.orgId!,
-              eventTime: `at(${format(closingEvents, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
-              eventTimeZone: Timezone.UTC,
-              customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent?.id}`,
-              eventInput: JSON.stringify({
-                action: ScheduleEvent.EVENT_INTEREST_CLOSING,
-                orgId: user?.member.orgId!,
-                eventId: currentEvent?.id,
-                transition: inputEvent.interestListTransition,
-              }),
-            });
-          }
-        }
       }
 
       // Clean up scheduled event if we are not going to FCFS
@@ -498,22 +416,6 @@ export const event = {
         });
       }
 
-      // Clean up scheduled event if we are not going to Interest List
-      if (inputEvent.status !== EventStatus.InterestList && currentEvent?.status === EventStatus.InterestList) {
-        await scheduler.removeSchedule({
-          event: ScheduleEvent.EVENT_INTEREST_CLOSING,
-          orgId: user?.member.orgId!,
-          customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${currentEvent.id}`,
-          ignoreError: true,
-        });
-        await scheduler.removeSchedule({
-          event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
-          orgId: user?.member.orgId!,
-          customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${currentEvent.id}`,
-          ignoreError: true,
-        });
-      }
-
       logger.info('Upsert event', { inputEvent, event, currentEvent });
       let finalEvent: IEvent;
       if (!inputEvent.id) {
@@ -521,6 +423,12 @@ export const event = {
       } else {
         finalEvent = await events.update({id: inputEvent.id!, ...inputEvent});
       }
+
+      await interestList?.registerEventHooks({
+        event: finalEvent,
+        organization: organization!,
+        beforeEvent: currentEvent,
+      });
 
       return finalEvent;
     },

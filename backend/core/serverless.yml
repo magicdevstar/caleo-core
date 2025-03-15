@@ -69,6 +69,7 @@ provider:
     BUCKET_NAME: ${param:bucketName}
     SCHEDULED_LAMBDA_ARN: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-scheduledEvents
     LOTTO_STEP_FUNCTION_ARN: arn:aws:states:${aws:region}:${aws:accountId}:stateMachine:lotto-steps-${sls:stage}
+    INTEREST_STEP_FUNCTION_ARN: arn:aws:states:${aws:region}:${aws:accountId}:stateMachine:auto-interest-list-${sls:stage}
     SHIFT_NOTIFICATION_SCHEDULER: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-shiftNotificationScheduler
     MAILER_LAMBDA: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-mailer
     SCHEDULED_ROLE_ARN: !GetAtt SchedulerRole.Arn
@@ -234,6 +235,15 @@ functions:
     handler: src/handlers/steps/lottery/lotteryAnalytics.handler
     timeout: 300
 
+  # Interest List SFN
+  fetchInterestShifts:
+    handler: src/handlers/steps/interestList/fetchShifts.handler
+    timeout: 300
+  assignShiftGroup:
+    handler: src/handlers/steps/interestList/assignShiftGroup.handler
+    memorySize: 2048
+    timeout: 900
+
   shiftNotificationScheduler:
     handler: src/handlers/invoke/shiftNotificationScheduler.handler
     timeout: 300
@@ -390,4 +400,31 @@ stepFunctions:
                     Resource:
                       Fn::GetAtt: [ocnReminders, Arn]
                     End: true
+    interestListSteps:
+      name: auto-interest-list-${sls:stage}
+      definition:
+        StartAt: FetchShifts
+        States:
+          FetchShifts:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [fetchInterestShifts, Arn]
+            Next: AssignShifts
+          AssignShifts:
+            Type: Map
+            MaxConcurrency: 1
+            ResultPath: $.entries
+            InputPath: $.entries
+            ItemProcessor:
+              ProcessorConfig:
+                Mode: INLINE
+              StartAt: AssignShift
+              States:
+                AssignShift:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [assignShiftGroup, Arn]
+                  End: true
+            End: true
+    
   validate: true

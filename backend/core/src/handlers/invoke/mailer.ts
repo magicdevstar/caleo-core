@@ -11,7 +11,7 @@ import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../../types/mailer";
 import { Context, createContext } from "../../utils/createContext";
-import { EventStatus, MemberStatus } from "../../__generated__/resolvers-types";
+import { EventStatus, MemberStatus, ShiftStatus } from "../../__generated__/resolvers-types";
 import { InAppTemplates } from "../../types/inAppTemplates";
 import { IAssignment } from "../../models/assignment";
 import { IOrganization } from "../../models/organization";
@@ -666,6 +666,108 @@ const sendEmail = async (input: MailerEvent) => {
             },
           },
         };
+      }
+
+      await Promise.all(inAppPromises);
+    } else if (input.template === MailerEvents.OfficerNewShiftAssignments) {
+      input.template = MailerEvents.OfficerNewShiftAssigned;
+      const { shiftAssignments, organization }: {
+        organization: IOrganization;
+        shiftAssignments: {
+          updateOne: {
+            filter: { _id: ObjectId };
+            update: { $set: { userId: ObjectId, status: ShiftStatus.Assigned } };
+          }
+        }[];
+      } = input.data;
+      fromEmail = organization.fromEmail;
+
+      if (shiftAssignments.length === 0) {
+        return;
+      }
+
+      const shift = await context.shifts.get(shiftAssignments[0].updateOne.filter._id);
+      if (!shift) {
+        logger.error('Sample shift not found', { input, shift });
+        return;
+      }
+      const event = await context.events.get(shift.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, event });
+        return;
+      }
+      const venue = await context.venues.get(event.venueId!);
+      if (!venue) {
+        logger.error('Venue not found', { input, venue });
+        return;
+      }
+      const assignment = await context.assignments.get(shift.assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, assignment });
+        return;
+      }
+
+      let url = process.env.LOGIN_URL || '';
+      if ((organization as IOrganization).features.sso) {
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
+
+      const eventStart = convertDate(shift.startTime as any, organization);
+      const eventEnd = convertDate(shift.endTime as any, organization);
+
+      const inAppPromises: Promise<any>[] = [];
+      for (const shiftAssignment of shiftAssignments) {
+        const user = await context.users.get(shiftAssignment.updateOne.update.$set.userId);
+        if (!user) {
+          logger.error('User not found', { input, user });
+          continue;
+        }
+
+        const { title, body } = InAppTemplates[MailerEvents.OfficerNewShiftAssigned]({
+          shiftName: assignment.name,
+          eventName: event.name,
+          venueName: venue.name,
+        });
+        inAppPromises.push(sendInAppNotification({
+          context,
+          userId: user!.id!,
+          templateName: MailerEvents.OfficerNewShiftAssigned,
+          orgId: organization.id,
+          title,
+          body,
+          meta: {
+            eventId: new ObjectId(event.id),
+            shiftId: shift.shiftId,
+            assignmentId: new ObjectId(assignment.id),
+          }
+        }));
+
+        if (user.member.contactInfo?.primaryEmail.receiveEmails) {
+          Addresses = {
+            ...Addresses,
+            [user.member.contactInfo!.primaryEmail.address]: {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "event.name": [event.name],
+                "shift.name": [assignment.name],
+                "shift.start_date": [eventStart.date],
+                "shift.start_time": [eventStart.time],
+                "shift.end_date": [eventEnd.date],
+                "shift.end_time": [eventEnd.time],
+                "system.metro_name": [organization.name],
+                "user.first_name": [user.firstName],
+                "event.reference_number": [`${event.referenceId}`],
+                "system.login_url": [url],
+              },
+            },
+          };
+        }
       }
 
       await Promise.all(inAppPromises);

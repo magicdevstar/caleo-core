@@ -2,6 +2,7 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
 import { GraphQLError } from "graphql";
 import { UserModel } from "../models/user";
 import { IUser } from "../types/common";
+import logger from "./logger";
 
 export const userFromEvent = async (
   event: APIGatewayProxyEventV2WithJWTAuthorizer,
@@ -11,6 +12,7 @@ export const userFromEvent = async (
   const token = authHeader?.replace('Bearer', '').trim();
 
   if (!token) {
+    logger.error('No token provided in Authorization header', { event });
     throw new GraphQLError('Unauthorized');
   }
 
@@ -31,12 +33,13 @@ export const userFromEvent = async (
   }
 
   if (!user) {
+    logger.error('No user found', { user, sub, event });
     throw new GraphQLError('Unauthorized');
   }
 
   return {
     user: {
-      id: user._id.toString(),
+      id: user?._id?.toString(),
       ...user,
     },
     originalUser,

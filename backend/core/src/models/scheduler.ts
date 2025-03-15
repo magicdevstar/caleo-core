@@ -138,6 +138,16 @@ export class SchedulerModel {
       };
   
       logger.info('Updating schedule', { input });
+
+      if (
+        foundSchedule &&
+        foundSchedule.ScheduleExpression === eventTime &&
+        foundSchedule.Target?.Input === JSON.stringify(eventInput) &&
+        foundSchedule.ScheduleExpressionTimezone === eventTimeZone
+      ) {
+        logger.info('No update needed for schedule', { event, orgId, customEventName });
+        return foundSchedule;
+      }
   
       const command = foundSchedule ? new UpdateScheduleCommand(input) : new CreateScheduleCommand(input);
       const res = await scheduler.send(command);

@@ -135,16 +135,14 @@ const scheduledEvents = async (event) => {
         MailerEvents.OfficerInterestListOpening
       );
     } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSE) {
-      if ((eventParams as EventInterestClose).transition) {
-        await context.events.collection.updateOne({
-          _id: new ObjectId((eventParams as EventInterestClose).eventId),
-        }, {
-          $set: {
-            status: (eventParams as EventInterestClose).transition,
-            updatedAt: new Date(),
-          },
-        });
-      }
+      const command = new StartExecutionCommand({
+        stateMachineArn: process.env.LOTTO_STEP_FUNCTION_ARN,
+        input: JSON.stringify({
+          orgId,
+          eventId: (eventParams as EventInterestClose).eventId,
+        }),
+      });
+      await client.send(command);
     } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSING) {
       const organization = await context.organizations.get(orgId);
       await context.shifts.notifyUsersOfEventInterestAvailability(

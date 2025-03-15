@@ -19,9 +19,9 @@ locals {
         email                  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
         family_name            = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
         given_name             = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-        "custom:phony"         = "user.telephonenumber"
-        # "custom:p_number"      = "employeeID"
-        # "custom:employee_date" = "extensionAttribute10"
+        "custom:phony"         = "user.telephoneNumber"
+        "custom:p_number"      = "user.extensionattribute13"
+        "custom:employee_date" = "user.extensionattribute10"
       }
     }
   }

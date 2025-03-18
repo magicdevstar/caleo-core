@@ -1566,7 +1566,7 @@ const sendEmail = async (input: MailerEvent) => {
       const shiftEnd = convertDate(shift.endTime, organization);
 
       const allUsers = await context.users.collection.find<IUser>({
-        'member.orgId': organization._id,
+        'member.orgId': new ObjectId(organization._id),
         'member.status': MemberStatus.Active,
         'member.rankId': { $in: assignment.rankIds },
         removedAt: { $exists: false },
@@ -1576,15 +1576,15 @@ const sendEmail = async (input: MailerEvent) => {
       do {
         user = await allUsers.next();
         if (user) {
-          let skillIds: ObjectId[] | undefined = undefined;
+          let skillIds: string[] | undefined = undefined;
 
           // Verify user has required skills
           if (assignment.requiredSkillIds && assignment.requiredSkillIds.length > 0) {
             if (!skillIds && (user?.member?.memberSkillIds || []).length > 0) {
               const mSkills = await context.memberSkills.findAll((user?.member?.memberSkillIds || []).map((id) => new ObjectId(id as any)));
-              skillIds = mSkills.map(({ skillId }) => skillId);
+              skillIds = mSkills.map(({ skillId }) => skillId.toString());
             }
-            if (difference(assignment.requiredSkillIds, skillIds).length > 0) {
+            if (difference(assignment.requiredSkillIds.map(s => s.toString()), skillIds).length > 0) {
               continue;
             }
           }

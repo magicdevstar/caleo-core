@@ -14,6 +14,9 @@ type Props = {
   children: React.ReactNode;
 };
 
+const [subdomain] = window.location.host.split('.');
+const defaultBackground = /lasd/.test(subdomain) ? '/assets/background/lasd_overlay.webp' : '/assets/background/overlay_3.jpg';
+
 export default function AuthModernLayout({ children, image }: Props) {
   const upMd = useResponsive('up', 'md');
 
@@ -52,7 +55,7 @@ export default function AuthModernLayout({ children, image }: Props) {
       <Box
         component="img"
         alt="auth"
-        src={image || '/assets/background/overlay_3.jpg'}
+        src={image || defaultBackground}
         sx={{
           top: 16,
           left: 16,

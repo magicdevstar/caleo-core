@@ -19,6 +19,7 @@ import { PATH_AFTER_LOGIN } from 'src/config-global';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useShowSSO } from 'src/hooks/use-show-sso';
+import { useResponsive } from 'src/hooks/use-responsive';
 // auth
 import { useAuthContext } from 'src/auth/hooks';
 // components
@@ -28,9 +29,12 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 // ----------------------------------------------------------------------
 
 const [subdomain] = window.location.host.split('.');
+const isLASD = /lasd/.test(subdomain);
 
 export default function AmplifyLoginView() {
   const { federatedLogin, login } = useAuthContext();
+
+  const downMD = useResponsive('down', 'md');
 
   const router = useRouter();
 
@@ -78,8 +82,9 @@ export default function AmplifyLoginView() {
   });
 
   const renderHead = (
-    <Stack spacing={2} sx={{ mb: 5 }}>
+    <Stack spacing={0} sx={{ mb: 5 }}>
       <Typography variant="h4">Sign in to CaleoPro</Typography>
+      {downMD && isLASD && (<Typography variant="subtitle1">Las Angles Sheriffs Department<br/>Emergency Operations Bureau</Typography>)}
     </Stack>
   );
 

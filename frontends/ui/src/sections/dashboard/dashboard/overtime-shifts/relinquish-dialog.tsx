@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation } from '@apollo/client';
+import { useSnackbar } from "notistack";
+import get from 'lodash/get';
 // @mui
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -27,6 +29,7 @@ export default function RelinquishDialog({
   relinquishNoteRequired = false,
   onClose,
 }: RelinquishDialogProps) {
+  const { enqueueSnackbar } = useSnackbar();
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
 
   const [assignShift, { loading: relinquishLoading }] = useMutation(ASSIGN_SHIFT, {
@@ -69,9 +72,20 @@ export default function RelinquishDialog({
       }
       closeDialog();
     } catch (error) {
-      console.error(error);
+      enqueueSnackbar({
+        variant: 'error',
+        message: get(error, 'message', 'An error occurred while relinquishing the shift.'),
+        autoHideDuration: 5000,
+      });
     }
-  }, [editShift, relinquishNote, assignShift, closeDialog, removeShiftBuffer]);
+  }, [
+    editShift,
+    relinquishNote,
+    assignShift,
+    closeDialog,
+    removeShiftBuffer,
+    enqueueSnackbar,
+  ]);
 
   return (
     <ConfirmDialog

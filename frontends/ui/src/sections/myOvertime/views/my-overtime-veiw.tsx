@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { isAfter, isBefore, subHours } from 'date-fns';
 // @mui
 import Container from '@mui/material/Container';
@@ -7,15 +7,13 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import LoadingButton from '@mui/lab/LoadingButton';
-import TextField from '@mui/material/TextField';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { alpha, useTheme } from '@mui/material/styles';
 // components
 import { useSettingsContext } from 'src/components/settings';
 // types
-import { ASSIGN_SHIFT, GET_ALL_SHIFTS, GET_SHIFT_BUFFER_REQUESTS, REMOVE_SHIFT_BUFFER_REQUEST } from 'src/api/shifts';
+import { GET_ALL_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
 import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
 import { useResponsive } from 'src/hooks/use-responsive';
@@ -24,8 +22,8 @@ import ShiftItems from 'src/components/shifts/shift-items';
 import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, ShiftStatus } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { ConfirmDialog } from 'src/components/custom-dialog';
 import CheckInOut from 'src/components/shifts/check-in-out';
+import RelinquishDialog from 'src/sections/dashboard/dashboard/overtime-shifts/relinquish-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -100,29 +98,15 @@ export default function MyOvertimeView() {
   const settings = useSettingsContext();
   const mdDown = useResponsive('down', 'md');
 
-  const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
   const { data: organizationData } = useQuery(ORGANIZATION, {
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
   });
   const organization = organizationData?.organization;
-  const [assignShift, { loading: relinquishLoading }] = useMutation(ASSIGN_SHIFT, {
-    refetchQueries: [GET_ALL_SHIFTS],
-  });
-  const [removeShiftBuffer, { loading: removeShiftBufferLoading }] = useMutation(REMOVE_SHIFT_BUFFER_REQUEST, {
-    refetchQueries: [GET_SHIFT_BUFFER_REQUESTS],
-  });
 
   const [editShift, setEditShift] = useState<Shift | ShiftBufferRequest | null>(null);
 
   const relinquishNoteRequired = organization?.settings?.userRelinquishShift?.enabled && organization?.settings?.userRelinquishShift?.requireNoteWhenRelinquishing;
-  const relinquishSubmitEnabled = useMemo(() => {
-    if (editShift?.__typename === 'ShiftBufferRequest') return true;
-    if (!relinquishNoteRequired) return true;
-    const validNote = relinquishNote && relinquishNote.trim() !== '';
-    return validNote;
-  }, [editShift, relinquishNote, relinquishNoteRequired]);
-
   const relinquishConfirm = useBoolean();
 
   const { data, loading } = useQuery(GET_ALL_SHIFTS, {
@@ -191,41 +175,9 @@ export default function MyOvertimeView() {
   const closeRelinquish = useCallback(
     () => {
       setEditShift(null);
-      setRelinquishNote(undefined);
       relinquishConfirm.onFalse();
     },
-    [relinquishConfirm, setRelinquishNote, setEditShift]
-  );
-
-  const handleRelinquish = useCallback(
-    async () => {
-      try {
-        if (editShift?.__typename === 'ShiftBufferRequest') {
-          await removeShiftBuffer({
-            variables: {
-              id: editShift?.id,
-            },
-          });
-        } else {
-          await assignShift({
-            variables: {
-              id: editShift?.id,
-              note: relinquishNote,
-            }
-          });
-        }
-        closeRelinquish();
-      } catch(error) {
-        console.error(error);
-      }
-    },
-    [
-      editShift,
-      relinquishNote,
-      assignShift,
-      closeRelinquish,
-      removeShiftBuffer
-    ]
+    [relinquishConfirm, setEditShift]
   );
 
   const shiftActions = [
@@ -308,41 +260,11 @@ export default function MyOvertimeView() {
           />
         </CardContent>
       </Card>
-
-      <ConfirmDialog
+      <RelinquishDialog
         open={relinquishConfirm.value}
         onClose={closeRelinquish}
-        title="Relinquish Overtime"
-        content={(
-          <>
-            <Typography variant="body2">{
-              editShift?.__typename === 'ShiftBufferRequest'
-                ? 'Are you sure you want to remove this buffer request?'
-                : 'Are you sure you want to relinquish this overtime?'
-            }</Typography>
-            {editShift?.__typename !== 'ShiftBufferRequest' && <TextField
-              fullWidth
-              multiline
-              rows={4}
-              sx={{ mt: 2 }}
-              label="Explain why you would like to relinquish this overtime"
-              value={relinquishNote}
-              helperText={relinquishNoteRequired ? 'This field is required' : undefined}
-              onChange={(e: any) => setRelinquishNote(e.target.value)}
-            />}
-          </>
-        )}
-        action={
-          <LoadingButton
-            disabled={!relinquishSubmitEnabled}
-            loading={relinquishLoading || removeShiftBufferLoading}
-            variant="contained"
-            color="error"
-            onClick={handleRelinquish}
-          >
-            {editShift?.__typename === 'ShiftBufferRequest' ? 'Remove Buffer Request' : 'Relinquish Overtime'}
-          </LoadingButton>
-        }
+        editShift={editShift}
+        relinquishNoteRequired={relinquishNoteRequired}
       />
     </Container>
   );

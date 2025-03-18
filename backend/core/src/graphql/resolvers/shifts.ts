@@ -12,14 +12,11 @@ import {
   AvailableShiftsSearchInput,
   EventStatus,
   MemberRole,
-  Shift,
-  ShiftCheckInOut,
   ShiftCheckInOutEvent,
   ShiftSearchInput,
   ShiftStatus,
   ShiftUpdates,
   UpsertShift,
-  UserSearchResult
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -585,6 +582,9 @@ export const shift = {
         let status = ShiftStatus.Relinquished;
         if (existingUserId !== user!.id && userIsAdmin(user)) {
           status = ShiftStatus.Unassigned;
+        }
+        if (status === ShiftStatus.Relinquished && shifts.canRelinquishShift({ shift, organization: organization! })) {
+          throw new GraphQLError("You cannot relinquish this shift. Please contact an administrator.");
         }
         removedShift = await shifts.create<IShift>({
           ...createShift,

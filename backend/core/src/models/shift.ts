@@ -3,7 +3,7 @@ import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
 import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
-import { endOfDay, getDay, getHours, getMinutes, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
+import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
@@ -1292,5 +1292,24 @@ export class ShiftModel extends BaseMongo<IShift> {
       })) as IShift[],
       total: totalResult.length > 0 ? totalResult[0].total : 0,
     };
+  }
+
+  canRelinquishShift({
+    shift,
+    organization
+  } : {
+    shift: IShift;
+    organization: IOrganization;
+  }) {
+    const now = utcToZonedTime(new Date(), organization.timezone);
+    const startTime = utcToZonedTime(shift.startTime, organization.timezone);
+
+    const allowedHoursBefore = organization.settings?.userRelinquishShift.numberOfHoursBeforeShift || 0;
+
+    if (isAfter(startTime, addHours(now, allowedHoursBefore))) {
+      return false;
+    }
+
+    return true;
   }
 };

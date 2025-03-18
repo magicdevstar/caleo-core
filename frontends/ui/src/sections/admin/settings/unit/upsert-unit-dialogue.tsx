@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@apollo/client';
 
 // @mui
+import Stack from '@mui/system/Stack';
 import LoadingButton from '@mui/lab/LoadingButton';
 import TextField from '@mui/material/TextField';
 
@@ -29,12 +30,14 @@ export default function UpsertUnitDialogue({
     refetchQueries: [GET_UNITS],
   });
   const [name, setName] = useState('');
+  const [overtimeCode, setOvertimeCode] = useState('');
   const [error, setError] = useState('');
   const action = useMemo(() => unit ? 'Update' : 'Create', [unit]);
 
   useEffect(() => {
     if (unit) {
       setName(unit.name);
+      setOvertimeCode(unit.overtimeCode || '');
     } else {
       setName('');
     }
@@ -52,6 +55,7 @@ export default function UpsertUnitDialogue({
           input: {
             id: unit?.id,
             name: name.trim(),
+            overtimeCode: overtimeCode.trim() || null,
             active: unit ? unit.active : true,
           },
         },
@@ -76,19 +80,36 @@ export default function UpsertUnitDialogue({
       onClose={handleClose}
       title={`${action} Unit of assignment`}
       content={
-        <TextField
-          fullWidth
-          label="Name"
-          type="text"
-          autoFocus
-          value={name}
-          sx={{ mt: 1 }}
-          onChange={(event) => {
-            setName(event.target.value);
-          }}
-          error={!!error || !!newUnitError}
-          helperText={error || newUnitError?.message}
-        />
+        (
+          <Stack spacing={2}>
+            <TextField
+              fullWidth
+              label="Name"
+              type="text"
+              autoFocus
+              value={name}
+              sx={{ mt: 1 }}
+              onChange={(event) => {
+                setName(event.target.value);
+              }}
+              error={!!error || !!newUnitError}
+              helperText={error || newUnitError?.message}
+            />
+    
+            <TextField
+              fullWidth
+              label="Overtime Code"
+              type="text"
+              value={overtimeCode}
+              sx={{ mt: 1 }}
+              onChange={(event) => {
+                setOvertimeCode(event.target.value);
+              }}
+              error={!!error || !!newUnitError}
+              helperText={error || newUnitError?.message}
+            />
+          </Stack>
+        )
       }
       action={
         <LoadingButton onClick={onSubmit} variant="contained" loading={loading}>

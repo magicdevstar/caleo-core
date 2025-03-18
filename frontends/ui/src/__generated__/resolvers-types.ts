@@ -2053,6 +2053,7 @@ export type Unit = {
   name: Scalars['String']['output'];
   org?: Maybe<Organization>;
   orgId: Scalars['String']['output'];
+  overtimeCode?: Maybe<Scalars['String']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
 };
@@ -2331,6 +2332,7 @@ export type UpsertUnit = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  overtimeCode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertUserRelinquishShift = {
@@ -3925,6 +3927,7 @@ export type UnitResolvers<ContextType = any, ParentType extends ResolversParentT
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  overtimeCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

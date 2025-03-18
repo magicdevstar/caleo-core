@@ -999,6 +999,7 @@ type DocusignSignerDetails {
     id: ID!
     name: String!
     active: Boolean!
+    overtimeCode: String
     docType: DocType!
     orgId: String!
     createdAt: String!
@@ -1013,6 +1014,7 @@ type DocusignSignerDetails {
   input UpsertUnit {
     id: String
     name: String
+    overtimeCode: String
     active: Boolean
   }
 ###### END Unit ######

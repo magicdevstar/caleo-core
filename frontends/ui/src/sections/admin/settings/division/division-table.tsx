@@ -101,7 +101,7 @@ export default function DivisionTable() {
       }
     ],
     columns: [
-      { id: 'name', label: 'Skill', columnType: 'string' },
+      { id: 'name', label: 'Division', columnType: 'string' },
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

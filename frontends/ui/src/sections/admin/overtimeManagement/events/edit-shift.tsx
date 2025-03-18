@@ -46,6 +46,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
+import DropDownButton from 'src/components/dropdown-button/dropdown-button';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
 import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
@@ -81,10 +82,13 @@ export default function EditShift({
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const editCheckInOutModal = useBoolean();
   const deleteConfirm = useBoolean();
+  const createSlotsConfirm = useBoolean();
+  const createSlotsLoading = useBoolean();
   const unassignConfirm = useBoolean();
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
   const showInterestList = useBoolean();
+  const [shiftsToCreate, setShiftsToCreate] = useState<number>(1);
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
@@ -252,9 +256,43 @@ export default function EditShift({
     enqueueSnackbar
   ]);
 
+  const handleBulkShiftCreate = useCallback(async () => {
+    const groupId = shiftId || uuid();
+    await upsertShifts({
+      variables: {
+        input: new Array(shiftsToCreate).fill('i').map(() => ({
+          startTime: startTime?.toISOString(),
+          endTime: endTime?.toISOString(),
+          assignmentId,
+          eventId,
+          shiftId: groupId,
+        })),
+      }
+    });
+    if (!shiftId) {
+      router.push(
+        paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+        .replace(':eventId', eventId!)
+        .replace(':assignmentId', assignmentId!)
+        .replace(':shiftId', groupId)
+      );
+    }
+    createSlotsConfirm.onFalse();
+  }, [
+    createSlotsConfirm,
+    router,
+    startTime,
+    endTime,
+    eventId,
+    assignmentId,
+    shiftId,
+    shiftsToCreate,
+    upsertShifts,
+  ]);
+
   const config: TableConfig<Shift> = {
     header: {
-      title: 'Shifts Slots',
+      title: `Shifts Slots (${(currentShifts || []).length})`,
       buttons: [
         ...(interestLists ? [{
           key: 'showInterestList',
@@ -272,30 +310,55 @@ export default function EditShift({
           icon: 'ic:baseline-add',
           loading: isSubmitting,
           disabled: !startTime || !endTime || allDisabled || isComplete,
-          onClick: async () => {
-            const groupId = shiftId || uuid();
-            await upsertShifts({
-              variables: {
-                input: [
-                  {
-                    startTime: startTime?.toISOString(),
-                    endTime: endTime?.toISOString(),
-                    assignmentId,
-                    eventId,
-                    shiftId: groupId,
+          render: () => (
+            <DropDownButton
+              text="Add shift slot"
+              menuItems={[
+                {
+                  key: 'singleShift',
+                  text: 'Add one slot',
+                  onClick: () => {
+                    setShiftsToCreate(1);
+                    handleBulkShiftCreate();
+                  },
+                  icon: 'ic:round-add'
+                },
+                {
+                  key: 'bulkShifts',
+                  text: 'Bulk add slots',
+                  onClick: () => {
+                    setShiftsToCreate(1);
+                    createSlotsConfirm.onTrue();
+                  },
+                  icon: 'ic:round-playlist-add'
+                },
+              ]}
+              buttonClick={async () => {
+                const groupId = shiftId || uuid();
+                await upsertShifts({
+                  variables: {
+                    input: [
+                      {
+                        startTime: startTime?.toISOString(),
+                        endTime: endTime?.toISOString(),
+                        assignmentId,
+                        eventId,
+                        shiftId: groupId,
+                      }
+                    ],
                   }
-                ],
-              }
-            });
-            if (!shiftId) {
-              router.push(
-                paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
-                .replace(':eventId', eventId!)
-                .replace(':assignmentId', assignmentId!)
-                .replace(':shiftId', groupId)
-              );
-            }
-          }
+                });
+                if (!shiftId) {
+                  router.push(
+                    paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+                    .replace(':eventId', eventId!)
+                    .replace(':assignmentId', assignmentId!)
+                    .replace(':shiftId', groupId)
+                  );
+                }
+              }}
+            />
+          ),
         },
       ]
     },
@@ -574,6 +637,23 @@ export default function EditShift({
         action={
           <LoadingButton variant="contained" color="error" onClick={handleRemoveShift} loading={isRemoving}>
             Delete
+          </LoadingButton>
+        }
+      />
+
+      <ConfirmDialog
+        open={createSlotsConfirm.value}
+        onClose={createSlotsConfirm.onFalse}
+        title="Bulk Create Shift Slots"
+        content={(
+          <Stack spacing={2}>
+            <Typography variant='body1'>Are you sure want to create shift slots for the selected time range?</Typography>
+            <TextField value={shiftsToCreate} onChange={(e) => setShiftsToCreate(parseInt(e.target.value, 10))} label="Number of slots" type="number" variant="outlined" />
+          </Stack>
+        )}
+        action={
+          <LoadingButton variant="contained" color="error" onClick={handleBulkShiftCreate} loading={createSlotsLoading.value}>
+            Create Slots
           </LoadingButton>
         }
       />

@@ -65,7 +65,7 @@ interface ShiftReminderEvent {
 const scheduledEvents = async (event) => {
   try {
     const context = await createContext();
-    const { action, orgId, ...eventParams } = (typeof event === 'string' ? JSON.parse(event) : event) as ParsedEvent | TierResetEvent | ShiftReminderEvent ;
+    const { action, orgId, ...eventParams } = (typeof event === 'string' ? JSON.parse(event) : event) as ParsedEvent | TierResetEvent | ShiftReminderEvent;
     if (action === ScheduleEvent.LOTTO_END) {
       const command = new StartExecutionCommand({
         stateMachineArn: process.env.LOTTO_STEP_FUNCTION_ARN,
@@ -136,7 +136,7 @@ const scheduledEvents = async (event) => {
       );
     } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSE) {
       const command = new StartExecutionCommand({
-        stateMachineArn: process.env.LOTTO_STEP_FUNCTION_ARN,
+        stateMachineArn: process.env.INTEREST_STEP_FUNCTION_ARN,
         input: JSON.stringify({
           orgId,
           eventId: (eventParams as EventInterestClose).eventId,

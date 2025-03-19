@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import { useResponsive } from 'src/hooks/use-responsive';
 // components
 import Logo from 'src/components/logo';
+import { Typography } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -15,7 +16,8 @@ type Props = {
 };
 
 const [subdomain] = window.location.host.split('.');
-const defaultBackground = /lasd/.test(subdomain) ? '/assets/background/lasd_overlay.webp' : '/assets/background/overlay_3.jpg';
+const isLasd = /lasd/.test(subdomain);
+const defaultBackground = isLasd ? '/assets/background/overlay_4.jpg' : '/assets/background/overlay_3.jpg';
 
 export default function AuthModernLayout({ children, image }: Props) {
   const upMd = useResponsive('up', 'md');
@@ -65,6 +67,28 @@ export default function AuthModernLayout({ children, image }: Props) {
           height: 'calc(100% - 32px)',
         }}
       />
+      {isLasd && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1,
+          }}
+        >
+          <Typography variant='h4' color='black' textAlign='center'>Los Angeles Sheriffs Department<br/>Emergency Operations Bureau</Typography>
+          <Box
+            component="img"
+            src="/assets/icons/brands/ic_brand_lasd.webp"
+            alt="LASD Logo"
+            sx={{
+              maxWidth: '400px',
+              maxHeight: '400px',
+            }}
+          />
+        </Box>
+      )}
     </Stack>
   );
 

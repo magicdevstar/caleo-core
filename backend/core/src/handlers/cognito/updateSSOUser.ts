@@ -4,6 +4,7 @@ import { PostAuthenticationTriggerEvent } from "aws-lambda";
 import logger from "../../utils/logger";
 import { createContext } from "../../utils/createContext";
 import { phoneNumberParser } from "../../utils/phone";
+import { parseHireDate } from "../../utils/hireDate";
 
 interface IUserAttributes {
   sub: string
@@ -25,14 +26,21 @@ const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
 
     const attributes = event.request.userAttributes as unknown as IUserAttributes;
     if (attributes.identities) {
+      const hireDate = parseHireDate(attributes['custom:employee_date']);
       await services.users.collection.updateOne({
         cognitoId: attributes.sub,
       }, {
         $set: {
+          ...(attributes['custom:phony'] && {
+            'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
+          }),
+          ...(attributes['custom:p_number'] && {
+            'member.pNumber': attributes['custom:p_number'],
+          }),
+          ...(hireDate && {
+            'member.tenor': hireDate,
+          }),
           'member.contactInfo.primaryEmail.address': attributes.email,
-          // 'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
-          // 'member.pNumber': attributes['custom:p_number'],
-          // TODO: Add hire date once we discover the format
           firstName: attributes.given_name,
           lastName: attributes.family_name,
           name: `${attributes.given_name} ${attributes.family_name}`,

@@ -128,6 +128,7 @@ export const createContext = async (): Promise<Context> => {
     document,
   );
   const interestList = new InterestListService(
+    shiftInterestRequests,
     events,
     scheduler,
   );

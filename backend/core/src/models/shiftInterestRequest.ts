@@ -11,6 +11,7 @@ export interface IShiftInterestRequest extends Omit<
   'updatedAt' |
   'removedAt' |
   'modifiedById' |
+  'assignedShift' |
   'userId' |
   'user' |
   'orgId' |
@@ -23,6 +24,7 @@ export interface IShiftInterestRequest extends Omit<
   userId: ObjectId;
   orgId: ObjectId;
   eventId: ObjectId;
+  assignedShiftId?: ObjectId;
 
   modifiedById: ObjectId;
   assignmentId: ObjectId;
@@ -38,6 +40,7 @@ export interface IUpsertShiftInterestRequest extends Omit<UpsertShiftInterestReq
   eventId: ObjectId;
   assignmentId: ObjectId;
   modifiedById: ObjectId;
+  assignedShiftId?: ObjectId;
   status?: ShiftInterestRequestStatus;
 }
 

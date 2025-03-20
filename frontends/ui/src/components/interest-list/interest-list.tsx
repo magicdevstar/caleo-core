@@ -6,7 +6,7 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 // types
-import { ShiftInterestRequest, ShiftInterestRequestStatus } from "src/__generated__/resolvers-types";
+import { MemberTier, ShiftInterestRequest, ShiftInterestRequestStatus, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_GROUPED_SHIFTS, SHIFT_INTEREST_REQUESTS, UPSERT_SHIFT_INTEREST_REQUEST } from "src/api/shifts";
 import { TableConfig } from "src/components/table/table-config";
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
@@ -19,13 +19,17 @@ import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { get } from "lodash";
 import { useFeatures } from "src/hooks/use-features";
+import { useTiers } from "src/hooks/use-tiers";
 
 interface Props {
   open: UseBooleanReturnType;
   interestList: ShiftInterestRequest[];
 }
 
-const formatStatus = (eventStatus: any) => {
+const formatStatus = (eventStatus: any, assignedShiftStatus?: string) => {
+  if (assignedShiftStatus === ShiftStatus.Relinquished) {
+    return 'Relinquished';
+  }
   switch (eventStatus) {
     case ShiftInterestRequestStatus.Pending:
       return 'Pending';
@@ -42,8 +46,9 @@ export function InterestList({
   open,
   interestList
 }: Props) {
-  const { monthlyMaxHours } = useFeatures();
+  const { monthlyMaxHours, lasdUserFields } = useFeatures();
   const { user } = useAuthContext();
+  const { tierNames } = useTiers();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'shift-slot-interest',
@@ -60,7 +65,11 @@ export function InterestList({
         const createdAtTime = convertDate({date: interest.createdAt, user});
         return {
           'Name': interest.user?.name,
-          'Status': formatStatus(interest.status),
+          'Status': formatStatus(interest.status, interest.assignedShift?.status),
+          ...(lasdUserFields && {
+            'Tier': interest.user?.member?.tier ? tierNames[interest.user.member.tier] || 'N/A' : 'N/A',
+            'Hire Date': interest.user?.member?.tenor ? convertDate({date: interest.user?.member?.tenor, user}).format(dateTimeFormat) : 'N/A',
+          }),
           ...(monthlyMaxHours && { 'Hours/month': interest.user?.numberOfHoursThisMonth }),
           'Created Date': createdAtTime.format(dateTimeFormat),
         };
@@ -76,6 +85,8 @@ export function InterestList({
     monthlyMaxHours,
     user,
     interestList,
+    lasdUserFields,
+    tierNames,
     enqueueSnackbar,
     setDownloadingSummary,
     download
@@ -129,6 +140,21 @@ export function InterestList({
         columnType: 'string',
         width: '40%',
       },
+      ...(lasdUserFields ? [
+        {
+          id: 'user.member.tier',
+          label: 'Tier',
+          columnType: 'string',
+          width: '10%',
+          renderValue: (tier: MemberTier) => tierNames[tier] || 'N/A',
+        },
+        {
+          id: 'user.member.tenor',
+          label: 'Hire Date',
+          columnType: 'date',
+          width: '10%',
+        }
+      ] : []),
       ...(monthlyMaxHours ? [{
         id: 'user.numberOfHoursThisMonth',
         label: 'Hours/month',
@@ -137,11 +163,14 @@ export function InterestList({
       }]: []) as any,
       {
         id: 'status',
-        label: 'Type',
+        label: 'Status',
         width: '20%',
         columnType: 'string',
-        renderValue: (eventStatus: any) => formatStatus(eventStatus),
+        renderValue: (eventStatus: any, _, row) => formatStatus(eventStatus, row.assignedShift?.status),
         getLabelColor: (event: any) => {
+          if (event.assignedShift?.status === ShiftStatus.Relinquished) {
+            return 'error';
+          }
           switch (event.status) {
             case ShiftInterestRequestStatus.Pending:
               return 'info';
@@ -160,9 +189,14 @@ export function InterestList({
         columnType: 'action',
         label: '',
         renderValue: (_value: any, index: number, row: ShiftInterestRequest) => {
+          let disableBoth = false;
           let canApprove = true;
           if (row.status === ShiftInterestRequestStatus.Approved) {
             canApprove = false;
+          }
+
+          if (row.assignedShift?.status === ShiftStatus.Relinquished) {
+            disableBoth = true;
           }
 
           const clicked = async () => {
@@ -196,14 +230,14 @@ export function InterestList({
           return (
             <Stack direction="row" spacing={2}>
               <LoadingButton
-                disabled={!canApprove}
+                disabled={!canApprove || disableBoth}
                 loading={loading === row.id && canApprove}
                 variant="contained"
                 color="primary"
                 onClick={clicked}
               >Approve</LoadingButton>
               <LoadingButton
-                disabled={canApprove}
+                disabled={canApprove || disableBoth}
                 loading={loading === row.id && !canApprove}
                 variant="contained"
                 color="error"

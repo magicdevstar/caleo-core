@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+import { utcToZonedTime } from "date-fns-tz";
 import { format, isAfter, subHours } from "date-fns";
 import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 
@@ -7,28 +9,40 @@ import { ScheduleEvent, SchedulerModel, Timezone } from "../models/scheduler";
 import { IOrganization } from "../models/organization";
 import { IShift } from "../models/shift";
 import logger from "../utils/logger";
-import { utcToZonedTime } from "date-fns-tz";
+import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 
 const lambda = new LambdaClient();
 
 export class InterestListService {
   constructor(
+    private shiftInterestRequests: ShiftInterestRequestModel,
     private events: EventModel,
     private scheduler: SchedulerModel,
   ) {}
 
   async maybeTriggerNextAssignment({
     shift,
-    didRelinquish,
     organization,
+    relinquishId,
   }: {
-    shift: IShift,
-    didRelinquish: boolean,
-    organization: IOrganization,
+    shift: IShift;
+    relinquishId?: ObjectId;
+    organization: IOrganization;
   }) {
-    // Do nothing if this feature is not enabled for the organization or we did not relinquish as shift
-    if (!organization.features.interestLists || !didRelinquish) {
+    // Do nothing if this feature is not enabled for the organization
+    if (!organization.features.interestLists) {
       return;
+    }
+
+    if (relinquishId) {
+      await this.shiftInterestRequests.collection.updateMany({
+        assignedShiftId: shift._id,
+      }, {
+        $set: {
+          assignedShiftId: relinquishId,
+          updatedAt: new Date(),
+        },
+      });
     }
 
     const event = await this.events.get(shift.eventId);
@@ -36,7 +50,7 @@ export class InterestListService {
       logger.error('Event not found', { shift, organization });
       return;
     }
-    if (!event.scheduledCloseInterestList) {
+    if (event.status !== EventStatus.InterestList || !event.scheduledCloseInterestList) {
       return;
     }
 

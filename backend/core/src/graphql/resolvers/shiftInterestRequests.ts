@@ -71,6 +71,7 @@ export const shiftInterestRequests = {
         shifts,
         users,
         user,
+        interestList,
         organization,
       }: Context
     ): Promise<IUpsertShiftInterestRequest> => {
@@ -88,6 +89,7 @@ export const shiftInterestRequests = {
         template: MailerEvents;
         data: any;
       } | undefined;
+      let assignedShiftId: ObjectId | undefined;
       if (shiftInterestRequest.id) {
         // If the status is approved then ensure we add the user to the shift group
         if (shiftInterestRequest.status === ShiftInterestRequestStatus.Approved) {
@@ -126,6 +128,7 @@ export const shiftInterestRequests = {
                 ...updatedShift,
                 id: updatedShift.id!,
               });
+              assignedShiftId = updatedShift._id!;
 
               notificationData = {
                 template: MailerEvents.OfficerAdminAssignedShift,
@@ -198,6 +201,7 @@ export const shiftInterestRequests = {
         ...(shiftInterestRequest.id ? {} : { status: ShiftInterestRequestStatus.Pending }),
         orgId: user?.member.orgId!,
         eventId: new ObjectId(shift.eventId),
+        ...(assignedShiftId && { assignedShiftId }),
         assignmentId: new ObjectId(shift.assignmentId),
         modifiedById: user?._id!,
         userId: new ObjectId(shiftInterestRequest.userId),
@@ -217,6 +221,14 @@ export const shiftInterestRequests = {
         }));
       }
 
+      await interestList.maybeTriggerNextAssignment({
+        shift: {
+          shiftId: upsert.shiftGroupId,
+          eventId: upsert.eventId,
+        } as any,
+        organization: organization!,
+      });
+
       return res;
     },
   },
@@ -235,6 +247,7 @@ export const shiftInterestRequests = {
         };
       },
       shift: (item: IShiftInterestRequest, _, { shifts }: Context) => shifts.loadOneShiftFromGroup.load(item.shiftGroupId),
+      assignedShift: (item: IShiftInterestRequest, _, { shifts }: Context) => item.assignedShiftId ? shifts.loader.load(item.assignedShiftId.toString()) : null,
     },
   },
 };

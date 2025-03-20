@@ -1819,6 +1819,7 @@ export type ShiftDayTime = {
 
 export type ShiftInterestRequest = {
   __typename?: 'ShiftInterestRequest';
+  assignedShift?: Maybe<Shift>;
   assignment: Assignment;
   assignmentId: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
@@ -3809,6 +3810,7 @@ export type ShiftDayTimeResolvers<ContextType = any, ParentType extends Resolver
 }>;
 
 export type ShiftInterestRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequest'] = ResolversParentTypes['ShiftInterestRequest']> = ResolversObject<{
+  assignedShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

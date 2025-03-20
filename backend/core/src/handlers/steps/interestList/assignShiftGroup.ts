@@ -8,7 +8,7 @@ import logger from '../../../utils/logger';
 import { createContext } from '../../../utils/createContext';
 import { IShift } from '../../../models/shift';
 import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../../../types/notifications';
-import { ShiftStatus } from '../../../__generated__/resolvers-types';
+import { ShiftInterestRequestStatus, ShiftStatus } from '../../../__generated__/resolvers-types';
 import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
 
 interface InputEvent {
@@ -57,7 +57,7 @@ const assignShiftGroup = async ({
   const assignmentEquipmentIds = (assignment?.requiredEquipmentIds || []).map((id) => id.toString());
 
   const shiftAssignments: any[] = [];
-  const acceptedRequestIds: ObjectId[] = [];
+  const acceptedRequestUpdates: any[] = [];
 
   for(const request of requests) {
     if (!assignmentRankIds.includes(request.user?.member?.rankId.toString())) {
@@ -116,10 +116,27 @@ const assignShiftGroup = async ({
         shiftAssignments.push({
           updateOne: {
             filter: { _id: new ObjectId(pendingShift._id) },
-            update: { $set: { userId: new ObjectId(request.userId), status: ShiftStatus.Assigned } },
+            update: {
+              $set: {
+                userId: new ObjectId(request.userId),
+                status: ShiftStatus.Assigned,
+                updatedAt: new Date(),
+              }
+            },
           },
         });
-        acceptedRequestIds.push(new ObjectId(request._id));
+        acceptedRequestUpdates.push({
+          updateOne: {
+            filter: { _id: new ObjectId(request._id) },
+            update: {
+              $set: {
+                assignedShiftId: new ObjectId(pendingShift._id),
+                status: ShiftInterestRequestStatus.Approved,
+                updatedAt: new Date(),
+              }
+            }
+          }
+        });
       }
     }
     // If we don't have any more shifts to assign break here
@@ -134,7 +151,7 @@ const assignShiftGroup = async ({
   });
   if (shiftAssignments.length > 0 && !dryRun) {
     const res = await shiftsModel.collection.bulkWrite(shiftAssignments);
-    const interestBulkUpdate = await interest.markAllAsApproved(acceptedRequestIds);
+    const interestBulkUpdate = await interest.collection.bulkWrite(acceptedRequestUpdates);
     logger.info('Bulk write res', { res, interestBulkUpdate });
 
     // Send assignment email and in app notifications
@@ -170,7 +187,7 @@ const assignShiftGroup = async ({
   return {
     orgId: organization?.id,
     dryRun: !!dryRun,
-    acceptedRequestIds,
+    acceptedRequestIds: acceptedRequestUpdates.map((update) => update.updateOne.filter._id),
   };
 };
 

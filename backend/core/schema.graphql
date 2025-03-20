@@ -558,6 +558,7 @@
     assignment: Assignment!
     org: Organization!
     shift: Shift
+    assignedShift: Shift
     modifiedBy: User
   }
 

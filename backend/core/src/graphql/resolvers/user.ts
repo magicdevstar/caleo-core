@@ -7,7 +7,6 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { Context } from "../../utils/createContext";
 import {
-  Member,
   NewUser,
   UserSearchInput,
   UpdateUser,

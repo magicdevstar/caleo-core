@@ -570,10 +570,19 @@ export const SHIFT_INTEREST_REQUESTS = gql`
         status
         createdAt
 
+        assignedShift {
+          id
+          status
+        }
+
         user(shiftStart: $shiftStart, timezoneOffset: $timezoneOffset) {
           id
           name
           numberOfHoursThisMonth
+          member {
+            tenor
+            tier
+          }
         }
       }
       total

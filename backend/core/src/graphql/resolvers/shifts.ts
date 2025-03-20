@@ -417,6 +417,7 @@ export const shift = {
         shiftBufferRequests,
         shifts: shiftsModel,
         user,
+        interestList,
       }: Context
     ): Promise<IShift[]> => {
       adminOnly(user);
@@ -503,6 +504,14 @@ export const shift = {
         timezone: organization?.timezone,
       });
 
+      await interestList.maybeTriggerNextAssignment({
+        shift: {
+          shiftId: shifts[0].shiftId,
+          eventId: new ObjectId(eventId),
+        } as any,
+        organization: organization!,
+      });
+
       // TODO: Bulk update shift notifications
 
       return writtenShifts;
@@ -575,7 +584,7 @@ export const shift = {
 
       const removingShiftUser = !userId && existingUserId;
 
-      let removedShift: IShift;
+      let removedShift: IShift | undefined;
       if (removingShiftUser) {
         // Create removed shift
         const {id, _id, ...createShift} = shift;
@@ -698,11 +707,13 @@ export const shift = {
         });
       }
 
-      await interestList.maybeTriggerNextAssignment({
-        shift: updatedShift!,
-        organization: organization!,
-        didRelinquish: !!removingShiftUser,
-      });
+      if (!!removingShiftUser) {
+        await interestList.maybeTriggerNextAssignment({
+          shift: updatedShift!,
+          organization: organization!,
+          relinquishId: removedShift?._id,
+        });
+      }
 
       return updatedShift!;
     }

@@ -49,6 +49,8 @@ type Props = {
   currentAssignment?: Assignment;
 };
 
+const takenShifts = [ShiftStatus.Assigned, ShiftStatus.Removed, ShiftStatus.Locked, ShiftStatus.Relinquished];
+
 export default function EditAssignment({
   eventId,
   currentAssignment,
@@ -82,7 +84,7 @@ export default function EditAssignment({
         };
       }
       acc[shiftId].totalShifts += 1;
-      acc[shiftId].openShifts += (shift?.userId || shift?.status === ShiftStatus.Locked) ? 0 : 1;
+      acc[shiftId].openShifts += (shift?.userId || takenShifts.includes(shift?.status || ShiftStatus.Assigned)) ? 0 : 1;
 
       if (isBefore(new Date(shift!.startTime), new Date(acc[shiftId].startTime))) {
         acc[shiftId].startTime = shift!.startTime;

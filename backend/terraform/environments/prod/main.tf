@@ -30,7 +30,8 @@ locals {
   cognito_client_urls = concat(
     [
       "https://app.caleopro.com",
-      "https://lvmpd.caleopro.com"
+      "https://lvmpd.caleopro.com",
+      "https://lottery-review.caleopro.com",
     ],
     [for key in keys(local.sso_configurations) : "https://${key}.caleopro.com"]
   )

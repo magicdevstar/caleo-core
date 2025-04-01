@@ -29,7 +29,8 @@ const TABS = [
   {
     value: 'overtime',
     label: 'Overtime Availability',
-    visible: () => true,
+    visible: (hidden = false) => !hidden,
+    userKey: 'member.org.features.lasdUserFields',
     icon: <Iconify icon="solar:bell-bing-bold" width={24} />,
   },
   {

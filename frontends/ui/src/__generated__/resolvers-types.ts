@@ -60,6 +60,7 @@ export type Assignment = {
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
+  reportingLocation?: Maybe<Scalars['String']['output']>;
   requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
   requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -2096,6 +2097,7 @@ export type UpsertAssignment = {
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  reportingLocation?: InputMaybe<Scalars['String']['input']>;
   requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -2956,6 +2958,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  reportingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
   requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;

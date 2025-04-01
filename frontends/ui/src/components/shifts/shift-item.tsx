@@ -98,7 +98,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, lasdEventFields } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
@@ -478,15 +478,32 @@ export default function ShiftItem({
               </Stack>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
-              {/* Include other people assigned */}
-              <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                  {assignedToShift}
-                </Box>
-              </Stack>
-            </Grid>
+            {
+              !lasdEventFields &&(
+                <Grid item xs={12} sm={4}>
+                  {/* Include other people assigned */}
+                  <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      {assignedToShift}
+                    </Box>
+                  </Stack>
+                </Grid>
+              )
+            }
+
+            {
+              lasdEventFields &&(
+                <Grid item xs={12} sm={4}>
+                  <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Reporting Location</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      {shift?.assignment?.reportingLocation || 'N/A'}
+                    </Box>
+                  </Stack>
+                </Grid>
+              )
+            }
 
             <Grid item xs={12} sm={4}>
               {/* Include contact info */}
@@ -512,6 +529,7 @@ export default function ShiftItem({
                       justifyContent: 'flex-start',
                       width: '100%',
                       alignItems: 'flex-start',
+                      textTransform: 'none',
                     }}
                     variant="soft"
                     color='default'
@@ -535,6 +553,7 @@ export default function ShiftItem({
                       justifyContent: 'flex-start',
                       width: '100%',
                       alignItems: 'flex-start',
+                      textTransform: 'none',
                     }}
                     variant="soft"
                     color='default'

@@ -56,7 +56,10 @@ export default function EditAssignment({
   eventId,
   currentAssignment,
 }: Props) {
-  const { equipment: equipmentFeature } = useFeatures();
+  const {
+    equipment: equipmentFeature,
+    lasdEventFields
+  } = useFeatures();
   const router = useRouter();
 
   const [removeShiftId, setRemoveShiftId] = useState<string | null>();
@@ -169,6 +172,7 @@ export default function EditAssignment({
     name: Yup.string().required('Name is required'),
     description: Yup.string(),
     eventId: Yup.string(),
+    reportingLocation: Yup.string(),
     bwNeeded: Yup.boolean(),
     notifyWhenFullyStaffed: Yup.boolean(),
     requiredSkills: Yup.array(),
@@ -183,6 +187,7 @@ export default function EditAssignment({
       name: currentAssignment?.name || '',
       description: currentAssignment?.description || '',
       eventId,
+      reportingLocation: currentAssignment?.reportingLocation || '',
       bwNeeded: currentAssignment?.bwNeeded || false,
       notifyWhenFullyStaffed: currentAssignment?.notifyWhenFullyStaffed || false,
       requiredSkills: currentAssignment?.requiredSkills || [],
@@ -307,6 +312,8 @@ export default function EditAssignment({
             id: formData?.id,
             name: formData?.name,
             description: formData?.description,
+            ...(formData?.reportingLocation?.trim() !== '' && !!formData?.reportingLocation && { reportingLocation: formData?.reportingLocation }),
+            reportingLocation: formData?.reportingLocation,
             eventId,
             bwNeeded: formData?.bwNeeded,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
@@ -457,9 +464,19 @@ export default function EditAssignment({
               )
             }
 
+            {
+              lasdEventFields && (
+                <RHFTextField disabled={allDisabled} name="reportingLocation" label="Reporting Location" />
+              )
+            }
+
 
             <Stack direction="row" spacing={2}>
-              <RHFSwitch disabled={allDisabled || isComplete} name="bwNeeded" label="B&W Needed" />
+              {
+                !lasdEventFields && (
+                  <RHFSwitch disabled={allDisabled || isComplete} name="bwNeeded" label="B&W Needed" />
+                )
+              }
               <RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
             </Stack>
           </Stack>

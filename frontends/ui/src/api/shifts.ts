@@ -148,6 +148,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           name
           bwNeeded
           description
+          reportingLocation
           requiredSkills {
             id
             name
@@ -211,6 +212,7 @@ export const GET_LOTTERY_SHIFTS = gql`
           name
           bwNeeded
           description
+          reportingLocation
           requiredSkills {
             id
             name
@@ -355,6 +357,7 @@ export const GET_ALL_SHIFTS = gql`
           name
           bwNeeded
           description
+          reportingLocation
           requiredEquipment {
             id
             name

@@ -47,31 +47,31 @@ const cognito = new CognitoIdentityProviderClient({});
 
 export const defaultUserAvailability = {
   monday: {
-    available: false,
+    available: true,
     times: [],
   },
   tuesday: {
-    available: false,
+    available: true,
     times: [],
   },
   wednesday: {
-    available: false,
+    available: true,
     times: [],
   },
   thursday: {
-    available: false,
+    available: true,
     times: [],
   },
   friday: {
-    available: false,
+    available: true,
     times: [],
   },
   saturday: {
-    available: false,
+    available: true,
     times: [],
   },
   sunday: {
-    available: false,
+    available: true,
     times: [],
   },
 };

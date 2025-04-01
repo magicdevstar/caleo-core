@@ -205,40 +205,11 @@ export const user = {
     ): Promise<IUser> => users.create({
       ...user,
       name: `${user.firstName} ${user.lastName}`,
-      availability: {
-        monday: {
-          available: false,
-          times: [],
-        },
-        tuesday: {
-          available: false,
-          times: [],
-        },
-        wednesday: {
-          available: false,
-          times: [],
-        },
-        thursday: {
-          available: false,
-          times: [],
-        },
-        friday: {
-          available: false,
-          times: [],
-        },
-        saturday: {
-          available: false,
-          times: [],
-        },
-        sunday: {
-          available: false,
-          times: [],
-        },
-      },
       member: {
         ...user.member,
         orgId: organization!._id,
         memberSkillIds: (user.member.memberSkillIds || []).map((id) => new ObjectId(id!)),
+        availability: defaultUserAvailability,
         ...(user.member.rankId && {rankId: new ObjectId(user.member.rankId!)}),
         ...(user.member.unitId && {unitId: new ObjectId(user.member.unitId!)}),
         ...(user.member.divisionId && {divisionId: new ObjectId(user.member.divisionId!)}),

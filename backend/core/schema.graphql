@@ -448,6 +448,7 @@
     eventId: String!
     orgId: String!
     notifyWhenFullyStaffed: Boolean
+    reportingLocation: String
     docType: DocType!
     requiredSkillIds: [String]
     requiredEquipmentIds: [String]
@@ -751,6 +752,7 @@
     description: String
     eventId: String!
     notifyWhenFullyStaffed: Boolean
+    reportingLocation: String
     requiredSkillIds: [String]
     requiredEquipmentIds: [String]
     rankIds: [String]

@@ -159,6 +159,9 @@ export class OrganizationModel extends BaseMongo<IOrganization> {
   }
 
   async scheduleLotteryEvents(orgId: ObjectId, org: IOrganization) {
+    if (!org?.features?.lottery) {
+      return;
+    }
     const startTime = utcToZonedTime(new Date(org.settings?.lottery?.open?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
     const startDay = org.settings?.lottery?.open?.dayOfWeek || DayOfWeek.Friday;
     const endTime = utcToZonedTime(new Date(org.settings?.lottery?.close?.time || 0), org?.timezone || 'America/Los_Angeles' as any);

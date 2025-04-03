@@ -690,6 +690,7 @@ export const shift = {
         !userId &&
         existingUserId &&
         user!.id === existingUserId &&
+        !organization?.features?.lasdUserFields &&
         organization?.settings?.userRelinquishShift.enabled
       ) {
         const tier = organization?.settings?.userRelinquishShift?.afterShiftRemove?.tier;

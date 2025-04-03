@@ -41,6 +41,7 @@ export default function Overtime({
     eventCheckIn,
     interestLists,
     monthlyMaxHours,
+    lasdUserFields,
     lottery,
     weeklyMaxShifts,
   } = useFeatures();
@@ -459,28 +460,34 @@ export default function Overtime({
                 label="Hours before shift"
                 helperText="The number of hours before a shift starts that a user can relinquish a shift"
               />
-              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                After a user relinquishes a shift
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '25px', pl: 1 }}>
-                <RHFSelect
-                  name="settings.userRelinquishShift.afterShiftRemove.tier"
-                  label="Tier"
-                  helperText="The tier to set a user to after relinquishing a shift"
-                >
-                  {enabledTiers.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {tierNames[option]}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
-                <RHFTextField
-                  type="number"
-                  name="settings.userRelinquishShift.afterShiftRemove.days"
-                  label="Days in selected tier"
-                  helperText="The number of days to set a user to the selected tier after relinquishing a shift"
-                />
-              </Box>
+              {
+                !lasdUserFields && (
+                  <>
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                      After a user relinquishes a shift
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '25px', pl: 1 }}>
+                      <RHFSelect
+                        name="settings.userRelinquishShift.afterShiftRemove.tier"
+                        label="Tier"
+                        helperText="The tier to set a user to after relinquishing a shift"
+                      >
+                        {enabledTiers.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {tierNames[option]}
+                          </MenuItem>
+                        ))}
+                      </RHFSelect>
+                      <RHFTextField
+                        type="number"
+                        name="settings.userRelinquishShift.afterShiftRemove.days"
+                        label="Days in selected tier"
+                        helperText="The number of days to set a user to the selected tier after relinquishing a shift"
+                      />
+                    </Box>
+                  </>
+                )
+              }
             </Stack>
           </Card>
         </Grid>

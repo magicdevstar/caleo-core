@@ -53,7 +53,7 @@ export const getButtonInfo = (organization: Organization, shift: Shift | ShiftBu
   }
   return {
     icon: 'mdi:close-thick',
-    title: 'Relinquish',
+    title: 'Scratch',
     disabled,
   };
 };

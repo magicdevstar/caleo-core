@@ -73,7 +73,7 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
   }
   return {
     icon: 'mdi:close-thick',
-    title: 'Relinquish',
+    title: 'Scratch',
     disabled,
   };
 };

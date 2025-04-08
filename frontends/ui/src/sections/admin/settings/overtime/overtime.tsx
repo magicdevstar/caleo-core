@@ -448,7 +448,7 @@ export default function Overtime({
           <Card>
             {!mdUp && <CardHeader title="Shift Buffer" />}
             <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFSwitch name="settings.userRelinquishShift.enabled" label="Enable user relinquish shifts" />
+              <RHFSwitch name="settings.userRelinquishShift.enabled" label="Enable user scratch shifts" />
               <RHFSwitch
                 name="settings.userRelinquishShift.requireNoteWhenRelinquishing"
                 label="Require Note"
@@ -458,7 +458,7 @@ export default function Overtime({
                 type="number"
                 name="settings.userRelinquishShift.numberOfHoursBeforeShift"
                 label="Hours before shift"
-                helperText="The number of hours before a shift starts that a user can relinquish a shift"
+                helperText="The number of hours before a shift starts that a user can scratch a shift"
               />
               {
                 !lasdUserFields && (

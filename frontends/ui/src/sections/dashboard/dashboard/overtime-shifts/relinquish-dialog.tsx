@@ -91,13 +91,13 @@ export default function RelinquishDialog({
     <ConfirmDialog
       open={open}
       onClose={closeDialog}
-      title="Relinquish Overtime"
+      title="Scratch Overtime"
       content={
         <>
           <Typography variant="body2">
             {editShift?.__typename === 'ShiftBufferRequest'
               ? 'Are you sure you want to remove this buffer request?'
-              : 'Are you sure you want to relinquish this overtime?'}
+              : 'Are you sure you want to scratch this overtime?'}
           </Typography>
           {editShift?.__typename !== 'ShiftBufferRequest' && (
             <TextField
@@ -105,7 +105,7 @@ export default function RelinquishDialog({
               multiline
               rows={4}
               sx={{ mt: 2 }}
-              label="Explain why you would like to relinquish this overtime"
+              label="Explain why you would like to scratch this overtime"
               value={relinquishNote}
               helperText={relinquishNoteRequired ? 'This field is required' : undefined}
               onChange={(e: any) => setRelinquishNote(e.target.value)}
@@ -123,7 +123,7 @@ export default function RelinquishDialog({
         >
           {editShift?.__typename === 'ShiftBufferRequest'
             ? 'Remove Buffer Request'
-            : 'Relinquish Overtime'}
+            : 'Scratch Overtime'}
         </LoadingButton>
       }
     />

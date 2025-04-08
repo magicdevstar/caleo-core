@@ -233,12 +233,12 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkinTime')?.tabId,
               tabLabel: "checkinTime",
-              value: format(startTime, 'HH:mm')
+              value: format(startTime, 'HHmm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkoutTime')?.tabId,
               tabLabel: "checkoutTime",
-              value: format(endTime, 'HH:mm')
+              value: format(endTime, 'HHmm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'ocn')?.tabId,

@@ -197,9 +197,16 @@ export default function EventsTable() {
 
       },
       {
+        id: 'totalShifts',
+        label: 'Total Shifts',
+        width: 120,
+        columnType: 'string',
+        noSort: true,
+      },
+      {
         id: 'availableShifts',
         label: 'Open Shifts',
-        width: 110,
+        width: 120,
         columnType: 'string',
         noSort: true,
       },

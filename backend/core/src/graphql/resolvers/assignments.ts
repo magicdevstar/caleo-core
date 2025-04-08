@@ -124,7 +124,8 @@ export const assignments = {
                 [],
       ranks: (assignment: IAssignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []).map((id) => id.toString())),
       shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
-      availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.assignmentShiftCount.load(item.id?.toString()!),
+      availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnAssignment.load(item.id?.toString()!),
+      totalShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnAssignment.load(item.id?.toString()!),
     },
   },
 };

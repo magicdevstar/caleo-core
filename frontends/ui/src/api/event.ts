@@ -44,11 +44,12 @@ export const GET_ALL_EVENTS = gql`
         startTime
         endTime
         ocn
-        availableShifts
         scheduledInterestList
         scheduledFirstComeFirstServe
         autoAssignInterestList
         status
+        availableShifts
+        totalShifts
         createdBy {
           member {
             pNumber
@@ -286,6 +287,8 @@ export const GET_EVENT = gql`
         id
         name
         bwNeeded
+        availableShifts
+        totalShifts
         ranks {
           id
           name

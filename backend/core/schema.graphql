@@ -425,6 +425,7 @@
     attachments: [String!]
     createdBy: User
     availableShifts: Int
+    totalShifts: Int
     modifiedBy: User
     lotteryCounter: LotteryCounter
     supervisor: User
@@ -466,6 +467,7 @@
     ranks: [Rank]
     shifts: [Shift]
     availableShifts: Int
+    totalShifts: Int
     org: Organization!
     modifiedBy: User
   }

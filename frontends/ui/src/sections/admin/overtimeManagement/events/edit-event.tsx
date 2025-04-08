@@ -590,7 +590,7 @@ export default function EditEvent({ currentEvent }: Props) {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        width: '30%',
+        width: '20%',
         getHref: (row: Assignment) =>
           paths.dashboard.admin.overtime.eventAssignmentDetail
             .replace(':eventId', currentEvent?.id || '')
@@ -632,20 +632,18 @@ export default function EditEvent({ currentEvent }: Props) {
         width: '10%',
       },
       {
-        id: 'shifts',
-        width: '7.5%',
-        label: 'Open Shifts',
-        // TODO: Add calculation to backend resolvers
+        id: 'totalShifts',
+        width: '10%',
+        label: 'Total Shifts',
         columnType: 'string',
-        renderValue: (shifts: Shift[]) => {
-          const openShifts = (shifts || []).filter(Boolean).reduce((sum, shift) => {
-            if (!shift!.userId && shift.status !== ShiftStatus.Locked) {
-              sum += 1;
-            }
-            return sum;
-          }, 0);
-          return openShifts;
-        },
+        noSort: true,
+      },
+      {
+        id: 'availableShifts',
+        width: '10%',
+        label: 'Open Shifts',
+        columnType: 'string',
+        noSort: true,
       },
       { id: '', width: '5%', columnType: 'action', label: '' },
     ],
@@ -722,9 +720,9 @@ export default function EditEvent({ currentEvent }: Props) {
                 <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
                   <RHFAutocomplete
                     name="supervisor"
-                    label='Supervisor'
+                    label='Lieutenant'
                     sx={{ width: '100%' }}
-                    placeholder="Supervisor"
+                    placeholder="Lieutenant"
                     disabled={allDisabled}
                     loading={loadingUser}
                     textFieldChange={(event) => {
@@ -756,15 +754,15 @@ export default function EditEvent({ currentEvent }: Props) {
                   />
                   <RHFAutocomplete
                     name="lieutenant"
-                    label='Lieutenant'
-                    placeholder="Lieutenant"
+                    label='Signing Supervisor'
+                    placeholder="Signing Supervisor"
                     disabled={allDisabled}
                     loading={loadingUser}
                     sx={{ width: '100%' }}
                     textFieldChange={(event) => {
                       setUserSearch((event as any).target.value);
                     }}
-                    helperText="Lieutenant that will sign off all shift confirmation documents"
+                    helperText="Supervisor that will sign off all shift confirmation documents."
                     options={users}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     getOptionLabel={(u: any) => u?.name}

@@ -67,6 +67,7 @@ export type Assignment = {
   requiredSkills?: Maybe<Array<Maybe<Skill>>>;
   shiftIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
+  totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -397,6 +398,7 @@ export type Event = {
   status: EventStatus;
   supervisor?: Maybe<User>;
   supervisorId?: Maybe<Scalars['String']['output']>;
+  totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
   venue?: Maybe<Venue>;
   venueId: Scalars['String']['output'];
@@ -2965,6 +2967,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   shiftIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
+  totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -3162,6 +3165,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
   supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType>;
   venueId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

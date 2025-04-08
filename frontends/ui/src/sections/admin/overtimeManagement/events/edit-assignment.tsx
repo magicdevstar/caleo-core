@@ -49,8 +49,8 @@ type Props = {
   currentAssignment?: Assignment;
 };
 
-const takenShifts = [ShiftStatus.Assigned, ShiftStatus.Removed, ShiftStatus.Locked, ShiftStatus.Relinquished];
-const unassignAbleShifts = [ShiftStatus.Removed, ShiftStatus.Locked, ShiftStatus.Relinquished];
+const takenShifts = [ShiftStatus.Assigned, ShiftStatus.Removed, ShiftStatus.Relinquished];
+const unassignAbleShifts = [ShiftStatus.Removed, ShiftStatus.Relinquished];
 
 export default function EditAssignment({
   eventId,
@@ -227,7 +227,7 @@ export default function EditAssignment({
         onClick: async () => {
           let assignmentId = currentAssignment?.id;
           if (!assignmentId) {
-            assignmentId = await formSubmit(getValues(), false);
+            assignmentId = await formSubmit(getValues(), { reroute: 'assignment' });
             enqueueSnackbar('Created Assignment!');
           }
           router.push(
@@ -304,7 +304,11 @@ export default function EditAssignment({
     filters: []
   };
 
-  const formSubmit = async (formData: any, shouldReroute = true) => {
+  const formSubmit = async (formData: any, {
+    reroute,
+  } = {
+    reroute: 'assignment',
+  }) => {
     try {
       const res = await upsertAssignment({
         variables: {
@@ -324,12 +328,19 @@ export default function EditAssignment({
           },
         },
       });
-      if (shouldReroute) {
-        enqueueSnackbar(currentAssignment ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentAssignment ? 'Update success!' : 'Create success!');
+      if (reroute === 'assignment') {
         if (!currentAssignment) {
           router.push(paths.dashboard.admin.overtime.eventAssignmentDetail
             .replace(':eventId', res.data?.assignment?.eventId)
             .replace(':assignmentId', res.data?.assignment?.id)
+          );
+        }
+      }
+      if (reroute === 'event') {
+        if (currentAssignment) {
+          router.push(paths.dashboard.admin.overtime.eventDetail
+            .replace(':eventId', res.data?.assignment?.eventId)
           );
         }
       }
@@ -371,15 +382,15 @@ export default function EditAssignment({
             </Stack>
 
             <RHFAutocomplete
-              name="requiredSkills"
-              placeholder="Required Skills"
-              disabled={allDisabled || isComplete}
+              name="ranks"
+              placeholder="Open to Ranks"
               multiple
               disableCloseOnSelect
-              helperText="Leave empty to not require any shifts"
-              options={(skills || [])}
+              disabled={allDisabled || isComplete}
+              helperText="Enter the ranks that are allowed to work this assignment"
+              options={(ranks || [])}
+              getOptionLabel={(rank: any) => rank?.name}
               isOptionEqualToValue={(option, value) => option.id === value.id}
-              getOptionLabel={(skill: any) => skill?.name}
               renderOption={(props, option, { selected }) => (
                 <li {...props} key={option?.id}>
                   <Checkbox style={{ marginRight: 8 }} checked={selected} />
@@ -401,15 +412,15 @@ export default function EditAssignment({
             />
 
             <RHFAutocomplete
-              name="ranks"
-              placeholder="Open to Ranks"
+              name="requiredSkills"
+              placeholder="Required Skills"
+              disabled={allDisabled || isComplete}
               multiple
               disableCloseOnSelect
-              disabled={allDisabled || isComplete}
-              helperText="Enter the ranks that are allowed to work this assignment"
-              options={(ranks || [])}
-              getOptionLabel={(rank: any) => rank?.name}
+              helperText="Leave empty to not require any shifts"
+              options={(skills || [])}
               isOptionEqualToValue={(option, value) => option.id === value.id}
+              getOptionLabel={(skill: any) => skill?.name}
               renderOption={(props, option, { selected }) => (
                 <li {...props} key={option?.id}>
                   <Checkbox style={{ marginRight: 8 }} checked={selected} />
@@ -518,6 +529,17 @@ export default function EditAssignment({
           size="large"
           href={paths.dashboard.admin.overtime.eventDetail.replace(':eventId', eventId)}
         >Cancel</Button>
+        <LoadingButton
+          type="button"
+          variant="outlined"
+          size="large"
+          loading={isSubmitting}
+          disabled={allDisabled}
+          sx={{ ml: 2 }}
+          onClick={() => formSubmit(getValues(), { reroute: 'event' })}
+        >
+          Save & Close
+        </LoadingButton>
         <LoadingButton
           type="submit"
           variant="contained"

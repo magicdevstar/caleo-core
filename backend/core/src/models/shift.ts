@@ -157,61 +157,11 @@ export class ShiftModel extends BaseMongo<IShift> {
       );
   });
 
-  public eventShiftCount = new DataLoader(async (keys: readonly string[]) => {
-    const res = await this.collection.aggregate<{
-      _id: ObjectId;
-      count: number;
-    }>([
-      {
-        $match: {
-          eventId: {
-            $in: keys.map((id) => new ObjectId(id)),
-          },
-          removedAt: { $exists: false },
-          status: { $ne: ShiftStatus.Locked },
-          $or: [{userId: null}, {userId: {$exists: false}}],
-        },
-      },
-      {
-        $group: {
-          _id: "$eventId",
-          count: {
-            $count: {},
-          },
-        },
-      },
-    ]).toArray();
+  public availableShiftsOnEvent: DataLoader<string, number, string>;
+  public totalShiftsOnEvent: DataLoader<string, number, string>;
 
-    return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
-  });
-
-  public assignmentShiftCount = new DataLoader(async (keys: readonly string[]) => {
-    const res = await this.collection.aggregate<{
-      _id: ObjectId;
-      count: number;
-    }>([
-      {
-        $match: {
-          assignmentId: {
-            $in: keys.map((id) => new ObjectId(id)),
-          },
-          removedAt: { $exists: false },
-          status: { $ne: ShiftStatus.Locked },
-          $or: [{userId: null}, {userId: {$exists: false}}],
-        },
-      },
-      {
-        $group: {
-          _id: "$assignmentId",
-          count: {
-            $count: {},
-          },
-        },
-      },
-    ]).toArray();
-
-    return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
-  });
+  public availableShiftsOnAssignment: DataLoader<string, number, string>;
+  public totalShiftsOnAssignment: DataLoader<string, number, string>;
 
   public shiftCountLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {
     const beginningOfWeek = keys[0].beginningOfWeek;
@@ -344,6 +294,42 @@ export class ShiftModel extends BaseMongo<IShift> {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');
     this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
+
+    const shiftCounter = (level: 'eventId' | 'assignmentId', includeAssignedShifts: boolean) => new DataLoader(async (keys: readonly string[]) => {
+      const res = await this.collection.aggregate<{
+        _id: ObjectId;
+        count: number;
+      }>([
+        {
+          $match: {
+            [level]: {
+              $in: keys.map((id) => new ObjectId(id)),
+            },
+            removedAt: { $exists: false },
+            ...(includeAssignedShifts ? {} : {
+              $or: [{userId: null}, {userId: {$exists: false}}]
+            }),
+          },
+        },
+        {
+          $group: {
+            _id: `$${level}`,
+            count: {
+              $count: {},
+            },
+          },
+        },
+      ]).toArray();
+
+      logger.info('Shift counter results', { res, keys });
+  
+      return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
+    });
+    this.availableShiftsOnEvent = shiftCounter('eventId', true);
+    this.totalShiftsOnEvent = shiftCounter('eventId', false);
+
+    this.availableShiftsOnAssignment = shiftCounter('assignmentId', true);
+    this.totalShiftsOnAssignment = shiftCounter('assignmentId', false);
   }
 
   async setDocusignEnvelopeId({

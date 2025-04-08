@@ -424,7 +424,7 @@ export default function EditShift({
         renderValue: (rowKey: string) => {
           const foundShift = currentShifts.find((shift) => shift.id === rowKey);
           if (!foundShift) return null;
-          return (<Iconify icon={foundShift.locked ? 'solar:lock-keyhole-bold' : 'solar:lock-keyhole-unlocked-bold'} />);
+          return (<Iconify sx={{color: foundShift.locked ? "error.main" : "default"}} icon={foundShift.locked ? 'solar:lock-keyhole-bold' : 'solar:lock-keyhole-unlocked-bold'} />);
         },
         width: '10%',
       },

@@ -603,6 +603,15 @@ export const shift = {
           removedAt: new Date(),
           userId: new ObjectId(existingUserId),
         });
+
+        // Remove interest if user relinquished shift
+        if (status === ShiftStatus.Relinquished) {
+          await interestList.removeInterest({
+            userId: user?._id!,
+            shiftGroupId: shift.shiftId,
+            orgId: user?.member.orgId!,
+          });
+        }
       }
 
       const shiftUpdate = {

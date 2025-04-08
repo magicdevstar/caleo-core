@@ -71,7 +71,22 @@ export class InterestListService {
         logger.error(error);
       }
     }
+  }
 
+  removeInterest({
+    userId,
+    shiftGroupId,
+    orgId,
+  } : {
+    userId: ObjectId,
+    shiftGroupId: string,
+    orgId: ObjectId,
+  }) {
+    return this.shiftInterestRequests.collection.deleteOne({
+      userId,
+      orgId,
+      shiftGroupId,
+    });
   }
 
   async registerEventHooks({

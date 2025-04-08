@@ -59,40 +59,42 @@ export const notification = {
       _parent: unknown,
       { limit, skip }: NotificationSearchInput,
       { notifications, user }: Context
-    ): Promise<SearchResults<Notification>> => notifications.search({
-      limit,
-      skip,
-      orgId: user?.member.orgId!,
-      orderBy: 'updatedAt',
-      $and: [
-        {
-          $or: [
-            {
-              expiration: { $exists: false }
-            },
-            {
-              expiration: null,
-            },
-            {
-              $and: [
-                { frequency: NotificationFrequency.UntilExpire },
-                { expiration: { $exists: true } },
-                { expiration: { $gte: Date.now() } }
-              ]
-            }
-          ],
-        },
-        {
-          $or: [
-            {rankIds: { $exists: false }},
-            {rankIds: { $size: 0 }},
-            {rankIds: {$in: [user?.member.rankId.toString()]},}
-          ]
-        }
-      ],
-      order: 'desc',
-      active: true
-    }),
+    ): Promise<SearchResults<Notification>> => notifications.search(
+      JSON.parse(JSON.stringify({
+        limit,
+        skip,
+        orgId: user?.member.orgId!,
+        orderBy: 'updatedAt',
+        $and: [
+          {
+            $or: [
+              {
+                expiration: { $exists: false }
+              },
+              {
+                expiration: null,
+              },
+              {
+                $and: [
+                  { frequency: NotificationFrequency.UntilExpire },
+                  { expiration: { $exists: true } },
+                  { expiration: { $gte: Date.now() } }
+                ]
+              }
+            ],
+          },
+          {
+            $or: [
+              {rankIds: { $exists: false }},
+              {rankIds: { $size: 0 }},
+              {rankIds: {$in: [user?.member.rankId.toString()]},}
+            ]
+          }
+        ],
+        order: 'desc',
+        active: true
+      }))
+    ),
   },
   Mutation: {
     removeInAppNotifications: async (

@@ -292,6 +292,8 @@ export class BaseModel<T> {
       ...textQuery,
     });
 
+    logger.info('Search result', { total, items });
+
     return {
       items,
       total,

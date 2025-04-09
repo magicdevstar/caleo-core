@@ -325,11 +325,11 @@ export class ShiftModel extends BaseMongo<IShift> {
   
       return keys.map((key) => res.find((item) => item._id.toString() === key)?.count || 0);
     });
-    this.availableShiftsOnEvent = shiftCounter('eventId', true);
-    this.totalShiftsOnEvent = shiftCounter('eventId', false);
+    this.availableShiftsOnEvent = shiftCounter('eventId', false);
+    this.totalShiftsOnEvent = shiftCounter('eventId', true);
 
-    this.availableShiftsOnAssignment = shiftCounter('assignmentId', true);
-    this.totalShiftsOnAssignment = shiftCounter('assignmentId', false);
+    this.availableShiftsOnAssignment = shiftCounter('assignmentId', false);
+    this.totalShiftsOnAssignment = shiftCounter('assignmentId', true);
   }
 
   async setDocusignEnvelopeId({

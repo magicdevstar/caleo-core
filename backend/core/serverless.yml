@@ -39,7 +39,7 @@ params:
     appUrl: https://app.caleopro.com
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
-    docusignBase: https://account.docusign.com
+    # docusignBase: https://account.docusign.com
 
 provider:
   name: aws

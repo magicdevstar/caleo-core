@@ -8,7 +8,7 @@ const refreshDSToken = async () => {
     const { docusign } = await createContext();
     await docusign.updateAllDSOrgKeys();
   } catch(error) {
-    logger.error('Failed to refresh docusign org tokens', { error, event });
+    logger.error('Failed to refresh docusign org tokens', { error });
     throw error;
   }
 };

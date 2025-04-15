@@ -140,6 +140,66 @@ export class Docusign {
     return this.docusign.updateAllDSOrgKeys();
   }
 
+  async resubmitEndOfShiftEnvelope({
+    shift,
+    user,
+    organization,
+  }: {
+    shift: IShift | null;
+    user: IUser;
+    organization: IOrganization;
+  }) {
+    if (organization.docusign && organization.docusign.templateId && shift) {
+      try {
+        const docusignEvent = await this.docusignEvent.findByShiftId(shift._id!);
+        if (docusignEvent) {
+          await this.docusign.voidEnvelope({
+            envelopeId: docusignEvent.envelopeId,
+            org: organization,
+          });
+
+          const event = await this.events.get(shift.eventId);
+          const unit = await this.units.get(user.member.unitId!);
+          const rank = await this.ranks.get(user.member.rankId!);
+          const venue = await this.venues.get(event?.venueId!);
+          const supervisor = await this.users.get(event?.supervisorId!);
+          const lieutenant = await this.users.get(event?.lieutenantId!);
+  
+          const {
+            envelopeId,
+            signingUrl,
+          } = await this.docusign.createLASDShiftEnvelope({
+            org: organization,
+            shift,
+            user,
+            venue: venue!,
+            userRank: rank!,
+            unit: unit!,
+            event: event!,
+            lieutenant: lieutenant!,
+            supervisor: supervisor!,
+            signNow: false,
+          });
+          await this.shifts.setDocusignEnvelopeId({
+            _id: shift._id!,
+            envelopeId,
+          });
+          return {
+            envelopeId,
+            signingUrl,
+          };
+        }
+      } catch(error) {
+        logger.error('Error updating prefilled tabs', {
+          error,
+          shift,
+          user,
+          organization,
+        });
+      }
+    }
+  }
+
   async submitEndOfShiftEnvelope ({
     shift,
     user,
@@ -193,5 +253,13 @@ export class Docusign {
         });
       }
     }
+  }
+
+  async updateEndOfShiftPrefilledTabs ({
+    shift,
+  }: {
+    shift: IShift,
+  }) {
+
   }
 };

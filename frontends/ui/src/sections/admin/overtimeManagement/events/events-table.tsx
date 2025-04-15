@@ -22,13 +22,16 @@ import { GET_VENUES_SLIM } from 'src/api/venues';
 import { convertDate, dateFormat } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
+import { useRouter } from 'src/routes/hooks';
+import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
-  const { venueContractDates, externalEventRequests } = useFeatures();
+  const router = useRouter();
+  const { venueContractDates, externalEventRequests, kiosk } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
@@ -84,6 +87,42 @@ export default function EventsTable() {
           navigate(`/dashboard/admin/overtime/events/${row.id}`);
         },
       },
+      ...(kiosk ? [
+        {
+          getName: () => 'Check in kiosk',
+          getIcon: () => 'material-symbols:moved-location',
+          getDisabled: (row: Event) => [
+            EventStatus.Complete,
+            EventStatus.Draft,
+            EventStatus.Removed,
+            EventStatus.Requested,
+            EventStatus.PreFirstComeFirstServe,
+            EventStatus.PreLottery,
+          ].includes(row.status),
+          onClick: (row: Event) => {
+            router.push(
+              paths.kiosk.root.replace(':eventId', row.id)
+            );
+          },
+        },
+        {
+          getName: () => 'Dashboard',
+          getIcon: () => 'ic:baseline-dashboard',
+          getDisabled: (row: Event) => [
+            EventStatus.Complete,
+            EventStatus.Draft,
+            EventStatus.Removed,
+            EventStatus.Requested,
+            EventStatus.PreFirstComeFirstServe,
+            EventStatus.PreLottery,
+          ].includes(row.status),
+          onClick: (row: Event) => {
+            router.push(
+              paths.kiosk.dashboard.replace(':eventId', row.id)
+            );
+          },
+        },
+      ] : []),
       {
         getName: () => 'Summary',
         getIcon: () => 'solar:file-download-bold',

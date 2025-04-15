@@ -69,6 +69,7 @@ export const user = {
       orderBy: input.orderBy,
       query: input.query,
       ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
+      ...(input.exactPNumber ? {'member.pNumber': input.exactPNumber} : {}),
       ...(input.pNumber ? {'member.pNumber': {
         $regex: input.pNumber,
         $options: 'i',

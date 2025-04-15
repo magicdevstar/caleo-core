@@ -39,6 +39,7 @@ query ORGANIZATION {
       lasdEventFields
       lasdUserFields
       docusign
+      kiosk
     }
     customizations {
       pNumber

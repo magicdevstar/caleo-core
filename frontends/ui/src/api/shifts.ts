@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { Shift } from "src/__generated__/resolvers-types";
 
 export const REMOVE_SHIFT = gql`
   mutation RemoveShift($id: String!) {
@@ -390,6 +391,94 @@ export const GET_ALL_SHIFTS = gql`
   }
 `;
 
+export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
+  query GetAllShifts($input: ShiftSearchInput!) {
+    shifts(input: $input) {
+      items {
+        id
+        startTime
+        endTime
+        status
+        refNumber
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+          checkInNote
+          checkOutNote
+          adminNotes
+          checkInEquipmentTime
+          checkOutEquipmentTime
+          checkInCoords {
+            accuracy
+            altitude
+            altitudeAccuracy
+            heading
+            latitude
+            longitude
+            speed
+          }
+          checkOutCoords {
+            accuracy
+            altitude
+            altitudeAccuracy
+            heading
+            latitude
+            longitude
+            speed
+          }
+        }
+        event {
+          id
+          name
+        }
+        user {
+          name
+          member {
+            divisionId
+            pNumber
+            rank {
+              id
+              name
+            }
+            contactInfo {
+              primaryPhone {
+                number
+              }
+            }
+          }
+        }
+        docusignEvent {
+          id
+          status
+          documentUrl
+          signerDetails {
+            roleName
+            status
+          }
+        }
+        assignment {
+          id
+          name
+          requiredEquipment {
+            id
+            name
+            requiresEquipmentTime
+          }
+          requiredSkills {
+            id
+            name
+          }
+          ranks {
+            id
+            name
+          }
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const GET_SHIFT_LOTTERY_REQUESTS_REPORT = gql`
   query GetShiftLotteryRequestsReport($input: ShiftLotteryRequestsSearchInput!) {
     shiftLotteryRequests(input: $input) {
@@ -500,6 +589,8 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         shiftCheckInOut {
           checkInTime
           checkOutTime
+          checkInEquipmentTime
+          checkOutEquipmentTime
           checkInCoords {
             accuracy
             altitude
@@ -610,6 +701,8 @@ export const GET_GROUPED_SHIFTS = gql`
         checkOutTime
         checkInNote
         checkOutNote
+        checkInEquipmentTime
+        checkOutEquipmentTime
         adminNotes
         checkInCoords {
           accuracy
@@ -635,6 +728,10 @@ export const GET_GROUPED_SHIFTS = gql`
         id
         name
         removedAt
+        requiredEquipment {
+          id
+          requiresEquipmentTime
+        }
       }
 
       event {
@@ -867,3 +964,10 @@ export const UPDATE_SHIFTS = gql`
     partialShiftUpdate(shiftId: $shiftId, updates: $updates)
   }
 `;
+
+export interface ShiftData {
+  shifts: {
+    items: Shift[];
+    total: number;
+  };
+};

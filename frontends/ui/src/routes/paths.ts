@@ -21,6 +21,11 @@ export const paths = {
       forgotPassword: `${ROOTS.AUTH}/forgot-password`,
     },
   },
+  kiosk: {
+    root: '/kiosk/:eventId',
+    userView: '/kiosk/:eventId/users/:userId',
+    dashboard: '/events/:eventId/dashboard',
+  },
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
@@ -37,6 +42,7 @@ export const paths = {
         root: `${ROOTS.DASHBOARD}/admin/overtime`,
         events: `${ROOTS.DASHBOARD}/admin/overtime/events`,
         eventDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId`,
+        eventDashboard: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId/dashboard`,
         eventAssignmentDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId/assignment/:assignmentId`,
         eventAssignmentShiftsDetail: `${ROOTS.DASHBOARD}/admin/overtime/events/:eventId/assignment/:assignmentId/shifts/:shiftId`,
         venues: `${ROOTS.DASHBOARD}/admin/overtime/venues`,

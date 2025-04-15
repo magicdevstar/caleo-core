@@ -379,7 +379,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold-duotone',
-        getDisabled: (row: Shift) => !!row.locked || allDisabled || isComplete,
+        getDisabled: (row: Shift) => allDisabled || isComplete,
         onClick: (row: Shift) => {
           setEditShiftId(row.id);
           if (row.user) {
@@ -652,7 +652,7 @@ export default function EditShift({
           </Stack>
         )}
         action={
-          <LoadingButton variant="contained" color="error" onClick={handleBulkShiftCreate} loading={createSlotsLoading.value}>
+          <LoadingButton variant="contained" color="primary" onClick={handleBulkShiftCreate} loading={createSlotsLoading.value}>
             Create Slots
           </LoadingButton>
         }

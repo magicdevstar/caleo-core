@@ -7,6 +7,7 @@ import { mainRoutes } from './main';
 import { authRoutes } from './auth';
 import { dashboardRoutes } from './dashboard';
 import { externalRequestRoutes } from './externalRequests';
+import { kioskRoutes } from './kiosk';
 
 // ----------------------------------------------------------------------
 
@@ -25,6 +26,9 @@ export default function Router() {
 
     // Dashboard routes
     ...dashboardRoutes,
+
+    // Kiosk routes
+    ...kioskRoutes,
 
     // Main routes
     ...mainRoutes,

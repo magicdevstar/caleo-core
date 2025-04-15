@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useState } from 'react';
+import { useLocalStorage } from 'react-use';
 import { isEmpty } from 'lodash';
 // routes
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
+import { usePathname, useRouter } from 'src/routes/hooks';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
 //
@@ -23,8 +24,14 @@ type Props = {
 
 export default function AuthGuard({ children }: Props) {
   const router = useRouter();
+  const path = usePathname();
+  const [
+    kioskAccess,
+    setKioskAccess,
+    removeKioskAccess
+  ] = useLocalStorage('kiosk-accessed', 'false');
 
-  const { user, authenticated, method } = useAuthContext();
+  const { user, authenticated, method, logout } = useAuthContext();
   const { lasdUserFields } = useFeatures();
 
   const [checked, setChecked] = useState(false);
@@ -55,7 +62,33 @@ export default function AuthGuard({ children }: Props) {
     } else {
       setChecked(true);
     }
-  }, [authenticated, lasdUserFields, method, router, user]);
+  }, [
+    authenticated,
+    lasdUserFields,
+    method,
+    router,
+    user
+  ]);
+
+  useEffect(() => {
+    (async () => {
+      if (/\/kiosk\//i.test(path)) {
+        setKioskAccess('true');
+      } else if (kioskAccess === 'true' && checked) {
+        removeKioskAccess();
+        await logout();
+        router.replace(paths.auth.amplify.login);
+      }
+    })();
+  }, [
+    router,
+    kioskAccess,
+    checked,
+    path,
+    logout,
+    removeKioskAccess,
+    setKioskAccess
+  ]);
 
   useEffect(() => {
     check();

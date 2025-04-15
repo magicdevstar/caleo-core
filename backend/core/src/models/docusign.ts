@@ -33,6 +33,14 @@ export interface IDocusign {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface ITokenRecord {
+  _id: ObjectId;
+  orgId: ObjectId;
+  token: string;
+  basePath: string;
+  accountId: string;
+  updatedAt: Date;
+}
 
 export class DocusignModel extends BaseMongo<IDocusign> {
   constructor(db: Db, private organizations: OrganizationModel) {
@@ -85,7 +93,54 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     }
   }
 
-  async createLASDShiftEnvelope({
+  async initDocusignEnvelopeAPI({
+    org,
+  } : {
+    org: IOrganization;
+  }) {
+    const tokenRecord = await this.collection.findOne<ITokenRecord>({
+      orgId: org._id,
+    });
+    if (!tokenRecord) {
+      throw new Error('No docusign token found');
+    }
+    client.setBasePath(tokenRecord.basePath);
+    client.addDefaultHeader('Authorization', 'Bearer ' + tokenRecord.token);
+
+    const envAPI = new ds.EnvelopesApi(client);
+    return {
+      tokenRecord,
+      envAPI
+    }
+  }
+
+  async voidEnvelope({
+    envAPI,
+    tokenRecord,
+    envelopeId,
+    org,
+  }: {
+    tokenRecord?: ITokenRecord;
+    envAPI?: ds.EnvelopesApi,
+    envelopeId: string;
+    org: IOrganization;
+  }) {
+    if (!envAPI || !tokenRecord) {
+      const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
+        org,
+      });
+      envAPI = newEnvAPI;
+      tokenRecord = newTokenRecord;
+    }
+    await envAPI.update(tokenRecord.accountId, envelopeId!, {
+      envelope: {
+        status: 'voided',
+        voidedReason: 'Resubmitting the envelope',
+      }
+    });
+  }
+
+  async updateLASDPrefilledTabs({
     org,
     shift,
     event,
@@ -95,8 +150,13 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     unit,
     supervisor,
     lieutenant,
-    signNow,
+    envAPI,
+    tokenRecord,
+    envelopeId,
   }: {
+    tokenRecord?: ITokenRecord;
+    envAPI?: ds.EnvelopesApi,
+    envelopeId: string;
     org: IOrganization;
     shift: IShift;
     user: IUser;
@@ -106,69 +166,15 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor: IUser;
     lieutenant: IUser;
     event: IEvent;
-    signNow: boolean,
   }) {
-    const tokenRecord = await this.collection.findOne({
-      orgId: org._id,
-    });
-    if (!tokenRecord) {
-      throw new Error('No docusign token found');
+    if (!envAPI || !tokenRecord) {
+      const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
+        org,
+      });
+      envAPI = newEnvAPI;
+      tokenRecord = newTokenRecord;
     }
-    client.setBasePath(tokenRecord.basePath);
-    client.addDefaultHeader('Authorization', 'Bearer ' + tokenRecord.token);
-
-    const clientUserId = '1001';
-
-    const isReserve = userRank.name.toLowerCase().includes('deputy, reserve');
-    const templateId = isReserve ? org.docusign.reserveTemplateId : org.docusign.templateId;
-
-    const envAPI = new ds.EnvelopesApi(client);
-    const templateRoles: TemplateRole[] = [
-      {
-        roleName: 'officer',
-        routingOrder: '1',
-        email: user.member.contactInfo?.primaryEmail.address,
-        name: user.name,
-        ...(signNow && { clientUserId }),
-      },
-      {
-        roleName: 'lieutenant',
-        routingOrder: '2',
-        email: lieutenant.member.contactInfo?.primaryEmail.address,
-        name: lieutenant.name,
-      },
-      ...(isReserve ? [
-        {
-          roleName: 'supervisor',
-          routingOrder: '3',
-          email: supervisor.member.contactInfo?.primaryEmail.address,
-          name: supervisor.name,
-        }
-      ] : []),
-    ];
-    const envDef: EnvelopeDefinition = {
-      templateId,
-      expireEnabled: 'false',
-      status: 'created',
-      templateRoles,
-      customFields: {
-        textCustomFields: [
-          {
-            name: 'shiftId',
-            value: shift._id!.toString(),
-          },
-          {
-            name: 'orgId',
-            value: org._id!.toString(),
-          }
-        ]
-      }
-    };
-    const envelope = await envAPI.createEnvelope(tokenRecord.accountId, {
-      envelopeDefinition: envDef,
-    });
-
-    const tabResponse = await envAPI.getDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1');
+    const tabResponse = await envAPI.getDocumentTabs(tokenRecord.accountId, envelopeId!, '1');
     const tabs = (tabResponse as unknown as { prefillTabs: ds.Tabs }).prefillTabs;
 
     const {
@@ -290,7 +296,105 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       }
     };
 
-    await envAPI.updateDocumentTabs(tokenRecord.accountId, envelope.envelopeId!, '1', prefillTabs);
+    const res = await envAPI.updateDocumentTabs(tokenRecord.accountId, envelopeId!, '1', prefillTabs);
+    logger.info('Updated docusign tabs', {
+      res
+    });
+  }
+
+  async createLASDShiftEnvelope({
+    org,
+    shift,
+    event,
+    venue,
+    user,
+    userRank,
+    unit,
+    supervisor,
+    lieutenant,
+    signNow,
+  }: {
+    org: IOrganization;
+    shift: IShift;
+    user: IUser;
+    venue: IIVenue;
+    userRank: IRank;
+    unit: IUnit;
+    supervisor: IUser;
+    lieutenant: IUser;
+    event: IEvent;
+    signNow: boolean,
+  }) {
+    const {
+      envAPI,
+      tokenRecord,
+    } = await this.initDocusignEnvelopeAPI({
+      org,
+    });
+    const clientUserId = '1001';
+
+    const isReserve = userRank.name.toLowerCase().includes('deputy, reserve');
+    const templateId = isReserve ? org.docusign.reserveTemplateId : org.docusign.templateId;
+
+    const templateRoles: TemplateRole[] = [
+      {
+        roleName: 'officer',
+        routingOrder: '1',
+        email: user.member.contactInfo?.primaryEmail.address,
+        name: user.name,
+        ...(signNow && { clientUserId }),
+      },
+      {
+        roleName: 'lieutenant',
+        routingOrder: '2',
+        email: lieutenant.member.contactInfo?.primaryEmail.address,
+        name: lieutenant.name,
+      },
+      ...(isReserve ? [
+        {
+          roleName: 'supervisor',
+          routingOrder: '3',
+          email: supervisor.member.contactInfo?.primaryEmail.address,
+          name: supervisor.name,
+        }
+      ] : []),
+    ];
+    const envDef: EnvelopeDefinition = {
+      templateId,
+      expireEnabled: 'false',
+      status: 'created',
+      templateRoles,
+      customFields: {
+        textCustomFields: [
+          {
+            name: 'shiftId',
+            value: shift._id!.toString(),
+          },
+          {
+            name: 'orgId',
+            value: org._id!.toString(),
+          }
+        ]
+      }
+    };
+    const envelope = await envAPI.createEnvelope(tokenRecord.accountId, {
+      envelopeDefinition: envDef,
+    });
+
+    await this.updateLASDPrefilledTabs({
+      org,
+      shift,
+      event,
+      venue,
+      user,
+      userRank,
+      unit,
+      supervisor,
+      lieutenant,
+      envAPI,
+      tokenRecord,
+      envelopeId: envelope.envelopeId!,
+    });
 
     await envAPI.update(tokenRecord.accountId, envelope.envelopeId!, {
       mergeRolesOnDraft: true,

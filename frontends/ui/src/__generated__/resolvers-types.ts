@@ -1299,6 +1299,7 @@ export type OrganizationFeatures = {
   eventCheckIn: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
+  kiosk: Scalars['Boolean']['output'];
   lasdEventFields: Scalars['Boolean']['output'];
   lasdUserFields: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
@@ -1699,7 +1700,9 @@ export type Shift = {
 
 export type ShiftAdminCheckInOutEvent = {
   adminNotes?: InputMaybe<Scalars['String']['input']>;
+  checkInEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkInTime?: InputMaybe<Scalars['String']['input']>;
+  checkOutEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkOutTime?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
 };
@@ -2246,6 +2249,7 @@ export type UpsertOrganizationFeatures = {
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
+  kiosk?: InputMaybe<Scalars['Boolean']['input']>;
   lasdEventFields?: InputMaybe<Scalars['Boolean']['input']>;
   lasdUserFields?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2419,6 +2423,7 @@ export type UserRelinquishShift = {
 export type UserSearchInput = {
   admin?: InputMaybe<Scalars['Boolean']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
+  exactPNumber?: InputMaybe<Scalars['String']['input']>;
   excludeIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
@@ -3572,6 +3577,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kiosk?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lasdEventFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lasdUserFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

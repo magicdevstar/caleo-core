@@ -111,6 +111,10 @@ export const organization = {
           value: 'docusign',
           label: 'Docusign Integration'
         },
+        {
+          value: 'kiosk',
+          label: 'Kiosk'
+        },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
     activeLottery: (

@@ -1,5 +1,5 @@
 // @mui
-import { useTheme } from '@mui/material/styles';
+import { SxProps, Theme, useTheme } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 // theme
@@ -14,13 +14,13 @@ import HeaderShadow from './header-shadow';
 
 // ----------------------------------------------------------------------
 
-export default function HeaderSimple() {
+export default function HeaderSimple({ sx }: { sx?: SxProps<Theme> | undefined }) {
   const theme = useTheme();
 
   const offsetTop = useOffSetTop(HEADER.H_DESKTOP);
 
   return (
-    <AppBar>
+    <AppBar sx={sx}>
       <Toolbar
         sx={{
           justifyContent: 'space-between',

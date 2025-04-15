@@ -4,6 +4,7 @@ import { FrontendUser } from "src/api/user";
 import { DocusignEvent, DocusignEventUserRole } from "src/__generated__/resolvers-types";
 import { GET_DOCUSIGN_EVENTS } from "src/api/docusign";
 import { GET_ALL_EVENTS_SLIM } from "src/api/event";
+import { docusignStatusColor } from "src/utils/docusign";
 
 import GQLTable from "../table/gql/table";
 import { TableConfig } from "../table/table-config";
@@ -76,18 +77,7 @@ export default function AccountDocusign({
           id: 'status',
           label: 'Status',
           columnType: 'string',
-          getLabelColor: (event: any) => {
-            switch (event.status.toUpperCase()) {
-              case 'COMPLETED':
-                return 'success';
-              case 'SENT':
-                return 'warning';
-              case 'VOIDED':
-                return 'error';
-              default:
-                return 'default';
-            }
-          },
+          getLabelColor: (event: any) => docusignStatusColor(event.status),
           renderValue: (value: string) => value.toUpperCase(),
           width: '10%',
           noSort: true,

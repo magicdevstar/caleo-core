@@ -18,6 +18,7 @@ const defaultFeatures: OrganizationFeatures = {
   lasdUserFields: false,
   autoEnroll: false,
   docusign: false,
+  kiosk: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

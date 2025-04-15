@@ -1,3 +1,5 @@
+import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
 // ----------------------------------------------------------------------
 
 export function emptyRows(page: number, rowsPerPage: number, arrayLength: number) {
@@ -5,16 +7,17 @@ export function emptyRows(page: number, rowsPerPage: number, arrayLength: number
 }
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (a[orderBy] === null) {
+  if (isEmpty(get(a, orderBy))) {
+    return -1;
+  }
+  if (isEmpty(get(b, orderBy))) {
     return 1;
   }
-  if (b[orderBy] === null) {
+
+  if (get(b, orderBy) < get(a, orderBy)) {
     return -1;
   }
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
+  if (get(b, orderBy) > get(a, orderBy)) {
     return 1;
   }
   return 0;

@@ -676,6 +676,8 @@
     id: String!
     checkInTime: String
     checkOutTime: String
+    checkInEquipmentTime: Float
+    checkOutEquipmentTime: Float
     adminNotes: String
   }
 
@@ -1198,6 +1200,7 @@ type DocusignSignerDetails {
     lasdUserFields: Boolean!
     autoEnroll: Boolean!
     docusign: Boolean!
+    kiosk: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1366,6 +1369,7 @@ type DocusignSignerDetails {
     lasdUserFields: Boolean
     autoEnroll: Boolean
     docusign: Boolean
+    kiosk: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1835,6 +1839,7 @@ type DocusignSignerDetails {
     query: String
     queryField: String
     pNumber: String
+    exactPNumber: String
     phone: String
     email: String
     excludeIds: [String]

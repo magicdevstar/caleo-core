@@ -353,6 +353,8 @@ export class ShiftModel extends BaseMongo<IShift> {
     id,
     checkInTime,
     checkOutTime,
+    checkInEquipmentTime,
+    checkOutEquipmentTime,
     adminNotes,
     user,
   } : {
@@ -360,9 +362,11 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkInTime?: string,
     checkOutTime?: string,
     adminNotes?: string,
+    checkInEquipmentTime?: number,
+    checkOutEquipmentTime?: number,
     user: IUser,
   }) {
-    await this.collection.updateOne({
+    const res = await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
@@ -371,8 +375,12 @@ export class ShiftModel extends BaseMongo<IShift> {
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
         ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
+        ...(checkInEquipmentTime ? { 'shiftCheckInOut.checkInEquipmentTime': checkInEquipmentTime } : {}),
+        ...(checkOutEquipmentTime ? { 'shiftCheckInOut.checkOutEquipmentTime': checkOutEquipmentTime } : {}),
       },
     });
+
+    return this.get(id);
   }
 
   async checkIn({
@@ -434,7 +442,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         ...(checkOutNote ? { 'shiftCheckInOut.checkOutNote': checkOutNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
         ...(coords ? { 'shiftCheckInOut.checkOutCoords': coords } : {}),
-        ...(equipmentTime ? { 'shiftCheckInOut.checkInEquipmentTime': equipmentTime } : {}),
+        ...(equipmentTime ? { 'shiftCheckInOut.checkOutEquipmentTime': equipmentTime } : {}),
       },
     });
   }

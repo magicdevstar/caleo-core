@@ -118,6 +118,8 @@ export const shift = {
           checkInTime,
           checkOutTime,
           adminNotes,
+          checkInEquipmentTime,
+          checkOutEquipmentTime,
         }
       }: {
         input: {
@@ -125,9 +127,16 @@ export const shift = {
           checkInTime?: string,
           checkOutTime?: string,
           adminNotes?: string,
+          checkInEquipmentTime?: number,
+          checkOutEquipmentTime?: number,
         }
       },
-      { shifts, user, organization }: Context
+      {
+        shifts,
+        user,
+        organization,
+        docusign
+      }: Context
     ): Promise<IShift> => {
       adminOnly(user);
       const shift = await shifts.get(id);
@@ -135,14 +144,21 @@ export const shift = {
         throw new GraphQLError("Shift not found");
       }
 
-      await shifts.editCheckInOut({
+      const response = await shifts.editCheckInOut({
         id,
         checkInTime,
         checkOutTime,
+        checkInEquipmentTime,
+        checkOutEquipmentTime,
         adminNotes,
         user: user!,
       });
-      const response = await shifts.get(id);
+
+      await docusign.resubmitEndOfShiftEnvelope({
+        shift: response,
+        user: user!,
+        organization: organization!,
+      });
 
       // Send mailer event
       await lambda.send(new InvokeCommand({

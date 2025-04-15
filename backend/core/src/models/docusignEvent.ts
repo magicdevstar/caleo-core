@@ -44,6 +44,7 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     const ids = keys.map((key) => new ObjectId(key));
     const res = await this.collection.find<IDocusignEvent>({
       shiftId: { $in: ids },
+      status: { $ne: 'voided' },
     }).toArray();
     return keys.map((key) => res.find((item) => item.shiftId.toString() === key));
   });
@@ -71,6 +72,12 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
       ...item,
       id: item._id!.toString(),
     }));
+  }
+
+  async findByShiftId(shiftId: ObjectId) {
+    return this.collection.findOne<IDocusignEvent>({
+      shiftId,
+    });
   }
 
   async upsertEvent(item: Omit<IDocusignEvent, 'createdAt' | 'updatedAt'>) {

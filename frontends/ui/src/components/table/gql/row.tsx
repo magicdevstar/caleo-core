@@ -30,7 +30,7 @@ type Props = {
   config: TableConfig<any>;
 };
 
-const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}) => (
+export const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}) => (
   <TableCell width={width}>
     <Label variant="soft" color={(value && 'info') || 'default'}>
       {value ? 'Yes' : 'No'}
@@ -38,7 +38,7 @@ const BooleanCell = ({value, width,}: {width?: number | string; value: boolean;}
   </TableCell>
 );
 
-const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
+export const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
   const { date } = useDateJS({
     date: value
   });
@@ -86,7 +86,7 @@ const DateCell = ({value, width, href}: {width?: number | string; value: string;
   );
 }
 
-const StringCell = ({value, labelColor, href, onClick, width, clickable} : { width?: number | string; value: string; labelColor?: string; href?: string; onClick: any; clickable: boolean;}) => {
+export const StringCell = ({value, labelColor, href, onClick, width, clickable} : { width?: number | string; value: string; labelColor?: string; href?: string; onClick?: any; clickable?: boolean;}) => {
   if (href) {
     return (
       <TableCell width={width}>
@@ -126,7 +126,7 @@ const StringCell = ({value, labelColor, href, onClick, width, clickable} : { wid
   );
 };
 
-const ArrayCell = ({value, emptyArrayLabel, width, maxRender} : {width?: number | string; emptyArrayLabel?: string; value: string[]; maxRender: number;}) => {
+export const ArrayCell = ({value, emptyArrayLabel, width, maxRender} : {width?: number | string; emptyArrayLabel?: string; value: string[]; maxRender: number;}) => {
   const arr = !value ? [] : (value || []).filter(Boolean);
   return (
     <Tooltip title={arr.length > maxRender ? arr.map((thing: any) => thing.name).join(', ') : ''} placement='left'>

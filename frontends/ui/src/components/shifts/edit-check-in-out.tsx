@@ -73,6 +73,8 @@ export const EditCheckInOut = ({
     id: Yup.string().required(),
     checkInTime: Yup.date().nullable(),
     checkOutTime: Yup.date().nullable(),
+    checkInEquipmentTime: Yup.number().nullable(),
+    checkOutEquipmentTime: Yup.number().nullable(),
     checkInNote: Yup.string().nullable(),
     checkOutNote: Yup.string().nullable(),
     adminNotes: Yup.string().nullable(),
@@ -84,6 +86,8 @@ export const EditCheckInOut = ({
       checkInNote: shift?.shiftCheckInOut?.checkInNote,
       checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
       adminNotes: shift?.shiftCheckInOut?.adminNotes,
+      checkInEquipmentTime: shift?.shiftCheckInOut?.checkInEquipmentTime,
+      checkOutEquipmentTime: shift?.shiftCheckInOut?.checkOutEquipmentTime,
       checkInTime: shift?.shiftCheckInOut?.checkInTime ? convertDate({
         date: new Date(shift.shiftCheckInOut.checkInTime),
         user
@@ -107,7 +111,7 @@ export const EditCheckInOut = ({
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
   useEffect(() => {
@@ -128,6 +132,14 @@ export const EditCheckInOut = ({
 
       if (formData.checkOutTime) {
         payload.checkOutTime = formData.checkOutTime.toISOString();
+      }
+
+      if (formData.checkInEquipmentTime) {
+        payload.checkInEquipmentTime = formData.checkInEquipmentTime;
+      }
+
+      if (formData.checkOutEquipmentTime) {
+        payload.checkOutEquipmentTime = formData.checkOutEquipmentTime;
       }
 
       await editCheckInOut({
@@ -171,6 +183,22 @@ export const EditCheckInOut = ({
             <RHFDateTimePicker sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />
             <RHFDateTimePicker sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />
           </Box>
+
+          {
+            shift?.assignment?.requiredEquipment?.some((eq) => eq?.requiresEquipmentTime) && (
+              <Box sx={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                mt: 3,
+              }}>
+                <RHFTextField type="number" sx={{ maxWidth: '300px' }} name="checkInEquipmentTime" label="Equipment Check In Time (hours)" />
+                <RHFTextField type="number" sx={{ maxWidth: '300px' }} name="checkOutEquipmentTime" label="Equipment Check Out Time (hours)" />
+              </Box>
+            )
+          }
 
           {
             (shift?.shiftCheckInOut?.checkInNote || shift?.shiftCheckInOut?.checkOutNote) && (
@@ -243,6 +271,7 @@ export const EditCheckInOut = ({
             >Close</Button>
             <LoadingButton
               type="submit"
+              disabled={!isDirty}
               loading={isSubmitting}
               variant="contained"
               color="primary"

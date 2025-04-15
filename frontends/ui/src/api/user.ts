@@ -39,6 +39,7 @@ const userDetailProperties = `
         lasdEventFields
         lasdUserFields
         docusign
+        kiosk
       }
       customizations {
         pNumber

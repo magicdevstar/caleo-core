@@ -241,6 +241,7 @@ export const organization = {
       lasdUserFields: (parent: OrganizationFeatures) => !!parent.lasdUserFields,
       autoEnroll: (parent: OrganizationFeatures) => !!parent.autoEnroll,
       docusign: (parent: OrganizationFeatures) => !!parent.docusign,
+      kiosk: (parent: OrganizationFeatures) => !!parent.kiosk,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

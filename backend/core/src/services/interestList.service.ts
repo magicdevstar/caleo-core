@@ -57,7 +57,7 @@ export class InterestListService {
     const interestListClose = utcToZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
     const now = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
     
-    if (isAfter(now, interestListClose)) {
+    if (isAfter(now, interestListClose) && !shift.locked) {
       try {
         await lambda.send(new InvokeCommand({
           FunctionName: `caleo-core-${process.env.STAGE}-assignShiftGroup`,

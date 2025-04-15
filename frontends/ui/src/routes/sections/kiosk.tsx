@@ -11,6 +11,7 @@ import { lazyWithRetry } from 'src/utils/lazyRetry';
 // ----------------------------------------------------------------------
 
 const IndexPage = lazyWithRetry(() => import('src/pages/kiosk/event'));
+const UserKioskPage = lazyWithRetry(() => import('src/pages/kiosk/user'));
 const EventDashboard = lazyWithRetry(() => import('src/pages/kiosk/eventDashboard'));
 
 // ----------------------------------------------------------------------
@@ -28,6 +29,7 @@ export const kioskRoutes = [
     ),
     children: [
       { element: <IndexPage />, index: true },
+      { path: 'users/:userId', element: <UserKioskPage /> },
     ],
   },
   {

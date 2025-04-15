@@ -283,6 +283,14 @@ export class UserModel extends BaseMongo<IUser> {
       };
     }
 
+    const eventStatusMap = events.items.reduce((obj, event) => {
+      const eventId = event.id!;
+      return {
+        ...obj,
+        [eventId]: event.status,
+      }
+    }, {} as Record<string, EventStatus>);
+
     logger.info('Events', { events, query });
 
     // Find all open shifts joined with their assignments
@@ -292,7 +300,7 @@ export class UserModel extends BaseMongo<IUser> {
           eventId: {
             $in: events.items.map(({ _id }) => _id),
           },
-          status: ShiftStatus.Available,
+          status: {$in: [ShiftStatus.Available, ShiftStatus.Locked]},
         },
       },
       {
@@ -430,6 +438,10 @@ export class UserModel extends BaseMongo<IUser> {
     const onlyAvailableShifts: IShift[] = [];
     const now = Date.now();
     for(const shift of filteredShifts) {
+      // Only show locked shifts for interest list events
+      if (shift.locked && eventStatusMap[shift.eventId.toString()] !== EventStatus.InterestList) {
+        continue;
+      }
       const foundRejectedInterest = await rejectedInterestRequests.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       const foundShiftBufferRequest = myShiftBuffers.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       if (foundShiftBufferRequest || foundRejectedInterest) {

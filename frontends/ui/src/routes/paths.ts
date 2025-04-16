@@ -48,6 +48,11 @@ export const paths = {
         venues: `${ROOTS.DASHBOARD}/admin/overtime/venues`,
         shifts: `${ROOTS.DASHBOARD}/admin/overtime/shifts`,
         dynamicShiftFilter: `${ROOTS.DASHBOARD}/admin/overtime/dynamic-shift-filter`,
+        templates: {
+          events: `${ROOTS.DASHBOARD}/admin/overtime/templates/events`,
+          eventDetail: `${ROOTS.DASHBOARD}/admin/overtime/templates/events/:eventId`,
+          eventAssignmentDetail: `${ROOTS.DASHBOARD}/admin/overtime/templates/events/:eventId/assignment/:assignmentId`,
+        }
       },
       settings: {
         root: `${ROOTS.DASHBOARD}/admin/settings`,

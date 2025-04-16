@@ -950,8 +950,8 @@ export const SET_SHIFT_BUFFER_STATUS = gql`
 `;
 
 export const UPSERT_SHIFTS = gql`
-  mutation UpsertShifts($input: [UpsertShift]!) {
-    shifts(shifts: $input) {
+  mutation UpsertShifts($input: [UpsertShift]!, $removeSlots: Boolean) {
+    shifts(shifts: $input, removeSlots: $removeSlots) {
       id
       assignmentId
       eventId

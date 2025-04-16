@@ -136,6 +136,7 @@ export const event = {
         ...timeFilters,
         ...($or.length > 0 ? { $or } : {}),
         ...input,
+        ...(!(input as any).status ? { status: { $ne: EventStatus.Template } } : {}),
         queryField: 'searchAttribute',
       });
     }
@@ -256,6 +257,43 @@ export const event = {
 
       return event;
     },
+    cloneEvent: async (
+      _parent: unknown,
+      { id }: { id: string },
+      {
+        events,
+        assignments,
+        eventReferenceNumber,
+        user,
+        organization,
+      }: Context
+    ): Promise<IEvent> => {
+      try {
+        adminOnly(user);
+  
+        const clonedEvent = await events.cloneEvent({
+          id,
+          user: user!,
+          organization: organization!,
+          // This isn't working? :shrug:
+          getRefNumber: (id: string) => eventReferenceNumber.get(id),
+        });
+  
+        await assignments.cloneAssignmentsByEvent({
+          originalEventId: new ObjectId(id),
+          eventId: clonedEvent._id!,
+          organization: organization!,
+          user: user!,
+          addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) =>
+            events.addAssignmentIds(id, assignmentIds, modifiedById),
+        });
+  
+        return clonedEvent;
+      } catch(error) {
+        logger.error('Failed to clone event', { error });
+        throw error;
+      }
+    },
     event: async (
       _parent: unknown,
       {
@@ -293,7 +331,7 @@ export const event = {
         event.referenceId = currentEvent.referenceId;
       } else {
         event.createdById = user!._id!;
-        event.status = EventStatus.Draft;
+        event.status = event.status === EventStatus.Template ? event.status : EventStatus.Draft;
         event.referenceId = await eventReferenceNumber.get(organization!.id);
       }
 

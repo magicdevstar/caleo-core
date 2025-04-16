@@ -57,6 +57,11 @@ export const GET_ASSIGNMENT = gql`
       createdAt
       removedAt
 
+      shiftSlots {
+        id
+        slotCount
+      }
+
       requiredEquipment {
         id
         name

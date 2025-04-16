@@ -28,6 +28,7 @@ export interface IAssignment extends Omit<
   'requiredSkillIds' |
   'requiredEquipmentIds' |
   'requiredEquipment' |
+  'shiftSlots' |
   'ranks' |
   'rankIds' |
   '__typename'
@@ -43,6 +44,10 @@ export interface IAssignment extends Omit<
   rankIds: ObjectId[];
   modifiedById: ObjectId;
   assignmentId: ObjectId;
+  shiftSlots: {
+    id?: ObjectId;
+    slotCount: number;
+  }[];
 
   createdAt: Date;
   updatedAt: Date;
@@ -52,6 +57,57 @@ export interface IAssignment extends Omit<
 export class AssignmentModel extends BaseMongo<IAssignment> {
   constructor(db: Db) {
     super(db, DocType.Assignment, 'assignments');
+  }
+
+  async cloneAssignmentsByEvent({
+    originalEventId,
+    eventId,
+    organization,
+    user,
+    addAssignmentIds,
+  } : {
+    originalEventId: ObjectId;
+    eventId: ObjectId;
+    organization: IOrganization;
+    user: IUser;
+    addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) => Promise<void>;
+  }) {
+    const {
+      items: originalAssignments,
+    } = await this.search({
+      eventId: originalEventId,
+      orgId: organization._id,
+    });
+
+    const assignmentTemplates = originalAssignments.map(({
+      id,
+      _id,
+      createdAt,
+      updatedAt,
+      removedAt,
+      eventId: originalEventId,
+      modifiedById,
+      shiftIds,
+      ...assignment
+    }) => ({
+      ...assignment,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      eventId,
+      modifiedById: user._id,
+      orgId: organization._id,
+    }));
+
+    const assignments = await this.collection.insertMany(assignmentTemplates);
+
+    // Add assignmentIds to event once they have been created
+    await addAssignmentIds(
+      eventId,
+      Object.values(assignments.insertedIds),
+      user._id!,
+    );
+
+    return assignments;
   }
 
   async removeAssignment({
@@ -79,7 +135,12 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     }));
   }
 
-  async linkShifts(shiftIds: string[], assignment: IAssignment, modifiedById: ObjectId) {
+  async linkShifts(
+    shiftIds: string[],
+    assignment: IAssignment,
+    modifiedById: ObjectId,
+    removeSlots: boolean = false,
+  ) {
     const currentShiftIds = (assignment.shiftIds || []).map((id) => id.toString());
     const newIds = shiftIds.filter((id) => !currentShiftIds.includes(id));
     if (newIds.length > 0) {
@@ -93,6 +154,11 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
           modifiedById: modifiedById,
           updatedAt: new Date(),
         },
+        ...(removeSlots ? {
+          $unset: {
+            shiftSlots: '',
+          },
+        }: {}),
       });
     }
   }

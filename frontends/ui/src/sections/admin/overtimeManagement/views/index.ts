@@ -5,3 +5,6 @@ export { default as EditEventView } from './edit-event-view';
 export { default as EditAssignmentView } from './edit-assignment-view';
 export { default as EditShiftView } from './edit-shift-view';
 export { default as DynamicShiftFilterView } from './dynamic-shift-filter-view';
+export { default as TemplateEventsView } from './template-events-view';
+export { default as TemplateEventsEditView } from './template-events-edit-view';
+export { default as TemplateAssignmentsEditView } from './template-assignments-edit-view';

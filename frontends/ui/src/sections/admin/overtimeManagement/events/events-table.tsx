@@ -31,7 +31,12 @@ export default function EventsTable() {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
   const router = useRouter();
-  const { venueContractDates, externalEventRequests, kiosk } = useFeatures();
+  const {
+    interestLists,
+    venueContractDates,
+    externalEventRequests,
+    kiosk,
+  } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
@@ -301,6 +306,12 @@ export default function EventsTable() {
               label: 'Requested',
               value: EventStatus.Requested,
             },
+            ...(interestLists ? [
+              {
+                label: 'Interest List',
+                value: EventStatus.InterestList,
+              },
+            ] : []),
             {
               label: 'First Come First Serve',
               value: EventStatus.FirstComeFirstServe,

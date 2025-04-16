@@ -97,14 +97,20 @@ export const assignments = {
         ...(assignment.requiredSkillIds && { requiredSkillIds: assignment.requiredSkillIds.map((id) => new ObjectId(id)) }),
         ...(assignment.rankIds && { rankIds: assignment.rankIds.map((id) => new ObjectId(id)) }),
         ...(assignment.requiredEquipmentIds && { requiredEquipmentIds: assignment.requiredEquipmentIds.map((id) => new ObjectId(id)) }),
+        ...(assignment.shiftSlots ? {
+          shiftSlots: assignment.shiftSlots.map((shiftSlot) => ({
+            ...shiftSlot,
+            id: !shiftSlot?.id ? new ObjectId() : shiftSlot.id,
+          })),
+        } : {}),
         orgId: new ObjectId(user?.member.orgId!),
         modifiedById: new ObjectId(user!.id),
       });
 
       if (!assignment.id) {
-        await events.addAssignmentId(
+        await events.addAssignmentIds(
           event._id!,
-          updatedAssignment._id!,
+          [updatedAssignment._id!],
           new ObjectId(user!.id)
         );
       }

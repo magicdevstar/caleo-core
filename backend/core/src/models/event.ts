@@ -17,6 +17,8 @@ import { BaseMongo } from './base.v2';
 import { IOrganization } from './organization';
 import { utcToZonedTime } from 'date-fns-tz';
 import { addMonths, isBefore } from 'date-fns';
+import { GraphQLError } from 'graphql';
+import { IUser } from '../types/common';
 
 const lambda = new LambdaClient({});
 
@@ -101,6 +103,49 @@ export class EventModel extends BaseMongo<IEvent> {
     private shifts: ShiftModel,
   ) {
     super(db, DocType.Event, 'events');
+  }
+
+  async cloneEvent({
+    id,
+    user,
+    organization,
+    getRefNumber,
+  } : {
+    id: string;
+    user: IUser;
+    organization: IOrganization;
+    getRefNumber: (id: string) => Promise<number>;
+  }) {
+    const templateEvent = await this.collection.findOne<IEvent>({
+      _id: new ObjectId(id),
+      orgId: organization._id,
+    });
+    if (!templateEvent) {
+      throw new GraphQLError('Could not find event to clone');
+    }
+
+    delete templateEvent.id;
+    delete templateEvent._id;
+    delete templateEvent.startTime;
+    delete templateEvent.endTime;
+    delete templateEvent.scheduledFirstComeFirstServe;
+    delete templateEvent.attachmentPaths;
+    delete templateEvent.lotteryNumber;
+    delete templateEvent.scheduledCloseInterestList;
+    delete templateEvent.interestListTransition;
+    delete templateEvent.autoAssignInterestList;
+    delete templateEvent.scheduledFirstComeFirstServe;
+    delete templateEvent.notifyOnFirstComeFirstServe;
+    delete templateEvent.notifyWhenFullyStaffed;
+    delete templateEvent.requestDetails;
+    delete templateEvent.requestDetails;
+    delete templateEvent.assignmentIds;
+    templateEvent.status = EventStatus.Draft;
+    templateEvent.createdById = user._id!;
+    templateEvent.modifiedById = user._id!;
+    templateEvent.referenceId = await getRefNumber(organization.id);
+
+    return this.create(templateEvent);
   }
 
   async approveEvent(id: ObjectId, modifiedById: ObjectId) {
@@ -300,9 +345,9 @@ export class EventModel extends BaseMongo<IEvent> {
     return this.document.getDownloadUrl(attachmentPath);
   };
 
-  async addAssignmentId(
+  async addAssignmentIds(
     id: ObjectId,
-    assignmentId: ObjectId,
+    assignmentIds: ObjectId[],
     modifiedById?: ObjectId,
   ) {
     await this.collection.updateOne({
@@ -313,7 +358,7 @@ export class EventModel extends BaseMongo<IEvent> {
         modifiedById,
       },
       $push: {
-        assignmentIds: assignmentId,
+        assignmentIds: {$each: assignmentIds},
       },
     });
   }

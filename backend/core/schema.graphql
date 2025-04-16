@@ -369,6 +369,8 @@
     REMOVED
     # Event is past the end date
     COMPLETE
+    # Event is a template that can be used to scaffold a new event
+    TEMPLATE
 
     # Computed statuses
     # Event that will appear in the next lottery run
@@ -456,6 +458,7 @@
     rankIds: [String]
     bwNeeded: Boolean!
     shiftIds: [String]
+    shiftSlots: [AssignmentShiftSlot]
     createdAt: String!
     updatedAt: String!
     removedAt: String
@@ -470,6 +473,11 @@
     totalShifts: Int
     org: Organization!
     modifiedBy: User
+  }
+
+  type AssignmentShiftSlot {
+    id: String
+    slotCount: Int
   }
 
   enum ShiftStatus {
@@ -759,9 +767,15 @@
     reportingLocation: String
     requiredSkillIds: [String]
     requiredEquipmentIds: [String]
+    shiftSlots: [UpsertAssignmentShiftSlot]
     rankIds: [String]
     bwNeeded: Boolean
     shiftIds: [String]
+  }
+
+  input UpsertAssignmentShiftSlot {
+    id: String
+    slotCount: Int
   }
 
   input UpsertShift {
@@ -1201,6 +1215,7 @@ type DocusignSignerDetails {
     autoEnroll: Boolean!
     docusign: Boolean!
     kiosk: Boolean!
+    eventTemplates: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1370,6 +1385,7 @@ type DocusignSignerDetails {
     autoEnroll: Boolean
     docusign: Boolean
     kiosk: Boolean
+    eventTemplates: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1993,6 +2009,7 @@ type Mutation {
   removeVenue(id: String!): ID!
 
   event(event: UpsertEvent!): Event
+  cloneEvent(id: String!): Event
   approveEvent(id: String!): Event
   rejectEvent(id: String!, reason: String): Event
   eventAttachmentUploadUrl: EventAttachmentUpload
@@ -2002,7 +2019,7 @@ type Mutation {
   assignment(assignment: UpsertAssignment!): Assignment
   removeAssignment(id: String!): ID!
 
-  shifts(shifts: [UpsertShift]!): [Shift]
+  shifts(shifts: [UpsertShift]!, removeSlots: Boolean): [Shift]
   partialShiftUpdate(shiftId: String!, updates: ShiftUpdates!): String
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!

@@ -4,7 +4,7 @@ import { uniqBy } from "lodash";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { LotteryCounter, Organization } from "src/__generated__/resolvers-types";
+import { LotteryCounter, Maybe, Organization } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
 import { DayMap } from "src/types/day";
 import { dateTimeFormat } from "./use-datejs";
@@ -27,7 +27,7 @@ export const useLotteryCounterOptions = ({
 }: {
   org: Organization;
   dateLimit?: string;
-  countValue?: LotteryCounter;
+  countValue?: Maybe<LotteryCounter>;
 }) => {
   const { data } = useQuery(GET_LOTTERY_COUNTER);
 

@@ -7,7 +7,6 @@ import timezone from 'dayjs/plugin/timezone';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
-import { isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
@@ -40,12 +39,8 @@ import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 // types
 import {
-  Assignment,
   Event,
   EventStatus,
-  LotteryCounter,
-  Shift,
-  ShiftStatus,
   Venue,
   VenueStatus,
   MemberStatus,
@@ -53,7 +48,6 @@ import {
 import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { GET_VENUE_LIST } from 'src/api/venues';
-import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
@@ -65,17 +59,17 @@ import FormProvider, {
   RHFAutocomplete,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { TableConfig } from 'src/components/table/table-config';
-import GQLTable from 'src/components/table/gql/table';
 import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
 import { client } from 'src/utils/apollo';
 import { useFeatures } from 'src/hooks/use-features';
+import EventAssignmentsTable from './event-assignments-table';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   currentEvent?: Event;
+  eventTemplateView?: boolean;
 };
 
 const eventStatusNames = {
@@ -125,7 +119,11 @@ const NewEventSchema = Yup.object().shape({
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function EditEvent({ currentEvent }: Props) {
+export default function EditEvent({
+  currentEvent,
+  eventTemplateView
+}: Props) {
+  const basePath = eventTemplateView ? paths.dashboard.admin.overtime.templates : paths.dashboard.admin.overtime
   const router = useRouter();
   const { user } = useAuthContext();
   const {
@@ -168,7 +166,7 @@ export default function EditEvent({ currentEvent }: Props) {
 
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
-    countValue: currentEvent?.lotteryCounter as LotteryCounter,
+    countValue: currentEvent?.lotteryCounter,
     dateLimit: currentEvent?.endTime || undefined,
   });
 
@@ -179,10 +177,19 @@ export default function EditEvent({ currentEvent }: Props) {
   }, [currentEvent?.status, currentEvent?.removedAt]);
 
   const isComplete = useMemo(() => {
+    if (eventTemplateView) return false;
     const completeStatus = currentEvent?.status === EventStatus.Complete;
     const completeEndTime = currentEvent?.endTime ? Date.now() >= new Date(currentEvent.endTime).valueOf() : false;
     return completeStatus || completeEndTime;
-  }, [currentEvent?.endTime, currentEvent?.status]);
+  }, [
+    eventTemplateView,
+    currentEvent?.endTime,
+    currentEvent?.status
+  ]);
+
+  const disabledStatus = useMemo(() =>
+    currentEvent?.assignments?.some?.((assignment) => (assignment?.shiftSlots?.length || 0) > 0),
+  [currentEvent?.assignments]);
 
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
 
@@ -225,21 +232,11 @@ export default function EditEvent({ currentEvent }: Props) {
       query: GET_EVENT,
     }],
   });
-  const [removeAssignment, { loading: removeAssignmentLoading }] = useMutation(REMOVE_ASSIGNMENT, {
-    refetchQueries: [GET_ALL_EVENTS, {
-      query: GET_EVENT,
-      variables: {
-        id: currentEvent?.id,
-      },
-    }],
-  });
   const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT);
 
   const venues = useMemo(() => venueRes?.venues?.items || [], [venueRes]);
   const mdUp = useResponsive('up', 'md');
 
-  const [removeAssignmentId, setRemoveAssignmentId] = useState<string | null>();
-  const deleteConfirm = useBoolean();
   const rejectEventConfirm = useBoolean();
   const showAttachments = useBoolean(false);
   const [rejectEventNote, setRejectEventNote] = useState('');
@@ -272,7 +269,7 @@ export default function EditEvent({ currentEvent }: Props) {
     () => ({
       id: currentEvent?.id,
       name: currentEvent?.name || '',
-      status: currentEvent?.status || EventStatus.Draft,
+      status: eventTemplateView ? EventStatus.Template : (currentEvent?.status || EventStatus.Draft),
       notes: currentEvent?.notes || '',
       attachments: [],
       ocn: currentEvent?.ocn || '',
@@ -292,7 +289,11 @@ export default function EditEvent({ currentEvent }: Props) {
       supervisor: currentEvent?.supervisor || null,
       lieutenant: currentEvent?.lieutenant || null,
     }),
-    [currentEvent, user]
+    [
+      currentEvent,
+      user,
+      eventTemplateView
+    ]
   );
 
   const methods = useForm({
@@ -470,7 +471,7 @@ export default function EditEvent({ currentEvent }: Props) {
       if (shouldReroute) {
         enqueueSnackbar(currentEvent ? 'Update success!' : 'Create success!');
         if (!currentEvent) {
-          router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', res.data?.event?.id));
+          router.push(basePath.eventDetail.replace(':eventId', res.data?.event?.id));
         }
       }
       return res.data?.event.id;
@@ -479,189 +480,11 @@ export default function EditEvent({ currentEvent }: Props) {
       console.error(error);
       return '';
     }
-  }, [upsertEvent, enqueueSnackbar, router, currentEvent]);
-
-  const openRemoveAssignment = useCallback((assignmentId: string) => {
-    setRemoveAssignmentId(assignmentId);
-    deleteConfirm.onTrue();
-  }, [deleteConfirm, setRemoveAssignmentId]);
-  const handleRemoveAssignment = useCallback(async () => {
-    await removeAssignment({
-      variables: {
-        id: removeAssignmentId,
-      },
-    });
-    setRemoveAssignmentId(null);
-    deleteConfirm.onFalse();
-  }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
+  }, [upsertEvent, enqueueSnackbar, router, currentEvent, basePath]);
 
   const onSubmit = handleSubmit(async (formData: any) => {
     await formSubmit(formData);
   });
-
-  const config: TableConfig<Assignment> = useMemo(() => ({
-    header: {
-      title: 'Assignments',
-      button: {
-        text: 'Add Assignment',
-        icon: 'ic:baseline-add',
-        loading: upsertEventLoading,
-        disabled: (!currentEvent?.id && !isValid) || allDisabled || isComplete,
-        onClick: async () => {
-          let eventId = currentEvent?.id;
-          if (!eventId) {
-            const validated = await trigger();
-            if (validated) {
-              const formattedValues = NewEventSchema.cast(getValues());
-              eventId = await formSubmit(formattedValues, false);
-              if (eventId) {
-                enqueueSnackbar('Created Event!');
-              }
-            }
-          }
-          if (eventId) {
-            router.push(
-              paths.dashboard.admin.overtime.eventAssignmentDetail
-              .replace(':eventId', eventId!)
-              .replace(':assignmentId', 'new')
-            );
-          }
-        }
-      }
-    },
-    table: {
-      sx: {
-        minWidth: 'inherit',
-      }
-    },
-    search: {
-      data: (currentEvent?.assignments || []) as any,
-      query: GET_ALL_ASSIGNMENT,
-      processResult: (data: any) => ({
-        total: data.length,
-        items: data.map((assignment: Assignment) => {
-          const { shifts, ...rest } = assignment;
-          const startTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
-            const start = new Date(shift!.startTime);
-            if (!curr || isBefore(start, curr)) {
-              return start;
-            }
-            return curr;
-          }, null);
-          const endTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
-            const end = new Date(shift!.endTime);
-            if (!curr || isAfter(end, curr)) {
-              return end;
-            }
-            return curr;
-          }, null);
-          return {
-            ...rest,
-            startTime,
-            endTime,
-            shifts,
-          };
-        }),
-      }),
-    },
-    rowActions: [
-      {
-        getName: () => 'Edit',
-        getIcon: () => 'solar:pen-bold',
-        onClick: (row: Assignment) => {
-          router.push(
-            paths.dashboard.admin.overtime.eventAssignmentDetail
-              .replace(':eventId', currentEvent?.id || '')
-              .replace(':assignmentId', row.id)
-          );
-        },
-      },
-      {
-        getName: () => 'Delete',
-        getIcon: () => 'solar:trash-bin-trash-bold',
-        getDisabled: () => allDisabled || isComplete,
-        onClick: (row: Assignment) => {
-          openRemoveAssignment(row.id)
-        },
-      }
-    ],
-    columns: [
-      {
-        id: 'name',
-        label: 'Name',
-        columnType: 'string',
-        width: '20%',
-        getHref: (row: Assignment) =>
-          paths.dashboard.admin.overtime.eventAssignmentDetail
-            .replace(':eventId', currentEvent?.id || '')
-            .replace(':assignmentId', row.id),
-      },
-      {
-        id: 'ranks',
-        label: 'Ranks',
-        emptyArrayLabel: 'None',
-        width: '15%',
-        noSort: true,
-        columnType: 'array',
-        maxRender: 1
-      },
-      {
-        id: 'requiredSkills',
-        label: 'Skills',
-        width: '10%',
-        noSort: true,
-        columnType: 'array',
-        maxRender: 1
-      },
-      {
-        id: 'bwNeeded',
-        label: 'B&W',
-        width: '7.5%',
-        columnType: 'boolean',
-      },
-      {
-        id: 'startTime',
-        label: 'Start',
-        columnType: 'date',
-        width: '10%',
-      },
-      {
-        id: 'endTime',
-        label: 'End',
-        columnType: 'date',
-        width: '10%',
-      },
-      {
-        id: 'totalShifts',
-        width: '10%',
-        label: 'Total Shifts',
-        columnType: 'string',
-        noSort: true,
-      },
-      {
-        id: 'availableShifts',
-        width: '10%',
-        label: 'Open Shifts',
-        columnType: 'string',
-        noSort: true,
-      },
-      { id: '', width: '5%', columnType: 'action', label: '' },
-    ],
-    filters: []
-  }), [
-    formSubmit,
-    getValues,
-    openRemoveAssignment,
-    enqueueSnackbar,
-    currentEvent?.assignments,
-    currentEvent?.id,
-    isValid,
-    router,
-    upsertEventLoading,
-    allDisabled,
-    isComplete,
-    trigger,
-  ]);
 
   const currentFormValues = getValues();
 
@@ -842,14 +665,15 @@ export default function EditEvent({ currentEvent }: Props) {
             )}
 
             {
-              currentEvent &&
+              currentEvent && !eventTemplateView &&
               <>
                 <Stack spacing={2} direction="row">
                   <RHFSelect
                     fullWidth
                     name="status"
                     label="Posting type"
-                    disabled={allDisabled || isComplete}
+                    disabled={allDisabled || isComplete || disabledStatus}
+                    helperText={disabledStatus ? 'Cannot change status before all shifts have been assigned a time' : ''}
                     InputLabelProps={{ shrink: true }}
                     PaperPropsSx={{ textTransform: 'capitalize' }}
                   >
@@ -1031,7 +855,7 @@ export default function EditEvent({ currentEvent }: Props) {
               </>
             }
 
-            <RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
+            { !eventTemplateView && (<RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />) }
           </Stack>
 
           <Divider sx={{ borderStyle: 'dashed' }} />
@@ -1115,7 +939,23 @@ export default function EditEvent({ currentEvent }: Props) {
         <Card>
           {!mdUp && <CardHeader title="Assignments" />}
 
-          <GQLTable config={config} />
+          <EventAssignmentsTable
+            currentEvent={currentEvent}
+            eventTemplateView={eventTemplateView}
+            basePath={basePath}
+            allDisabled={allDisabled}
+            isComplete={isComplete}
+            isValid={isValid}
+            onSaveEvent={async (shouldReroute = false) => {
+              const validated = await trigger();
+              if (validated) {
+                const formattedValues = NewEventSchema.cast(getValues());
+                return formSubmit(formattedValues, shouldReroute);
+              }
+              return '';
+            }}
+            upsertEventLoading={upsertEventLoading}
+          />
         </Card>
       </Grid>
     </>
@@ -1129,7 +969,7 @@ export default function EditEvent({ currentEvent }: Props) {
           component={RouterLink}
           variant='outlined'
           size="large"
-          href={paths.dashboard.admin.overtime.events}
+          href={basePath.events}
         >Cancel</Button>
         <LoadingButton
           type="submit"
@@ -1154,17 +994,6 @@ export default function EditEvent({ currentEvent }: Props) {
 
         {renderActions}
 
-        <ConfirmDialog
-          open={deleteConfirm.value}
-          onClose={deleteConfirm.onFalse}
-          title="Delete"
-          content="Are you sure want to delete?"
-          action={
-            <LoadingButton loading={removeAssignmentLoading} variant="contained" color="error" onClick={handleRemoveAssignment}>
-              Delete
-            </LoadingButton>
-          }
-        />
         <ConfirmDialog
           open={rejectEventConfirm.value}
           onClose={rejectEventConfirm.onFalse}

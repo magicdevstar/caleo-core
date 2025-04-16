@@ -48,7 +48,7 @@ const ICONS = {
 
 export function useNavData() {
   const { user } = useAuthContext()
-  const { equipment, lottery, lasdUserFields } = useFeatures();
+  const { equipment, lottery, lasdUserFields, eventTemplates } = useFeatures();
 
   const data = useMemo(
     () => [
@@ -81,6 +81,9 @@ export function useNavData() {
               icon: ICONS.menuItem,
               children: [
                 { title: 'Events', path: paths.dashboard.admin.overtime.events, internalChildRoutes: true },
+                ...(eventTemplates ? [
+                  { title: 'Event Templates', path: paths.dashboard.admin.overtime.templates.events, internalChildRoutes: true }
+                ] : []),
                 { title: 'Venues', path: paths.dashboard.admin.overtime.venues, internalChildRoutes: true },
                 { title: 'Dynamic Shift Filter', path: paths.dashboard.admin.overtime.dynamicShiftFilter },
               ],
@@ -118,7 +121,13 @@ export function useNavData() {
         },
       ] : [])
     ],
-    [user?.role, equipment, lottery, lasdUserFields]
+    [
+      user?.role,
+      equipment,
+      lottery,
+      lasdUserFields,
+      eventTemplates
+    ]
   );
 
   return data;

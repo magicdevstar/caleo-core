@@ -425,7 +425,7 @@ export const shift = {
     },
     shifts: async (
       _parent: unknown,
-      { shifts }: { shifts: UpsertShift[] },
+      { shifts, removeSlots }: { shifts: UpsertShift[], removeSlots?: boolean },
       {
         organizations,
         assignments,
@@ -501,7 +501,7 @@ export const shift = {
 
       // Add ids to assignment
       const ids = writtenShifts.map(({ id }) => id!);
-      await assignments.linkShifts(ids, assignment, user!._id!);
+      await assignments.linkShifts(ids, assignment, user!._id!, removeSlots);
 
       // Update any shift buffer requests
       const shiftGroupId = updatedShifts[0].shiftId;

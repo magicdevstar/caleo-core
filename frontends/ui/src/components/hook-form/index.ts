@@ -13,6 +13,7 @@ export { default as RHFDatePicker } from './rhf-date-picker';
 export { default as RHFDateTimePicker } from './rhf-date-time-picker';
 export { default as RHFDateRangePicker } from './rhf-date-range';
 export { default as RHFPhone } from './rhf-phone-field';
+export { default as RHFAssignmentShiftSlots } from './rhf-assignment-shift-slots';
 export { FormFooter } from './form-footer';
 
 export { default } from './form-provider';

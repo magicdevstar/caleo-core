@@ -99,6 +99,7 @@ export const StringCell = ({value, labelColor, href, onClick, width, clickable} 
               color="inherit"
               variant="subtitle2"
               to={href}
+              onClick={onClick}
               sx={{ cursor: 'pointer' }}
             >
               {value}

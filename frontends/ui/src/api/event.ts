@@ -6,6 +6,14 @@ export const REMOVE_EVENT = gql`
   }
 `;
 
+export const CLONE_EVENT_BY_ID = gql`
+  mutation CloneEvent($id: String!) {
+    cloneEvent(id: $id) {
+      id
+    }
+  }
+`;
+
 export const EVENT_UPLOAD_URL = gql`
   mutation EventUploadUrl {
     eventAttachmentUploadUrl {
@@ -297,6 +305,11 @@ export const GET_EVENT = gql`
         requiredSkills {
           id
           name
+        }
+
+        shiftSlots {
+          id
+          slotCount
         }
 
         shifts {

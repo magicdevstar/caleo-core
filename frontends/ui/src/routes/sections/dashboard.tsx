@@ -33,6 +33,9 @@ const Venues = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeMan
 const DynamicShiftFilter = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/dynamicShiftFilter'));
 const EditVenue = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
 const Events = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
+const EventsTemplates = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/events'));
+const EventsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editEvent'));
+const AssignmentsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editAssignment'));
 const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
 const EditEventAssignment = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
 const EditEventAssignmentShift = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
@@ -72,6 +75,14 @@ export const dashboardRoutes = [
               { path: 'venues', element: <Venues /> },
               { path: 'venues/:id', element: <EditVenue /> },
               { path: 'dynamic-shift-filter', element: <DynamicShiftFilter /> },
+              {
+                path: 'templates',
+                children: [
+                  { path: 'events', element: <EventsTemplates />, index: true },
+                  { path: 'events/:eventId', element: <EventsTemplateEdit /> },
+                  { path: 'events/:eventId/assignment/:assignmentId', element: <AssignmentsTemplateEdit /> },
+                ]
+              }
             ]
           },
           {

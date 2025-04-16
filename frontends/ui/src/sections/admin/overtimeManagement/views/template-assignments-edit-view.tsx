@@ -49,7 +49,7 @@ export default function TemplateAssignmentsEditView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Assignment Detail"
+        heading="Assignment Template Detail"
         hideLinks={loading}
         action={
           <LoadingButton
@@ -60,13 +60,13 @@ export default function TemplateAssignmentsEditView() {
           >Create Event</LoadingButton>
         }
         links={[
-          { name: 'Events', href: paths.dashboard.admin.overtime.templates.events },
+          { name: 'Event Templates', href: paths.dashboard.admin.overtime.templates.events },
           {
-            name: data?.assignment?.event?.name || 'Event Detail',
+            name: data?.assignment?.event?.name || 'Event Template Detail',
             href: paths.dashboard.admin.overtime.templates.eventDetail.replace(':eventId', params?.eventId || ''),
           },
           {
-            name: data?.assignment?.name || 'Assignment Detail',
+            name: data?.assignment?.name || 'Assignment Template Detail',
           },
         ]}
         sx={{ mb: 3 }}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useSnackbar } from 'notistack';
 // @apollo/client
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 // @mui
 import Container from '@mui/material/Container';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,7 +17,7 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { GET_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, GET_EVENT } from 'src/api/event';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import Iconify from 'src/components/iconify/iconify';
 import QueryView from 'src/components/query-view';
@@ -26,6 +27,7 @@ import EditEvent from '../events/edit-event';
 // ----------------------------------------------------------------------
 
 export default function VenueDetail() {
+  const { enqueueSnackbar } = useSnackbar();
   const { kiosk } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
@@ -41,6 +43,18 @@ export default function VenueDetail() {
   const menuClose = () => {
     setAnchorEl(null);
   };
+
+  const [cloneEvent, { loading: cloneLoading }] = useMutation(CLONE_EVENT_BY_ID, {
+    onError: () => {
+      enqueueSnackbar('Failed to create event. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+    },
+    onCompleted: (data) => {
+      const eventId = data?.cloneEvent?.id;
+      if (eventId) {
+        router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', eventId));
+      }
+    },
+  });
 
   const { data, refetch, loading, error } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -88,6 +102,15 @@ export default function VenueDetail() {
             'aria-labelledby': 'basic-button',
           }}
         >
+          <MenuItem onClick={() => {
+            cloneEvent({ variables: { id: params.eventId } })
+            menuClose();
+          }}>
+            <ListItemIcon>
+              <Iconify icon="solar:magic-stick-3-bold" />
+            </ListItemIcon>
+            <ListItemText>Clone Event</ListItemText>
+          </MenuItem>
           <MenuItem onClick={() => {
             if (data?.event) {
               generateEventDownload(data?.event?.id)

@@ -115,6 +115,9 @@ export default function EventTemplateTable() {
         width: 120,
         columnType: 'string',
         noSort: true,
+        renderValue: (_value, _index, row: Event) =>
+          row.assignments?.reduce((acc, assignment) =>
+            acc + (assignment.shiftSlots || []).reduce((total, slot) => (slot?.slotCount || 0) + total, 0), 0) || 0,
       },
       { id: '', width: 88, columnType: 'action', label: '' },
     ],

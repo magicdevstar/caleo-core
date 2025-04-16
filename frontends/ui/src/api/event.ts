@@ -63,6 +63,13 @@ export const GET_ALL_EVENTS = gql`
             pNumber
           }
         }
+        assignments {
+          id
+          shiftSlots {
+            id
+            slotCount
+          }
+        }
         venue {
           id
           name

@@ -6,7 +6,7 @@ import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { IOrganization } from './organization';
-import { IUser } from '../types/common';
+import { IAssignmentShiftSlots, IUser } from '../types/common';
 
 const lambda = new LambdaClient({});
 
@@ -65,11 +65,13 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     organization,
     user,
     addAssignmentIds,
+    generateSlots,
   } : {
     originalEventId: ObjectId;
     eventId: ObjectId;
     organization: IOrganization;
     user: IUser;
+    generateSlots: (assignmentId: ObjectId) => Promise<IAssignmentShiftSlots[]>;
     addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) => Promise<void>;
   }) {
     const {
@@ -79,24 +81,32 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       orgId: organization._id,
     });
 
-    const assignmentTemplates = originalAssignments.map(({
-      id,
-      _id,
-      createdAt,
-      updatedAt,
-      removedAt,
-      eventId: originalEventId,
-      modifiedById,
-      shiftIds,
-      ...assignment
-    }) => ({
-      ...assignment,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      eventId,
-      modifiedById: user._id,
-      orgId: organization._id,
-    }));
+    // If the assignment doesn't have a shift slots attached we will need to create them
+    const assignmentTemplates = await Promise.all(
+      originalAssignments.map(async ({
+        id,
+        _id,
+        createdAt,
+        updatedAt,
+        removedAt,
+        eventId: originalEventId,
+        modifiedById,
+        shiftIds,
+        ...assignment
+      }) => {
+        if (!assignment.shiftSlots || assignment.shiftSlots?.length === 0) {
+          assignment.shiftSlots = await generateSlots(_id!);
+        }
+        return {
+          ...assignment,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          eventId,
+          modifiedById: user._id,
+          orgId: organization._id,
+        };
+      })
+    );
 
     const assignments = await this.collection.insertMany(assignmentTemplates);
 

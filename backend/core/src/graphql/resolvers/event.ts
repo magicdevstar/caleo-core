@@ -265,6 +265,7 @@ export const event = {
         assignments,
         eventReferenceNumber,
         user,
+        shifts,
         organization,
       }: Context
     ): Promise<IEvent> => {
@@ -284,6 +285,7 @@ export const event = {
           eventId: clonedEvent._id!,
           organization: organization!,
           user: user!,
+          generateSlots: (assignmentId: ObjectId) => shifts.generateSlotsFromAssignment(assignmentId),
           addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) =>
             events.addAssignmentIds(id, assignmentIds, modifiedById),
         });

@@ -12,6 +12,11 @@ export interface IUserSearchResult extends Omit<
   items: IUser[];
 }
 
+export interface IAssignmentShiftSlots {
+  id: ObjectId;
+  slotCount: number;
+}
+
 export interface IMember extends Omit<
   Member,
   'memberSkills' |

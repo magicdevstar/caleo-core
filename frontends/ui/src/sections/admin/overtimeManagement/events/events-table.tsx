@@ -15,7 +15,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
-import { GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
@@ -36,11 +36,15 @@ export default function EventsTable() {
     venueContractDates,
     externalEventRequests,
     kiosk,
+    eventTemplates,
   } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
   const [removeEvent, { loading: removeEventLoading }] = useMutation(REMOVE_EVENT, {
+    refetchQueries: [GET_ALL_EVENTS],
+  });
+  const [cloneEvent] = useMutation(CLONE_EVENT_BY_ID, {
     refetchQueries: [GET_ALL_EVENTS],
   });
 
@@ -92,6 +96,25 @@ export default function EventsTable() {
           navigate(`/dashboard/admin/overtime/events/${row.id}`);
         },
       },
+      ...(eventTemplates ? [
+        {
+          getName: () => 'Clone Event',
+          getIcon: () => 'solar:magic-stick-3-bold',
+          onClick: async (row: Event) => {
+            try {
+              enqueueSnackbar('Creating event...', { variant: 'info', autoHideDuration: 2000 });
+              const clonedEvent = await cloneEvent({
+                variables: {
+                  id: row.id,
+                },
+              });
+              navigate(`/dashboard/admin/overtime/events/${clonedEvent.data.cloneEvent.id}`);
+            } catch(error) {
+              enqueueSnackbar('Error creating event. Please try again.', { variant: 'error' });
+            }
+          },
+        },
+      ] : []),
       ...(kiosk ? [
         {
           getName: () => 'Check in kiosk',

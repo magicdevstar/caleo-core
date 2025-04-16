@@ -10,7 +10,7 @@ import { LotteryCounterModel } from './lotteryCounter';
 import { userIsAdmin } from '../utils/access';
 import { SearchResults } from '../utils/common.resolvers';
 import { IOrganization } from './organization';
-import { IUser } from '../types/common';
+import { IAssignmentShiftSlots, IUser } from '../types/common';
 import { BaseMongo } from './base.v2';
 import { IAssignment } from './assignment';
 import { IEvent } from './event';
@@ -1286,6 +1286,25 @@ export class ShiftModel extends BaseMongo<IShift> {
       })) as IShift[],
       total: totalResult.length > 0 ? totalResult[0].total : 0,
     };
+  }
+
+  async generateSlotsFromAssignment(assignmentId: ObjectId) {
+    const pipeline = [
+      {
+        $match: { assignmentId }
+      },
+      {
+        $group: {
+          _id: "$shiftId",
+          slotCount: { $count: {} }
+        }
+      }
+    ];
+    const result = await this.collection.aggregate<{_id: string; slotCount: number; }>(pipeline).toArray();
+    return result.map(({ _id, slotCount }) => ({
+      id: new ObjectId(),
+      slotCount,
+    })) as IAssignmentShiftSlots[];
   }
 
   canRelinquishShift({

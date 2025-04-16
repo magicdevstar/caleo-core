@@ -74,7 +74,7 @@ export default function RelinquishDialog({
     } catch (error) {
       enqueueSnackbar({
         variant: 'error',
-        message: get(error, 'message', 'An error occurred while relinquishing the shift.'),
+        message: get(error, 'message', 'An error occurred while scratching the shift.'),
         autoHideDuration: 5000,
       });
     }

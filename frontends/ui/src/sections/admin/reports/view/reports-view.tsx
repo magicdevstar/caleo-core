@@ -36,7 +36,7 @@ const ReportTypeNames = {
   [ReportType.SHIFTS_BY_OFFICER]: 'Shifts by Officer',
   [ReportType.SHIFTS_BY_DATE]: 'Shifts by Date',
   [ReportType.RANKED_SHIFTS_BY_OFFICER]: 'Ranked Shifts by Officer',
-  [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Relinquished Shifts by Officer',
+  [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Scratched Shifts by Officer',
 };
 
 dayjs.extend(utc);

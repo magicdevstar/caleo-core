@@ -42,7 +42,7 @@ const shiftStatusOptions = [
     value: ShiftStatus.Locked,
   },
   {
-    label: 'Relinquished',
+    label: 'Scratched',
     value: ShiftStatus.Relinquished,
   },
   {

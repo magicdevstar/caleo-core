@@ -39,7 +39,7 @@ export default function RelinquishedShiftsByOfficer() {
   const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
-    fileName: 'relinquished-shifts-by-officer',
+    fileName: 'scratched-shifts-by-officer',
     ext: 'csv',
   });
 
@@ -125,10 +125,10 @@ export default function RelinquishedShiftsByOfficer() {
         'Officer First Name': shift.user?.firstName || '',
         'Officer Last Name': shift.user?.lastName || '',
         [`Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
-        'Relinquished On': shift?.removedAt
+        'Scratched On': shift?.removedAt
           ? convertDate({ date: shift.removedAt, user }).format(dateFormat)
           : '',
-        'Relinquished Reason': shift?.relinquishNote || '',
+        'Scratched Reason': shift?.relinquishNote || '',
         'Event Ref. #': shift?.event?.referenceId,
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',
@@ -209,7 +209,7 @@ export default function RelinquishedShiftsByOfficer() {
           <RHFDateRangePicker
             sx={{ width: '100%' }}
             name="relinquishedDateRange"
-            label="Relinquished on Date Range"
+            label="Scratched on Date Range"
             calendars={1}
             timezone={user?.member?.org?.timezone}
           />

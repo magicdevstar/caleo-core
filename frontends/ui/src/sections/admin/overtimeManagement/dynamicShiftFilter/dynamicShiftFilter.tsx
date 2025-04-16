@@ -220,7 +220,7 @@ export default function DynamicShiftFilter() {
               value: ShiftStatus.Locked,
             },
             {
-              label: 'Relinquished',
+              label: 'Scratched',
               value: ShiftStatus.Relinquished,
             },
             {

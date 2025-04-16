@@ -437,10 +437,10 @@ export default function Overtime({
         {mdUp && (
           <Grid md={4}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>
-              Relinquishing shifts
+              Scratching shifts
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Setting tier after relinquishing a shift, etc.
+              Setting tier after scratching a shift, etc.
             </Typography>
           </Grid>
         )}
@@ -452,7 +452,7 @@ export default function Overtime({
               <RHFSwitch
                 name="settings.userRelinquishShift.requireNoteWhenRelinquishing"
                 label="Require Note"
-                helperText="Require a note when relinquishing a shift"
+                helperText="Require a note when scratching a shift"
               />
               <RHFTextField
                 type="number"
@@ -464,13 +464,13 @@ export default function Overtime({
                 !lasdUserFields && (
                   <>
                     <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                      After a user relinquishes a shift
+                      After a user scratches a shift
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '25px', pl: 1 }}>
                       <RHFSelect
                         name="settings.userRelinquishShift.afterShiftRemove.tier"
                         label="Tier"
-                        helperText="The tier to set a user to after relinquishing a shift"
+                        helperText="The tier to set a user to after scratching a shift"
                       >
                         {enabledTiers.map((option) => (
                           <MenuItem key={option} value={option}>
@@ -482,7 +482,7 @@ export default function Overtime({
                         type="number"
                         name="settings.userRelinquishShift.afterShiftRemove.days"
                         label="Days in selected tier"
-                        helperText="The number of days to set a user to the selected tier after relinquishing a shift"
+                        helperText="The number of days to set a user to the selected tier after scratching a shift"
                       />
                     </Box>
                   </>

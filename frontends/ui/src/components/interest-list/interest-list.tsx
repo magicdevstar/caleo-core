@@ -28,7 +28,7 @@ interface Props {
 
 const formatStatus = (eventStatus: any, assignedShiftStatus?: string) => {
   if (assignedShiftStatus === ShiftStatus.Relinquished) {
-    return 'Relinquished';
+    return 'Scratched';
   }
   switch (eventStatus) {
     case ShiftInterestRequestStatus.Pending:

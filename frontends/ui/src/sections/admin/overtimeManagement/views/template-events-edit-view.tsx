@@ -11,7 +11,7 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { CLONE_EVENT_BY_ID, GET_ALL_EVENTS, GET_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, GET_EVENT } from 'src/api/event';
 import QueryView from 'src/components/query-view';
 import Iconify from 'src/components/iconify';
 import EditEvent from '../events/edit-event';

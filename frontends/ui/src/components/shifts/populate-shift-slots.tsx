@@ -212,70 +212,68 @@ export default function PopulateShiftSlots({
         {shiftSlots.length === 0 ? (
           <Typography color="text.secondary">No shift slots to populate</Typography>
         ) : (
-          <>
-            <Stack spacing={3} sx={{ mt: 2 }}>
-              {shiftSlots.map((slot, index) => {
-                const range = dateRanges[slot.id];
-                const isSlotComplete = range?.[0] && range?.[1];
-                
-                return (
-                  <Box key={slot.id}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle1">
-                        Shift Slot {index + 1} ({slot.slotCount} position{slot.slotCount !== 1 ? 's' : ''})
-                        {isSlotComplete && !errors[slot.id] && (
-                          <Typography component="span" color="success.main" sx={{ ml: 1 }}>
-                            ✓
-                          </Typography>
-                        )}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 1 }}>
-                      <DateTimePicker
-                        ampm={false}
-                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                        label="Start Date & Time"
-                        value={dateRanges[slot.id]?.[0]}
-                        onChange={(date) => handleStartDateTimeChange(slot.id, date)}
-                        timezone={user?.member?.org?.timezone || undefined}
-                        format={dateTimeFormat}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            error: !!errors[slot.id] || !dateRanges[slot.id]?.[0],
-                            required: true
-                          }
-                        }}
-                      />
-                      <DateTimePicker
-                        ampm={false}
-                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                        label="End Date & Time"
-                        value={dateRanges[slot.id]?.[1]}
-                        onChange={(date) => handleEndDateTimeChange(slot.id, date)}
-                        timezone={user?.member?.org?.timezone || undefined}
-                        format={dateTimeFormat}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            error: !!errors[slot.id] || !dateRanges[slot.id]?.[1],
-                            required: true
-                          }
-                        }}
-                      />
-                    </Box>
-                    
-                    {errors[slot.id] && (
-                      <Alert severity="error" sx={{ mt: 1 }}>{errors[slot.id]}</Alert>
-                    )}
-                    
-                    {index < shiftSlots.length - 1 && <Divider sx={{ mt: 2 }} />}
+          <Stack spacing={3} sx={{ mt: 2 }}>
+            {shiftSlots.map((slot, index) => {
+              const range = dateRanges[slot.id];
+              const isSlotComplete = range?.[0] && range?.[1];
+              
+              return (
+                <Box key={slot.id}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="subtitle1">
+                      Shift Slot {index + 1} ({slot.slotCount} position{slot.slotCount !== 1 ? 's' : ''})
+                      {isSlotComplete && !errors[slot.id] && (
+                        <Typography component="span" color="success.main" sx={{ ml: 1 }}>
+                          ✓
+                        </Typography>
+                      )}
+                    </Typography>
                   </Box>
-                );
-              })}
-            </Stack>
-          </>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 1 }}>
+                    <DateTimePicker
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      label="Start Date & Time"
+                      value={dateRanges[slot.id]?.[0]}
+                      onChange={(date) => handleStartDateTimeChange(slot.id, date)}
+                      timezone={user?.member?.org?.timezone || undefined}
+                      format={dateTimeFormat}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!errors[slot.id] || !dateRanges[slot.id]?.[0],
+                          required: true
+                        }
+                      }}
+                    />
+                    <DateTimePicker
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      label="End Date & Time"
+                      value={dateRanges[slot.id]?.[1]}
+                      onChange={(date) => handleEndDateTimeChange(slot.id, date)}
+                      timezone={user?.member?.org?.timezone || undefined}
+                      format={dateTimeFormat}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!errors[slot.id] || !dateRanges[slot.id]?.[1],
+                          required: true
+                        }
+                      }}
+                    />
+                  </Box>
+                  
+                  {errors[slot.id] && (
+                    <Alert severity="error" sx={{ mt: 1 }}>{errors[slot.id]}</Alert>
+                  )}
+                  
+                  {index < shiftSlots.length - 1 && <Divider sx={{ mt: 2 }} />}
+                </Box>
+              );
+            })}
+          </Stack>
         )}
       </DialogContent>
       

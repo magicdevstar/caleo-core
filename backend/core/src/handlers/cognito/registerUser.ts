@@ -9,6 +9,8 @@ import { MemberRole, MemberStatus, MemberTier } from "../../__generated__/resolv
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { IUser } from "../../types/common";
 import { defaultUserAvailability } from "../../models/user";
+import { parseHireDate } from "../../utils/hireDate";
+import { phoneNumberParser } from "../../utils/phone";
 
 const lambda = new LambdaClient();
 
@@ -40,17 +42,20 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
     const cognitoId = getCognitoId(event);
     const orgId = await getOrgId(event, services);
 
+    const hireDate = parseHireDate(event.request.userAttributes['custom:employee_date'])
+    const primaryPhone = phoneNumberParser(event.request.userAttributes['custom:phony']);
+
     const userDetails = {
       firstName: event.request.userAttributes.given_name,
       lastName: event.request.userAttributes.family_name,
       name: `${event.request.userAttributes.given_name} ${event.request.userAttributes.family_name}`,
       cognitoId,
-      phone: event.request.userAttributes.phone_number,
+      phone: event.request.userAttributes.phone_number || primaryPhone,
       email: event.request.userAttributes.email,
       pNumber: event.request.userAttributes['custom:p_number'] || '',
-      // TODO: Add hire date once we discover the format
-      role: event.request.userAttributes.role || MemberRole.Member
-    }
+      role: event.request.userAttributes.role || MemberRole.Member,
+      ...(hireDate && { tenor: hireDate }),
+    };
 
     const query: any = {
       cognitoId,
@@ -89,6 +94,7 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
             role: userDetails.role,
             tier,
             status,
+            tenor: userDetails.tenor,
             memberSkillIds: [],
             contactInfo: {
               primaryPhone: {

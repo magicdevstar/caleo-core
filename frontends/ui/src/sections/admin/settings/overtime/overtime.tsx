@@ -270,6 +270,12 @@ export default function Overtime({
                     />
                     <RHFTextField
                       type="number"
+                      name="settings.interestList.defaultAutoHireCutoff"
+                      label="Auto hire cut off"
+                      helperText="The number of days prior to event start when auto hire will no longer do automatic assignments. This is configurable per event."
+                    />
+                    <RHFTextField
+                      type="number"
                       name="settings.interestList.defaultNotificationTime"
                       label="Notify Hours Before End"
                       helperText="Hours to before the interests list end to notify eligible officers."

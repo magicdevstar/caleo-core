@@ -225,7 +225,14 @@ export const organization = {
       },
     },
     InterestListSetting: {
+      // This is the number of hours before event start that the interest list begins
+      // auto assigning shifts.
       defaultHoursBeforeShift: (parent: any) => parent.defaultHoursBeforeShift || 24,
+      // Number of days before auto hiring is disabled. This is the default value but
+      // can be changed per event.
+      defaultAutoHireCutoff: (parent: any) => parent.defaultAutoHireCutoff || 7,
+      // the Number of hours before auto assignment that the reminder notification is sent
+      // to qualified users.
       defaultNotificationTime: (parent: any) => parent.defaultNotificationTime || 24,
     },
     OrganizationFeatures: {

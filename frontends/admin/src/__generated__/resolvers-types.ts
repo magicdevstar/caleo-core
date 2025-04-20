@@ -378,6 +378,7 @@ export type Event = {
   docType: DocType;
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  interestListAutoAssignCutoff?: Maybe<Scalars['String']['output']>;
   interestListTransition?: Maybe<EventStatus>;
   lieutenant?: Maybe<User>;
   lieutenantId?: Maybe<Scalars['String']['output']>;
@@ -555,6 +556,7 @@ export type InputUserAvailability = {
 
 export type InterestListSetting = {
   __typename?: 'InterestListSetting';
+  defaultAutoHireCutoff?: Maybe<Scalars['Int']['output']>;
   defaultHoursBeforeShift?: Maybe<Scalars['Int']['output']>;
   defaultNotificationTime?: Maybe<Scalars['Int']['output']>;
 };
@@ -2158,6 +2160,7 @@ export type UpsertEvent = {
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   lotteryNumber?: InputMaybe<Scalars['Int']['input']>;
@@ -2178,6 +2181,7 @@ export type UpsertEvent = {
 };
 
 export type UpsertInterestListSetting = {
+  defaultAutoHireCutoff?: InputMaybe<Scalars['Int']['input']>;
   defaultHoursBeforeShift?: InputMaybe<Scalars['Int']['input']>;
   defaultNotificationTime?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -3177,6 +3181,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  interestListAutoAssignCutoff?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3271,6 +3276,7 @@ export type InAppNotificationsResolvers<ContextType = any, ParentType extends Re
 }>;
 
 export type InterestListSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['InterestListSetting'] = ResolversParentTypes['InterestListSetting']> = ResolversObject<{
+  defaultAutoHireCutoff?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   defaultHoursBeforeShift?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   defaultNotificationTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

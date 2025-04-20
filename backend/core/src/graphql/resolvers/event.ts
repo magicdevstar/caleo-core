@@ -362,6 +362,9 @@ export const event = {
         venueId: event.venueId ? new ObjectId(event.venueId) : undefined,
         assignmentIds: event.assignmentIds ? event.assignmentIds.map((id) => new ObjectId(id!)) : undefined,
         createdById: currentEvent ? currentEvent.createdById : user!._id!,
+        ...(event.interestListAutoAssignCutoff && {
+          interestListAutoAssignCutoff: truncateToMinute(new Date(event.interestListAutoAssignCutoff)),
+        }),
         ...(event.supervisorId && { supervisorId: new ObjectId(event.supervisorId) }),
         ...(event.lieutenantId && { lieutenantId: new ObjectId(event.lieutenantId) }),
         ...(event.venueId && { venueId: new ObjectId(event.venueId) }),

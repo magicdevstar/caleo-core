@@ -398,6 +398,7 @@
     lotteryNumber: Int
     scheduledInterestList: String
     scheduledCloseInterestList: String
+    interestListAutoAssignCutoff: String
     interestListTransition: EventStatus
     autoAssignInterestList: Boolean
     scheduledFirstComeFirstServe: String
@@ -708,6 +709,7 @@
     interestListTransition: EventStatus
     scheduledInterestList: String
     scheduledCloseInterestList: String
+    interestListAutoAssignCutoff: String
     scheduledFirstComeFirstServe: String
     autoAssignInterestList: Boolean
     notifyOnFirstComeFirstServe: Boolean
@@ -1241,7 +1243,9 @@ type DocusignSignerDetails {
   }
 
   type InterestListSetting {
+    # Number of hours before shift starts to begin assigning interest list
     defaultHoursBeforeShift: Int
+    defaultAutoHireCutoff: Int
     defaultNotificationTime: Int
   }
 
@@ -1390,6 +1394,7 @@ type DocusignSignerDetails {
 
   input UpsertInterestListSetting {
     defaultHoursBeforeShift: Int
+    defaultAutoHireCutoff: Int
     defaultNotificationTime: Int
   }
 

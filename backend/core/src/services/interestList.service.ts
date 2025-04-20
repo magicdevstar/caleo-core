@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { utcToZonedTime } from "date-fns-tz";
-import { format, isAfter, subHours } from "date-fns";
+import { format, isAfter, isBefore, subHours } from "date-fns";
 import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 
 import { EventStatus } from "../__generated__/resolvers-types";
@@ -56,8 +56,16 @@ export class InterestListService {
 
     const interestListClose = utcToZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
     const now = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
+    const interestListCutoff = utcToZonedTime(new Date(event.interestListAutoAssignCutoff || now), organization?.timezone || 'America/Los_Angeles' as any);
     
-    if (isAfter(now, interestListClose) && !shift.locked) {
+    if (
+      // Check if the interest list auto assignment has already happened
+      isAfter(now, interestListClose) &&
+      // Check if the shift is locked
+      !shift.locked &&
+      // Check that the interest list cutoff has not passed
+      isBefore(now, interestListCutoff)
+    ) {
       try {
         await lambda.send(new InvokeCommand({
           FunctionName: `caleo-core-${process.env.STAGE}-assignShiftGroup`,
@@ -129,6 +137,7 @@ export class InterestListService {
           eventId: event.id,
         },
       },
+      // The step function will take care of scheduled events if auto assign is false
       {
         event: ScheduleEvent.EVENT_INTEREST_CLOSE,
         orgId,

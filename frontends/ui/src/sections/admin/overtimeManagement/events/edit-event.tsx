@@ -106,6 +106,7 @@ const NewEventSchema = Yup.object().shape({
   budgetActivityCode: Yup.string().nullable(),
   supervisor: Yup.object().nullable(),
   lieutenant: Yup.object().nullable(),
+  interestListAutoAssignCutoff: Yup.string().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -277,10 +278,11 @@ export default function EditEvent({
       lotteryNumber: currentEvent?.lotteryNumber,
       notifyOnFirstComeFirstServe: currentEvent?.notifyOnFirstComeFirstServe || false,
       notifyWhenFullyStaffed: currentEvent?.notifyWhenFullyStaffed || false,
-      autoAssignInterestList: currentEvent?.autoAssignInterestList || false,
+      autoAssignInterestList: currentEvent?.autoAssignInterestList || true,
       scheduledFirstComeFirstServe: currentEvent?.scheduledFirstComeFirstServe || '',
       scheduledInterestList: currentEvent?.scheduledInterestList || '',
       scheduledCloseInterestList: currentEvent?.scheduledCloseInterestList || '',
+      interestListAutoAssignCutoff: currentEvent?.interestListAutoAssignCutoff || '',
       assignments: currentEvent?.assignments || [],
       createdById: currentEvent?.createdById || user?.id,
       outsideOrgCode: currentEvent?.outsideOrgCode,
@@ -429,6 +431,7 @@ export default function EditEvent({
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             scheduledInterestList: formData?.scheduledInterestList,
             scheduledCloseInterestList: formData?.scheduledCloseInterestList,
+            interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff,
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
             attachmentPaths: [
@@ -736,59 +739,91 @@ export default function EditEvent({
 
                 {currentFormValues && currentFormValues.status === EventStatus.InterestList && (
                   <>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <DateTimePicker
-                        label="Interest list start time"
-                        ampm={false}
-                        disabled={allDisabled || isComplete}
-                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                        timezone={user.member.org?.timezone}
-                        value={
-                          currentFormValues?.scheduledInterestList ?
-                          dayjs(new Date(currentFormValues?.scheduledInterestList)) :
-                          dayjs(new Date())
-                        }
-                        onChange={(date) => {
-                          setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')
-                        }}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            margin: 'normal',
-                          },
-                        }}
-                      />
-                      <Typography variant="body1">-</Typography>
-                      <DateTimePicker
-                        label="Interest list end time"
-                        ampm={false}
-                        disabled={allDisabled || isComplete}
-                        timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                        timezone={user.member.org?.timezone}
-                        minDate={currentFormValues?.scheduledInterestList ? dayjs(new Date(currentFormValues?.scheduledInterestList)) : dayjs(new Date())}
-                        value={
-                          currentFormValues?.scheduledCloseInterestList ?
-                          dayjs(new Date(currentFormValues?.scheduledCloseInterestList)) :
-                          dayjs(
-                            currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-                          ).subtract(
-                            user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
-                            'hours'
-                          )
-                        }
-                        onChange={(date) => {
-                          setValue('scheduledCloseInterestList', date ? dayjs(date).toISOString() : '')
-                        }}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            margin: 'normal',
-                          },
-                        }}
-                      />
-
-                    </Stack>
-                    <RHFSwitch disabled={allDisabled || isComplete} name="autoAssignInterestList" label="Auto assign shifts when list closes" />
+                    <DateTimePicker
+                      label="Interest list start time"
+                      ampm={false}
+                      disabled={allDisabled || isComplete}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      timezone={user.member.org?.timezone}
+                      value={
+                        currentFormValues?.scheduledInterestList ?
+                        dayjs(new Date(currentFormValues?.scheduledInterestList)) :
+                        dayjs(new Date())
+                      }
+                      onChange={(date) => {
+                        setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')
+                      }}
+                      slotProps={{
+                        textField: {
+                          helperText: 'Date officers are able to express interest in the shifts.',
+                          fullWidth: true,
+                          margin: 'normal',
+                        },
+                      }}
+                    />
+                    <RHFSwitch disabled={allDisabled || isComplete} name="autoAssignInterestList" label="Auto assign shifts" />
+                    {
+                      currentFormValues.autoAssignInterestList && (
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <DateTimePicker
+                            label="Auto Hire Start Time"
+                            ampm={false}
+                            disabled={allDisabled || isComplete}
+                            timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                            timezone={user.member.org?.timezone}
+                            minDate={currentFormValues?.scheduledInterestList ? dayjs(new Date(currentFormValues?.scheduledInterestList)) : dayjs(new Date())}
+                            value={
+                              currentFormValues?.scheduledCloseInterestList ?
+                              dayjs(new Date(currentFormValues?.scheduledCloseInterestList)) :
+                              dayjs(
+                                currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+                              ).subtract(
+                                user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
+                                'hours'
+                              )
+                            }
+                            onChange={(date) => {
+                              setValue('scheduledCloseInterestList', date ? dayjs(date).toISOString() : '')
+                            }}
+                            slotProps={{
+                              textField: {
+                                helperText: 'Date the interest list automatically begins assigning shifts.',
+                                fullWidth: true,
+                                margin: 'normal',
+                              },
+                            }}
+                          />
+                          <Typography variant="body1">-</Typography>
+                          <DateTimePicker
+                            label="Auto Hire End Time"
+                            ampm={false}
+                            disabled={allDisabled || isComplete}
+                            timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                            timezone={user.member.org?.timezone}
+                            value={
+                              currentFormValues?.interestListAutoAssignCutoff ?
+                                dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff)) :
+                                dayjs(
+                                  currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+                                ).subtract(
+                                  user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
+                                  'days'
+                                )
+                            }
+                            onChange={(date) => {
+                              setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')
+                            }}
+                            slotProps={{
+                              textField: {
+                                fullWidth: true,
+                                margin: 'normal',
+                                helperText: 'Date the interest list stops assigning available shifts.'
+                              },
+                            }}
+                          />
+                        </Stack>
+                      )
+                    }
                   </>
                 )}
 

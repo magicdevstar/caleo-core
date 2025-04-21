@@ -150,6 +150,7 @@ export const equipment = {
       org: (equipment: IEquipment, _, { organizations }: Context) => organizations.loader.load(equipment.orgId.toString()),
       ranksOnly: (equipment: IEquipment, _, { ranks }: Context) => equipment.rankOnlyIds && equipment.rankOnlyIds.length > 0 ? ranks.loader.loadMany((equipment.rankOnlyIds || []).map((id) => id.toString())) : [],
       requiresEquipmentTime: (equipment: IEquipment) => !!equipment.requiresEquipmentTime,
+      requiresVehicleInformation: (equipment: IEquipment) => !!equipment.requiresVehicleInformation,
     },
     MemberEquipment: {
       ...commonResolvers,

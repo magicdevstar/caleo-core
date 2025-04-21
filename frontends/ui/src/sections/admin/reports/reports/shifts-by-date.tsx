@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import LoadingButton from '@mui/lab/LoadingButton';
 import CircularProgress from '@mui/material/CircularProgress';
 // Types
-import { Shift, ShiftStatus, User } from 'src/__generated__/resolvers-types';
+import { Shift, User } from 'src/__generated__/resolvers-types';
 import { GET_USERS } from 'src/api/user';
 import { GET_OFFICER_REPORT_SHIFTS } from 'src/api/shifts';
 // hooks

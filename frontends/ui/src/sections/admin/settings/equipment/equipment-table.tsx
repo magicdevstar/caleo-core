@@ -92,6 +92,7 @@ export default function EquipmentTable() {
       { id: 'name', label: 'Equipment', columnType: 'string' },
       { id: 'ranksOnly', label: 'Ranks', width: 200, noSort: true, columnType: 'array', maxRender: 1 },
       { id: 'requiresEquipmentTime', label: 'Equipment Time Required', width: 160, columnType: 'boolean' },
+      { id: 'requiresVehicleInformation', label: 'Vehicle Information Required', width: 160, columnType: 'boolean' },
       { id: 'requiresCert', label: 'Cert Required', width: 160, columnType: 'boolean' },
       { id: 'requiresAdminApproval', label: 'Admin Approval', width: 160, columnType: 'boolean' },
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },

@@ -126,6 +126,8 @@ export const createContext = async (): Promise<Context> => {
     docusignModel,
     docusignEventModel,
     document,
+    assignments,
+    equipments,
   );
   const interestList = new InterestListService(
     shiftInterestRequests,

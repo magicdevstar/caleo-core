@@ -49,6 +49,7 @@ export const GET_EQUIPMENTS = gql`
         active
         requiresEquipmentTime
         requiresAdminApproval
+        requiresVehicleInformation
         requiresCert
         rankOnlyIds
         ranksOnly {

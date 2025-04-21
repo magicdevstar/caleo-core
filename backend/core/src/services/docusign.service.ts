@@ -13,6 +13,8 @@ import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { DocusignEventSearchInput, DocusignEventUserRole } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
+import { AssignmentModel } from "../models/assignment";
+import { EquipmentModel } from "../models/equipment";
 
 export class Docusign {
   constructor(
@@ -26,6 +28,8 @@ export class Docusign {
     private docusign: DocusignModel,
     private docusignEvent: DocusignEventModel,
     private document: DocumentModel,
+    private assignments: AssignmentModel,
+    private equipments: EquipmentModel,
   ) {}
 
   async findEventsByUserId({
@@ -164,6 +168,13 @@ export class Docusign {
           const venue = await this.venues.get(event?.venueId!);
           const supervisor = await this.users.get(event?.supervisorId!);
           const lieutenant = await this.users.get(event?.lieutenantId!);
+          const assignment = await this.assignments.get(shift.assignmentId!);
+          let requiresVehicleInformation = false;
+
+          if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {
+            const equipment = await this.equipments.findAll(assignment.requiredEquipmentIds);
+            requiresVehicleInformation = equipment.some((eq) => eq.requiresVehicleInformation);
+          }
   
           const {
             envelopeId,
@@ -179,6 +190,7 @@ export class Docusign {
             lieutenant: lieutenant!,
             supervisor: supervisor!,
             signNow: false,
+            requiresVehicleInformation,
           });
           await this.shifts.setDocusignEnvelopeId({
             _id: shift._id!,
@@ -219,6 +231,13 @@ export class Docusign {
         const venue = await this.venues.get(event?.venueId!);
         const supervisor = await this.users.get(event?.supervisorId!);
         const lieutenant = await this.users.get(event?.lieutenantId!);
+        const assignment = await this.assignments.get(shift.assignmentId!);
+        let requiresVehicleInformation = false;
+
+        if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {
+          const equipment = await this.equipments.findAll(assignment.requiredEquipmentIds);
+          requiresVehicleInformation = equipment.some((eq) => eq.requiresVehicleInformation);
+        }
 
         const {
           envelopeId,
@@ -234,6 +253,7 @@ export class Docusign {
           lieutenant: lieutenant!,
           supervisor: supervisor!,
           signNow,
+          requiresVehicleInformation,
         });
 
         await this.shifts.setDocusignEnvelopeId({

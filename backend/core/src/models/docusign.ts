@@ -1,6 +1,5 @@
 import ds, { EnvelopeDefinition, TemplateRole } from 'docusign-esign';
 import { Db, ObjectId } from "mongodb";
-import { utcToZonedTime } from 'date-fns-tz';
 import { format } from 'date-fns';
 import {
   SecretsManagerClient,
@@ -313,6 +312,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor,
     lieutenant,
     signNow,
+    requiresVehicleInformation,
   }: {
     org: IOrganization;
     shift: IShift;
@@ -323,7 +323,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor: IUser;
     lieutenant: IUser;
     event: IEvent;
-    signNow: boolean,
+    signNow: boolean;
+    requiresVehicleInformation: boolean;
   }) {
     const {
       envAPI,
@@ -343,6 +344,14 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         email: user.member.contactInfo?.primaryEmail.address,
         name: user.name,
         ...(signNow && { clientUserId }),
+        tabs: {
+          textTabs: [
+            {
+              tabLabel: 'requiredVehicleInformation',
+              value: requiresVehicleInformation ? 'true' : 'false',
+            },
+          ],
+        },
       },
       {
         roleName: 'lieutenant',

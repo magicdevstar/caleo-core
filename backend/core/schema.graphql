@@ -1079,6 +1079,7 @@ type DocusignSignerDetails {
     requiresAdminApproval: Boolean!
     requiresCert: Boolean!
     requiresEquipmentTime: Boolean!
+    requiresVehicleInformation: Boolean!
     docType: DocType!
     orgId: String!
     rankOnlyIds: [String]
@@ -1124,6 +1125,7 @@ type DocusignSignerDetails {
     active: Boolean
     requiresAdminApproval: Boolean
     requiresEquipmentTime: Boolean
+    requiresVehicleInformation: Boolean
     requiresCert: Boolean
     rankOnlyIds: [String]
   }

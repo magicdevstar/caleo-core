@@ -31,6 +31,7 @@ const defaultEquipment = {
   active: true,
   requiresEquipmentTime: false,
   requiresAdminApproval: false,
+  requiresVehicleInformation: false,
   requiresCert: false,
   ranksOnly: [],
   rankOnlyIds: []
@@ -67,6 +68,7 @@ export default function UpsertEquipmentDialogue({
         active: equipment.active,
         requiresEquipmentTime: equipment.requiresEquipmentTime,
         requiresAdminApproval: equipment.requiresAdminApproval,
+        requiresVehicleInformation: equipment.requiresVehicleInformation,
         requiresCert: equipment.requiresCert,
         ranksOnly: (equipment.ranksOnly || []) as any,
         rankOnlyIds: (equipment.rankOnlyIds || []) as any,
@@ -89,6 +91,7 @@ export default function UpsertEquipmentDialogue({
             active: equipmentMod.active,
             requiresEquipmentTime: equipmentMod.requiresEquipmentTime,
             requiresAdminApproval: equipmentMod.requiresAdminApproval,
+            requiresVehicleInformation: equipmentMod.requiresVehicleInformation,
             requiresCert: equipmentMod.requiresCert,
             rankOnlyIds: equipmentMod.rankOnlyIds,
           },
@@ -182,6 +185,21 @@ export default function UpsertEquipmentDialogue({
                   checked={equipmentMod.requiresEquipmentTime} />
               }
               label="Requires equipment time"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  onChange={
+                    (_, checked) =>
+                      setEquipmentMod((c) =>
+                      ({
+                        ...c,
+                        requiresVehicleInformation: checked
+                      }))
+                  }
+                  checked={equipmentMod.requiresVehicleInformation} />
+              }
+              label="Requires vehicle information"
             />
             <FormControlLabel
               control={

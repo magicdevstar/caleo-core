@@ -19,6 +19,7 @@ const defaultFeatures: OrganizationFeatures = {
   autoEnroll: false,
   docusign: false,
   kiosk: false,
+  eventTemplates: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

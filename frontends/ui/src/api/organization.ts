@@ -68,6 +68,7 @@ query ORGANIZATION {
       hoursPerMonth
       interestList {
         defaultHoursBeforeShift
+        defaultAutoHireCutoff
         defaultNotificationTime
       }
       checkInOut {

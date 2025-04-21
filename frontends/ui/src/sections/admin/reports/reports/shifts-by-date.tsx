@@ -27,33 +27,7 @@ import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/u
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { useFeatures } from 'src/hooks/use-features';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
-
-const shiftStatusOptions = [
-  {
-    label: 'Assigned',
-    value: ShiftStatus.Assigned,
-  },
-  {
-    label: 'Available',
-    value: ShiftStatus.Available,
-  },
-  {
-    label: 'Locked',
-    value: ShiftStatus.Locked,
-  },
-  {
-    label: 'Scratched',
-    value: ShiftStatus.Relinquished,
-  },
-  {
-    label: 'Removed',
-    value: ShiftStatus.Removed,
-  },
-  {
-    label: 'Unassigned',
-    value: ShiftStatus.Unassigned,
-  },
-];
+import { formattedStatus } from 'src/utils/shiftStatus';
 
 const shiftsByOfficerSchema = Yup.object().shape({
   dateRange: Yup.array()
@@ -64,8 +38,8 @@ const shiftsByOfficerSchema = Yup.object().shape({
       return !!hasMin && !!hasMax;
     }),
   shiftStatus: Yup.array()
-    .of(Yup.mixed<(typeof shiftStatusOptions)[0] | string>())
-    .transform((value: typeof shiftStatusOptions) => value.map((v) => v.value)),
+    .of(Yup.mixed<(typeof formattedStatus)[0] | string>())
+    .transform((value: typeof formattedStatus) => value.map((v) => v.value)),
   createdBy: Yup.array()
     .of(Yup.mixed<User | string>())
     .transform((value: User[]) => value.map((v) => v.id)),
@@ -177,7 +151,7 @@ export default function ShiftsByDate() {
           ? convertDate({ date: shift.endTime, user }).format(timeFormat)
           : '',
         Status:
-          shiftStatusOptions.find((status) => status.value === shift.status)?.label || shift.status,
+          formattedStatus.find((status) => status.value === shift.status)?.label || shift.status,
       }));
       download(formattedJson);
     } catch (error) {
@@ -222,7 +196,7 @@ export default function ShiftsByDate() {
             limitTags={4}
             name="shiftStatus"
             label="Shift Status"
-            options={shiftStatusOptions}
+            options={formattedStatus}
             isOptionEqualToValue={(option, value) => option.value === value.value}
             renderOption={(props, option, { selected }) => (
               <li {...props} key={option.value}>

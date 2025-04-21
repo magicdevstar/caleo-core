@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { capitalize } from 'lodash';
 import PhoneNumberFormatter from 'phone-number-formats';
 import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENTS_SLIM } from "src/api/event";
@@ -15,6 +14,7 @@ import { useFeatures } from 'src/hooks/use-features';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { formattedStatus, getShiftStatus } from 'src/utils/shiftStatus';
 
 export default function DynamicShiftFilter() {
   const { pNumberLabel } = usePNumberLabel();
@@ -124,7 +124,7 @@ export default function DynamicShiftFilter() {
         id: 'status',
         label: 'Status',
         columnType: 'string',
-        renderValue: (shiftStatus: any) => capitalize(shiftStatus),
+        renderValue: (shiftStatus: any) => getShiftStatus(shiftStatus),
         getLabelColor: (row: any) => {
           switch(row.status) {
             case ShiftStatus.Assigned:
@@ -206,35 +206,9 @@ export default function DynamicShiftFilter() {
         type: 'select',
         label: 'Status',
         async fetchOptions () {
-          const formattedOptions = [
-            {
-              label: 'Assigned',
-              value: ShiftStatus.Assigned,
-            },
-            {
-              label: 'Available',
-              value: ShiftStatus.Available,
-            },
-            {
-              label: 'Locked',
-              value: ShiftStatus.Locked,
-            },
-            {
-              label: 'Scratched',
-              value: ShiftStatus.Relinquished,
-            },
-            {
-              label: 'Removed',
-              value: ShiftStatus.Removed,
-            },
-            {
-              label: 'Unassigned',
-              value: ShiftStatus.Unassigned,
-            },
-          ];
           // eslint-disable-next-line react/no-this-in-sfc
-          this.calculatedOptions = formattedOptions;
-          return formattedOptions;
+          this.calculatedOptions = formattedStatus;
+          return formattedStatus;
         },
       },
       {

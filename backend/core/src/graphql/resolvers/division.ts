@@ -4,6 +4,7 @@ import { DivisionSearchInput } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ObjectId } from "mongodb";
 import { IDivision } from "../../models/division";
+import { adminOnly } from "../../utils/access";
 
 export const division = {
   Query: {
@@ -27,11 +28,13 @@ export const division = {
       _parent: unknown,
       { id }: { id: string },
       {
+        unit,
         division,
         users,
         user,
       }: Context
     ): Promise<string> => {
+      adminOnly(user);
       const existingUserWithRole = await users.collection.findOne({
         'member.divisionId': new ObjectId(id),
       });
@@ -44,6 +47,18 @@ export const division = {
         modifiedById: user!._id!,
       });
 
+      const idAsObjectId = new ObjectId(id);
+      await unit.collection.updateMany({
+        divisionIds: idAsObjectId
+      }, {
+        $set: {
+          modifiedById: user!._id!,
+        },
+        $pull: {
+          divisionIds: idAsObjectId
+        } as any,
+      });
+
       return id;
     },
     division: async (
@@ -51,6 +66,7 @@ export const division = {
       { division: inputDivision }: { division: IDivision },
       { division, user }: Context
     ): Promise<IDivision> => {
+      adminOnly(user);
       if (Object.keys(inputDivision).length === 0) {
         throw new GraphQLError("Division is empty");
       }

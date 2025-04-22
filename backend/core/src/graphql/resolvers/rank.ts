@@ -4,6 +4,7 @@ import { RankSearchInput } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ObjectId } from "mongodb";
 import { IRank } from "../../models/rank";
+import { adminOnly } from "../../utils/access";
 
 export const rank = {
   Query: {
@@ -35,6 +36,7 @@ export const rank = {
         user,
       }: Context
     ): Promise<string> => {
+      adminOnly(user);
       const existingUserWithRole = await users.collection.findOne({
         'member.rankId': new ObjectId(id),
       });
@@ -67,6 +69,7 @@ export const rank = {
       { rank }: { rank: IRank },
       { ranks, user }: Context
     ): Promise<IRank> => {
+      adminOnly(user);
       if (Object.keys(rank).length === 0) {
         throw new GraphQLError("Rank is empty");
       }

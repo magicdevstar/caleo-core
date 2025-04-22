@@ -1023,6 +1023,7 @@ type DocusignSignerDetails {
     name: String!
     active: Boolean!
     overtimeCode: String
+    divisionIds: [String!]
     docType: DocType!
     orgId: String!
     createdAt: String!
@@ -1031,6 +1032,7 @@ type DocusignSignerDetails {
     modifiedById: String
 
     org: Organization
+    divisions: [Division]
     modifiedBy: User
   }
 
@@ -1038,6 +1040,7 @@ type DocusignSignerDetails {
     id: String
     name: String
     overtimeCode: String
+    divisionIds: [String!]
     active: Boolean
   }
 ###### END Unit ######

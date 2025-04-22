@@ -8,6 +8,7 @@ import { BaseMongo } from './base.v2';
 export interface IUnit extends Omit<
   Unit,
   'id' |
+  'divisionIds' |
   'createdAt' |
   'updatedAt' |
   'removedAt' |
@@ -21,6 +22,7 @@ export interface IUnit extends Omit<
   id?: string;
   orgId: ObjectId;
   modifiedById: ObjectId;
+  divisionIds?: ObjectId[];
 
   createdAt: Date;
   updatedAt: Date;

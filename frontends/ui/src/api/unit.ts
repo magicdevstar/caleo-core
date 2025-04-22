@@ -13,6 +13,10 @@ export const GET_UNITS = gql`
         id
         name
         active
+        divisions {
+          id
+          name
+        }
         overtimeCode
         createdAt
       }

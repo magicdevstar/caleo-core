@@ -2078,6 +2078,8 @@ export type Unit = {
   __typename?: 'Unit';
   active: Scalars['Boolean']['output'];
   createdAt: Scalars['String']['output'];
+  divisionIds?: Maybe<Array<Scalars['String']['output']>>;
+  divisions?: Maybe<Array<Maybe<Division>>>;
   docType: DocType;
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
@@ -2374,6 +2376,7 @@ export type UpsertSkill = {
 
 export type UpsertUnit = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
+  divisionIds?: InputMaybe<Array<Scalars['String']['input']>>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   overtimeCode?: InputMaybe<Scalars['String']['input']>;
@@ -3987,6 +3990,8 @@ export type SkillSearchResultResolvers<ContextType = any, ParentType extends Res
 export type UnitResolvers<ContextType = any, ParentType extends ResolversParentTypes['Unit'] = ResolversParentTypes['Unit']> = ResolversObject<{
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  divisionIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  divisions?: Resolver<Maybe<Array<Maybe<ResolversTypes['Division']>>>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;

@@ -103,6 +103,7 @@ export default function UnitTable() {
     columns: [
       { id: 'name', label: 'Unit', columnType: 'string' },
       { id: 'overtimeCode', label: 'Overtime Code', columnType: 'string', renderValue: (value) => value || '-' },
+      { id: 'divisions', label: 'Divisions', width: 200, noSort: true, columnType: 'array', maxRender: 1 },
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

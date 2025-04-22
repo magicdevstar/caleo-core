@@ -15,7 +15,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
-import { CLONE_EVENT_BY_ID, GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
@@ -45,6 +45,9 @@ export default function EventsTable() {
     refetchQueries: [GET_ALL_EVENTS],
   });
   const [cloneEvent] = useMutation(CLONE_EVENT_BY_ID, {
+    refetchQueries: [GET_ALL_EVENTS],
+  });
+  const [templateFromEventId] = useMutation(CREATE_TEMPLATE_FROM_EVENT_ID, {
     refetchQueries: [GET_ALL_EVENTS],
   });
 
@@ -111,6 +114,24 @@ export default function EventsTable() {
               navigate(`/dashboard/admin/overtime/events/${clonedEvent.data.cloneEvent.id}`);
             } catch(error) {
               enqueueSnackbar('Error creating event. Please try again.', { variant: 'error' });
+            }
+          },
+        },
+        {
+          getName: () => 'Convert to template',
+          getIcon: () => 'solar:copy-bold-duotone',
+          onClick: async (row: Event) => {
+            try {
+              enqueueSnackbar('Creating event template...', { variant: 'info', autoHideDuration: 2000 });
+              const templateEvent = await templateFromEventId({
+                variables: {
+                  id: row.id,
+                },
+              });
+              navigate(`/dashboard/admin/overtime/templates/events/${templateEvent.data.templateEvent.id}`);
+            } catch(error) {
+              console.error('Error creating event template:', error);
+              enqueueSnackbar('Error creating event template. Please try again.', { variant: 'error' });
             }
           },
         },

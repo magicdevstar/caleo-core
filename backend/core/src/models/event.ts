@@ -110,11 +110,13 @@ export class EventModel extends BaseMongo<IEvent> {
     user,
     organization,
     getRefNumber,
+    status = EventStatus.Draft,
   } : {
     id: string;
     user: IUser;
     organization: IOrganization;
     getRefNumber: (id: string) => Promise<number>;
+    status?: EventStatus;
   }) {
     const templateEvent = await this.collection.findOne<IEvent>({
       _id: new ObjectId(id),
@@ -140,7 +142,7 @@ export class EventModel extends BaseMongo<IEvent> {
     delete templateEvent.requestDetails;
     delete templateEvent.requestDetails;
     delete templateEvent.assignmentIds;
-    templateEvent.status = EventStatus.Draft;
+    templateEvent.status = status;
     templateEvent.createdById = user._id!;
     templateEvent.modifiedById = user._id!;
     templateEvent.referenceId = await getRefNumber(organization.id);

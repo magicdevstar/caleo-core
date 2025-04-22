@@ -17,7 +17,7 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { CLONE_EVENT_BY_ID, GET_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GET_EVENT } from 'src/api/event';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import Iconify from 'src/components/iconify/iconify';
 import QueryView from 'src/components/query-view';
@@ -44,7 +44,7 @@ export default function VenueDetail() {
     setAnchorEl(null);
   };
 
-  const [cloneEvent, { loading: cloneLoading }] = useMutation(CLONE_EVENT_BY_ID, {
+  const [cloneEvent] = useMutation(CLONE_EVENT_BY_ID, {
     onError: () => {
       enqueueSnackbar('Failed to create event. Please try again.', { variant: 'error', autoHideDuration: 2000 });
     },
@@ -52,6 +52,17 @@ export default function VenueDetail() {
       const eventId = data?.cloneEvent?.id;
       if (eventId) {
         router.push(paths.dashboard.admin.overtime.eventDetail.replace(':eventId', eventId));
+      }
+    },
+  });
+  const [templateFromEventId] = useMutation(CREATE_TEMPLATE_FROM_EVENT_ID, {
+    onError: () => {
+      enqueueSnackbar('Failed to create event template. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+    },
+    onCompleted: (data) => {
+      const eventId = data?.templateEvent?.id;
+      if (eventId) {
+        router.push(paths.dashboard.admin.overtime.templates.eventDetail.replace(':eventId', eventId));
       }
     },
   });
@@ -110,6 +121,15 @@ export default function VenueDetail() {
               <Iconify icon="solar:magic-stick-3-bold" />
             </ListItemIcon>
             <ListItemText>Clone Event</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => {
+            templateFromEventId({ variables: { id: params.eventId } })
+            menuClose();
+          }}>
+            <ListItemIcon>
+              <Iconify icon="solar:copy-bold-duotone" />
+            </ListItemIcon>
+            <ListItemText>Convert to template</ListItemText>
           </MenuItem>
           <MenuItem onClick={() => {
             if (data?.event) {

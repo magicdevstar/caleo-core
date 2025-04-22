@@ -1329,4 +1329,20 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     return true;
   }
+
+  findAllByEventId({
+    eventId,
+  }: {
+    eventId: ObjectId;
+  }) {
+    return this.collection.find<IShift>({
+      eventId,
+      removedAt: { $exists: false },
+    })
+    .toArray()
+    .then((shifts) => shifts.map((shift) => ({
+      ...shift,
+      id: shift._id!.toString(),
+    })));
+  }
 };

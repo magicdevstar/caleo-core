@@ -844,6 +844,7 @@ export type Mutation = {
   shifts?: Maybe<Array<Maybe<Shift>>>;
   siteLock?: Maybe<SiteLock>;
   skill?: Maybe<Skill>;
+  templateEvent?: Maybe<Event>;
   unit?: Maybe<Unit>;
   user?: Maybe<User>;
   userEquipment?: Maybe<MemberEquipment>;
@@ -1129,6 +1130,11 @@ export type MutationSiteLockArgs = {
 
 export type MutationSkillArgs = {
   skill: UpsertSkill;
+};
+
+
+export type MutationTemplateEventArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -3514,6 +3520,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType, Partial<MutationSiteLockArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSkillArgs, 'skill'>>;
+  templateEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationTemplateEventArgs, 'id'>>;
   unit?: Resolver<Maybe<ResolversTypes['Unit']>, ParentType, ContextType, RequireFields<MutationUnitArgs, 'unit'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUserArgs, 'user'>>;
   userEquipment?: Resolver<Maybe<ResolversTypes['MemberEquipment']>, ParentType, ContextType, RequireFields<MutationUserEquipmentArgs, 'userEquipment'>>;

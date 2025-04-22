@@ -7,8 +7,12 @@ import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { IOrganization } from './organization';
 import { IAssignmentShiftSlots, IUser } from '../types/common';
+import { IShift } from './shift';
 
 const lambda = new LambdaClient({});
+
+type IAssignmentSlotMap = Record<string, IShiftSlot[]>;
+interface IShiftSlot { id: string; slotCount: number };
 
 export interface IAssignment extends Omit<
   Assignment,
@@ -57,6 +61,81 @@ export interface IAssignment extends Omit<
 export class AssignmentModel extends BaseMongo<IAssignment> {
   constructor(db: Db) {
     super(db, DocType.Assignment, 'assignments');
+  }
+
+  async createTemplates({
+    originalEventId,
+    eventId,
+    organization,
+    user,
+    addAssignmentIds,
+    shifts,
+  }: {
+    originalEventId: ObjectId;
+    eventId: ObjectId;
+    organization: IOrganization;
+    user: IUser;
+    shifts: IShift[];
+    addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) => Promise<void>;
+  }) {
+    const {
+      items: originalAssignments,
+    } = await this.search({
+      eventId: originalEventId,
+      orgId: organization._id,
+    });
+
+    const result: IAssignmentSlotMap = {};
+
+    for (const shift of shifts) {
+      const { assignmentId: aId, shiftId } = shift;
+      const assignmentId = aId.toString();
+
+      if (!result[assignmentId]) {
+        result[assignmentId] = [] as IShiftSlot[];
+      }
+
+      const existingShift = result[assignmentId].find(s => s.id === shiftId);
+
+      if (existingShift) {
+        existingShift.slotCount += 1;
+      } else {
+        result[assignmentId].push({ id: shiftId, slotCount: 1 });
+      }
+    }
+
+    const assignmentTemplates = originalAssignments.map(({
+      id,
+      _id,
+      eventId: _,
+      shiftIds,
+      shiftSlots,
+      createdAt,
+      updatedAt,
+      removedAt,
+      modifiedById,
+      ...a
+    }) => ({
+      ...a,
+      eventId,
+      shiftSlots: result[id!] || [],
+      shiftIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      modifiedById: user._id,
+    }));
+
+    const res = await this.collection.insertMany(assignmentTemplates);
+    const finalAssignmentIds = Object.values(res.insertedIds);
+
+    // Add assignmentIds to event once they have been created
+    await addAssignmentIds(
+      eventId,
+      finalAssignmentIds,
+      user._id!,
+    );
+
+    return res;
   }
 
   async cloneAssignmentsByEvent({

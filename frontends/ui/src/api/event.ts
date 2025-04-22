@@ -14,6 +14,14 @@ export const CLONE_EVENT_BY_ID = gql`
   }
 `;
 
+export const CREATE_TEMPLATE_FROM_EVENT_ID = gql`
+  mutation CreateTemplateFromEventId($id: String!) {
+    templateEvent(id: $id) {
+      id
+    }
+  }
+`;
+
 export const EVENT_UPLOAD_URL = gql`
   mutation EventUploadUrl {
     eventAttachmentUploadUrl {

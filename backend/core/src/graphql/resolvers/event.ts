@@ -257,6 +257,49 @@ export const event = {
 
       return event;
     },
+    templateEvent: async (
+      _parent: unknown,
+      { id }: { id: string },
+      {
+        events,
+        organization,
+        shifts,
+        assignments,
+        eventReferenceNumber,
+        user
+      }: Context
+    ): Promise<IEvent> => {
+      try {
+        adminOnly(user);
+  
+        const clonedEvent = await events.cloneEvent({
+          id,
+          user: user!,
+          organization: organization!,
+          status: EventStatus.Template,
+          getRefNumber: (id: string) => eventReferenceNumber.get(id),
+        });
+
+        const s = await shifts.findAllByEventId({
+          eventId: new ObjectId(id),
+        });
+
+        await assignments.createTemplates({
+          originalEventId: new ObjectId(id),
+          eventId: clonedEvent._id!,
+          organization: organization!,
+          user: user!,
+          shifts: s,
+          addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) =>
+            events.addAssignmentIds(id, assignmentIds, modifiedById),
+        });
+
+        return clonedEvent;
+      } catch(error) {
+        logger.error('Failed to templetize event', { error });
+        throw error;
+      }
+    },
     cloneEvent: async (
       _parent: unknown,
       { id }: { id: string },
@@ -276,7 +319,6 @@ export const event = {
           id,
           user: user!,
           organization: organization!,
-          // This isn't working? :shrug:
           getRefNumber: (id: string) => eventReferenceNumber.get(id),
         });
   

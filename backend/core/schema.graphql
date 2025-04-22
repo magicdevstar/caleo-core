@@ -2017,6 +2017,7 @@ type Mutation {
 
   event(event: UpsertEvent!): Event
   cloneEvent(id: String!): Event
+  templateEvent(id: String!): Event
   approveEvent(id: String!): Event
   rejectEvent(id: String!, reason: String): Event
   eventAttachmentUploadUrl: EventAttachmentUpload

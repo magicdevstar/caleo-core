@@ -1048,8 +1048,10 @@ export class ShiftModel extends BaseMongo<IShift> {
 
   async findAllUnassignedShiftsByGroupId({
     shiftGroupId,
+    includeLockedShifts,
   }: {
     shiftGroupId: string;
+    includeLockedShifts?: boolean;
   }) {
     const res = await this.collection.find<IShift>({
       $and: [
@@ -1065,16 +1067,18 @@ export class ShiftModel extends BaseMongo<IShift> {
             },
           ],
         },
-        {
-          $or: [
-            { locked: false },
-            {
-              locked: {
-                $exists: false,
+        ...(includeLockedShifts ? [] : [
+          {
+            $or: [
+              { locked: false },
+              {
+                locked: {
+                  $exists: false,
+                },
               },
-            },
-          ],
-        },
+            ],
+          }
+        ]),
       ],
     }).toArray();
     return res.map(({_id, ...item}) => ({

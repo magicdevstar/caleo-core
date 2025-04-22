@@ -94,7 +94,11 @@ export const shiftInterestRequests = {
         // If the status is approved then ensure we add the user to the shift group
         if (shiftInterestRequest.status === ShiftInterestRequestStatus.Approved) {
           try {
-            const availableShifts = await shifts.findAllUnassignedShiftsByGroupId({ shiftGroupId: shiftInterestRequest.shiftGroupId });
+            adminOnly(user);
+            const availableShifts = await shifts.findAllUnassignedShiftsByGroupId({
+              shiftGroupId: shiftInterestRequest.shiftGroupId,
+              includeLockedShifts: true,
+            });
             let interestUser = user!;
             if (user!.id !== shiftInterestRequest.userId) {
               const foundUser = await users.get(shiftInterestRequest.userId);
@@ -148,6 +152,7 @@ export const shiftInterestRequests = {
         // If the status is rejected then ensure we attempt to remove the user from the shift group
         if (shiftInterestRequest.status === ShiftInterestRequestStatus.Rejected) {
           try {
+            adminOnly(user);
             let interestUser = user!;
             if (user!.id !== shiftInterestRequest.userId) {
               const foundUser = await users.get(shiftInterestRequest.userId);
@@ -162,33 +167,35 @@ export const shiftInterestRequests = {
               shiftId: shiftInterestRequest.shiftGroupId,
               status: ShiftStatus.Assigned,
             });
-            if (slot) {
-              notificationData = {
-                template: MailerEvents.OfficerRemovedFromShift,
-                data: {
-                  shift: slot!,
-                  existingUserId: slot.userId,
-                  removeUser: user,
-                  organization,
-                }
-              }
-              const {id, ...createShift} = JSON.parse(JSON.stringify(shift)) as Shift;
-              await shifts.create<any>({
-                ...createShift,
-                status: ShiftStatus.Unassigned,
-                modifiedById: user?._id!,
-                removedAt: new Date(),
-                userId: interestUser._id,
-              });
-              delete slot.userId;
-              await shifts.update<any>({
-                ...slot,
-                status: ShiftStatus.Available,
-              }, { userId: '' });
-            } else {
+            if (!slot) {
               throw new GraphQLError('User is not assigned to this shift');
             }
+
+            notificationData = {
+              template: MailerEvents.OfficerRemovedFromShift,
+              data: {
+                shift: slot!,
+                existingUserId: slot.userId,
+                removeUser: user,
+                organization,
+              }
+            }
+            const {_id, ...createShift} = slot;
+            await shifts.create<any>({
+              ...createShift,
+              status: ShiftStatus.Unassigned,
+              modifiedById: user?._id!,
+              removedAt: new Date(),
+              userId: interestUser._id,
+            });
+            delete slot.userId;
+            await shifts.update<any>({
+              ...slot,
+              id: _id.toString(),
+              status: ShiftStatus.Available,
+            }, { userId: '' });
           } catch(error) {
+            logger.error('Failed to remove user from shift', { error, shiftInterestRequest });
             throw new GraphQLError('Cannot remove user from this shift');
           }
         }

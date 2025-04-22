@@ -811,7 +811,7 @@ export default function EditEvent({
                                 )
                             }
                             onChange={(date) => {
-                              setValue('scheduledInterestList', date ? dayjs(date).toISOString() : '')
+                              setValue('interestListAutoAssignCutoff', date ? dayjs(date).toISOString() : '')
                             }}
                             slotProps={{
                               textField: {

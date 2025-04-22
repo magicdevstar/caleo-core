@@ -47,7 +47,7 @@ export default function UpsertUnitDialogue({
   });
   const [name, setName] = useState('');
   const [overtimeCode, setOvertimeCode] = useState('');
-  const [division, setDivision] = useState<Division | undefined>();
+  const [division, setDivision] = useState<Division | undefined>(unit?.divisions?.[0] || undefined);
   const [error, setError] = useState('');
   const action = useMemo(() => unit ? 'Update' : 'Create', [unit]);
 
@@ -55,10 +55,11 @@ export default function UpsertUnitDialogue({
     if (unit) {
       setName(unit.name);
       setOvertimeCode(unit.overtimeCode || '');
-      console.log(unit.divisions?.[0] || undefined);
       setDivision(unit.divisions?.[0] || undefined);
     } else {
       setName('');
+      setOvertimeCode('');
+      setDivision(undefined);
     }
   }, [unit])
 
@@ -132,6 +133,7 @@ export default function UpsertUnitDialogue({
             <Autocomplete
               options={divisions}
               disableCloseOnSelect
+              defaultValue={unit?.divisions?.[0] || undefined}
               fullWidth
               value={division}
               sx={{ mt: 2 }}

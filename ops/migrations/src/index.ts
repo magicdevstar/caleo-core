@@ -32,6 +32,7 @@ import { importRank } from './utils/import-rank';
 import { importEquipment } from './utils/import-equipment';
 import { importSkills } from "./utils/import-skills";
 import { correctEmails } from "./utils/correct-emails";
+import { importUnitsAndDivisions } from "./utils/import-units-and-divisions";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -43,6 +44,7 @@ import { correctEmails } from "./utils/correct-emails";
     const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
+    await importUnitsAndDivisions(mongoClientProd);
     
     // await correctEmails(mongoClient);
 

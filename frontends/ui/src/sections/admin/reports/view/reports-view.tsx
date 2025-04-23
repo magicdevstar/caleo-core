@@ -1,4 +1,4 @@
-import { ChangeEvent, memo, useCallback, useState } from 'react';
+import { ChangeEvent, memo, useCallback, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -9,6 +9,8 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
+// types
+import { ReportType, ReportTypeNames, reportTypes } from 'src/types/reports';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import EventsByDate from '../reports/events-by-date';
@@ -18,32 +20,12 @@ import ShiftsByOfficer from '../reports/shifts-by-officer';
 import RelinquishedShiftsByOfficer from '../reports/relinquished-shifts-by-officer';
 import RankedShiftsByOfficer from '../reports/ranked-shifts-by-officer';
 import ShiftsByDate from '../reports/shifts-by-date';
-
-enum ReportType {
-  EVENTS_BY_DATE = 'EVENTS_BY_DATE',
-  EVENTS_BY_VENUE = 'EVENTS_BY_VENUE',
-  SHIFTS_BY_EVENT = 'SHIFTS_BY_EVENT',
-  SHIFTS_BY_OFFICER = 'SHIFTS_BY_OFFICER',
-  SHIFTS_BY_DATE = 'SHIFTS_BY_DATE',
-  RANKED_SHIFTS_BY_OFFICER = 'RANKED_SHIFTS_BY_OFFICER',
-  RELINQUISHED_SHIFTS_BY_OFFICER = 'RELINQUISHED_SHIFTS_BY_OFFICER',
-}
-
-const ReportTypeNames = {
-  [ReportType.EVENTS_BY_DATE]: 'Events by Date',
-  [ReportType.EVENTS_BY_VENUE]: 'Events by Venue',
-  [ReportType.SHIFTS_BY_EVENT]: 'Shifts by Event',
-  [ReportType.SHIFTS_BY_OFFICER]: 'Shifts by Officer',
-  [ReportType.SHIFTS_BY_DATE]: 'Shifts by Date',
-  [ReportType.RANKED_SHIFTS_BY_OFFICER]: 'Ranked Shifts by Officer',
-  [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Scratched Shifts by Officer',
-};
+import NoShowByOfficer from '../reports/no-show-by-officer';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
-  // TODO: create and add each component for creating reports
   switch (reportType) {
     case ReportType.EVENTS_BY_DATE:
       return <EventsByDate />;
@@ -59,15 +41,19 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
       return <RankedShiftsByOfficer />
     case ReportType.RELINQUISHED_SHIFTS_BY_OFFICER:
       return <RelinquishedShiftsByOfficer />;
+    case ReportType.NO_SHOW_REPORT_BY_OFFICER:
+      return <NoShowByOfficer />;
     default:
       return null;
   }
 });
 
 export default function ReportsView() {
-  const { lottery } = useFeatures();
+  const features = useFeatures();
   const settings = useSettingsContext();
   const [reportType, setReportType] = useState(ReportType.EVENTS_BY_DATE);
+  const reportOptions = useMemo(() => reportTypes(features), [features]);
+  console.log(reportOptions);
 
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setReportType(event?.target?.value as ReportType);
@@ -89,12 +75,7 @@ export default function ReportsView() {
         value={reportType}
         onChange={onChange}
       >
-        {[...Object.values(ReportType)].filter((type) => {
-          if (type === ReportType.RANKED_SHIFTS_BY_OFFICER && !lottery) {
-            return false;
-          }
-          return true;
-        }).map((option) => (
+        {reportOptions.map((option) => (
           <MenuItem key={option} value={option}>
             {ReportTypeNames[option]}
           </MenuItem>

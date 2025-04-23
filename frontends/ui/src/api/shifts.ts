@@ -530,6 +530,10 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
         removedAt
         relinquishNote
         refNumber
+        shiftCheckInOut {
+          checkInTime
+          adminNotes
+        }
         user {
           id
           firstName

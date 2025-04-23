@@ -41,6 +41,7 @@ query ORGANIZATION {
       docusign
       kiosk
       eventTemplates
+      noShowReport
     }
     customizations {
       pNumber

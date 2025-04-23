@@ -41,6 +41,7 @@ const userDetailProperties = `
         docusign
         kiosk
         eventTemplates
+        noShowReport
       }
       customizations {
         pNumber

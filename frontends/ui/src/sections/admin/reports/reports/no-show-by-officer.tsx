@@ -1,0 +1,209 @@
+import { useMemo } from 'react';
+import { useSnackbar } from 'notistack';
+import { useForm } from 'react-hook-form';
+import { useQuery } from '@apollo/client';
+import * as Yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+// @mui
+import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import { LoadingButton } from '@mui/lab';
+import CircularProgress from '@mui/material/CircularProgress';
+// Types
+import { Shift, ShiftStatus, User } from 'src/__generated__/resolvers-types';
+import { GET_USERS } from 'src/api/user';
+import { GET_OFFICER_REPORT_SHIFTS } from 'src/api/shifts';
+// hooks
+import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
+// components
+import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
+import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
+import { client } from 'src/utils/apollo';
+import { convertDate, dateFormat, timeFormat } from 'src/hooks/use-datejs';
+import { useDownloadCsv } from 'src/hooks/use-download-csv';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+
+const noShowShiftsByOfficerSchema = Yup.object().shape({
+  officer: Yup.mixed<User | string>()
+    .nullable()
+    .transform((value: User) => value?.id)
+    .test('officer-required', 'An Officer is required', (value) => !!value),
+  dateRange: Yup.array().required('A date range is required'),
+});
+
+export default function NoShowByOfficer() {
+  const { user } = useAuthContext();
+  const { pNumberLabel } = usePNumberLabel();
+  const { enqueueSnackbar } = useSnackbar();
+  const { download } = useDownloadCsv({
+    fileName: 'no-show-by-officer',
+    ext: 'csv',
+  });
+
+  const { text, setText, debouncedText } = useDebounceText({ ms: 500 });
+
+  const inputFields = useMemo(() => {
+    const trimmedValue = debouncedText.trim();
+    let key = 'query';
+    const value: string | undefined = trimmedValue || undefined;
+    try {
+      const isPNumber = /^\d+$/.test(value || '');
+      if (isPNumber) {
+        key = 'pNumber';
+      }
+    } catch (error) {
+      console.error('Not a number');
+    }
+
+    return {
+      key,
+      value,
+    };
+  }, [debouncedText]);
+
+  const { data, loading: usersLoading } = useQuery(GET_USERS, {
+    fetchPolicy: 'network-only',
+    nextFetchPolicy: 'cache-first',
+    variables: {
+      input: {
+        orderBy: 'createdAt',
+        order: 'desc',
+        limit: 100,
+        [inputFields.key]: inputFields.value,
+      },
+    },
+  });
+  const users: User[] = useMemo(() => data?.users?.items || [], [data]);
+
+  const defaultValues = useMemo(
+    () =>
+      ({
+        officer: null,
+        dateRange: undefined,
+      }) as any,
+    []
+  );
+
+  const methods = useForm({
+    mode: 'onTouched',
+    resolver: yupResolver(noShowShiftsByOfficerSchema),
+    defaultValues,
+  });
+
+  const onSubmit = methods.handleSubmit(async (values) => {
+    try {
+      const { data: res } = await client.query({
+        query: GET_OFFICER_REPORT_SHIFTS,
+        variables: {
+          input: {
+            includeRemoved: false,
+            status: [ShiftStatus.Assigned],
+            userId: values.officer,
+            range: {
+              startTime: {
+                gte: values.dateRange[0].toDate().toISOString(),
+                lte: values.dateRange[1].toDate().toISOString(),
+              },
+            },
+          },
+        },
+      });
+      const shifts = res.shifts.items;
+      if (shifts.length === 0) {
+        enqueueSnackbar('No data. Please try a different set of filters.', {
+          variant: 'info',
+          autoHideDuration: 3000,
+        });
+        return;
+      }
+      const formattedJson = shifts.map((shift: Shift) => ({
+        'Officer First Name': shift.user?.firstName || '',
+        'Officer Last Name': shift.user?.lastName || '',
+        [`Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
+        'No Show': !shift?.shiftCheckInOut?.checkInTime ? 'Yes' : 'NO',
+        'Admin Comment': shift?.shiftCheckInOut?.adminNotes || 'N/A',
+        'Event Ref. #': shift?.event?.referenceId,
+        'Event Name': shift?.event?.name || '',
+        'Venue Name': shift.event?.venue?.name || '',
+        'Assignment Name': shift.assignment?.name,
+        'Shift Start Date': shift.startTime
+          ? convertDate({ date: shift.startTime, user }).format(dateFormat)
+          : '',
+        'Shift Start Time': shift.startTime
+          ? convertDate({ date: shift.startTime, user }).format(timeFormat)
+          : '',
+      }));
+      download(formattedJson);
+    } catch (error) {
+      enqueueSnackbar('Error creating report', { variant: 'error', autoHideDuration: 3000 });
+      console.error(error);
+    }
+  });
+
+  return (
+    <Card
+      sx={{
+        p: 3,
+      }}
+    >
+      <FormProvider methods={methods} onSubmit={onSubmit}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Search Criteria
+        </Typography>
+        <Box
+          display="grid"
+          rowGap={3}
+          columnGap={2}
+          sx={{
+            mb: 4,
+          }}
+          gridTemplateColumns={{
+            sm: 'repeat(1, 1fr)',
+            lg: '50% 1fr',
+          }}
+        >
+          <RHFAutocomplete
+            openOnFocus
+            name="officer"
+            label={`Officer Name or ${pNumberLabel} *`}
+            options={users}
+            inputValue={text || ''}
+            loading={usersLoading}
+            loadingText={
+              <>
+                Loading...
+                <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+              </>
+            }
+            getOptionLabel={(option) => (option as User).name}
+            filterOptions={(x: any) => x}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            onInputChange={(_event, newInputValue) => {
+              setText(newInputValue);
+            }}
+            renderOption={(props, option) => (
+              <li {...props} key={option.id}>
+                {`${option.name} (#${option.member?.pNumber})`}
+              </li>
+            )}
+          />
+          <RHFDateRangePicker
+            sx={{ width: '100%' }}
+            name="dateRange"
+            label="No Show Date Range"
+            calendars={1}
+            timezone={user?.member?.org?.timezone}
+          />
+        </Box>
+        <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
+          <LoadingButton type="submit" variant="contained" loading={methods.formState.isSubmitting}>
+            Create Report
+          </LoadingButton>
+        </Stack>
+      </FormProvider>
+    </Card>
+  );
+}

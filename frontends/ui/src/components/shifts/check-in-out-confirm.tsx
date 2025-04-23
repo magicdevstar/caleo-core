@@ -12,6 +12,7 @@ import { CHECK_IN, CHECK_OUT, GET_ALL_SHIFTS } from 'src/api/shifts';
 import { getLocation } from 'src/utils/get-location';
 import { client } from 'src/utils/apollo';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
 
 export default function CheckInOutConfirm({
   checkInOutConfirm,
@@ -20,14 +21,14 @@ export default function CheckInOutConfirm({
 }: {
   checkInOutConfirm: Shift | null;
   confirm: UseBooleanReturnType;
-  onSuccess?: () => void;
+  onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime, [checkInOutConfirm]);
   const [equipmentTime, setEquipmentTime] = useState<number>(0);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [signNow, setSignNow] = useState(false);
+  const [signNow, setSignNow] = useState(true);
 
   const [checkIn] = useMutation(CHECK_IN, {
     refetchQueries: [GET_ALL_SHIFTS],
@@ -37,11 +38,11 @@ export default function CheckInOutConfirm({
   });
   
   const handleCheckInOut = useCallback(async (shift: Shift) => {
-    const actionName = shift.shiftCheckInOut?.checkInTime ? 'check out' : 'Check in';
+    const actionName = isCheckout ? 'Check out' : 'Check in';
     try {
       setLoading(true);
       const location = await getLocation();
-      const action = shift.shiftCheckInOut?.checkInTime ? checkOut : checkIn;
+      const action = isCheckout ? checkOut : checkIn;
       const response = await action({
         variables: {
           input: {
@@ -75,7 +76,7 @@ export default function CheckInOutConfirm({
         include: [GET_ALL_SHIFTS],
       });
       confirm.onFalse();
-      onSuccess?.();
+      onSuccess?.(isCheckout ? CHECK_IN_OUT_STATUS.CHECKED_OUT : CHECK_IN_OUT_STATUS.CHECKED_IN);
     } catch(error) {
       enqueueSnackbar(`Failed to ${actionName}. Please try again.`, { variant: 'error' });
       console.error(error);
@@ -88,6 +89,7 @@ export default function CheckInOutConfirm({
     setLoading,
     enqueueSnackbar,
     onSuccess,
+    isCheckout,
     confirm,
     checkInOutNote,
     equipmentTime,

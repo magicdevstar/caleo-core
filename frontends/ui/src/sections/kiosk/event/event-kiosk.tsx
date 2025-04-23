@@ -63,10 +63,11 @@ export default function EventKiosk({
 
   return (
     <Stack spacing={2} sx={{ width: '100%' }}>
-      <Typography variant="h4" component="h1" gutterBottom>{event?.name}</Typography>
+      <Typography variant="h4" component="h1" gutterBottom>{event?.name}: Check-in/out</Typography>
       <TextField
         label={pNumberLabel}
         fullWidth
+        inputMode="numeric"
         onChange={(e) => setPNumber(e.target.value)}
       />
       <LoadingButton

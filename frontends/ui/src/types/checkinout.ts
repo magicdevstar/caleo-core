@@ -1,0 +1,4 @@
+export enum CHECK_IN_OUT_STATUS {
+  CHECKED_IN = 'CHECKED_IN',
+  CHECKED_OUT = 'CHECKED_OUT',
+};

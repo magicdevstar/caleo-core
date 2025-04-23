@@ -11,8 +11,11 @@ import Iconify from 'src/components/iconify';
 import CheckInOut from 'src/components/shifts/check-in-out';
 // types
 import { paths } from 'src/routes/paths';
+import { useSnackbar } from 'notistack';
+import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
 
 export default function EventUserKioskView() {
+  const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const params = useParams();
 
@@ -43,7 +46,7 @@ export default function EventUserKioskView() {
           <CheckInOut
             userId={params.userId}
             eventId={params.eventId}
-            onSuccess={back}
+            onSuccess={() => back()}
             emptyView={
               <Stack spacing={2}>
                 <Typography variant='h4' component='h2'>No shifts found!</Typography>

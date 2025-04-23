@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 // Types
 import { Shift } from "src/__generated__/resolvers-types";
+import { CHECK_IN_OUT_STATUS } from "src/types/checkinout";
 // hooks
 import { useBoolean } from "src/hooks/use-boolean";
 import { useCheckInOut } from "src/hooks/use-check-in-out";
@@ -27,7 +28,7 @@ export default function CheckInOut({
   eventId?: string;
   userId?: string;
   emptyView?: JSX.Element;
-  onSuccess?: () => void;
+  onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const { user } = useAuthContext();
   const theme = useTheme();

@@ -1396,7 +1396,7 @@ type DocusignSignerDetails {
     docusign: Boolean
     kiosk: Boolean
     eventTemplates: Boolean
-    nowShowReport: Boolean
+    noShowReport: Boolean
   }
 
   input UpsertInterestListSetting {

@@ -531,6 +531,7 @@ export const event = {
       endTime: (item: IEvent) => item.endTime ? new Date(item.endTime).toISOString() : null,
       scheduledFirstComeFirstServe: (item: IEvent) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,
       scheduledInterestList: (item: IEvent) => item.scheduledInterestList ? new Date(item.scheduledInterestList).toISOString() : null,
+      interestListAutoAssignCutoff: (item: IEvent) => item.interestListAutoAssignCutoff ? new Date(item.interestListAutoAssignCutoff).toISOString() : null,
       scheduledCloseInterestList: (item: IEvent) => item.scheduledCloseInterestList ? new Date(item.scheduledCloseInterestList).toISOString() : null,
       lotteryCounter: (item: IEvent, _, { lotteryCounter }: Context) => typeof item.lotteryNumber === 'number' ? lotteryCounter.countLoader.load({lotteryNumber: item.lotteryNumber!, orgId: item.orgId.toString()}) : null,
       attachments: async (item: IEvent, _arg: unknown, { events }: Context) => {

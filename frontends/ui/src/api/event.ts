@@ -263,6 +263,7 @@ export const GET_EVENT = gql`
       scheduledCloseInterestList
       scheduledFirstComeFirstServe
       notifyOnFirstComeFirstServe
+      interestListAutoAssignCutoff
       autoAssignInterestList
       startTime
       endTime

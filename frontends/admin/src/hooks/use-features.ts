@@ -20,6 +20,7 @@ const defaultFeatures: OrganizationFeatures = {
   docusign: false,
   kiosk: false,
   eventTemplates: false,
+  noShowReport: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

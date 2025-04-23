@@ -1329,6 +1329,7 @@ export type OrganizationFeatures = {
   lasdUserFields: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
+  noShowReport: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
@@ -2291,6 +2292,7 @@ export type UpsertOrganizationFeatures = {
   lasdUserFields?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
+  nowShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3637,6 +3639,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   lasdUserFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

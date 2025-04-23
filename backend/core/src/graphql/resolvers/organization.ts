@@ -119,6 +119,10 @@ export const organization = {
           value: 'eventTemplates',
           label: 'Event Templates'
         },
+        {
+          value: 'noShowReport',
+          label: 'No Show Report'
+        },
       ] as {value: (keyof OrganizationFeatures), label: string}[];
     },
     activeLottery: (
@@ -254,6 +258,7 @@ export const organization = {
       docusign: (parent: OrganizationFeatures) => !!parent.docusign,
       kiosk: (parent: OrganizationFeatures) => !!parent.kiosk,
       eventTemplates: (parent: OrganizationFeatures) => !!parent.eventTemplates,
+      noShowReport: (parent: OrganizationFeatures) => !!parent.noShowReport,
     },
     LotteryDate: {
       time: (parent: any) => new Date(parent.time).toISOString(),

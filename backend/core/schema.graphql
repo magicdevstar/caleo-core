@@ -1223,6 +1223,7 @@ type DocusignSignerDetails {
     docusign: Boolean!
     kiosk: Boolean!
     eventTemplates: Boolean!
+    noShowReport: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1395,6 +1396,7 @@ type DocusignSignerDetails {
     docusign: Boolean
     kiosk: Boolean
     eventTemplates: Boolean
+    nowShowReport: Boolean
   }
 
   input UpsertInterestListSetting {

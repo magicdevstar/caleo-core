@@ -83,6 +83,8 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     } = await this.search({
       eventId: originalEventId,
       orgId: organization._id,
+      order: '_id',
+      orderBy: 'asc',
     });
 
     const result: IAssignmentSlotMap = {};
@@ -158,6 +160,8 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     } = await this.search({
       eventId: originalEventId,
       orgId: organization._id,
+      order: '_id',
+      orderBy: 'asc',
     });
 
     // If the assignment doesn't have a shift slots attached we will need to create them

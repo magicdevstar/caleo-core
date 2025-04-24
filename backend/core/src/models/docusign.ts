@@ -180,15 +180,15 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       startTime,
       endTime,
       formattedDiff,
+      totalEquipmentTime,
     }  = docusignDates({
       startTime: shift.shiftCheckInOut!.checkInTime!,
       endTime: shift.shiftCheckInOut!.checkOutTime!,
-      startEquipmentTime: shift.shiftCheckInOut!.checkInEquipmentTime || undefined,
-      endEquipmentTime: shift.shiftCheckInOut!.checkOutEquipmentTime || undefined,
+      startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
+      endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
       timezone: org.timezone as any,
     });
 
-    const totalEquipmentTime = Math.round((shift.shiftCheckInOut!.checkInEquipmentTime || 0) + (shift.shiftCheckInOut!.checkOutEquipmentTime || 0));
     const lastLineExplainer =
       totalEquipmentTime ?
       `Employee received a total of ${totalEquipmentTime} hours of equipment time.` :

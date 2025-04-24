@@ -4,6 +4,8 @@ import {
   expect,
   it
 } from '@jest/globals';
+import { docusignDates } from './date.helpers';
+import { Timezone } from '../models/scheduler';
 
 // Mock the logger
 jest.mock('./logger', () => ({
@@ -13,82 +15,82 @@ jest.mock('./logger', () => ({
   error: jest.fn()
 }));
 
-describe('date helpers', () => {
+describe.only('date helpers', () => {
   describe('docusignDates', () => {
     it('should round down start time to nearest 15 minutes', () => {
       const date = new Date('2023-10-01T12:34:56Z');
       const endDate = new Date('2023-10-01T13:34:56Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(30);
       expect(result.endTime.getMinutes()).toBe(45);
       expect(result.formattedDiff).toBe('02:15');
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should handle exact 15-minute boundaries', () => {
       const date = new Date('2023-10-01T12:15:00Z');
       const endDate = new Date('2023-10-01T13:30:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(15); // Should stay at 15
       expect(result.endTime.getMinutes()).toBe(30); // Should stay at 30
       expect(result.formattedDiff).toBe('02:15');
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should handle very short durations', () => {
       const date = new Date('2023-10-01T12:14:00Z');
       const endDate = new Date('2023-10-01T12:16:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.formattedDiff).toBe('01:15'); // Should be minimum 1 hour and 15 minutes
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should handle dates close to day boundaries', () => {
       const date = new Date('2023-10-01T22:52:00Z');
       const endDate = new Date('2023-10-02T23:02:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       // Check day transition is maintained properly
       expect(result.startTime.getDate()).not.toBe(result.endTime.getDate());
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should format single-digit minutes correctly', () => {
       const date = new Date('2023-10-01T12:00:00Z');
       const endDate = new Date('2023-10-01T12:05:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.formattedDiff).toBe('01:15'); // Should pad or handle single digit minutes
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should handle daylight savings time transitions', () => {
       // Use a date during DST transition for the timezone
       const date = new Date('2023-03-12T09:45:00Z'); // Day when DST starts in the US
       const endDate = new Date('2023-03-12T10:15:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       // Mainly checks that the function doesn't throw errors and handles the transition
       expect(result.startTime).toBeDefined();
       expect(result.endTime).toBeDefined();
+      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
     it('should handle startEquipmentTime by subtracting hours from start time', () => {
       const date = new Date('2023-10-01T12:00:00Z');
       const endDate = new Date('2023-10-01T13:00:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const startEquipmentTime = new Date('2023-10-01T10:00:00Z');
+      const timezone = 'America/Los_Angeles' as Timezone;
       
       // With 2 hours of start equipment time
       const result = docusignDates({ 
         startTime: date, 
         endTime: endDate, 
         timezone,
-        startEquipmentTime: 2 
+        startEquipmentTime,
       });
       
       // Check that 2 hours were subtracted from start time
@@ -102,15 +104,15 @@ describe('date helpers', () => {
     it('should handle endEquipmentTime by adding hours to end time', () => {
       const date = new Date('2023-10-01T12:00:00Z');
       const endDate = new Date('2023-10-01T13:00:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const endEquipmentTime = new Date('2023-10-01T16:00:00Z');
+      const timezone = 'America/Los_Angeles' as Timezone;
       
       // With 3 hours of end equipment time
       const result = docusignDates({ 
         startTime: date, 
         endTime: endDate, 
         timezone,
-        endEquipmentTime: 3 
+        endEquipmentTime,
       });
       
       // No start equipment time, so start is unmodified
@@ -123,15 +125,16 @@ describe('date helpers', () => {
     it('should handle both startEquipmentTime and endEquipmentTime together', () => {
       const date = new Date('2023-10-01T12:00:00Z');
       const endDate = new Date('2023-10-01T13:00:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const startEquipmentTime = new Date('2023-10-01T11:00:00Z');
+      const endEquipmentTime = new Date('2023-10-01T15:00:00Z');
+      const timezone = 'America/Los_Angeles' as Timezone;
       
       const result = docusignDates({ 
         startTime: date, 
         endTime: endDate, 
         timezone,
-        startEquipmentTime: 1,
-        endEquipmentTime: 2
+        startEquipmentTime,
+        endEquipmentTime,
       });
       
       // Start time should be 1 hour earlier
@@ -147,14 +150,12 @@ describe('date helpers', () => {
     it('should use default 1 hour for end time when endEquipmentTime is 0', () => {
       const date = new Date('2023-10-01T12:00:00Z');
       const endDate = new Date('2023-10-01T13:00:00Z');
-      const timezone = 'America/Los_Angeles';
-      const { docusignDates } = require('./date.helpers');
+      const timezone = 'America/Los_Angeles' as Timezone;
       
       const result = docusignDates({ 
         startTime: date, 
         endTime: endDate, 
         timezone,
-        endEquipmentTime: 0 
       });
       
       // End time should still have default 1 hour added

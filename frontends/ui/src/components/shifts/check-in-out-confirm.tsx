@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { useSnackbar } from 'notistack';
 import { useMutation } from '@apollo/client';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -13,6 +17,11 @@ import { getLocation } from 'src/utils/get-location';
 import { client } from 'src/utils/apollo';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
+import { useAuthContext } from 'src/auth/hooks';
+import { getNow } from 'src/hooks/use-datejs';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function CheckInOutConfirm({
   checkInOutConfirm,
@@ -23,9 +32,12 @@ export default function CheckInOutConfirm({
   confirm: UseBooleanReturnType;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
+  const now = getNow({ organization: user.member.org! });
+  const requiredEquipmentTime = useMemo(() => checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime), [checkInOutConfirm]);
   const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime, [checkInOutConfirm]);
-  const [equipmentTime, setEquipmentTime] = useState<number>(0);
+  const [equipmentTime, setEquipmentTime] = useState<Dayjs | null>(checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime) ? dayjs() : null);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [signNow, setSignNow] = useState(true);
@@ -40,6 +52,18 @@ export default function CheckInOutConfirm({
   const handleCheckInOut = useCallback(async (shift: Shift) => {
     const actionName = isCheckout ? 'Check out' : 'Check in';
     try {
+      if (requiredEquipmentTime && !equipmentTime) {
+        enqueueSnackbar('Please select an equipment time.', { variant: 'warning' });
+        return;
+      }
+      if (isCheckout && now.isAfter(equipmentTime)) {
+        enqueueSnackbar('Equipment return time must be in the future.', { variant: 'warning' });
+        return;
+      }
+      if (!isCheckout && now.isBefore(equipmentTime)) {
+        enqueueSnackbar('Equipment pickup time must be in the past.', { variant: 'warning' });
+        return;
+      }
       setLoading(true);
       const location = await getLocation();
       const action = isCheckout ? checkOut : checkIn;
@@ -48,8 +72,10 @@ export default function CheckInOutConfirm({
           input: {
             id: shift.id,
             note: checkInOutNote,
-            equipmentTime,
             signNow,
+            ...(requiredEquipmentTime && equipmentTime && {
+              equipmentDateTime: equipmentTime.toISOString(),
+            }),
             ...(location && {
               coords: {
                 accuracy: location.coords.accuracy,
@@ -75,6 +101,8 @@ export default function CheckInOutConfirm({
       await client.refetchQueries({
         include: [GET_ALL_SHIFTS],
       });
+      setEquipmentTime(null);
+      setCheckInOutNote('');
       confirm.onFalse();
       onSuccess?.(isCheckout ? CHECK_IN_OUT_STATUS.CHECKED_OUT : CHECK_IN_OUT_STATUS.CHECKED_IN);
     } catch(error) {
@@ -89,6 +117,9 @@ export default function CheckInOutConfirm({
     setLoading,
     enqueueSnackbar,
     onSuccess,
+    setEquipmentTime,
+    now,
+    requiredEquipmentTime,
     isCheckout,
     confirm,
     checkInOutNote,
@@ -104,13 +135,26 @@ export default function CheckInOutConfirm({
       content={(
         <Stack spacing={2} mt={1}>
           {
-            checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime) && (
-              <TextField
-                label="Equipment time in hours"
-                type="number"
-                fullWidth
-                onBlur={(event) => {
-                  setEquipmentTime(parseFloat(event.target.value))
+            requiredEquipmentTime && (
+              <DateTimePicker
+                timezone={user.member.org?.timezone}
+                ampm={false}
+                maxDate={dayjs()}
+                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                label={isCheckout ? 'Equipment return time' : 'Equipment pickup time'}
+                value={dayjs(equipmentTime)}
+                onChange={(newValue) => {
+                  console.log(newValue);
+                  setEquipmentTime(newValue);
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: 'normal',
+                    helperText: isCheckout ?
+                      'What time do you anticipate dropping off your equipment?' :
+                      'What time did you pick up your equipment?',
+                  },
                 }}
               />
             )

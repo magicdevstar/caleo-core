@@ -73,8 +73,8 @@ export const EditCheckInOut = ({
     id: Yup.string().required(),
     checkInTime: Yup.date().nullable(),
     checkOutTime: Yup.date().nullable(),
-    checkInEquipmentTime: Yup.number().nullable(),
-    checkOutEquipmentTime: Yup.number().nullable(),
+    checkInEquipmentTime: Yup.date().nullable(),
+    checkOutEquipmentTime: Yup.date().nullable(),
     checkInNote: Yup.string().nullable(),
     checkOutNote: Yup.string().nullable(),
     adminNotes: Yup.string().nullable(),
@@ -86,8 +86,14 @@ export const EditCheckInOut = ({
       checkInNote: shift?.shiftCheckInOut?.checkInNote,
       checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
       adminNotes: shift?.shiftCheckInOut?.adminNotes,
-      checkInEquipmentTime: shift?.shiftCheckInOut?.checkInEquipmentTime,
-      checkOutEquipmentTime: shift?.shiftCheckInOut?.checkOutEquipmentTime,
+      checkInEquipmentTime: shift?.shiftCheckInOut?.equipmentDetails?.checkInTime ? convertDate({
+        date: new Date(shift.shiftCheckInOut.equipmentDetails.checkInTime),
+        user
+      }).toDate() : undefined,
+      checkOutEquipmentTime: shift?.shiftCheckInOut?.equipmentDetails?.checkOutTime ? convertDate({
+        date: new Date(shift.shiftCheckInOut.equipmentDetails.checkOutTime),
+        user
+      }).toDate() : undefined,
       checkInTime: shift?.shiftCheckInOut?.checkInTime ? convertDate({
         date: new Date(shift.shiftCheckInOut.checkInTime),
         user
@@ -135,11 +141,13 @@ export const EditCheckInOut = ({
       }
 
       if (formData.checkInEquipmentTime) {
-        payload.checkInEquipmentTime = formData.checkInEquipmentTime;
+        payload.equipmentDetails = payload.equipmentDetails || {};
+        payload.equipmentDetails.checkInTime = formData.checkInEquipmentTime;
       }
 
       if (formData.checkOutEquipmentTime) {
-        payload.checkOutEquipmentTime = formData.checkOutEquipmentTime;
+        payload.equipmentDetails = payload.equipmentDetails || {};
+        payload.equipmentDetails.checkOutTime = formData.checkOutEquipmentTime;
       }
 
       await editCheckInOut({
@@ -180,8 +188,8 @@ export const EditCheckInOut = ({
             gap: '10px',
             mt: 1
           }}>
-            <RHFDateTimePicker sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />
-            <RHFDateTimePicker sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />
+            <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />
+            <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />
           </Box>
 
           {
@@ -194,8 +202,8 @@ export const EditCheckInOut = ({
                 gap: '10px',
                 mt: 3,
               }}>
-                <RHFTextField type="number" sx={{ maxWidth: '300px' }} name="checkInEquipmentTime" label="Equipment Check In Time (hours)" />
-                <RHFTextField type="number" sx={{ maxWidth: '300px' }} name="checkOutEquipmentTime" label="Equipment Check Out Time (hours)" />
+                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInEquipmentTime" label="Equipment Check In Time" />
+                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutEquipmentTime" label="Equipment Check Out Time" />
               </Box>
             )
           }

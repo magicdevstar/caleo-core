@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { utcToZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
@@ -32,6 +32,19 @@ export interface ShiftSearchExtended extends ShiftSearchInput {
 
 export interface IShiftCheckInOut extends Omit<
   ShiftCheckInOut,
+  'checkInTime' |
+  'checkOutTime' |
+  'equipmentDetails' |
+  '__typename'
+> {
+  checkInTime?: Date;
+  checkOutTime?: Date;
+
+  equipmentDetails: IShiftCheckInOutEquipment;
+}
+
+export interface IShiftCheckInOutEquipment extends Omit<
+  ShiftCheckInOutEquipment,
   'checkInTime' |
   'checkOutTime' |
   '__typename'
@@ -359,11 +372,11 @@ export class ShiftModel extends BaseMongo<IShift> {
     user,
   } : {
     id: string,
-    checkInTime?: string,
-    checkOutTime?: string,
-    adminNotes?: string,
-    checkInEquipmentTime?: number,
-    checkOutEquipmentTime?: number,
+    checkInTime?: string | null,
+    checkOutTime?: string | null,
+    adminNotes?: string | null,
+    checkInEquipmentTime?: string | null,
+    checkOutEquipmentTime?: string | null,
     user: IUser,
   }) {
     const res = await this.collection.updateOne({
@@ -375,8 +388,8 @@ export class ShiftModel extends BaseMongo<IShift> {
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
         ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
-        ...(checkInEquipmentTime ? { 'shiftCheckInOut.checkInEquipmentTime': checkInEquipmentTime } : {}),
-        ...(checkOutEquipmentTime ? { 'shiftCheckInOut.checkOutEquipmentTime': checkOutEquipmentTime } : {}),
+        ...(checkInEquipmentTime ? { 'shiftCheckInOut.equipmentDetails.checkInTime': new Date(checkInEquipmentTime) } : {}),
+        ...(checkOutEquipmentTime ? { 'shiftCheckInOut.equipmentDetails.checkOutTime': new Date(checkOutEquipmentTime) } : {}),
       },
     });
 
@@ -397,7 +410,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     time?: Date,
     checkInNote?: string,
     adminNotes?: string,
-    equipmentTime?: number,
+    equipmentTime?: string,
     user: IUser,
   }) {
     await this.collection.updateOne({
@@ -410,7 +423,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         ...(checkInNote ? { 'shiftCheckInOut.checkInNote': checkInNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
         ...(coords ? { 'shiftCheckInOut.checkInCoords': coords } : {}),
-        ...(equipmentTime ? { 'shiftCheckInOut.checkInEquipmentTime': equipmentTime } : {}),
+        ...(equipmentTime ? { 'shiftCheckInOut.equipmentDetails.checkInTime': new Date(equipmentTime) } : {}),
       },
     });
   }
@@ -430,7 +443,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkOutNote?: string,
     adminNotes?: string,
     user: IUser,
-    equipmentTime?: number,
+    equipmentTime?: string,
   }) {
     await this.collection.updateOne({
       _id: new ObjectId(id),
@@ -442,7 +455,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         ...(checkOutNote ? { 'shiftCheckInOut.checkOutNote': checkOutNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
         ...(coords ? { 'shiftCheckInOut.checkOutCoords': coords } : {}),
-        ...(equipmentTime ? { 'shiftCheckInOut.checkOutEquipmentTime': equipmentTime } : {}),
+        ...(equipmentTime ? { 'shiftCheckInOut.equipmentDetails.checkOutTime': new Date(equipmentTime) } : {}),
       },
     });
   }

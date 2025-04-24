@@ -195,7 +195,6 @@ export default function EditAssignment({
           },
         },
       });
-      enqueueSnackbar(currentAssignment ? 'Update success!' : 'Create success!');
       if (reroute === 'assignment') {
         if (!currentAssignment) {
           router.push(basePath.eventAssignmentDetail

@@ -1726,10 +1726,13 @@ export type Shift = {
 
 export type ShiftAdminCheckInOutEvent = {
   adminNotes?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use equipmentDetails instead! */
   checkInEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkInTime?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use equipmentDetails instead! */
   checkOutEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkOutTime?: InputMaybe<Scalars['String']['input']>;
+  equipmentDetails?: InputMaybe<ShiftCheckInOutEquipmentEvent>;
   id: Scalars['String']['input'];
 };
 
@@ -1807,13 +1810,16 @@ export type ShiftCheckInOut = {
   __typename?: 'ShiftCheckInOut';
   adminNotes?: Maybe<Scalars['String']['output']>;
   checkInCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  /** @deprecated Use equipmentDetails instead! */
   checkInEquipmentTime?: Maybe<Scalars['Float']['output']>;
   checkInNote?: Maybe<Scalars['String']['output']>;
   checkInTime?: Maybe<Scalars['String']['output']>;
   checkOutCoords?: Maybe<ShiftCheckInOutCoordinates>;
+  /** @deprecated Use equipmentDetails instead! */
   checkOutEquipmentTime?: Maybe<Scalars['Float']['output']>;
   checkOutNote?: Maybe<Scalars['String']['output']>;
   checkOutTime?: Maybe<Scalars['String']['output']>;
+  equipmentDetails?: Maybe<ShiftCheckInOutEquipment>;
 };
 
 export type ShiftCheckInOutCoordinates = {
@@ -1827,9 +1833,22 @@ export type ShiftCheckInOutCoordinates = {
   speed?: Maybe<Scalars['Float']['output']>;
 };
 
+export type ShiftCheckInOutEquipment = {
+  __typename?: 'ShiftCheckInOutEquipment';
+  checkInTime?: Maybe<Scalars['String']['output']>;
+  checkOutTime?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShiftCheckInOutEquipmentEvent = {
+  checkInTime?: InputMaybe<Scalars['String']['input']>;
+  checkOutTime?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ShiftCheckInOutEvent = {
   adminNotes?: InputMaybe<Scalars['String']['input']>;
   coords?: InputMaybe<CheckInOutCoordinates>;
+  equipmentDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use equipmentDateTime instead! */
   equipmentTime?: InputMaybe<Scalars['Float']['input']>;
   id: Scalars['String']['input'];
   note?: InputMaybe<Scalars['String']['input']>;
@@ -2733,6 +2752,8 @@ export type ResolversTypes = ResolversObject<{
   ShiftBufferRequestsSearchResult: ResolverTypeWrapper<ShiftBufferRequestsSearchResult>;
   ShiftCheckInOut: ResolverTypeWrapper<ShiftCheckInOut>;
   ShiftCheckInOutCoordinates: ResolverTypeWrapper<ShiftCheckInOutCoordinates>;
+  ShiftCheckInOutEquipment: ResolverTypeWrapper<ShiftCheckInOutEquipment>;
+  ShiftCheckInOutEquipmentEvent: ShiftCheckInOutEquipmentEvent;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ResolverTypeWrapper<ShiftCheckOutResponse>;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
@@ -2916,6 +2937,8 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftBufferRequestsSearchResult: ShiftBufferRequestsSearchResult;
   ShiftCheckInOut: ShiftCheckInOut;
   ShiftCheckInOutCoordinates: ShiftCheckInOutCoordinates;
+  ShiftCheckInOutEquipment: ShiftCheckInOutEquipment;
+  ShiftCheckInOutEquipmentEvent: ShiftCheckInOutEquipmentEvent;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ShiftCheckOutResponse;
   ShiftDayTime: ShiftDayTime;
@@ -3854,6 +3877,7 @@ export type ShiftCheckInOutResolvers<ContextType = any, ParentType extends Resol
   checkOutEquipmentTime?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   checkOutNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  equipmentDetails?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutEquipment']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3865,6 +3889,12 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
   latitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   longitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   speed?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftCheckInOutEquipmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOutEquipment'] = ResolversParentTypes['ShiftCheckInOutEquipment']> = ResolversObject<{
+  checkInTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4174,6 +4204,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftBufferRequestsSearchResult?: ShiftBufferRequestsSearchResultResolvers<ContextType>;
   ShiftCheckInOut?: ShiftCheckInOutResolvers<ContextType>;
   ShiftCheckInOutCoordinates?: ShiftCheckInOutCoordinatesResolvers<ContextType>;
+  ShiftCheckInOutEquipment?: ShiftCheckInOutEquipmentResolvers<ContextType>;
   ShiftCheckOutResponse?: ShiftCheckOutResponseResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
   ShiftInterestRequest?: ShiftInterestRequestResolvers<ContextType>;

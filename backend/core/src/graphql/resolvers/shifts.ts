@@ -12,6 +12,7 @@ import {
   AvailableShiftsSearchInput,
   EventStatus,
   MemberRole,
+  ShiftAdminCheckInOutEvent,
   ShiftCheckInOutEvent,
   ShiftSearchInput,
   ShiftStatus,
@@ -30,7 +31,7 @@ import {
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import logger from "../../utils/logger";
 import { IUserSearchResult } from "../../types/common";
-import { IShift, IShiftCheckInOut } from "../../models/shift";
+import { IShift, IShiftCheckInOut, IShiftCheckInOutEquipment } from "../../models/shift";
 
 const lambda = new LambdaClient();
 
@@ -118,18 +119,10 @@ export const shift = {
           checkInTime,
           checkOutTime,
           adminNotes,
-          checkInEquipmentTime,
-          checkOutEquipmentTime,
+          equipmentDetails,
         }
       }: {
-        input: {
-          id: string,
-          checkInTime?: string,
-          checkOutTime?: string,
-          adminNotes?: string,
-          checkInEquipmentTime?: number,
-          checkOutEquipmentTime?: number,
-        }
+        input: ShiftAdminCheckInOutEvent
       },
       {
         shifts,
@@ -148,8 +141,8 @@ export const shift = {
         id,
         checkInTime,
         checkOutTime,
-        checkInEquipmentTime,
-        checkOutEquipmentTime,
+        checkInEquipmentTime: equipmentDetails?.checkInTime,
+        checkOutEquipmentTime: equipmentDetails?.checkOutTime,
         adminNotes,
         user: user!,
       });
@@ -186,7 +179,7 @@ export const shift = {
           time,
           note,
           adminNotes,
-          equipmentTime,
+          equipmentDateTime,
         }
       }: { input: ShiftCheckInOutEvent },
       { shifts, user }: Context
@@ -211,7 +204,7 @@ export const shift = {
         checkInNote,
         adminNotes: finalAdminNote,
         user: user!,
-        equipmentTime: equipmentTime || undefined,
+        equipmentTime: equipmentDateTime || undefined,
       });
 
       return (await shifts.get(id))!;
@@ -225,7 +218,7 @@ export const shift = {
           time,
           note,
           adminNotes,
-          equipmentTime,
+          equipmentDateTime,
           signNow
         }
       }: { input: ShiftCheckInOutEvent },
@@ -250,7 +243,7 @@ export const shift = {
         checkOutNote,
         adminNotes: finalAdminNote,
         user: user!,
-        equipmentTime: equipmentTime || undefined,
+        equipmentTime: equipmentDateTime || undefined,
       });
       const updatedShift = await shifts.get(id);
 
@@ -779,6 +772,10 @@ export const shift = {
     ShiftCheckInOut: {
       checkInTime: (item: IShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
       checkOutTime: (item: IShiftCheckInOut) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
+    },
+    ShiftCheckInOutEquipment: {
+      checkInTime: (item: IShiftCheckInOutEquipment) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
+      checkOutTime: (item: IShiftCheckInOutEquipment) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
     }
   },
 };

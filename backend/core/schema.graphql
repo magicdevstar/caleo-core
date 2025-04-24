@@ -622,8 +622,14 @@
     checkOutNote: String
     checkOutCoords: ShiftCheckInOutCoordinates
     adminNotes: String
-    checkInEquipmentTime: Float
-    checkOutEquipmentTime: Float
+    equipmentDetails: ShiftCheckInOutEquipment
+    checkInEquipmentTime: Float @deprecated(reason: "Use equipmentDetails instead!")
+    checkOutEquipmentTime: Float @deprecated(reason: "Use equipmentDetails instead!")
+  }
+
+  type ShiftCheckInOutEquipment {
+    checkInTime: String
+    checkOutTime: String
   }
 
   type Shift {
@@ -675,18 +681,25 @@
     id: String!
     time: String,
     coords: CheckInOutCoordinates
-    equipmentTime: Float
+    equipmentTime: Float @deprecated(reason: "Use equipmentDateTime instead!")
+    equipmentDateTime: String
     note: String
     adminNotes: String
     signNow: Boolean
+  }
+
+  input ShiftCheckInOutEquipmentEvent {
+    checkInTime: String
+    checkOutTime: String
   }
 
   input ShiftAdminCheckInOutEvent {
     id: String!
     checkInTime: String
     checkOutTime: String
-    checkInEquipmentTime: Float
-    checkOutEquipmentTime: Float
+    checkInEquipmentTime: Float @deprecated(reason: "Use equipmentDetails instead!")
+    checkOutEquipmentTime: Float @deprecated(reason: "Use equipmentDetails instead!")
+    equipmentDetails: ShiftCheckInOutEquipmentEvent
     adminNotes: String
   }
 

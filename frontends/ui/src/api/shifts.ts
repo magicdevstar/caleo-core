@@ -406,8 +406,10 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           checkInNote
           checkOutNote
           adminNotes
-          checkInEquipmentTime
-          checkOutEquipmentTime
+          equipmentDetails {
+            checkInTime
+            checkOutTime
+          }
           checkInCoords {
             accuracy
             altitude
@@ -593,8 +595,10 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         shiftCheckInOut {
           checkInTime
           checkOutTime
-          checkInEquipmentTime
-          checkOutEquipmentTime
+          equipmentDetails {
+            checkInTime
+            checkOutTime
+          }
           checkInCoords {
             accuracy
             altitude
@@ -705,8 +709,10 @@ export const GET_GROUPED_SHIFTS = gql`
         checkOutTime
         checkInNote
         checkOutNote
-        checkInEquipmentTime
-        checkOutEquipmentTime
+        equipmentDetails {
+          checkInTime
+          checkOutTime
+        }
         adminNotes
         checkInCoords {
           accuracy

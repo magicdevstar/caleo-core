@@ -1438,41 +1438,68 @@ const sendEmail = async (input: MailerEvent) => {
     } else if (input.template === MailerEvents.OfficerAvailableOtPosted) {
       const { orgId } = input.data;
 
-      const totalRes = await context.shifts.collection.aggregate<{total: number}>([
+      const totalRes = await context.events.collection.aggregate<{total: number}>([
         {
           $match: {
             orgId: new ObjectId(orgId),
-            userId: {
-              $ne: null,
-            },
+            status: EventStatus.FirstComeFirstServe,
             removedAt: { $exists: false },
           },
         },
         {
           $lookup: {
-            from: "events",
-            localField: "eventId",
-            foreignField: "_id",
-            as: "event",
-          },
-        },
-        {
-          $addFields: {
-            event: {
-              $first: "$event",
-            },
+            from: "shifts",
+            localField: "_id",
+            foreignField: "eventId",
+            as: "shifts",
           },
         },
         {
           $match: {
-            'event.status': EventStatus.FirstComeFirstServe,
-            'event.removedAt': { $exists: false },
-          }
+            'shifts.removedAt': {$exists: false},
+            'shifts.status': {$ne: ShiftStatus.Locked},
+            $or: [{'shifts.userId': null}, {'shifts.userId': {$exists: false}}],
+          },
         },
         {
           $count: 'total',
         },
       ]).toArray();
+
+      // const totalRes = await context.shifts.collection.aggregate<{total: number}>([
+      //   {
+      //     $match: {
+      //       orgId: new ObjectId(orgId),
+      //       status: {$ne: 'LOCKED'},
+  		// 			$or: [{userId: null}, {userId: {$exists: false}}],
+      //       removedAt: { $exists: false },
+      //     },
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: "events",
+      //       localField: "eventId",
+      //       foreignField: "_id",
+      //       as: "event",
+      //     },
+      //   },
+      //   {
+      //     $addFields: {
+      //       event: {
+      //         $first: "$event",
+      //       },
+      //     },
+      //   },
+      //   {
+      //     $match: {
+      //       'event.status': EventStatus.FirstComeFirstServe,
+      //       'event.removedAt': { $exists: false },
+      //     }
+      //   },
+      //   {
+      //     $count: 'total',
+      //   },
+      // ]).toArray();
 
       if (totalRes?.[0]?.total === 0) {
         logger.warn('No open shifts found', { input });

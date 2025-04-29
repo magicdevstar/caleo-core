@@ -142,8 +142,13 @@ export const shiftInterestRequests = {
                   organization,
                 }
               };
+            } else {
+              throw new GraphQLError('There are no shifts left to assign.');
             }
-          } catch(error) {
+          } catch(error: GraphQLError | any) {
+            if (error instanceof GraphQLError) {
+              throw error;
+            }
             logger.error('Failed to assign user to shift', { error, shiftInterestRequest });
             throw new GraphQLError('Cannot assign user to this shift');
           }

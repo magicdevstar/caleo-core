@@ -220,8 +220,7 @@ export function InterestList({
               });
               enqueueSnackbar('Successfully updated request', { variant: 'success', autoHideDuration: 5000 });
             } catch(error) {
-              console.error(error);
-              enqueueSnackbar('Error updating request', { variant: 'error', autoHideDuration: 5000 });
+              enqueueSnackbar(error.message, { variant: 'error', autoHideDuration: 5000 });
             } finally {
               setLoading(false);
             }

@@ -51,6 +51,7 @@ interface EventInterestClosing {
 }
 
 interface EventInterestClose extends EventInterestClosing {}
+interface EventInterestAutoAssignEnd extends EventInterestClosing {}
 
 interface ShiftReminderEvent {
   action: ScheduleEvent;
@@ -142,6 +143,11 @@ const scheduledEvents = async (event) => {
         }),
       });
       await client.send(command);
+    } else if (action === ScheduleEvent.EVENT_INTEREST_AUTO_ASSIGN_END) {
+      await context.events.transitionEvent({
+        eventId: (eventParams as EventInterestAutoAssignEnd).eventId,
+        transition: (eventParams as EventInterestAutoAssignEnd).transition || EventStatus.InterestList,
+      });
     } else if (action === ScheduleEvent.EVENT_INTEREST_CLOSING) {
       const organization = await context.organizations.get(orgId);
       await context.shifts.notifyUsersOfEventInterestAvailability(

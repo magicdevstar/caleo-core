@@ -161,7 +161,19 @@ export class InterestListService {
           eventId: event.id,
           transition: event.interestListTransition,
         },
-      }
+      },
+      {
+        event: ScheduleEvent.EVENT_INTEREST_AUTO_ASSIGN_END,
+        orgId,
+        customEventName: `${ScheduleEvent.EVENT_INTEREST_AUTO_ASSIGN_END}-${event?.id}`,
+        eventTime: `at(${format(event.interestListAutoAssignCutoff || new Date(), 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+        eventTimeZone: Timezone.UTC,
+        input: {
+          orgId: orgId.toString(),
+          eventId: event.id,
+          transition: event.interestListTransition,
+        },
+      },
     ];
 
     if (event.status !== EventStatus.InterestList) {

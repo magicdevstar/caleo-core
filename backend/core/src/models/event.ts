@@ -46,6 +46,7 @@ export interface IEvent extends Omit<
   'scheduledInterestList' |
   'scheduledCloseInterestList' |
   'scheduledFirstComeFirstServe' |
+  'interestListAutoAssignCutoff' |
   'venueId' |
   'venue' |
   'assignmentIds' |
@@ -77,6 +78,7 @@ export interface IEvent extends Omit<
   scheduledInterestList?: Date;
   scheduledCloseInterestList?: Date;
   scheduledFirstComeFirstServe?: Date;
+  interestListAutoAssignCutoff?: Date;
   createdAt?: Date;
   updatedAt?: Date;
   removedAt?: Date;
@@ -361,6 +363,27 @@ export class EventModel extends BaseMongo<IEvent> {
       },
       $push: {
         assignmentIds: {$each: assignmentIds},
+      },
+    });
+  }
+
+  async transitionEvent({
+    eventId,
+    transition,
+  } : {
+    eventId: string;
+    transition?: EventStatus;
+  }) {
+    if (!transition) {
+      return;
+    }
+
+    await this.collection.updateOne({
+      _id: new ObjectId(eventId),
+    }, {
+      $set: {
+        status: transition,
+        updatedAt: new Date(),
       },
     });
   }

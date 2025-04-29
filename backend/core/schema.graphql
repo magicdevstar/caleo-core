@@ -396,10 +396,16 @@
     orgId: String!
     status: EventStatus!
     lotteryNumber: Int
+
+    # When interest list will be avilable for officers
     scheduledInterestList: String
+    # When the interest list will start automatically assigning officers
     scheduledCloseInterestList: String
+    # When the interest list will stop automatically assigning officers
     interestListAutoAssignCutoff: String
+    # What we should transition to after the auto assign cut off passes
     interestListTransition: EventStatus
+    # Boolean stating if we want the interest list to auto assign when it closes
     autoAssignInterestList: Boolean
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean

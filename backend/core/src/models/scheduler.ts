@@ -28,6 +28,7 @@ export enum ScheduleEvent {
   EVENT_INTEREST_GO_LIVE = 'event_int_live',
   EVENT_INTEREST_CLOSE = 'event_int_close',
   EVENT_INTEREST_CLOSING = 'event_int_closing',
+  EVENT_INTEREST_AUTO_ASSIGN_END = 'int_auto_end',
   USER_TIER_RETURN = 'user_tier_return',
   USER_INACTIVE_RETURN = 'user_inactive_return',
 }

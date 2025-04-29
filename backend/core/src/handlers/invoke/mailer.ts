@@ -14,7 +14,7 @@ import { Context, createContext } from "../../utils/createContext";
 import { EventStatus, MemberStatus, ShiftStatus } from "../../__generated__/resolvers-types";
 import { InAppTemplates } from "../../types/inAppTemplates";
 import { IAssignment } from "../../models/assignment";
-import { IOrganization } from "../../models/organization";
+import { IOrganization } from "../../models/organizations/organization.entity";
 import { IShift, IShiftExpanded } from "../../models/shift";
 import { IInAppNotificationMeta } from "../../models/inAppNotifications";
 import { IUser } from "../../types/common";

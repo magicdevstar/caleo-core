@@ -7,10 +7,11 @@ export class DocumentModel {
   bucketName: string = process.env.BUCKET_NAME!;
   constructor() {}
 
-  async getUploadUrl(Key: string): Promise<string> {
+  async getUploadUrl(Key: string, options?: { metadata?: Record<string, string> }): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key,
+      Metadata: options?.metadata || {},
     });
 
     const url = await getSignedUrl(s3, command, { expiresIn: 60 * 60 });

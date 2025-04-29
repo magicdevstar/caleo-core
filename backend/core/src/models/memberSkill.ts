@@ -1,24 +1,19 @@
 import { Db, ObjectId } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import uniq from 'lodash.uniq';
 import {
   DocType,
   MemberSkill,
   MemberSkillAttachmentUpload,
-  Organization,
   SkillStatus,
 } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { UserModel } from './user';
 import { GraphQLError } from 'graphql';
-import logger from '../utils/logger';
 import { DocumentModel } from './document';
 import { SkillModel } from './skill';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
-import { IUser } from '../types/common';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 
 const lambda = new LambdaClient({});
 

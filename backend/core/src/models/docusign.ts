@@ -6,7 +6,6 @@ import {
   GetSecretValueCommand
 } from '@aws-sdk/client-secrets-manager'
 import { BaseMongo } from "./base.v2";
-import { IOrganization, OrganizationModel } from "./organization";
 import { DocType } from "../__generated__/resolvers-types";
 import logger from "../utils/logger";
 import { IShift } from './shift';
@@ -16,6 +15,8 @@ import { IRank } from './rank';
 import { IUnit } from './unit';
 import { IIVenue } from './venue';
 import { docusignDates } from '../utils/date.helpers';
+import { OrganizationRepo } from './organizations/organization.repository';
+import { IOrganization } from './organizations/organization.entity';
 
 const client = new ds.ApiClient();
 client.setOAuthBasePath(
@@ -42,7 +43,7 @@ export interface ITokenRecord {
 }
 
 export class DocusignModel extends BaseMongo<IDocusign> {
-  constructor(db: Db, private organizations: OrganizationModel) {
+  constructor(db: Db, private organizations: OrganizationRepo) {
     super(db, DocType.DsToken, 'dsTokens');
   }
 

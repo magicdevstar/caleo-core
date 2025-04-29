@@ -1331,6 +1331,7 @@ export type OrganizationFeatures = {
   monthlyMaxHours: Scalars['Boolean']['output'];
   noShowReport: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
+  rankHourlyRate: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
   weeklyMaxShifts: Scalars['Boolean']['output'];
@@ -1642,6 +1643,7 @@ export type Rank = {
   active: Scalars['Boolean']['output'];
   createdAt: Scalars['String']['output'];
   docType: DocType;
+  hourlyRate?: Maybe<Scalars['Float']['output']>;
   id: Scalars['ID']['output'];
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -2313,6 +2315,7 @@ export type UpsertOrganizationFeatures = {
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
+  rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
   weeklyMaxShifts?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2337,6 +2340,7 @@ export type UpsertOrganizationSsoSettings = {
 
 export type UpsertRank = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
+  hourlyRate?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
@@ -3664,6 +3668,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   weeklyMaxShifts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3761,6 +3766,7 @@ export type RankResolvers<ContextType = any, ParentType extends ResolversParentT
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  hourlyRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

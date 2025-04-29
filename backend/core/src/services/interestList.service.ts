@@ -6,7 +6,7 @@ import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lam
 import { EventStatus } from "../__generated__/resolvers-types";
 import { EventModel, IEvent } from "../models/event";
 import { ScheduleEvent, SchedulerModel, Timezone } from "../models/scheduler";
-import { IOrganization } from "../models/organization";
+import { IOrganization } from "../models/organizations/organization.entity";
 import { IShift } from "../models/shift";
 import logger from "../utils/logger";
 import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";

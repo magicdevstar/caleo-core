@@ -1012,6 +1012,7 @@ type DocusignSignerDetails {
     id: ID!
     name: String!
     active: Boolean!
+    hourlyRate: Float
     docType: DocType!
     orgId: String!
     createdAt: String!
@@ -1026,6 +1027,7 @@ type DocusignSignerDetails {
   input UpsertRank {
     id: String
     name: String
+    hourlyRate: Float
     active: Boolean
   }
 ###### END Rank ######
@@ -1237,6 +1239,7 @@ type DocusignSignerDetails {
     kiosk: Boolean!
     eventTemplates: Boolean!
     noShowReport: Boolean!
+    rankHourlyRate: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1410,6 +1413,7 @@ type DocusignSignerDetails {
     kiosk: Boolean
     eventTemplates: Boolean
     noShowReport: Boolean
+    rankHourlyRate: Boolean
   }
 
   input UpsertInterestListSetting {

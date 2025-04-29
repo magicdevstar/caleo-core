@@ -9,7 +9,7 @@ import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
 import { userIsAdmin } from '../utils/access';
 import { SearchResults } from '../utils/common.resolvers';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { IAssignmentShiftSlots, IUser } from '../types/common';
 import { BaseMongo } from './base.v2';
 import { IAssignment } from './assignment';

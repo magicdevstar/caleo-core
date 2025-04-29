@@ -4,15 +4,11 @@ import {
   ShiftBufferRequest,
   DocType,
   ShiftBufferRequestStatus,
-  Shift,
-  User,
-  Organization,
   CreateShiftBufferRequest
 } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { IUser } from '../types/common';
 import { IShift } from './shift';
 

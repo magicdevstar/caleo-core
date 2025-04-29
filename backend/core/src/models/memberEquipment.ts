@@ -12,7 +12,7 @@ import { GraphQLError } from 'graphql';
 import { DocumentModel } from './document';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { EquipmentModel } from './equipment';
 
 const lambda = new LambdaClient({});

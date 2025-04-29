@@ -42,6 +42,7 @@ const userDetailProperties = `
         kiosk
         eventTemplates
         noShowReport
+        rankHourlyRate
       }
       customizations {
         pNumber

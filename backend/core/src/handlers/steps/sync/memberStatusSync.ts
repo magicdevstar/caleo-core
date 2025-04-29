@@ -6,7 +6,7 @@ import logger from '../../../utils/logger';
 import { createContext } from '../../../utils/createContext';
 import { MemberStatus } from '../../../__generated__/resolvers-types';
 import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
-import { IOrganization } from '../../../models/organization';
+import { IOrganization } from '../../../models/organizations/organization.entity';
 
 const lambda = new LambdaClient();
 

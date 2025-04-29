@@ -1,5 +1,5 @@
 import { Collection, Db, ObjectId } from 'mongodb';
-import { DocType, InAppNotificationMeta, InAppNotifications } from '../__generated__/resolvers-types';
+import { DocType, InAppNotifications } from '../__generated__/resolvers-types';
 import DataLoader from 'dataloader';
 import { SearchResults } from '../utils/common.resolvers';
 import logger from '../utils/logger';

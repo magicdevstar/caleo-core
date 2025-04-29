@@ -14,9 +14,7 @@ const checkoutNotifications = async () => {
 
   logger.setLogLevel('INFO');
 
-  const orgs = await organizations.collection.find({
-    'features.eventCheckIn': true,
-  }).toArray();
+  const orgs = await organizations.withCheckoutEnabled();
 
   for(const org of orgs) {
     const now = new Date();

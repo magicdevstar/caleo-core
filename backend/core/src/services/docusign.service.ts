@@ -3,7 +3,7 @@ import { DocumentModel } from "../models/document";
 import { DocusignModel } from "../models/docusign";
 import { DocusignEventModel, IDocusignEvent } from "../models/docusignEvent";
 import { EventModel } from "../models/event";
-import { IOrganization, OrganizationModel } from "../models/organization";
+import { IOrganization } from "../models/organizations/organization.entity";
 import { RankModel } from "../models/rank";
 import { IShift, ShiftModel } from "../models/shift";
 import { UnitModel } from "../models/unit";
@@ -18,7 +18,6 @@ import { EquipmentModel } from "../models/equipment";
 
 export class Docusign {
   constructor(
-    private organizations: OrganizationModel,
     private users: UserModel,
     private venues: VenueModel,
     private events: EventModel,

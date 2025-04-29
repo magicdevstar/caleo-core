@@ -12,6 +12,7 @@ export const GET_RANKS = gql`
       items {
         id
         name
+        hourlyRate
         active
         createdAt
       }

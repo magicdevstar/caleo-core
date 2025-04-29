@@ -1,5 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
-import { DocType, BrowserNotificationSetting, User, InputBrowserNotificationSubscription } from '../__generated__/resolvers-types';
+import { DocType, BrowserNotificationSetting, InputBrowserNotificationSubscription } from '../__generated__/resolvers-types';
 import { BaseModel } from './base';
 import DataLoader from 'dataloader';
 import { IUser } from '../types/common';

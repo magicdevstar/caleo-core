@@ -15,7 +15,6 @@ import {
   MemberTier,
   Organization,
   ProfilePhotoAttachmentUpload,
-  Shift,
   ShiftBufferRequestStatus,
   ShiftStatus,
   User,
@@ -37,7 +36,7 @@ import { LotteryCounterModel } from './lotteryCounter';
 import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
 import { IShiftInterestRequest, ShiftInterestRequestModel } from './shiftInterestRequest';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { BaseMongo } from './base.v2';
 import { IMemberSkill } from './memberSkill';
 import { IUser } from '../types/common';

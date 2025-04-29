@@ -14,7 +14,7 @@ import { DocumentModel } from './document';
 import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { utcToZonedTime } from 'date-fns-tz';
 import { addMonths, isBefore } from 'date-fns';
 import { GraphQLError } from 'graphql';

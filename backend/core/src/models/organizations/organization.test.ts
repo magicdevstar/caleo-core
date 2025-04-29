@@ -6,7 +6,9 @@ import {
   jest,
   test
 } from '@jest/globals';
-import { OrganizationModel } from './organization';
+import { OrganizationService } from './organization.service';
+import { OrganizationRepo } from './organization.repository';
+import { SchedulerModel } from '../scheduler';
 
 const config = {
   timezone: 'America/Los_Angeles',
@@ -30,9 +32,9 @@ const config = {
 };
 
 describe('organization service', () => {
-  const model = new OrganizationModel(
-    { collection: jest.fn() } as any,
-    {} as any
+  const model = new OrganizationService(
+    {} as unknown as OrganizationRepo,
+    {} as unknown as SchedulerModel,
   );
 
   describe('activeLottery - Close day before open day', () => {

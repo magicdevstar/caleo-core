@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import { useMutation } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -19,6 +20,7 @@ import UpsertRankDialogue from './upsert-rank-dialogue';
 // ----------------------------------------------------------------------
 
 export default function RankTable() {
+  const { rankHourlyRate } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const [updateRank] = useMutation(UPSERT_RANK, {
     refetchQueries: [GET_RANKS],
@@ -96,6 +98,7 @@ export default function RankTable() {
     ],
     columns: [
       { id: 'name', label: 'Skill', columnType: 'string' },
+      ...(rankHourlyRate ? [{ id: 'hourlyRate', label: 'Hourly Rate', width: 110, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

@@ -7,7 +7,7 @@ import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import logger from '../../../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
 import { createContext } from '../../../utils/createContext';
-import { IOrganization } from '../../../models/organization';
+import { IOrganization } from '../../../models/organizations/organization.entity';
 import { EventStatus } from '../../../__generated__/resolvers-types';
 
 const lambda = new LambdaClient({});
@@ -15,7 +15,7 @@ const lambda = new LambdaClient({});
 const ocnReminders = async () => {
   const { events, organizations } = await createContext();
 
-  const allOrganizations = await organizations.collection.find<IOrganization>({}).toArray();
+  const allOrganizations = await organizations.all();
 
   const reminders: { orgId: ObjectId; eventIds: ObjectId[] }[] = [];
   for(const org of allOrganizations) {

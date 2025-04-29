@@ -1,5 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
-import { Division, DocType, Unit } from '../__generated__/resolvers-types';
+import { Division, DocType } from '../__generated__/resolvers-types';
 import { Validations } from './base';
 import { GraphQLError } from 'graphql';
 import { divisionErrors } from '../utils/errors';

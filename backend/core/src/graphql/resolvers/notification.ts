@@ -3,7 +3,6 @@ import { Context } from "../../utils/createContext";
 import { Notification, NotificationFrequency, NotificationSearchInput, UpsertNotification } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
-import { ObjectId } from "mongodb";
 import { IInAppNotification } from "../../models/inAppNotifications";
 import logger from "../../utils/logger";
 

@@ -1,12 +1,13 @@
 import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 import { DayOfWeek, DocType } from "../__generated__/resolvers-types";
-import { IOrganization, OrganizationModel } from "./organization";
 import { dayMap } from "../utils/dayMap";
 import { addWeeks, isAfter, setDay, setHours, setMinutes, getHours, getMinutes } from "date-fns";
 import logger from "../utils/logger";
 import DataLoader from "dataloader";
 import { ObjectId } from "mongodb";
 import { BaseMongo } from "./base.v2";
+import { OrganizationRepo } from "./organizations/organization.repository";
+import { IOrganization } from "./organizations/organization.entity";
 
 export interface ILotteryCounter {
   _id?: ObjectId;
@@ -37,7 +38,7 @@ export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
     );
   });
 
-  constructor(db, private organizations: OrganizationModel) {
+  constructor(db, private organizations: OrganizationRepo) {
     super(db, DocType.LotteryCounter, 'lotteryCounter');
   }
 

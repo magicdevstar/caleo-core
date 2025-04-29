@@ -1,6 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
 import { DocType, SiteLock } from '../__generated__/resolvers-types';
-import { BaseModel } from './base';
 import { BaseMongo } from './base.v2';
 
 export interface ISiteLock extends Omit<

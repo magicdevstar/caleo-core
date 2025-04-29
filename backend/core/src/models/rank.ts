@@ -1,6 +1,6 @@
 import { Db, ObjectId } from 'mongodb';
 import { DocType, Rank } from '../__generated__/resolvers-types';
-import { BaseModel, Validations } from './base';
+import { Validations } from './base';
 import { GraphQLError } from 'graphql';
 import { rankErrors } from '../utils/errors';
 import { BaseMongo } from './base.v2';

@@ -5,7 +5,7 @@ import { Assignment, DocType, User } from '../__generated__/resolvers-types';
 import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
-import { IOrganization } from './organization';
+import { IOrganization } from './organizations/organization.entity';
 import { IAssignmentShiftSlots, IUser } from '../types/common';
 import { IShift } from './shift';
 

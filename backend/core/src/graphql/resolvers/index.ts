@@ -1,6 +1,6 @@
 import { health } from './health';
 import { notification } from './notification';
-import { organization } from './organization';
+import { organizationFields, organizationMutation, organizationQuery } from './organization';
 import { rank } from './rank';
 import { skill } from './skills';
 import { equipment } from './equipments';
@@ -23,7 +23,7 @@ import { docusignEvents } from './docusignEvents';
 export default {
   Query: {
     ...health.Query,
-    ...organization.Query,
+    ...organizationQuery,
     ...user.Query,
     ...rank.Query,
     ...skill.Query,
@@ -46,7 +46,7 @@ export default {
   },
   Mutation: {
     ...health.Mutation,
-    ...organization.Mutation,
+    ...organizationMutation,
     ...user.Mutation,
     ...rank.Mutation,
     ...skill.Mutation,
@@ -67,7 +67,7 @@ export default {
     ...division.Mutation,
   },
   ...health.fields,
-  ...organization.fields,
+  ...organizationFields,
   ...user.fields,
   ...rank.fields,
   ...skill.fields,

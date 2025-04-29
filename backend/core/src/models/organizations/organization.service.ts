@@ -1,164 +1,66 @@
-import { Db, ObjectId } from 'mongodb';
-import { format, getDay, setHours, parseISO } from "date-fns";
-import { DocType, UpsertOrganization, Organization, DayOfWeek, MemberTier, ShiftReminderUnit } from '../__generated__/resolvers-types';
-import logger from '../utils/logger';
-import { ScheduleEvent } from "../models/scheduler";
-import { SchedulerModel } from './scheduler';
+import { format, getDay, parseISO } from "date-fns";
+
+import { DayOfWeek, OrganizationFeatures, OrganizationSearchInput } from '../../__generated__/resolvers-types';
+import { ScheduleEvent } from "../scheduler";
 import { utcToZonedTime } from 'date-fns-tz';
-import { dayMap } from '../utils/dayMap';
-import { BaseMongo } from './base.v2';
+import { dayMap } from '../../utils/dayMap';
+import { SchedulerModel } from "../scheduler";
+import { OrganizationRepo } from "./organization.repository";
+import { ObjectId } from "mongodb";
+import { IOrganization } from "./organization.entity";
+import DataLoader from "dataloader";
+import { SearchResults } from "../../utils/common.resolvers";
 
-// Default org properties in function form to deep clone object
-export const getDefaultOrg = () => ({
-  weekBegins: 'SUNDAY',
-  timezone: 'America/Los_Angeles',
-});
-export const getDefaultOrgSettings = () => ({
-  shiftsPerWeek: 6,
-  hoursPerMonth: 100,
-  lottery: {
-    enabled: true,
-    notifyUsersBeforeClose: 24,
-    fcfsShiftsDelay: 1,
-    open: {
-      dayOfWeek: DayOfWeek.Friday,
-      time: setHours(new Date(0), 18).getTime() as any,
-    },
-    close: {
-      dayOfWeek: DayOfWeek.Monday,
-      time: setHours(new Date(0), 6).getTime() as any,
-    }
-  },
-  shiftBuffer: {
-    enabled: false,
-    minuteShiftBuffer: 15,
-    adminOverrideShiftBuffer: false,
-  },
-  userRelinquishShift: {
-    enabled: true,
-    numberOfHoursBeforeShift: 24,
-    afterShiftRemove: {
-      tier: MemberTier.Tier_2,
-      days: 21,
-    },
-    requireNoteWhenRelinquishing: true,
-  },
-  shiftReminder: {
-    enabled: true,
-    time: 24,
-    unit: ShiftReminderUnit.Hour,
-  },
-});
-export const getDefaultOrgCustomizations = () => ({
-  pNumber: 'P#',
-  tiers: {
-    TIER_1: {
-      label: 'Tier 1',
-      enabled: true,
-    },
-    TIER_2: {
-      label: 'Tier 2',
-      enabled: true,
-    },
-    TIER_3: {
-      label: 'Tier 3',
-      enabled: false,
-    },
-    TIER_4: {
-      label: 'Tier 4',
-      enabled: false,
-    },
-  },
-});
-export const getDefaultOrgFeatures = () => ({
-  lottery: false,
-  venueContractDates: false,
-  eventCheckIn: false,
-  interestLists: false,
-  monthlyMaxHours: false,
-  weeklyMaxShifts: false,
-  disabledTiers: false,
-  disabledTierUntil: false,
-  externalEventRequests: false,
-  sso: false,
-  equipment: false,
-  lasdEventFields: false,
-  profileTenor: false,
-  lasdUserFields: false,
-  autoEnroll: false,
-  docusign: false,
-  kiosk: false,
-  eventTemplates: false,
-  noShowReport: false,
-});
+export class OrganizationService {
+  public loader: DataLoader<string, IOrganization | undefined, string>;
 
-export interface IOrganization extends Omit<
-  Organization,
-  'id' |
-  'createdAt' |
-  'updatedAt' |
-  'removedAt' |
-  'modifiedById' |
-  'modifiedBy' |
-  'fromEmail' |
-  'orgId' |
-  'org' |
-  '__typename'
-> {
-  _id?: ObjectId;
-  id: string;
-  orgId: ObjectId;
-  modifiedById: ObjectId;
-  fromEmail: string;
-  docusign: {
-    hmac: string;
-    clientId: string;
-    userId: string;
-    secretKey: string;
-    templateId: string;
-    reserveTemplateId: string;
+  constructor(
+    private organizationRepo: OrganizationRepo,
+    private scheduler: SchedulerModel,
+  ) {
+    this.loader = organizationRepo.loader;
   }
 
-  createdAt: Date;
-  updatedAt: Date;
-  removedAt?: Date;
-}
-
-export class OrganizationModel extends BaseMongo<IOrganization> {
-  constructor(db: Db, private scheduler: SchedulerModel) {
-    super(db, DocType.Organization, 'organizations');
+  get(id: string | ObjectId): Promise<IOrganization | null> {
+    return this.organizationRepo.get(id);
   }
 
-  public async getOrganizationSSOConfig(subdomain: string): Promise<IOrganization | null> {
-    const org = await this.collection.findOne<IOrganization>({ 'sso.uiSubDomains': subdomain });
-    return org;
+  update(org: any) {
+    return this.organizationRepo.update(org);
   }
 
-  public async getBySSOAppName(uiSubDomains: string): Promise<IOrganization | null> {
-    const org = await this.collection.findOne<IOrganization>({ 'sso.uiSubDomains': uiSubDomains });
-    return org;
+  async getOrganizationSSOConfig(subdomain: string): Promise<IOrganization | null> {
+    return this.organizationRepo.getOrganizationSSOConfig(subdomain);
   }
 
-  public async create(org: any): Promise<any> {
-    const inputOrg = org as UpsertOrganization;
-    const now = new Date();
-    const insertDoc = {
-      ...inputOrg,
-      docType: DocType.Organization,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const res = await this.collection.insertOne(insertDoc);
-    const organization = {
-      id: res.insertedId.toString(),
-      ...insertDoc,
-      createdAt: insertDoc.createdAt as any,
-      updatedAt: insertDoc.updatedAt as any,
-    };
+  async getBySSOAppName(uiSubDomains: string): Promise<IOrganization | null> {
+    return this.organizationRepo.getBySSOAppName(uiSubDomains);
+  }
 
-    logger.info('Organization created', { res, organization });
+  async create(org: any): Promise<any> {
+    return this.organizationRepo.create(org);
+  }
 
-    return organization as Organization;
+  withCheckoutEnabled(): Promise<IOrganization[]> {
+    return this.organizationRepo.collection.find<IOrganization>({
+      'features.eventCheckIn': true,
+    }).toArray();
+  }
+
+  async search(input: OrganizationSearchInput): Promise<SearchResults<IOrganization>> {
+    return this.organizationRepo.search({
+      limit: input.limit,
+      skip: input.skip,
+      queryField: input.queryField || 'name',
+      order: input.order,
+      orderBy: input.orderBy,
+      query: input.query,
+      ...(input.excludeIds && { _id: { $nin: input.excludeIds.map((id: any) => new ObjectId(id)) } }),
+    });
+  }
+
+  async all(): Promise<IOrganization[]> {
+    return this.organizationRepo.collection.find<IOrganization>({}).toArray();
   }
 
   async scheduleLotteryEvents(orgId: ObjectId, org: IOrganization) {
@@ -206,7 +108,7 @@ export class OrganizationModel extends BaseMongo<IOrganization> {
       }),
     });
   }
-
+  
   activeLottery(org: IOrganization) {
     const { timezone, settings: { lottery: { open, close } } } = org as any;
   

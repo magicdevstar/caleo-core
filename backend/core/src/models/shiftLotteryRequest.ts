@@ -1,6 +1,6 @@
 import { Db, ObjectId } from 'mongodb';
 import DataLoader from 'dataloader';
-import { ShiftLotteryRequest, DocType, MemberTier, ShiftLotteryRequestStatus, MemberStatus, UserAvailability } from '../__generated__/resolvers-types';
+import { ShiftLotteryRequest, DocType, MemberTier, ShiftLotteryRequestStatus, MemberStatus } from '../__generated__/resolvers-types';
 import { LotteryCounterModel } from './lotteryCounter';
 import { BaseMongo } from './base.v2';
 

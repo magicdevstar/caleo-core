@@ -6,7 +6,6 @@ import { EventModel } from "../models/event";
 import { MemberNotificationModel } from "../models/memberNotification";
 import { MemberSkillModel } from "../models/memberSkill";
 import { NotificationModel } from "../models/nontification";
-import { IOrganization, OrganizationModel } from "../models/organization";
 import { RankModel } from "../models/rank";
 import { SchedulerModel } from "../models/scheduler";
 import { ShiftModel } from "../models/shift";
@@ -33,6 +32,9 @@ import { DocusignModel } from "../models/docusign";
 import { Docusign } from "../services/docusign.service";
 import { DocusignEventModel } from "../models/docusignEvent";
 import { InterestListService } from "../services/interestList.service";
+import { OrganizationService } from "../models/organizations/organization.service";
+import { OrganizationRepo } from "../models/organizations/organization.repository";
+import { IOrganization } from "../models/organizations/organization.entity";
 
 let db: Db;
 
@@ -45,7 +47,7 @@ export interface Context {
   siteLock: SiteLockModel;
   browserNotificationSubscriptions: BrowserNotificationSubscription;
   eventReferenceNumber: EventReferenceNumber;
-  organizations: OrganizationModel;
+  organizations: OrganizationService;
   lotteryCounter: LotteryCounterModel;
   users: UserModel;
   ranks: RankModel;
@@ -77,14 +79,17 @@ export const createContext = async (): Promise<Context> => {
     db = await mongodb.db(process.env.MONGODB_NAME!);
   }
 
+  const document = new DocumentModel();
+  const scheduler = new SchedulerModel();
+
+  const orgRepo = new OrganizationRepo(db);
+  const organizations = new OrganizationService(orgRepo, new SchedulerModel());
+
   const shiftInterestRequests = new ShiftInterestRequestModel(db);
   const lotteryState = new LotteryStateModel(db);
   const siteLock = new SiteLockModel(db);
-  const scheduler = new SchedulerModel();
-  const organizations = new OrganizationModel(db, scheduler);
-  const lotteryCounter = new LotteryCounterModel(db, organizations);
+  const lotteryCounter = new LotteryCounterModel(db, orgRepo);
   const eventReferenceNumber = new EventReferenceNumber(db);
-  const document = new DocumentModel();
   const notifications = new NotificationModel(db);
   const venues = new VenueModel(db);
   const shifts = new ShiftModel(db, lotteryCounter);
@@ -113,10 +118,9 @@ export const createContext = async (): Promise<Context> => {
   const browserNotificationSubscriptions = new BrowserNotificationSubscription(db);
   const inAppNotifications = new InAppNotificationModel(db);
   const analytics = new UserAnalyticsModel(db);
-  const docusignModel = new DocusignModel(db, organizations);
+  const docusignModel = new DocusignModel(db, orgRepo);
   const docusignEventModel = new DocusignEventModel(db);
   const docusign = new Docusign(
-    organizations,
     users,
     venues,
     events,

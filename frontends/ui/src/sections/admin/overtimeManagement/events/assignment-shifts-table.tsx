@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
+import orderBy from 'lodash/orderBy';
 import { isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -142,9 +143,9 @@ export default function AssignmentShiftsTable({
     search: {
       data: (shiftMeta || []) as any,
       query: GET_ALL_SHIFTS,
-      processResult: (data: any) => ({
+      processResult: (data: any, options) => ({
         total: data.length,
-        items: data,
+        items: orderBy<any>(data, [options?.orderBy], [options?.order || 'asc' as any]),
       }),
     },
     rowActions: [

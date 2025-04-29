@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
+import orderBy from 'lodash/orderBy';
 import { useRouter } from 'src/routes/hooks';
 import { isAfter, isBefore } from 'date-fns';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -125,32 +126,40 @@ export default function EventAssignmentsTable({
     search: {
       data: (currentEvent?.assignments || []) as any,
       query: GET_ALL_ASSIGNMENT,
-      processResult: (data: any) => ({
-        total: data.length,
-        items: data.map((assignment: Assignment) => {
-          const { shifts, ...rest } = assignment;
-          const startTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
-            const start = new Date(shift!.startTime);
-            if (!curr || isBefore(start, curr)) {
-              return start;
-            }
-            return curr;
-          }, null);
-          const endTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
-            const end = new Date(shift!.endTime);
-            if (!curr || isAfter(end, curr)) {
-              return end;
-            }
-            return curr;
-          }, null);
-          return {
-            ...rest,
-            startTime,
-            endTime,
-            shifts,
-          };
-        }),
-      }),
+      processResult: (data: any, options) => {
+        console.log(options);
+        const res = {
+          total: data.length,
+          items: data.map((assignment: Assignment) => {
+            const { shifts, ...rest } = assignment;
+            const startTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
+              const start = new Date(shift!.startTime);
+              if (!curr || isBefore(start, curr)) {
+                return start;
+              }
+              return curr;
+            }, null);
+            const endTime = (shifts || []).filter(Boolean).reduce((curr: Date | null, shift) => {
+              const end = new Date(shift!.endTime);
+              if (!curr || isAfter(end, curr)) {
+                return end;
+              }
+              return curr;
+            }, null);
+            return {
+              ...rest,
+              startTime,
+              endTime,
+              shifts,
+            };
+          }),
+        };
+
+        return {
+          ...res,
+          items: orderBy<any>(res.items, [options?.orderBy], [options?.order || 'asc' as any]),
+        }
+      },
     },
     rowActions: [
       {
@@ -258,7 +267,6 @@ export default function EventAssignmentsTable({
           }
           return value;
         },
-        noSort: true,
       },
       ...(!eventTemplateView ? [
         {
@@ -266,7 +274,6 @@ export default function EventAssignmentsTable({
           width: '10%',
           label: 'Open Shifts',
           columnType: 'string',
-          noSort: true,
         },
       ] : [] as any),
       { id: '', width: '5%', columnType: 'action', label: '' },

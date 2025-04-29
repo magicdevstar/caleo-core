@@ -62,7 +62,11 @@ export default function GQLTable({
   });
 
   const loading = config.search.loading || gqlLoading;
-  const { items, total: apiTotal } = config.search.processResult(data || config.search.data, filters);
+  const { items, total: apiTotal } = config.search.processResult(data || config.search.data, {
+    filters,
+    order: table.order,
+    orderBy: table.orderBy,
+  });
   const tableData = useMemo(() => items, [items]);
   const total = useMemo(() => apiTotal, [apiTotal]);
   const isEmpty = total === 0;

@@ -114,11 +114,11 @@ export function InterestList({
     search: {
       data: interestList || [],
       query: SHIFT_INTEREST_REQUESTS,
-      processResult: (data: any, filters) => {
+      processResult: (data: any, options) => {
         // eslint-disable-next-line no-restricted-syntax
         let filteredData = data;
         // eslint-disable-next-line no-restricted-syntax
-        for(const filter of filters) {
+        for(const filter of (options?.filters || [])) {
           if (filter.type === 'text') {
             filteredData = filteredData.filter(
               (item: any) => get(item, filter.id).toLowerCase().includes(filter.value.toLowerCase())

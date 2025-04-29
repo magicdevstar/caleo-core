@@ -44,7 +44,11 @@ export interface TableConfig<T> {
       defaultOrderBy?: string;
       defaultOrder?: 'asc' | 'desc';
     }
-    processResult: (value: any, filters?: any) => {
+    processResult: (value: any, options?: {
+      filters?: any[];
+      order?: string;
+      orderBy?: string;
+    }) => {
       items: T[];
       total: number;
     };

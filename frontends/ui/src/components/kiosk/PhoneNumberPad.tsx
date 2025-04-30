@@ -66,6 +66,7 @@ const PhoneNumberPad: React.FC<PhoneNumberPadProps> = ({ value, onChange, label 
             <Button
               key={idx}
               onClick={handleDigit(key)}
+              disableRipple
               variant="outlined"
               sx={{
                 borderRadius: '50%',

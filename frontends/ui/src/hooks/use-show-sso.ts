@@ -1,5 +1,6 @@
 const ignoreDomains = [
   'localhost:3000',
+  '192',
   'dev',
   'lvmpd',
   'app'

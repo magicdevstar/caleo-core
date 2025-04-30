@@ -10,15 +10,17 @@ export function useDeviceType(): UseDeviceTypeResult {
   const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
 
   useEffect(() => {
-    const ua = navigator.userAgent;
+    const ua = navigator.userAgent || '';
+    const maxTouchPoints = navigator.maxTouchPoints || 0;
+    const platform = navigator.platform || '';
 
-    const isTablet = /iPad|Tablet/i.test(ua);
+    const isIpadOS = platform === 'MacIntel' && maxTouchPoints > 1;
+    const isTablet = /iPad|Tablet/i.test(ua) || (isIpadOS && !/iPhone/i.test(ua));
     const isPhone = /iPhone|Android.*Mobile|Windows Phone/i.test(ua);
-    const isAndroidTablet = /Android/i.test(ua) && !/Mobile/i.test(ua);
 
     if (isPhone) {
       setDeviceType('phone');
-    } else if (isTablet || isAndroidTablet) {
+    } else if (isTablet) {
       setDeviceType('tablet');
     } else {
       setDeviceType('desktop');

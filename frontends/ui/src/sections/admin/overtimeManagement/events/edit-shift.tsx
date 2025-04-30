@@ -98,7 +98,7 @@ export default function EditShift({
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
   const canNotify = useMemo(() =>
-    currentShifts?.[0]?.event?.status === EventStatus.FirstComeFirstServe &&
+    [EventStatus.FirstComeFirstServe, EventStatus.InterestList].includes(currentShifts?.[0]?.event?.status) &&
     currentShifts.some((shift) => shift.userId === null || !('userId' in shift)),
   [currentShifts]);
   const allDisabled = useMemo(() => {
@@ -531,7 +531,7 @@ export default function EditShift({
     <>
       {mdUp && <Grid md={4} />}
       <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-        <Tooltip title={!canNotify ? 'Event must be first come first serve and there must be available shifts' : ''}>
+        <Tooltip title={!canNotify ? 'Event must available to officers and there must be available shifts' : ''}>
           <span>
             <Button
               disabled={!canNotify || allDisabled || isComplete}

@@ -191,6 +191,10 @@ const userDetailProperties = `
     unit {
       id
       name
+      divisions {
+        id
+        name
+      }
     }
     division {
       id

@@ -14,7 +14,6 @@ import Stack from '@mui/material/Stack';
 import { ME, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
 import { GET_UNITS } from 'src/api/unit';
-import { GET_DIVISIONS } from 'src/api/division';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // types
@@ -27,6 +26,7 @@ import FormProvider, {
 import { MotionContainer, varBounce } from 'src/components/animate';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
+import TextField from '@mui/material/TextField';
 
 // ----------------------------------------------------------------------
 
@@ -73,18 +73,9 @@ export default function LasdCompleteProfile() {
   });
   const units = unitData?.units?.items || [];
 
-  const { data: divisionsData } = useQuery(GET_DIVISIONS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const divisions = divisionsData?.divisions?.items || [];
-
   const UpdateUserSchema = Yup.object().shape({
     unit: Yup.object().nullable().required('Unit is required'),
-    division: Yup.object().nullable().required('Division is required'),
+    division: Yup.object().nullable(),
     rank: Yup.object().required('Rank is required'),
     primaryPhone: Yup.string().required('Primary phone is required'),
   });
@@ -103,8 +94,10 @@ export default function LasdCompleteProfile() {
 
   const {
     handleSubmit,
+    watch,
     formState: { isSubmitting },
   } = methods;
+  const division = watch('unit')?.divisions?.[0]?.name;
 
   const onSubmit = handleSubmit(async (d) => {
     try {
@@ -119,7 +112,7 @@ export default function LasdCompleteProfile() {
               orgId: user?.member?.orgId,
               pNumber: user?.member?.pNumber,
               rankId: d.rank.id,
-              divisionId: d.division.id,
+              divisionId: d.unit.divisions?.[0]?.id,
               unitId: d.unit.id,
               contactInfo: {
                 primaryEmail: {
@@ -206,27 +199,12 @@ export default function LasdCompleteProfile() {
               }}
             />
 
-            <RHFAutocomplete
-              name="division"
+            <TextField
+              disabled
+              value={division || ''}
               label="Division"
-              options={divisions}
-              getOptionLabel={(option: any) => (option as Division).name}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderOption={(props, option) => {
-                const division = divisions.find(
-                  (d: Division) => d.id === option.id,
-                );
-
-                if (!division) {
-                  return null;
-                }
-
-                return (
-                  <li {...props} key={division.id}>
-                    {division.name}
-                  </li>
-                );
-              }}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
             />
 
             <RHFPhone name="primaryPhone" label="Primary Phone" />

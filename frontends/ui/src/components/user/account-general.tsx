@@ -21,7 +21,6 @@ import Divider from '@mui/material/Divider';
 import { CREATE_PROFILE_PHOTO_UPLOAD_URL, FrontendUser, GET_USER, ME, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
 import { GET_UNITS } from 'src/api/unit';
-import { GET_DIVISIONS } from 'src/api/division';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFAutocomplete,
@@ -44,6 +43,7 @@ import { useFeatures } from 'src/hooks/use-features';
 import { useTiers } from 'src/hooks/use-tiers';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useAuthContext } from 'src/auth/hooks';
+import { TextField } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -163,15 +163,6 @@ export default function AccountGeneral({
   });
   const units = unitData?.units?.items || [];
 
-  const { data: divisionsData } = useQuery(GET_DIVISIONS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const divisions = divisionsData?.divisions?.items || [];
-
   const tierUntilHelpText = useMemo(() => {
     if (user?.member?.tier === MemberTier.Tier_1 || !user?.member?.tierResetOnNextLottery) {
       return '';
@@ -249,6 +240,7 @@ export default function AccountGeneral({
     formState: { isSubmitting, errors: formErrors },
   } = methods;
   const tierUntil = watch('tierUntil');
+  const division = watch('unit')?.divisions?.[0]?.name;
 
   useEffect(() => {
     if (user.image) {
@@ -322,7 +314,7 @@ export default function AccountGeneral({
               tenor: d.tenor,
               ...((adminViewer || lasdUserFields) && {
                 rankId: d.rank.id,
-                ...(d.division?.id && {divisionId: d.division.id}),
+                ...(d.unit?.divisions?.[0]?.id && {divisionId: d.unit.divisions[0].id}),
                 ...(d.unit?.id && {unitId: d.unit.id}),
               }),
               ...(adminViewer && {
@@ -586,28 +578,12 @@ export default function AccountGeneral({
                       }}
                     />
 
-                    <RHFAutocomplete
-                      name="division"
+                    <TextField
+                      disabled
+                      value={division || ''}
                       label="Division"
-                      disabled={allDisabled}
-                      options={divisions}
-                      getOptionLabel={(option: any) => (option as Division).name}
-                      isOptionEqualToValue={(option, value) => option.id === value.id}
-                      renderOption={(props, option) => {
-                        const division = divisions.find(
-                          (d: Division) => d.id === option.id,
-                        );
-
-                        if (!division) {
-                          return null;
-                        }
-
-                        return (
-                          <li {...props} key={division.id}>
-                            {division.name}
-                          </li>
-                        );
-                      }}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
                     />
                   </>
                 )

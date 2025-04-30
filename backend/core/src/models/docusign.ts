@@ -72,7 +72,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         3600
       );
       const userInfo = await client.getUserInfo(refreshValue.body.access_token);
-      const accountInfo = userInfo.accounts.find(account => account.isDefault === 'true');
+      const accountInfo = userInfo.accounts.find(account => organization.docusign.accountName === account.accountName);
       const token = refreshValue.body.access_token;
       const date = new Date();
       await this.collection.updateOne({

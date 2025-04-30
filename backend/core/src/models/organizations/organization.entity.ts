@@ -26,6 +26,7 @@ export interface IOrganization extends Omit<
     secretKey: string;
     templateId: string;
     reserveTemplateId: string;
+    accountName: string;
   }
 
   createdAt: Date;

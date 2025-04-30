@@ -20,7 +20,7 @@ export default function StatusConfirmDialog({
   user,
 }: {
   status?: MemberStatus.Active | MemberStatus.Inactive;
-  statusConfirm: UseBooleanReturnType;
+  statusConfirm: UseBooleanReturnType<unknown>;
   user?: User;
 }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

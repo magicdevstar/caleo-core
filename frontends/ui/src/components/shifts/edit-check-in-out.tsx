@@ -61,7 +61,7 @@ export const EditCheckInOut = ({
   handleClose,
 }: {
   shift: Shift;
-  editCheckInOutModal: UseBooleanReturnType;
+  editCheckInOutModal: UseBooleanReturnType<unknown>;
   handleClose: () => void;
 }) => {
   const { enqueueSnackbar } = useSnackbar();

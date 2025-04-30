@@ -239,7 +239,7 @@ export default function EditEvent({
   const mdUp = useResponsive('up', 'md');
 
   const rejectEventConfirm = useBoolean();
-  const showAttachments = useBoolean(false);
+  const showAttachments = useBoolean();
   const [rejectEventNote, setRejectEventNote] = useState('');
   const { enqueueSnackbar } = useSnackbar();
 

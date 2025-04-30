@@ -47,7 +47,7 @@ const defaultValidField = {
 export default function InviteUserModal({
   inviteUser,
 }: {
-  inviteUser: UseBooleanReturnType;
+  inviteUser: UseBooleanReturnType<unknown>;
 }) {
   const { user: { member: { orgId } } } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();

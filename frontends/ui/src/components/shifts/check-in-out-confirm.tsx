@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useSnackbar } from 'notistack';
 import { useMutation } from '@apollo/client';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { DesktopDateTimePicker } from '@mui/x-date-pickers/DesktopDateTimePicker';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -29,7 +29,7 @@ export default function CheckInOutConfirm({
   onSuccess,
 }: {
   checkInOutConfirm: Shift | null;
-  confirm: UseBooleanReturnType;
+  confirm: UseBooleanReturnType<unknown>;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const { user } = useAuthContext();
@@ -136,7 +136,7 @@ export default function CheckInOutConfirm({
         <Stack spacing={2} mt={1}>
           {
             requiredEquipmentTime && (
-              <DateTimePicker
+              <DesktopDateTimePicker
                 timezone={user.member.org?.timezone}
                 ampm={false}
                 maxDate={dayjs()}
@@ -144,7 +144,6 @@ export default function CheckInOutConfirm({
                 label={isCheckout ? 'Equipment return time' : 'Equipment pickup time'}
                 value={dayjs(equipmentTime)}
                 onChange={(newValue) => {
-                  console.log(newValue);
                   setEquipmentTime(newValue);
                 }}
                 slotProps={{

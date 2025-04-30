@@ -33,8 +33,8 @@ export default function RankShifts() {
   const [shiftToBeRemoved, setShiftToBeRemoved] = useState<ShiftLotteryRequest | null>(null);
   const [shiftMoveIndex, setShiftMoveIndex] = useState<number>(0);
   const [shiftMoveInput, setShiftMoveInput] = useState<number>(1);
-  const removePrompt = useBoolean(false);
-  const movePrompt = useBoolean(false);
+  const removePrompt = useBoolean();
+  const movePrompt = useBoolean();
   const [removeRequest] = useMutation(REMOVE_LOTTERY_SHIFT_REQUEST, {
     refetchQueries: [GET_LOTTERY_SHIFTS],
   });

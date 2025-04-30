@@ -38,7 +38,7 @@ const columns = {
 
 export default function LotterySelectView() {
   const { user } = useAuthContext();
-  const initialLoading = useBoolean(true);
+  const initialLoading = useBoolean({ defaultValue: true });
   
   const [lottoBoard, setLottoBoard] = useState<{
     columns: Record<string, {id: string; name: string; taskIds: string[]}>;

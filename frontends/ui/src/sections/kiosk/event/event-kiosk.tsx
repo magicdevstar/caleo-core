@@ -13,6 +13,8 @@ import { Event } from "src/__generated__/resolvers-types";
 import { GET_USERS } from "src/api/user";
 import { paths } from "src/routes/paths";
 import { useRouter } from "src/routes/hooks";
+import PhoneNumberPad from "src/components/kiosk/PhoneNumberPad";
+import { useDeviceType } from "src/hooks/use-device-type";
 
 export default function EventKiosk({
   event,
@@ -21,6 +23,7 @@ export default function EventKiosk({
   event?: Event;
   eventId: string;
 }) {
+  const { isTouchDevice } = useDeviceType();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const [pNumber, setPNumber] = useState<string>('');
@@ -64,12 +67,18 @@ export default function EventKiosk({
   return (
     <Stack spacing={2} sx={{ width: '100%' }}>
       <Typography variant="h4" component="h1" gutterBottom>{event?.name}: Check-in/out</Typography>
-      <TextField
-        label={pNumberLabel}
-        fullWidth
-        inputMode="numeric"
-        onChange={(e) => setPNumber(e.target.value)}
-      />
+      {
+        isTouchDevice ? (
+          <PhoneNumberPad value={pNumber} onChange={setPNumber} label={pNumberLabel} />
+        ) : (
+          <TextField
+            label={pNumberLabel}
+            fullWidth
+            inputMode="numeric"
+            onChange={(e) => setPNumber(e.target.value)}
+          />
+        )
+      }
       <LoadingButton
         loading={searching}
         variant="contained"

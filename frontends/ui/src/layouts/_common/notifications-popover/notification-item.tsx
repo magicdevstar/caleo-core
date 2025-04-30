@@ -23,7 +23,7 @@ export interface NotificationRendered {
   category?: string;
   createdAt: Date;
   isUnRead: boolean;
-  drawer: UseBooleanReturnType;
+  drawer: UseBooleanReturnType<unknown>;
   notificationAction?: {
     path: string;
     buttonText: string;

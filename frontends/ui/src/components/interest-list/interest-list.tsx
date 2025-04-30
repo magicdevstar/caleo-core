@@ -22,7 +22,7 @@ import { useFeatures } from "src/hooks/use-features";
 import { useTiers } from "src/hooks/use-tiers";
 
 interface Props {
-  open: UseBooleanReturnType;
+  open: UseBooleanReturnType<unknown>;
   interestList: ShiftInterestRequest[];
 }
 

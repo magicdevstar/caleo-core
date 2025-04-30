@@ -67,6 +67,11 @@ type Props = {
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const defaultString = (value: string) => {
+  if (!value) return '-';
+  return value;
+};
+
 export default function EditShift({
   eventId,
   assignmentId,
@@ -201,6 +206,25 @@ export default function EditShift({
   const existingUserIds: string[] = useMemo(() => currentShifts.map((shift) => shift.user?.id).filter((id) => !!id) || [], [currentShifts]) as any;
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const assignableClick = (row: Shift) => {
+    setEditShiftId(row.id);
+    if (row.user) {
+      unassignConfirm.onTrue();
+    } else {
+      assignConfirm.onTrue();
+    }
+  };
+
+  const lockClick = (row: Shift) => {
+    setLockShift(row);
+    lockConfirm.onTrue();
+  };
+
+  const clickCheckInOut = (row: Shift) => {
+    setEditCheckInOut(row);
+    editCheckInOutModal.onTrue();
+  };
 
   const openRemoveShift = useCallback((id: string) => {
     setEditShiftId(id);
@@ -380,23 +404,13 @@ export default function EditShift({
         getName: (row: Shift) => row.user ? 'Unassign' : 'Assign',
         getIcon: () => 'solar:pen-bold-duotone',
         getDisabled: (row: Shift) => allDisabled || isComplete,
-        onClick: (row: Shift) => {
-          setEditShiftId(row.id);
-          if (row.user) {
-            unassignConfirm.onTrue();
-          } else {
-            assignConfirm.onTrue();
-          }
-        },
+        onClick: assignableClick,
       },
       {
         getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
         getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold-duotone' : 'solar:lock-keyhole-bold-duotone',
         getDisabled: () => allDisabled || isComplete,
-        onClick: (row: Shift) => {
-          setLockShift(row);
-          lockConfirm.onTrue();
-        },
+        onClick: lockClick,
       },
       {
         getName: () => 'Delete',
@@ -410,10 +424,7 @@ export default function EditShift({
         getName: () => 'View Check In/Out',
         getDisabled: (row: Shift) => !row.shiftCheckInOut,
         getIcon: () => 'solar:stopwatch-bold-duotone',
-        onClick: (row: Shift) => {
-          setEditCheckInOut(row);
-          editCheckInOutModal.onTrue();
-        },
+        onClick: clickCheckInOut,
       }] : []),
     ].filter(Boolean) as any,
     columns: [
@@ -421,27 +432,37 @@ export default function EditShift({
         id: 'id',
         label: 'Locked',
         columnType: 'string',
+        clickable: () => true,
         renderValue: (rowKey: string) => {
           const foundShift = currentShifts.find((shift) => shift.id === rowKey);
           if (!foundShift) return null;
           return (<Iconify sx={{color: foundShift.locked ? "error.main" : "default"}} icon={foundShift.locked ? 'solar:lock-keyhole-bold' : 'solar:lock-keyhole-unlocked-bold'} />);
         },
+        onClick: lockClick,
         width: '10%',
       },
       {
         id: 'refNumber',
         label: 'Slot Ref',
         columnType: 'string',
-        renderValue: (row) => `# ${row}`,
+        renderValue: (value: string) => `# ${value}`,
         width: '10%',
       },
-      { id: 'user.name', width: '25%', label: 'Name', columnType: 'string' },
+      {
+        id: 'user.name',
+        width: '25%',
+        label: 'Name',
+        columnType: 'string',
+        clickable: () => true,
+        onClick: assignableClick,
+        renderValue: defaultString,
+      },
       {
         id: 'user.member.contactInfo.primaryPhone.number',
         width: '25%',
         label: 'Phone',
         columnType: 'string',
-        renderValue: (value) => {
+        renderValue: (value: string) => {
           let phoneNum = value;
           if (phoneNum) {
             try {
@@ -450,12 +471,36 @@ export default function EditShift({
               console.error(e);
             }
           }
-          return phoneNum;
-        }
+          return phoneNum || '-';
+        },
       },
-      { id: 'user.member.pNumber', label: pNumberLabel, columnType: 'string', width: '25%' },
+      {
+        id: 'user.member.pNumber',
+        label: pNumberLabel,
+        columnType: 'string',
+        width: '25%',
+        renderValue: defaultString,
+      },
+      ...(eventCheckIn ? [
+        {
+          id: 'shiftCheckInOut.checkInTime',
+          label: 'Check In',
+          columnType: 'date',
+          width: '20%',
+          clickable: () => true,
+          onClick: clickCheckInOut,
+        },
+        {
+          id: 'shiftCheckInOut.checkOutTime',
+          label: 'Check Out',
+          columnType: 'date',
+          width: '20%',
+          clickable: () => true,
+          onClick: clickCheckInOut,
+        },
+      ] : []),
       { id: '', width: '5%', columnType: 'action', label: '' },
-    ],
+    ].filter(Boolean) as any,
     filters: []
   };
 

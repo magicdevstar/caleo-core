@@ -38,7 +38,7 @@ export const BooleanCell = ({value, width,}: {width?: number | string; value: bo
   </TableCell>
 );
 
-export const DateCell = ({value, width, href}: {width?: number | string; value: string; href?: string;}) => {
+export const DateCell = ({value, width, href, onClick, clickable}: {width?: number | string; value: string; href?: string; onClick?: any; clickable?: boolean;}) => {
   const { date } = useDateJS({
     date: value
   });
@@ -76,6 +76,11 @@ export const DateCell = ({value, width, href}: {width?: number | string; value: 
         primary={output}
         secondary={secondary}
         primaryTypographyProps={{ typography: 'body2', noWrap: true }}
+        onClick={onClick}
+        sx={{
+          cursor: clickable ? 'pointer': 'default',
+          textDecoration: clickable ? 'underline' : 'none',
+        }}
         secondaryTypographyProps={{
           mt: 0.5,
           component: 'span',
@@ -120,7 +125,16 @@ export const StringCell = ({value, labelColor, href, onClick, width, clickable} 
   }
   return (
     <TableCell width={width}>
-      <Typography variant="subtitle2" noWrap color="inherit">
+      <Typography
+        onClick={onClick}
+        sx={{
+          cursor: clickable ? 'pointer': 'default',
+          textDecoration: clickable ? 'underline' : 'none',
+        }}
+        variant="subtitle2"
+        noWrap
+        color="inherit"
+      >
         {value}
       </Typography>
     </TableCell>
@@ -179,7 +193,7 @@ export default function GQLTableRow({
               case 'boolean':
                 return (<BooleanCell width={column.width} key={column.id} value={value} />);
               case 'date':
-                return (<DateCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} />);
+                return (<DateCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} clickable={!!column?.clickable?.(row)} onClick={() => column.onClick?.(row)} />);
               case 'string':
                 return (<StringCell width={column.width} key={column.id} value={value} href={column.getHref?.(row)} clickable={!!column?.clickable?.(row)} onClick={() => column.onClick?.(row)} labelColor={column.getLabelColor?.(row)} />);
               case 'array':

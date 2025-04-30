@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ApolloQueryResult, useQuery } from '@apollo/client';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -7,6 +8,7 @@ import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 // components
 import FormProvider, {
   RHFAutocomplete,
@@ -15,13 +17,15 @@ import Iconify from 'src/components/iconify';
 // types
 import { GET_DIVISIONS } from 'src/api/division';
 import { ShiftData } from 'src/api/shifts';
-import { useEffect } from 'react';
+import { useBoolean } from 'src/hooks/use-boolean';
+import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
 
 interface IProps {
-  setFilters: (filters: IFilters) => void;
+  eventId: string;
+  setFilters: (filters: IActions) => void;
   refetch: () => Promise<ApolloQueryResult<ShiftData>>;
 };
-export interface IFilters {
+export interface IActions {
   divisionIds: string[];
 }
 
@@ -32,10 +36,12 @@ const schema = Yup.object().shape({
   divisions: Yup.array(),
 });
 
-export default function Filters({
+export default function Actions({
+  eventId,
   refetch,
   setFilters,
 }: IProps) {
+  const kioskConfirm = useBoolean();
   const { data: divisionData } = useQuery(GET_DIVISIONS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -64,7 +70,7 @@ export default function Filters({
 
   return (
     <FormProvider methods={methods} >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end' }}>
         <RHFAutocomplete
           name="divisions"
           placeholder="Filter by division"
@@ -97,7 +103,15 @@ export default function Filters({
         <IconButton size='large' onClick={() => refetch()}>
           <Iconify icon="ic:baseline-refresh" />
         </IconButton>
+
+        <Tooltip title="Open Kiosk View">
+          <IconButton size='large' onClick={() => kioskConfirm.onTrue()}>
+            <Iconify icon="material-symbols:moved-location" />
+          </IconButton>
+        </Tooltip>
       </Box>
+
+      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={eventId} />
     </FormProvider>
   );
 }

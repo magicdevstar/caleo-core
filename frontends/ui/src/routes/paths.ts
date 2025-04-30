@@ -38,6 +38,10 @@ export const paths = {
     },
     admin: {
       reports: `${ROOTS.DASHBOARD}/admin/reports`,
+      eventManagement: {
+        root: `${ROOTS.DASHBOARD}/admin/event-management`,
+        eventDashboards: `${ROOTS.DASHBOARD}/admin/event-management/dashboards`,
+      },
       overtime: {
         root: `${ROOTS.DASHBOARD}/admin/overtime`,
         events: `${ROOTS.DASHBOARD}/admin/overtime/events`,

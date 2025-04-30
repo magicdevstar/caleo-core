@@ -34,6 +34,7 @@ const DynamicShiftFilter = lazyWithRetry(() => import('src/pages/dashboard/admin
 const EditVenue = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
 const Events = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 const EventsTemplates = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/events'));
+const EventDashboards = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/eventDashboards'));
 const EventsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editEvent'));
 const AssignmentsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editAssignment'));
 const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
@@ -65,6 +66,12 @@ export const dashboardRoutes = [
         path: 'admin',
         children: [
           { path: 'reports', element: <Reports /> },
+          {
+            path: 'event-management',
+            children: [
+              { path: 'dashboards', element: <EventDashboards /> },
+            ]
+          },
           {
             path: 'overtime',
             children: [

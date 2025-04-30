@@ -12,6 +12,7 @@ import { client } from 'src/utils/apollo';
 // components
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
 // types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
@@ -28,6 +29,7 @@ import { paths } from 'src/routes/paths';
 // ----------------------------------------------------------------------
 
 export default function EventsTable() {
+  const kioskConfirm = useBoolean<string>();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
   const router = useRouter();
@@ -149,9 +151,7 @@ export default function EventsTable() {
             EventStatus.PreLottery,
           ].includes(row.status),
           onClick: (row: Event) => {
-            router.push(
-              paths.kiosk.root.replace(':eventId', row.id)
-            );
+            kioskConfirm.onTrue(row.id);
           },
         },
         {
@@ -456,6 +456,7 @@ export default function EventsTable() {
     <>
       <GQLTable config={config} />
 
+      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />useBoolean(false)
       <ConfirmDialog
         open={deleteConfirm.value}
         onClose={deleteConfirm.onFalse}

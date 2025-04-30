@@ -12,11 +12,11 @@ import QueryView from 'src/components/query-view';
 import { ShiftData, SHIFTS_FOR_EVENT_DASHBOARD } from 'src/api/shifts';
 import Analytics from '../event/analytics';
 import ShiftTable from '../event/shift-table/table';
-import Filters, { IFilters } from '../event/filters/filters';
+import Actions, { IActions } from '../event/header/actions';
 
 export default function EventDashboardView() {
   const params = useParams();
-  const [filters, setFilters] = useState<IFilters>({
+  const [filters, setFilters] = useState<IActions>({
     divisionIds: [],
   });
 
@@ -75,7 +75,7 @@ export default function EventDashboardView() {
             <Typography variant='h3' component='h1' gutterBottom>{shiftData?.shifts?.items?.[0]?.event?.name}</Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Filters refetch={refetch} setFilters={setFilters} />
+            <Actions eventId={params.eventId!} refetch={refetch} setFilters={setFilters} />
           </Grid>
         </Grid>
         <Grid container spacing={3}>

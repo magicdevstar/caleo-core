@@ -369,6 +369,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkInEquipmentTime,
     checkOutEquipmentTime,
     adminNotes,
+    noShow,
     user,
   } : {
     id: string,
@@ -377,6 +378,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     adminNotes?: string | null,
     checkInEquipmentTime?: string | null,
     checkOutEquipmentTime?: string | null,
+    noShow: boolean,
     user: IUser,
   }) {
     const res = await this.collection.updateOne({
@@ -385,6 +387,7 @@ export class ShiftModel extends BaseMongo<IShift> {
       $set: {
         modifiedById: user._id!,
         updatedAt: new Date(),
+        'shiftCheckInOut.noShow': noShow,
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
         ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),

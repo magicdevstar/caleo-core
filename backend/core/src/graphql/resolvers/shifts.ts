@@ -120,6 +120,7 @@ export const shift = {
           checkOutTime,
           adminNotes,
           equipmentDetails,
+          noShow,
         }
       }: {
         input: ShiftAdminCheckInOutEvent
@@ -145,6 +146,7 @@ export const shift = {
         checkOutEquipmentTime: equipmentDetails?.checkOutTime,
         adminNotes,
         user: user!,
+        noShow: !!noShow,
       });
 
       await docusign.resubmitEndOfShiftEnvelope({

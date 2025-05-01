@@ -25,10 +25,10 @@ export default function EventKioskView() {
       maxWidth="sm"
       component="main"
       sx={{
-        height: 'calc(100vh - 80px)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        width: '100%',
       }}
     >
       <QueryView

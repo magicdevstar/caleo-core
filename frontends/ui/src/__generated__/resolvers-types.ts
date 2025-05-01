@@ -1736,6 +1736,7 @@ export type ShiftAdminCheckInOutEvent = {
   checkOutTime?: InputMaybe<Scalars['String']['input']>;
   equipmentDetails?: InputMaybe<ShiftCheckInOutEquipmentEvent>;
   id: Scalars['String']['input'];
+  noShow?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type ShiftAvailabilityTime = {
@@ -1822,6 +1823,7 @@ export type ShiftCheckInOut = {
   checkOutNote?: Maybe<Scalars['String']['output']>;
   checkOutTime?: Maybe<Scalars['String']['output']>;
   equipmentDetails?: Maybe<ShiftCheckInOutEquipment>;
+  noShow?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type ShiftCheckInOutCoordinates = {
@@ -3884,6 +3886,7 @@ export type ShiftCheckInOutResolvers<ContextType = any, ParentType extends Resol
   checkOutNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   equipmentDetails?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutEquipment']>, ParentType, ContextType>;
+  noShow?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

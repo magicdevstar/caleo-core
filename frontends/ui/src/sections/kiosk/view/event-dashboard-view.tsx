@@ -81,7 +81,7 @@ export default function EventDashboardView() {
         <Grid container spacing={3}>
           <Analytics data={shiftData} />
 
-          <ShiftTable data={shiftData?.shifts?.items} totalData={shiftData?.shifts?.total || 0} loading={loading} />
+          <ShiftTable refetch={refetch} data={shiftData?.shifts?.items} totalData={shiftData?.shifts?.total || 0} loading={loading} />
         </Grid>
       </QueryView>
     </Container>

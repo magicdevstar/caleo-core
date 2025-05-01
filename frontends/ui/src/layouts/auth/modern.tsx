@@ -12,13 +12,18 @@ import Logo from 'src/components/logo';
 type Props = {
   image?: string;
   children: React.ReactNode;
+  maxWidth?: number | string | object;
 };
 
 const [subdomain] = window.location.host.split('.');
-const isLasd = /lasd/.test(subdomain);
+const isLasd = true; // /lasd/.test(subdomain);
 const defaultBackground = isLasd ? '/assets/background/lasd_overlay_1.webp' : '/assets/background/overlay_3.jpg';
 
-export default function AuthModernLayout({ children, image }: Props) {
+export default function AuthModernLayout({
+  children,
+  image,
+  maxWidth = 480,
+}: Props) {
   const upMd = useResponsive('up', 'md');
 
   const renderContent = (
@@ -26,7 +31,7 @@ export default function AuthModernLayout({ children, image }: Props) {
       sx={{
         width: 1,
         mx: 'auto',
-        maxWidth: 480,
+        maxWidth,
         px: { xs: 2, md: 8 },
       }}
     >

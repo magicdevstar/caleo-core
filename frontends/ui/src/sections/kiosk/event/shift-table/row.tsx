@@ -10,15 +10,18 @@ import parsePhoneNumber from 'libphonenumber-js';
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { DocusignSignerDetails, Shift } from 'src/__generated__/resolvers-types';
-import { DateCell, StringCell } from 'src/components/table/gql/row';
+import { BooleanCell, DateCell, StringCell } from 'src/components/table/gql/row';
 import { docusignStatusColor } from 'src/utils/docusign';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
+import { ApolloQueryResult } from '@apollo/client';
+import { ShiftData } from 'src/api/shifts';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   row: Shift;
   onDocusignReminder: VoidFunction;
+  refetch: () => Promise<ApolloQueryResult<ShiftData>>;
 };
 
 const docusignOfficerStatus = (signerDetails: DocusignSignerDetails[] | null) =>
@@ -27,6 +30,7 @@ const docusignOfficerStatus = (signerDetails: DocusignSignerDetails[] | null) =>
 export default function Row({
   row,
   onDocusignReminder,
+  refetch,
 }: Props) {
   const confirm = useBoolean();
   const popover = usePopover();
@@ -41,13 +45,12 @@ export default function Row({
         <StringCell value={row.user?.member?.pNumber || '-'} />
         <StringCell value={parsed?.format?.("NATIONAL") || '-'} />
         <StringCell labelColor={docusignStatusColor(row.docusignEvent?.status)} value={row.docusignEvent?.status || '-'} />
+        <BooleanCell value={!!row.shiftCheckInOut?.noShow} />
         <DateCell value={row.startTime} />
-        <DateCell value={row.endTime} />
         <TableCell align="right" sx={{ px: 1 }}>
           <Button
             variant="contained"
             color="primary"
-            disabled={!row.shiftCheckInOut?.checkInTime}
             onClick={() => {
               confirm.onTrue();
               popover.onClose();
@@ -96,6 +99,7 @@ export default function Row({
       <EditCheckInOut
         shift={row!}
         editCheckInOutModal={confirm}
+        closeOnSave
         handleClose={() => {
           confirm.onFalse();
         }}

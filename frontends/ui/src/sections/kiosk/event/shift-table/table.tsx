@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { ApolloQueryResult } from '@apollo/client';
 // @mui
 import { useTheme, alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -17,16 +18,19 @@ import Table from '@mui/material/Table';
 import { emptyRows, getComparator, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
 import TableBody from '@mui/material/TableBody';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { ShiftData } from 'src/api/shifts';
 import Row from './row';
 
 export default function ShiftTable({
   data,
   totalData,
   loading,
+  refetch,
 }: {
   loading: boolean;
   totalData: number;
   data: Shift[] | undefined;
+  refetch: () => Promise<ApolloQueryResult<ShiftData>>;
 }) {
   const { pNumberLabel } = usePNumberLabel();
   const TABLE_HEAD = [
@@ -36,8 +40,8 @@ export default function ShiftTable({
     { id: 'user.member.pNumber', label: pNumberLabel },
     { id: 'user.member.contactInfo.primaryPhone.number', label: 'Phone #' },
     { id: 'docusignEvent.status', label: 'Docusign' },
+    { id: 'shiftCheckInOut.noShow', label: 'No Show' },
     { id: 'startTime', label: 'Start' },
-    { id: 'endTime', label: 'End' },
     { id: '' },
   ];
   const theme = useTheme();
@@ -59,6 +63,7 @@ export default function ShiftTable({
 
   const totalCheckedIn = data?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime).length || 0;
   const totalNotCheckedIn = data?.filter((shift) => !shift.shiftCheckInOut?.checkInTime).length || 0;
+  const totalNoShow = data?.filter((shift) => !!shift.shiftCheckInOut?.noShow).length || 0;
 
   const TABS = [
     { value: 'all', label: 'All', color: 'default', count: totalData },
@@ -73,6 +78,12 @@ export default function ShiftTable({
       label: 'Checked In',
       color: 'success',
       count: totalCheckedIn,
+    },
+    {
+      value: 'shiftCheckInOut.noShow',
+      label: 'No Show',
+      color: 'error',
+      count: totalNoShow,
     }
   ] as const;
 
@@ -87,6 +98,9 @@ export default function ShiftTable({
     }
     if (tableTab === 'checkedIn') {
       return fData?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime);
+    }
+    if (tableTab === 'shiftCheckInOut.noShow') {
+      return fData?.filter((shift) => !!shift.shiftCheckInOut?.noShow);
     }
     return fData;
   }, [
@@ -159,6 +173,7 @@ export default function ShiftTable({
                     key={row.id}
                     row={row}
                     onDocusignReminder={() => {}}
+                    refetch={refetch}
                   />
                 ))}
 

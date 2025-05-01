@@ -18,7 +18,7 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
 import MapMarkersPopups from 'src/components/map/map-marker-popups';
 import FormProvider, {
-  RHFDateTimePicker, RHFTextField,
+  RHFDateTimePicker, RHFSwitch, RHFTextField,
 } from 'src/components/hook-form';
 // Types
 import { Shift } from "src/__generated__/resolvers-types";
@@ -59,10 +59,14 @@ export const EditCheckInOut = ({
   shift,
   editCheckInOutModal,
   handleClose,
+  refetch,
+  closeOnSave = false,
 }: {
   shift: Shift;
   editCheckInOutModal: UseBooleanReturnType<unknown>;
+  refetch?: () => Promise<any>;
   handleClose: () => void;
+  closeOnSave?: boolean;
 }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
@@ -78,6 +82,7 @@ export const EditCheckInOut = ({
     checkInNote: Yup.string().nullable(),
     checkOutNote: Yup.string().nullable(),
     adminNotes: Yup.string().nullable(),
+    noShow: Yup.boolean().default(false),
   });
 
   const defaultValues = useMemo(
@@ -102,6 +107,7 @@ export const EditCheckInOut = ({
         date: new Date(shift.shiftCheckInOut.checkOutTime),
         user
       }).toDate() : undefined,
+      noShow: shift?.shiftCheckInOut?.noShow || false,
     }),
     [shift, user]
   );
@@ -131,6 +137,7 @@ export const EditCheckInOut = ({
       const payload: any = {
         id: formData.id,
         adminNotes: formData.adminNotes,
+        noShow: formData.noShow,
       }
       if (formData.checkInTime) {
         payload.checkInTime = formData.checkInTime.toISOString();
@@ -160,7 +167,12 @@ export const EditCheckInOut = ({
       await client.refetchQueries({
         include: [GET_GROUPED_SHIFTS],
       });
-      // handleClose();
+      if (refetch) {
+        refetch();
+      }
+      if (closeOnSave) {
+        handleClose();
+      }
     } catch(error) {
       enqueueSnackbar('Failed to update check in/out', { variant: 'error', autoHideDuration: 4000 });
     }
@@ -243,6 +255,7 @@ export const EditCheckInOut = ({
           }
 
           <RHFTextField sx={{ mt: 2 }} name="adminNotes" label="Admin Notes" multiline rows={3} fullWidth />
+          <RHFSwitch name="noShow" label="No Show" />
 
           {
             hasCoordinates && (

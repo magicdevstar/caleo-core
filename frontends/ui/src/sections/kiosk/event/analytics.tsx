@@ -5,40 +5,7 @@ import { ShiftStatus } from 'src/__generated__/resolvers-types';
 import PieChart from 'src/components/widgets/pie-chart';
 import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
 import { ShiftData } from 'src/api/shifts';
-
-const calculateCheckData = ({
-  data,
-  timeKey,
-} : {
-  data: ShiftData | undefined,
-  timeKey: 'checkInTime' | 'checkOutTime'
-}) => {
-  if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
-
-  // Filter shifts that have the specified check time
-  const filteredShifts = data.shifts.items.filter((shift) => shift.shiftCheckInOut?.[timeKey]);
-  const totalFiltered = filteredShifts.length;
-  const totalShifts = data.shifts.total;
-  const percent = totalShifts ? (totalFiltered / totalShifts) * 100 : 0;
-
-  // Bin the check times dynamically to ensure no more than 10 bins
-  const times = filteredShifts
-    .map((shift) => new Date(shift.shiftCheckInOut?.[timeKey]!).getTime());
-  if (!times.length) {
-    return { percent, total: totalFiltered, chart: { series: [] } };
-  }
-  const minTime = Math.min(...times);
-  const maxTime = Math.max(...times);
-  const range = maxTime - minTime;
-  const binDuration = range > 0 ? Math.ceil(range / 10) : 5 * 60 * 1000; // Default to 5 minutes if range is 0
-  const numberOfBins = Math.ceil(range / binDuration) + 1;
-  const bins = new Array(numberOfBins).fill(0);
-  times.forEach((time) => {
-    const binIndex = Math.floor((time - minTime) / binDuration);
-    bins[binIndex] += 1;
-  });
-  return { percent, total: totalFiltered, chart: { series: bins } };
-};
+import { calculateCheckData, calculateLatePersonalData, calculateNoShowPersonnelData } from './analytics/utils';
 
 export default function Analytics({
   data
@@ -53,6 +20,10 @@ export default function Analytics({
     data,
     timeKey: 'checkOutTime'
   }), [data]);
+
+  const latePersonnelData = useMemo(() => calculateLatePersonalData(data), [data]);
+
+  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(data), [data]);
 
   const awaitingArrivalShifts = useMemo(() => {
     if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
@@ -71,6 +42,9 @@ export default function Analytics({
     const groups: { [key: string]: { checkedIn: number; notCheckedIn: number } } = {};
 
     data.shifts.items.forEach((shift) => {
+      if (shift?.shiftCheckInOut?.noShow) {
+        return; // Skip shifts that are marked as no-show
+      }
       // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
       const assignmentName = shift.assignment?.name || 'Unassigned';
       if (!groups[assignmentName]) {
@@ -147,6 +121,26 @@ export default function Analytics({
           percent={checkOutData.percent}
           total={checkOutData.total}
           chart={checkOutData.chart}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        {/* Late Personnel */}
+        <SummaryWidget
+          title="Late Personnel"
+          percent={latePersonnelData.percent}
+          total={latePersonnelData.total}
+          chart={{series: []}}
+        />
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        {/* No Show Personnel */}
+        <SummaryWidget
+          title="No Show"
+          percent={noShowPersonnelData.percent}
+          total={noShowPersonnelData.total}
+          chart={{series: []}}
         />
       </Grid>
 

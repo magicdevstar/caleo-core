@@ -406,6 +406,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           checkInNote
           checkOutNote
           adminNotes
+          noShow
           equipmentDetails {
             checkInTime
             checkOutTime

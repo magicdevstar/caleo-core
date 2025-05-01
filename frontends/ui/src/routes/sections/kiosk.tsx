@@ -7,6 +7,7 @@ import { HeaderSimple as Header } from 'src/layouts/_common';
 // components
 import { LoadingScreen } from 'src/components/loading-screen';
 import { lazyWithRetry } from 'src/utils/lazyRetry';
+import AuthModernLayout from 'src/layouts/auth/modern';
 
 // ----------------------------------------------------------------------
 
@@ -21,9 +22,10 @@ export const kioskRoutes = [
     path: 'kiosk/:eventId',
     element: (
       <AuthGuard>
-        <Header sx={{ position: 'initial' }} />
         <Suspense fallback={<LoadingScreen />}>
-          <Outlet />
+          <AuthModernLayout maxWidth={{ md: '50%', sm: '100%' }}>
+            <Outlet />
+          </AuthModernLayout>
         </Suspense>
       </AuthGuard>
     ),

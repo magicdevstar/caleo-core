@@ -16,7 +16,7 @@ type Props = {
 };
 
 const [subdomain] = window.location.host.split('.');
-const isLasd = true; // /lasd/.test(subdomain);
+const isLasd = /lasd/.test(subdomain);
 const defaultBackground = isLasd ? '/assets/background/lasd_overlay_1.webp' : '/assets/background/overlay_3.jpg';
 
 export default function AuthModernLayout({

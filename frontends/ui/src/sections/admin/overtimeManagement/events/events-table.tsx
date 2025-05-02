@@ -456,7 +456,7 @@ export default function EventsTable() {
     <>
       <GQLTable config={config} />
 
-      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />useBoolean(false)
+      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />
       <ConfirmDialog
         open={deleteConfirm.value}
         onClose={deleteConfirm.onFalse}

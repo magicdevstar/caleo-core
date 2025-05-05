@@ -102,12 +102,33 @@ export class Docusign {
       shiftId: shift._id!,
       userId: shift.userId!,
       status,
-      signerDetails: signers.map((signer) => ({
-        email: signer.email!,
-        status: signer.status || 'n/a',
-        roleName: signer.roleName!,
-        routingOrder: signer.routingOrder!,
-      })),
+      signerDetails: signers.map((signer) => {
+        const fields = {};
+        const tabs = signer.tabs || {};
+
+        for (const [tabType, tabArray] of Object.entries(tabs)) {
+          if ([
+            'dateSignedTabs',
+            'signHereTabs',
+            'initialHereTabs',
+          ].includes(tabType)) {
+            continue;
+          }
+    
+          for (const tab of tabArray) {
+            const tabName = tab.tabLabel || tab.name || `tab_${tab.tabId}`;
+            const tabValue = tab.value ?? tab.originalValue ?? '';
+            fields[tabName] = tabValue;
+          }
+        }
+
+        return {
+          email: signer.email!,
+          status: signer.status || 'n/a',
+          roleName: signer.roleName!,
+          routingOrder: signer.routingOrder!,
+        };
+      }),
     });
 
     // Save document to s3

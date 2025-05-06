@@ -32,6 +32,8 @@ export const features = {
   lottery: false,
   venueContractDates: false,
   eventCheckIn: false,
+  eventCheckOut: false,
+  officerCheckInOut: false,
   interestLists: false,
   monthlyMaxHours: false,
   weeklyMaxShifts: false,
@@ -59,6 +61,14 @@ export const flatFeatures = [
   {
     value: 'eventCheckIn',
     label: 'Event Check In'
+  },
+  {
+    value: 'eventCheckOut',
+    label: 'Event Check Out'
+  },
+  {
+    value: 'officerCheckInOut',
+    label: 'Officer Check In/Out'
   },
   {
     value: 'externalEventRequests',

@@ -22,6 +22,8 @@ const defaultFeatures: OrganizationFeatures = {
   eventTemplates: false,
   noShowReport: false,
   rankHourlyRate: false,
+  eventCheckOut: false,
+  officerCheckInOut: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

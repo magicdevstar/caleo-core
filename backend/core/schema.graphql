@@ -1242,6 +1242,8 @@ type DocusignSignerDetailsData {
     lottery: Boolean!
     venueContractDates: Boolean!
     eventCheckIn: Boolean!
+    eventCheckOut: Boolean!
+    officerCheckInOut: Boolean!
     interestLists: Boolean!
     monthlyMaxHours: Boolean!
     weeklyMaxShifts: Boolean!
@@ -1416,6 +1418,8 @@ type DocusignSignerDetailsData {
     lottery: Boolean
     venueContractDates: Boolean
     eventCheckIn: Boolean
+    eventCheckOut: Boolean
+    officerCheckInOut: Boolean
     interestLists: Boolean
     monthlyMaxHours: Boolean
     weeklyMaxShifts: Boolean

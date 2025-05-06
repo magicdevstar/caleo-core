@@ -1333,6 +1333,7 @@ export type OrganizationFeatures = {
   docusign: Scalars['Boolean']['output'];
   equipment: Scalars['Boolean']['output'];
   eventCheckIn: Scalars['Boolean']['output'];
+  eventCheckOut: Scalars['Boolean']['output'];
   eventTemplates: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
@@ -1342,6 +1343,7 @@ export type OrganizationFeatures = {
   lottery: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
   noShowReport: Scalars['Boolean']['output'];
+  officerCheckInOut: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
@@ -2319,6 +2321,7 @@ export type UpsertOrganizationFeatures = {
   docusign?: InputMaybe<Scalars['Boolean']['input']>;
   equipment?: InputMaybe<Scalars['Boolean']['input']>;
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  eventCheckOut?: InputMaybe<Scalars['Boolean']['input']>;
   eventTemplates?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2328,6 +2331,7 @@ export type UpsertOrganizationFeatures = {
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
+  officerCheckInOut?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3686,6 +3690,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   docusign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   equipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  eventCheckOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventTemplates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3695,6 +3700,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  officerCheckInOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

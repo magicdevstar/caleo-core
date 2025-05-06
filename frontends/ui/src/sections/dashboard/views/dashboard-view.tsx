@@ -16,10 +16,10 @@ import CheckInOut from '../dashboard/check-in-out/check-in-out';
 export default function DashboardView() {
   const { currentShifts } = useCheckInOut();
   const { user } = useAuthContext();
-  const { eventCheckIn } = useFeatures();
+  const { officerCheckInOut } = useFeatures();
   const settings = useSettingsContext();
 
-  const hasCheckInOutShifts = eventCheckIn && currentShifts.length > 0;
+  const hasCheckInOutShifts = officerCheckInOut && currentShifts.length > 0;
   const sizes = hasCheckInOutShifts ? {
     welcome: 4,
     checkIn: 4,

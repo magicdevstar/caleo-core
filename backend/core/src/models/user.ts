@@ -292,59 +292,27 @@ export class UserModel extends BaseMongo<IUser> {
 
     logger.info('Events', { events, query });
 
-    // Find all open shifts joined with their assignments
-    const pipeline = [
-      {
-        $match: {
-          eventId: {
-            $in: events.items.map(({ _id }) => _id),
-          },
-          status: {$in: [ShiftStatus.Available, ShiftStatus.Locked]},
-        },
-      },
-      {
-        $group: {
-          _id: '$shiftId',
-          shift: { $push: "$$ROOT" }
-        }
-      },
-      {
-        $addFields: {
-          shift: {
-            $first: "$shift"
-          },
-        },
-      },
-      {
-        $replaceRoot: {
-          newRoot: "$shift",
-        },
-      },
-      {
-        $lookup: {
-          from: "assignments",
-          localField: "assignmentId",
-          foreignField: "_id",
-          as: "assignment",
-        },
-      },
-      {
-        $addFields: {
-          assignment: {
-            $first: "$assignment",
-          },
-        },
-      },
+    const interestListEventIds = events.items.filter(({ status }) => status === EventStatus.InterestList).map(({ _id }) => _id!);
+    const otherEventIds = events.items.filter(({ status }) => status !== EventStatus.InterestList).map(({ _id }) => _id!);
+
+    const interestListShifts = await this.shifts.findShiftsByEventIds({
+      eventIds: interestListEventIds,
+      includeAssigned: true,
+    });
+    const otherShifts = await this.shifts.findShiftsByEventIds({
+      eventIds: otherEventIds,
+      includeAssigned: false,
+    });
+    const shifts = [
+      ...interestListShifts,
+      ...otherShifts,
     ];
-    const shifts = await this.shifts.collection.aggregate<IShiftWithAssignment>(pipeline).toArray();
     if (shifts.length === 0) {
       return {
         total: 0,
         items: [],
       };
     }
-
-    logger.info('Available Shifts', { shifts, pipeline });
 
     // Fetch member skills
     let skillIds: string[] = [];

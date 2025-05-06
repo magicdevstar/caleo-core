@@ -1361,4 +1361,63 @@ export class ShiftModel extends BaseMongo<IShift> {
       id: shift._id!.toString(),
     })));
   }
+
+  findShiftsByEventIds({
+    eventIds,
+    includeAssigned,
+  }: {
+    includeAssigned: boolean;
+    eventIds: ObjectId[];
+  }) {
+    const statuses = [ShiftStatus.Available, ShiftStatus.Locked];
+    if (includeAssigned) {
+      statuses.push(ShiftStatus.Assigned);
+    }
+
+    const pipeline = [
+      {
+        $match: {
+          eventId: {
+            $in: eventIds,
+          },
+          status: {$in: statuses},
+        },
+      },
+      {
+        $group: {
+          _id: '$shiftId',
+          shift: { $push: "$$ROOT" }
+        }
+      },
+      {
+        $addFields: {
+          shift: {
+            $first: "$shift"
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$shift",
+        },
+      },
+      {
+        $lookup: {
+          from: "assignments",
+          localField: "assignmentId",
+          foreignField: "_id",
+          as: "assignment",
+        },
+      },
+      {
+        $addFields: {
+          assignment: {
+            $first: "$assignment",
+          },
+        },
+      },
+    ];
+
+    return this.collection.aggregate<IShiftWithAssignment>(pipeline).toArray();
+  }
 };

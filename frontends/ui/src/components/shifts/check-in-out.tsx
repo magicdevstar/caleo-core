@@ -14,7 +14,6 @@ import { useBoolean } from "src/hooks/use-boolean";
 import { useCheckInOut } from "src/hooks/use-check-in-out";
 import { useAuthContext } from "src/auth/hooks";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
-import { useFeatures } from "src/hooks/use-features";
 // Components
 import Iconify from "src/components/iconify";
 import CheckInOutConfirm from "./check-in-out-confirm";
@@ -24,14 +23,15 @@ export default function CheckInOut({
   eventId,
   userId,
   emptyView,
+  allowView = true,
   onSuccess,
 } : {
   eventId?: string;
   userId?: string;
   emptyView?: JSX.Element;
+  allowView?: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
-  const { officerCheckInOut } = useFeatures();
   const { user } = useAuthContext();
   const theme = useTheme();
   const { currentShifts, loading } = useCheckInOut({
@@ -79,7 +79,7 @@ export default function CheckInOut({
     );
   }
 
-  if (currentShifts.length === 0 || !officerCheckInOut) {
+  if (currentShifts.length === 0 && !allowView) {
     return emptyView || null;
   }
 

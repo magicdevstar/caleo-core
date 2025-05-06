@@ -202,7 +202,7 @@ export default function MyOvertimeView() {
     <Container sx={{
       height: '100%',
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
-      <CheckInOut />
+      <CheckInOut allowView={false} />
 
       <Box>
         <Typography variant="h4" gutterBottom>

@@ -479,21 +479,32 @@ export default function ShiftItem({
             </Grid>
 
             {
-              !lasdEventFields &&(
-                <Grid item xs={12} sm={4}>
-                  {/* Include other people assigned */}
-                  <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                      {assignedToShift}
-                    </Box>
-                  </Stack>
-                </Grid>
+              !lasdEventFields && (
+                <>
+                  <Grid item xs={12} sm={4}>
+                    {/* Include other people assigned */}
+                    <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                        {assignedToShift}
+                      </Box>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    {/* Include contact info */}
+                    <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Contact Info</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
+                        {contactInfo}
+                      </Box>
+                    </Stack>
+                  </Grid>
+                </>
               )
             }
 
             {
-              lasdEventFields &&(
+              lasdEventFields && (
                 <Grid item xs={12} sm={4}>
                   <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Reporting Location</Typography>
@@ -504,16 +515,6 @@ export default function ShiftItem({
                 </Grid>
               )
             }
-
-            <Grid item xs={12} sm={4}>
-              {/* Include contact info */}
-              <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Contact Info</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
-                  {contactInfo}
-                </Box>
-              </Stack>
-            </Grid>
 
             <Grid item xs={12} sm={6}>
               <Stack direction="column" spacing={1} sx={{ height: '100%' }}>

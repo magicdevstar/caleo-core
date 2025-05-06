@@ -440,7 +440,7 @@ export default function EditEvent({
             ].map(({ attachmentPath }) => attachmentPath),
             venueId: formData?.venueId,
             createdById: formData?.createdById,
-            outsideOrgCode: formData?.outsideOrgCode,
+            outsideOrgCode: formData?.outsideOrgCode || '15778',
             overtimeReasonCode: formData?.overtimeReasonCode,
             budgetActivityCode: formData?.budgetActivityCode,
             supervisorId: formData?.supervisor?.id,

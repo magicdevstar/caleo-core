@@ -224,7 +224,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'outsideOrgCode')?.tabId,
               tabLabel: "outsideOrgCode",
-              value: event.outsideOrgCode || 'outsideOrgCode123'
+              value: event.outsideOrgCode || '15778'
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerEmployeeNumber')?.tabId,

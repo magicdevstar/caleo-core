@@ -18,6 +18,7 @@ import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import Iconify from "src/components/iconify";
 import CheckInOutConfirm from "./check-in-out-confirm";
 import { LoadingScreen } from "../loading-screen";
+import { useFeatures } from "src/hooks/use-features";
 
 export default function CheckInOut({
   eventId,
@@ -30,6 +31,7 @@ export default function CheckInOut({
   emptyView?: JSX.Element;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const { officerCheckInOut } = useFeatures();
   const { user } = useAuthContext();
   const theme = useTheme();
   const { currentShifts, loading } = useCheckInOut({
@@ -77,7 +79,7 @@ export default function CheckInOut({
     );
   }
 
-  if (currentShifts.length === 0) {
+  if (currentShifts.length === 0 || !officerCheckInOut) {
     return emptyView || null;
   }
 

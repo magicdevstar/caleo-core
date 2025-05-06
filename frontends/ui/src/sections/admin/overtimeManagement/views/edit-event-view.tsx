@@ -22,17 +22,19 @@ import { useEventSummary } from 'src/hooks/use-event-summary';
 import Iconify from 'src/components/iconify/iconify';
 import QueryView from 'src/components/query-view';
 import { useFeatures } from 'src/hooks/use-features';
+import { useOvertimeSlips } from 'src/hooks/use-overtime-slips';
 import EditEvent from '../events/edit-event';
 
 // ----------------------------------------------------------------------
 
 export default function VenueDetail() {
   const { enqueueSnackbar } = useSnackbar();
-  const { kiosk } = useFeatures();
+  const { kiosk, lasdEventFields } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
   const router = useRouter();
   const { generateEventDownload, loading: summaryLoading } = useEventSummary();
+  const { generateOvertimeSlipsDownload } = useOvertimeSlips();
   const shouldSkip = !params.eventId || params.eventId === 'new';
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -142,6 +144,19 @@ export default function VenueDetail() {
             </ListItemIcon>
             <ListItemText>Download Summary</ListItemText>
           </MenuItem>
+          {lasdEventFields && (
+            <MenuItem onClick={() => {
+              if (data?.event) {
+                generateOvertimeSlipsDownload(data?.event?.id)
+              }
+              menuClose();
+            }}>
+              <ListItemIcon>
+                <Iconify icon="mdi:file-download" />
+              </ListItemIcon>
+              <ListItemText>Download Overtime Slips</ListItemText>
+            </MenuItem>
+          )}
           <MenuItem onClick={() => {
             router.push(
               paths.kiosk.dashboard.replace(':eventId', data?.event?.id)

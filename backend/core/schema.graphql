@@ -850,6 +850,17 @@ type DocusignSignerDetails {
   status: String!
   roleName: String!
   routingOrder: String!
+  data: DocusignSignerDetailsData
+}
+
+type DocusignSignerDetailsData {
+  callSign: String
+  vehicleModel: String
+  vehicleNumber: String
+  vehicleMake: String
+  endingMilage: String
+  totalMilage: String
+  startingMilage: String
 }
 ###### END Docusign Events ######
 

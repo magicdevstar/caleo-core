@@ -10,6 +10,7 @@ dayjs.extend(timezone);
 
 export const dateTimeFormat = 'ddd DD MMM YYYY HH:mm';
 export const dateFormat = 'ddd DD MMM YYYY';
+export const miniDateFormat = 'MM/DD/YYYY'
 export const timeFormat = 'HH:mm';
 
 export const getNow = ({

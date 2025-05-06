@@ -127,7 +127,6 @@ export default function EventAssignmentsTable({
       data: (currentEvent?.assignments || []) as any,
       query: GET_ALL_ASSIGNMENT,
       processResult: (data: any, options) => {
-        console.log(options);
         const res = {
           total: data.length,
           items: data.map((assignment: Assignment) => {

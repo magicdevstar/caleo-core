@@ -130,6 +130,7 @@ query GetEvent($id: String!) {
     }
     venue {
       id
+      city
       name
     }
     assignments {
@@ -145,17 +146,48 @@ query GetEvent($id: String!) {
         endTime
         status
         refNumber
+        docusignEvent {
+          id
+          status
+          documentUrl
+          signerDetails {
+            roleName
+            status
+            data {
+              callSign
+              vehicleModel
+              vehicleNumber
+              vehicleMake
+              endingMilage
+              totalMilage
+              startingMilage
+            }
+          }
+        }
         user {
           id
           firstName
           lastName
+          name
           member {
             pNumber
+            rankId
+            rank {
+              name
+            }
             contactInfo {
               primaryPhone {
                 number
               }
             }
+          }
+        }
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+          equipmentDetails {
+            checkInTime
+            checkOutTime
           }
         }
       }
@@ -224,6 +256,9 @@ export const GET_EVENT_FOR_SUMMARY = gql`
             lastName
             member {
               pNumber
+              rank {
+                name
+              }
               contactInfo {
                 primaryPhone {
                   number

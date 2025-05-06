@@ -49,6 +49,20 @@ export const useEventSummary = () => {
       }, []);
 
       const formattedJson = shifts.map((shift: Shift) => {
+        if (lasdEventFields) {
+          return {
+            'Start': shift.startTime ? convertDate({date: shift.startTime, user}).format(dateTimeFormat) : '',
+            'End': shift.endTime ? convertDate({date: shift.endTime, user}).format(dateTimeFormat) : '',
+            'ID #': shift.user?.member?.pNumber || '',
+            'Notes': shift.assignment?.name || '',
+            'Last Name': shift.user?.lastName || '',
+            'First Name': shift.user?.firstName || '',
+            'Rank': shift.user?.member?.rank?.name || '',
+            'Phone #': shift.user?.member?.contactInfo?.primaryPhone?.number || '',
+            'Email': shift.user?.member?.contactInfo?.primaryEmail?.address || '',
+          };
+        }
+
         const checkInData: any = {};
         if (eventCheckIn) {
           const checkInTime = shift.shiftCheckInOut?.checkInTime ? convertDate({date: shift.shiftCheckInOut?.checkInTime, user}) : undefined;

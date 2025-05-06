@@ -21,6 +21,8 @@ import RelinquishedShiftsByOfficer from '../reports/relinquished-shifts-by-offic
 import RankedShiftsByOfficer from '../reports/ranked-shifts-by-officer';
 import ShiftsByDate from '../reports/shifts-by-date';
 import NoShowByOfficer from '../reports/no-show-by-officer';
+import EventBillingByEvent from '../reports/event-billing-by-event';
+import OvertimeSlipDataByEvent from '../reports/overtime-slip-data-by-event';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -33,6 +35,10 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
       return <EventsByVenue />;
     case ReportType.SHIFTS_BY_EVENT:
       return <ShiftsByEvent />;
+    case ReportType.EVENT_BILLING_BY_EVENT:
+      return <EventBillingByEvent />;
+    case ReportType.OVERTIME_SLIP_DATA_BY_EVENT:
+      return <OvertimeSlipDataByEvent />;
     case ReportType.SHIFTS_BY_OFFICER:
       return <ShiftsByOfficer />;
     case ReportType.SHIFTS_BY_DATE:
@@ -53,7 +59,6 @@ export default function ReportsView() {
   const settings = useSettingsContext();
   const [reportType, setReportType] = useState(ReportType.EVENTS_BY_DATE);
   const reportOptions = useMemo(() => reportTypes(features), [features]);
-  console.log(reportOptions);
 
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setReportType(event?.target?.value as ReportType);

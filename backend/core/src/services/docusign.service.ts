@@ -167,11 +167,9 @@ export class Docusign {
 
   async resubmitEndOfShiftEnvelope({
     shift,
-    user,
     organization,
   }: {
     shift: IShift | null;
-    user: IUser;
     organization: IOrganization;
   }) {
     if (organization.docusign && organization.docusign.templateId && shift) {
@@ -183,6 +181,10 @@ export class Docusign {
             org: organization,
           });
 
+          const user = await this.users.get(shift.userId!);
+          if (!user) {
+            throw new Error('User not found');
+          }
           const event = await this.events.get(shift.eventId);
           const unit = await this.units.get(user.member.unitId!);
           const rank = await this.ranks.get(user.member.rankId!);
@@ -226,7 +228,6 @@ export class Docusign {
         logger.error('Error updating prefilled tabs', {
           error,
           shift,
-          user,
           organization,
         });
       }
@@ -235,17 +236,19 @@ export class Docusign {
 
   async submitEndOfShiftEnvelope ({
     shift,
-    user,
     organization,
     signNow,
   }: {
     shift: IShift;
-    user: IUser;
     organization: IOrganization;
     signNow: boolean;
   }) {
     if (organization.docusign && organization.docusign.templateId) {
       try {
+        const user = await this.users.get(shift.userId!);
+          if (!user) {
+            throw new Error('User not found');
+          }
         const event = await this.events.get(shift.eventId);
         const unit = await this.units.get(user.member.unitId!);
         const rank = await this.ranks.get(user.member.rankId!);
@@ -289,7 +292,6 @@ export class Docusign {
         logger.error('Error submitting end of shift envelope', {
           error,
           shift,
-          user,
           organization,
         });
       }

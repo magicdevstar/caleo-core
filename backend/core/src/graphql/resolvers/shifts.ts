@@ -151,7 +151,6 @@ export const shift = {
 
       await docusign.resubmitEndOfShiftEnvelope({
         shift: response,
-        user: user!,
         organization: organization!,
       });
 
@@ -251,7 +250,6 @@ export const shift = {
 
       const envelope = await docusign.submitEndOfShiftEnvelope({
         shift: updatedShift!,
-        user: user!,
         organization: organization!,
         signNow: !!signNow,
       });

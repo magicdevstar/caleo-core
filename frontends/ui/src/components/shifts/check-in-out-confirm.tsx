@@ -95,7 +95,7 @@ export default function CheckInOutConfirm({
 
       const url = response?.data?.checkOut?.signingUrl;
       if (url) {
-        window.open(url);
+        window.location.href = url;
       }
 
       await client.refetchQueries({

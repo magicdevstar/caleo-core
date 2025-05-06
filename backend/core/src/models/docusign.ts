@@ -418,7 +418,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       const domain = org.sso?.uiSubDomains?.[0]!;
       const baseDomain = `https://${domain}.caleopro.com`;
       const viewRequest = {
-        returnUrl: `${baseDomain}/dashboard`,
+        returnUrl: `${baseDomain}/kiosk/${event._id}`,
         authenticationMethod: 'none',
         email: user.member.contactInfo?.primaryEmail.address,
         userName: user.name,

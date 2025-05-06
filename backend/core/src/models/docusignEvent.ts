@@ -44,7 +44,7 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     const ids = keys.map((key) => new ObjectId(key));
     const res = await this.collection.find<IDocusignEvent>({
       shiftId: { $in: ids },
-      status: { $ne: 'voided' },
+      status: { $nin: ['voided', 'declined'] },
     }).toArray();
     return keys.map((key) => res.find((item) => item.shiftId.toString() === key));
   });

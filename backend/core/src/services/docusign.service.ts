@@ -127,6 +127,7 @@ export class Docusign {
           status: signer.status || 'n/a',
           roleName: signer.roleName!,
           routingOrder: signer.routingOrder!,
+          data: fields,
         };
       }),
     });

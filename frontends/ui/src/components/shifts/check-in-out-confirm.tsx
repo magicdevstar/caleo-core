@@ -96,15 +96,15 @@ export default function CheckInOutConfirm({
       const url = response?.data?.checkOut?.signingUrl;
       if (url) {
         window.location.href = url;
+      } else {
+        await client.refetchQueries({
+          include: [GET_ALL_SHIFTS],
+        });
+        setEquipmentTime(null);
+        setCheckInOutNote('');
+        confirm.onFalse();
+        onSuccess?.(isCheckout ? CHECK_IN_OUT_STATUS.CHECKED_OUT : CHECK_IN_OUT_STATUS.CHECKED_IN);
       }
-
-      await client.refetchQueries({
-        include: [GET_ALL_SHIFTS],
-      });
-      setEquipmentTime(null);
-      setCheckInOutNote('');
-      confirm.onFalse();
-      onSuccess?.(isCheckout ? CHECK_IN_OUT_STATUS.CHECKED_OUT : CHECK_IN_OUT_STATUS.CHECKED_IN);
     } catch(error) {
       enqueueSnackbar(`Failed to ${actionName}. Please try again.`, { variant: 'error' });
       console.error(error);

@@ -14,11 +14,11 @@ import { useBoolean } from "src/hooks/use-boolean";
 import { useCheckInOut } from "src/hooks/use-check-in-out";
 import { useAuthContext } from "src/auth/hooks";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { useFeatures } from "src/hooks/use-features";
 // Components
 import Iconify from "src/components/iconify";
 import CheckInOutConfirm from "./check-in-out-confirm";
 import { LoadingScreen } from "../loading-screen";
-import { useFeatures } from "src/hooks/use-features";
 
 export default function CheckInOut({
   eventId,

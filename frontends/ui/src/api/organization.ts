@@ -28,6 +28,8 @@ query ORGANIZATION {
       lottery
       venueContractDates
       eventCheckIn
+      eventCheckOut
+      officerCheckInOut
       interestLists
       monthlyMaxHours
       weeklyMaxShifts

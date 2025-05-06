@@ -28,6 +28,8 @@ const userDetailProperties = `
         lottery
         venueContractDates
         eventCheckIn
+        eventCheckOut
+        officerCheckInOut
         interestLists
         monthlyMaxHours
         weeklyMaxShifts

@@ -248,7 +248,7 @@ export default function DashboardsTable() {
   return (
     <>
       <GQLTable config={config} />
-      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />useBoolean(false)
+      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />
     </>
   );
 };

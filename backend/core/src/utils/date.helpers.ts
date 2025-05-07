@@ -6,7 +6,6 @@ import {
   differenceInMinutes,
   roundToNearestMinutes,
   subHours,
-  subMinutes,
   differenceInHours
 } from "date-fns";
 import { Timezone } from "../models/scheduler";
@@ -81,9 +80,9 @@ export const docusignDates = ({
   );
 
   const diff = differenceInMinutes(zoneEndTime, zoneStartTime, { roundingMethod: 'ceil' });
-  const formattedDiffHours = Math.floor(diff / 60).toString().padStart(2, '0');
-  const formattedDiffMinutes = (diff % 60).toString().padStart(2, '0');
-  const formattedDiff = `${formattedDiffHours}:${formattedDiffMinutes}`;
+
+  // convert total minutes to hours as a float, rounded to 2 decimals
+  const formattedDiff = Number((diff / 60).toFixed(2));
   
   return {
     startTime: zoneStartTime,

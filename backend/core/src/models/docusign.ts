@@ -209,7 +209,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerName')?.tabId,
               tabLabel: "officerName",
-              value: `${user.lastName} ${user.firstName}`
+              value: `${user.lastName}, ${user.firstName}`
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'officerRank')?.tabId,

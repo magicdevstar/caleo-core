@@ -15,7 +15,7 @@ jest.mock('./logger', () => ({
   error: jest.fn()
 }));
 
-describe.only('date helpers', () => {
+describe('date helpers', () => {
   describe('docusignDates', () => {
     it('should round down start time to nearest 15 minutes', () => {
       const date = new Date('2023-10-01T12:34:56Z');
@@ -24,7 +24,7 @@ describe.only('date helpers', () => {
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(30);
       expect(result.endTime.getMinutes()).toBe(45);
-      expect(result.formattedDiff).toBe('02:15');
+      expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
@@ -35,7 +35,7 @@ describe.only('date helpers', () => {
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       expect(result.startTime.getMinutes()).toBe(15); // Should stay at 15
       expect(result.endTime.getMinutes()).toBe(30); // Should stay at 30
-      expect(result.formattedDiff).toBe('02:15');
+      expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
@@ -44,7 +44,7 @@ describe.only('date helpers', () => {
       const endDate = new Date('2023-10-01T12:16:00Z');
       const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.formattedDiff).toBe('01:15'); // Should be minimum 1 hour and 15 minutes
+      expect(result.formattedDiff).toBe(1.25); // Should be minimum 1 hour and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
@@ -55,15 +55,6 @@ describe.only('date helpers', () => {
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       // Check day transition is maintained properly
       expect(result.startTime.getDate()).not.toBe(result.endTime.getDate());
-      expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
-    });
-
-    it('should format single-digit minutes correctly', () => {
-      const date = new Date('2023-10-01T12:00:00Z');
-      const endDate = new Date('2023-10-01T12:05:00Z');
-      const timezone = 'America/Los_Angeles' as Timezone;
-      const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.formattedDiff).toBe('01:15'); // Should pad or handle single digit minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
@@ -144,7 +135,7 @@ describe.only('date helpers', () => {
       expect(result.endTime.getHours()).toBe(8); // 13:00 UTC + 2 hours = 8:00 AM Pacific
       
       // Difference should be 4 hours (original 1 hour + 1 hour start + 2 hours end)
-      expect(result.formattedDiff.split(':')[0]).toBe('04');
+      expect(result.formattedDiff).toBe(4);
     });
 
     it('should use default 1 hour for end time when endEquipmentTime is 0', () => {

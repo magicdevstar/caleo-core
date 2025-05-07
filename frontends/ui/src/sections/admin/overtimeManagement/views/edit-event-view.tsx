@@ -122,7 +122,7 @@ export default function VenueDetail() {
     >Download summary</LoadingButton>
   );
 
-  if (kiosk && !hideActionButtons) {
+  if ((kiosk || eventInvoice) && !hideActionButtons) {
     actionButtons = (
       <>
         <IconButton

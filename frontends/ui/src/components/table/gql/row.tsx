@@ -79,7 +79,6 @@ export const DateCell = ({value, width, href, onClick, clickable}: {width?: numb
         onClick={onClick}
         sx={{
           cursor: clickable ? 'pointer': 'default',
-          textDecoration: clickable ? 'underline' : 'none',
         }}
         secondaryTypographyProps={{
           mt: 0.5,
@@ -91,7 +90,21 @@ export const DateCell = ({value, width, href, onClick, clickable}: {width?: numb
   );
 }
 
-export const StringCell = ({value, labelColor, href, onClick, width, clickable} : { width?: number | string; value: string; labelColor?: string; href?: string; onClick?: any; clickable?: boolean;}) => {
+export const StringCell = ({
+  value,
+  labelColor,
+  href,
+  onClick,
+  width,
+  clickable
+} : {
+  width?: number | string;
+  value: string;
+  labelColor?: string;
+  href?: string;
+  onClick?: any;
+  clickable?: boolean;
+}) => {
   if (href) {
     return (
       <TableCell width={width}>
@@ -129,7 +142,6 @@ export const StringCell = ({value, labelColor, href, onClick, width, clickable} 
         onClick={onClick}
         sx={{
           cursor: clickable ? 'pointer': 'default',
-          textDecoration: clickable ? 'underline' : 'none',
         }}
         variant="subtitle2"
         noWrap

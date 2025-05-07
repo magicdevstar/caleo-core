@@ -97,6 +97,7 @@ export default function EditShift({
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
+  const isInterestList = useMemo(() => currentShifts?.[0]?.event?.status === EventStatus.InterestList, [currentShifts]);
   const canNotify = useMemo(() =>
     [EventStatus.FirstComeFirstServe, EventStatus.InterestList].includes(currentShifts?.[0]?.event?.status) &&
     currentShifts.some((shift) => shift.userId === null || !('userId' in shift)),
@@ -454,7 +455,7 @@ export default function EditShift({
         label: 'Name',
         columnType: 'string',
         clickable: () => true,
-        onClick: assignableClick,
+        onClick: (row: Shift) => isInterestList && !row.user ? showInterestList.onTrue() : assignableClick(row),
         renderValue: defaultString,
       },
       {

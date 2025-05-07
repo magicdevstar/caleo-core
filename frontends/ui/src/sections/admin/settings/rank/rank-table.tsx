@@ -97,7 +97,7 @@ export default function RankTable() {
       }
     ],
     columns: [
-      { id: 'name', label: 'Skill', columnType: 'string' },
+      { id: 'name', label: 'Rank', columnType: 'string' },
       ...(rankHourlyRate ? [{ id: 'hourlyRate', label: 'Hourly Rate', width: 110, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },

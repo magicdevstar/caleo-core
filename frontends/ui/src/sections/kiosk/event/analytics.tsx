@@ -12,36 +12,42 @@ export default function Analytics({
 }: {
   data: ShiftData | undefined;
 }) {
+  const filteredData = useMemo(() => (data?.shifts?.items || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
+  const total = filteredData.length;
+
   const checkInData = useMemo(() => calculateCheckData({
-    data,
+    data: filteredData,
+    total,
     timeKey: 'checkInTime'
-  }), [data]);
+  }), [filteredData, total]);
   const checkOutData = useMemo(() => calculateCheckData({
-    data,
+    data: filteredData,
+    total,
     timeKey: 'checkOutTime'
-  }), [data]);
+  }), [filteredData, total]);
 
-  const latePersonnelData = useMemo(() => calculateLatePersonalData(data), [data]);
+  const latePersonnelData = useMemo(() => calculateLatePersonalData(filteredData, total), [filteredData, total]);
 
-  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(data), [data]);
+  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(filteredData, total), [filteredData, total]);
 
   const awaitingArrivalShifts = useMemo(() => {
-    if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
-    const awaitingArrival = data.shifts.items.filter((shift) => shift.status === ShiftStatus.Assigned && !shift.shiftCheckInOut?.checkInTime);
+    if (filteredData.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
+    const awaitingArrival = filteredData.filter((shift) => !shift.shiftCheckInOut?.checkInTime);
     const totalAwaiting = awaitingArrival.length;
-    const totalShifts = data.shifts.total;
+    const totalShifts = total;
     const percent = totalShifts ? (totalAwaiting / totalShifts) * 100 : 0;
     return { percent, total: totalAwaiting, chart: { series: [] } };
-  }, [data]);
+  }, [filteredData, total]);
 
   const assignmentShiftData = useMemo(() => {
-    if (!data?.shifts) {
+    if (filteredData.length === 0) {
       return { names: [], graph: [{ name: 'Checked In', data: [] }, { name: 'Not Checked In', data: [] }] };
     }
 
     const groups: { [key: string]: { checkedIn: number; notCheckedIn: number } } = {};
 
-    data.shifts.items.forEach((shift) => {
+    filteredData
+      .forEach((shift) => {
       if (shift?.shiftCheckInOut?.noShow) {
         return; // Skip shifts that are marked as no-show
       }
@@ -69,15 +75,16 @@ export default function Analytics({
         { name: 'Not Checked In', data: notCheckedInData }
       ]
     };
-  }, [data]);
+  }, [filteredData]);
 
   const checkInProgressPieChartData = useMemo(() => {
-    if (!data?.shifts) {
+    if (filteredData.length === 0) {
       return { series: [] };
     }
     let checkedIn = 0;
     let notCheckedIn = 0;
-    data.shifts.items.forEach((shift) => {
+    filteredData
+    .forEach((shift) => {
       if (shift.shiftCheckInOut?.checkInTime) {
         checkedIn += 1;
       } else {
@@ -90,7 +97,7 @@ export default function Analytics({
         { label: 'Not Checked In', value: notCheckedIn }
       ]
     };
-  }, [data]);
+  }, [filteredData]);
 
   return (
     <>

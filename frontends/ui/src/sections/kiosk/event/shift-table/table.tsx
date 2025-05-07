@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ApolloQueryResult } from '@apollo/client';
 // @mui
 import { useTheme, alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -11,27 +10,26 @@ import TextField from '@mui/material/TextField';
 // components
 import Label from 'src/components/label';
 // types
-import { Shift } from 'src/__generated__/resolvers-types';
+import { Shift, ShiftStatus } from 'src/__generated__/resolvers-types';
 import TableContainer from '@mui/material/TableContainer';
 import Scrollbar from 'src/components/scrollbar';
 import Table from '@mui/material/Table';
 import { emptyRows, getComparator, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
 import TableBody from '@mui/material/TableBody';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
-import { ShiftData } from 'src/api/shifts';
 import Row from './row';
 
 export default function ShiftTable({
   data,
-  totalData,
   loading,
-  refetch,
 }: {
   loading: boolean;
-  totalData: number;
   data: Shift[] | undefined;
-  refetch: () => Promise<ApolloQueryResult<ShiftData>>;
 }) {
+  const shiftData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
+  const unassignedData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Available), [data]);
+  const totalUnassigned = unassignedData.length;
+  const total = shiftData.length;
   const { pNumberLabel } = usePNumberLabel();
   const TABLE_HEAD = [
     { id: 'refNumber', label: 'Slot Ref #' },
@@ -41,6 +39,7 @@ export default function ShiftTable({
     { id: 'user.member.contactInfo.primaryPhone.number', label: 'Phone #' },
     { id: 'docusignEvent.status', label: 'Docusign' },
     { id: 'shiftCheckInOut.noShow', label: 'No Show' },
+    { id: 'shiftCheckInOut.adminNotes', label: 'Comments' },
     { id: 'startTime', label: 'Start' },
     { id: '' },
   ];
@@ -66,7 +65,7 @@ export default function ShiftTable({
   const totalNoShow = data?.filter((shift) => !!shift.shiftCheckInOut?.noShow).length || 0;
 
   const TABS = [
-    { value: 'all', label: 'All', color: 'default', count: totalData },
+    { value: 'all', label: 'All', color: 'default', count: total },
     {
       value: 'awaitingArrival',
       label: 'Await Arrival',
@@ -84,14 +83,25 @@ export default function ShiftTable({
       label: 'No Show',
       color: 'error',
       count: totalNoShow,
+    },
+    {
+      value: 'unassigned',
+      label: 'Unassigned',
+      color: 'default',
+      count: totalUnassigned,
     }
   ] as const;
 
   const filteredData = useMemo(() => {
     const searchRegex = new RegExp(searchText, 'i');
-    let fData = data;
+    let fData = shiftData;
+
+    if (tableTab === 'unassigned') {
+      fData = unassignedData;
+    }
+
     if (searchText !== '') {
-      fData = data?.filter((shift) => searchRegex.test(shift?.user?.name || ''));
+      fData = fData?.filter((shift) => searchRegex.test(shift?.user?.name || ''));
     }
     if (tableTab === 'awaitingArrival') {
       return fData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime);
@@ -105,7 +115,8 @@ export default function ShiftTable({
     return fData;
   }, [
     searchText,
-    data,
+    shiftData,
+    unassignedData,
     tableTab
   ]);
 
@@ -172,8 +183,6 @@ export default function ShiftTable({
                   <Row
                     key={row.id}
                     row={row}
-                    onDocusignReminder={() => {}}
-                    refetch={refetch}
                   />
                 ))}
 

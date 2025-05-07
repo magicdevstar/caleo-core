@@ -1,23 +1,22 @@
-import { ShiftStatus } from 'src/__generated__/resolvers-types';
-import { ShiftData } from 'src/api/shifts';
+import { Shift } from 'src/__generated__/resolvers-types';
 
-export const calculateNoShowPersonnelData = (data: ShiftData | undefined) => {
-  if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
+export const calculateNoShowPersonnelData = (data: Shift[], total: number) => {
+  if (data.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
 
-  const noShowShifts = data.shifts.items.filter((shift) => shift.status === ShiftStatus.Assigned && shift.shiftCheckInOut?.noShow);
+  const noShowShifts = data.filter((shift) => shift.shiftCheckInOut?.noShow);
   const totalNoShow = noShowShifts.length;
-  const totalShifts = data.shifts.total;
+  const totalShifts = total;
   const percent = totalShifts ? (totalNoShow / totalShifts) * 100 : 0;
 
   return { percent, total: totalNoShow, chart: { series: [] } };
 };
 
 
-export const calculateLatePersonalData = (data: ShiftData | undefined) => {
-  if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
+export const calculateLatePersonalData = (data: Shift[], total: number) => {
+  if (data.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
 
   const now = Date.now();
-  const lateShifts = data.shifts.items.filter((shift) => {
+  const lateShifts = data.filter((shift) => {
     const hasCheckedIn = !!shift.shiftCheckInOut?.checkInTime;
     const startTime = shift.startTime ? new Date(shift.startTime).getTime() : null;
     const noShow = shift.shiftCheckInOut?.noShow;
@@ -25,7 +24,7 @@ export const calculateLatePersonalData = (data: ShiftData | undefined) => {
   });
 
   const totalLate = lateShifts.length;
-  const totalShifts = data.shifts.total;
+  const totalShifts = total;
   const percent = totalShifts ? (totalLate / totalShifts) * 100 : 0;
 
   // Bin the start times of the late shifts to avoid more than 10 bins
@@ -51,17 +50,19 @@ export const calculateLatePersonalData = (data: ShiftData | undefined) => {
 
 export const calculateCheckData = ({
   data,
+  total,
   timeKey,
 } : {
-  data: ShiftData | undefined,
+  data: Shift[],
+  total: number,
   timeKey: 'checkInTime' | 'checkOutTime'
 }) => {
-  if (!data?.shifts) return { percent: 0, total: 0, chart: { series: [] } };
+  if (data.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
 
   // Filter shifts that have the specified check time
-  const filteredShifts = data.shifts.items.filter((shift) => shift.shiftCheckInOut?.[timeKey] && !shift.shiftCheckInOut?.noShow);
+  const filteredShifts = data.filter((shift) => shift.shiftCheckInOut?.[timeKey] && !shift.shiftCheckInOut?.noShow);
   const totalFiltered = filteredShifts.length;
-  const totalShifts = data.shifts.total;
+  const totalShifts = total;
   const percent = totalShifts ? (totalFiltered / totalShifts) * 100 : 0;
 
   // Bin the check times dynamically to ensure no more than 10 bins

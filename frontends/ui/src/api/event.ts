@@ -6,6 +6,20 @@ export const REMOVE_EVENT = gql`
   }
 `;
 
+export const GENERATE_INVOICE = gql`
+  mutation GenerateInvoice($eventId: String!) {
+    generateInvoice(eventId: $eventId)
+  }
+`;
+
+export const GENERATE_DS_INVOICE = gql`
+  mutation GenerateDSInvoice($eventId: String!) {
+    generateDSInvoice(eventId: $eventId) {
+      signingUrl
+    }
+  }
+`;
+
 export const CLONE_EVENT_BY_ID = gql`
   mutation CloneEvent($id: String!) {
     cloneEvent(id: $id) {
@@ -57,6 +71,7 @@ export const GET_ALL_EVENTS = gql`
         id
         referenceId
         name
+        callSign
         startTime
         endTime
         ocn
@@ -66,6 +81,11 @@ export const GET_ALL_EVENTS = gql`
         status
         availableShifts
         totalShifts
+        docusignEvent {
+          id
+          status
+          documentUrl
+        }
         createdBy {
           member {
             pNumber
@@ -120,6 +140,7 @@ query GetEvent($id: String!) {
     id
     referenceId
     name
+    callSign
     startTime
     endTime
     ocn
@@ -203,6 +224,7 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       id
       referenceId
       name
+      callSign
       startTime
       endTime
       ocn
@@ -282,6 +304,7 @@ export const GET_EVENT = gql`
       id
       referenceId
       name
+      callSign
       attachments
       status
       venueId
@@ -310,6 +333,12 @@ export const GET_EVENT = gql`
         newVenue
         numberOfOfficers
         estimatedAttendees
+      }
+
+      docusignEvent {
+        id
+        status
+        documentUrl
       }
 
       supervisor {

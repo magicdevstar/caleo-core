@@ -17,6 +17,7 @@ import Table from '@mui/material/Table';
 import { emptyRows, getComparator, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
 import TableBody from '@mui/material/TableBody';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { useFeatures } from 'src/hooks/use-features';
 import Row from './row';
 
 export default function ShiftTable({
@@ -26,6 +27,7 @@ export default function ShiftTable({
   loading: boolean;
   data: Shift[] | undefined;
 }) {
+  const { eventCheckIn } = useFeatures();
   const shiftData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
   const unassignedData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Available), [data]);
   const totalUnassigned = unassignedData.length;
@@ -72,12 +74,14 @@ export default function ShiftTable({
       color: 'warning',
       count: totalNotCheckedIn,
     },
-    {
-      value: 'checkedIn',
-      label: 'Checked In',
-      color: 'success',
-      count: totalCheckedIn,
-    },
+    ...(eventCheckIn ? [
+      {
+        value: 'checkedIn',
+        label: 'Checked In',
+        color: 'success',
+        count: totalCheckedIn,
+      },
+    ] : [] as any),
     {
       value: 'shiftCheckInOut.noShow',
       label: 'No Show',

@@ -144,6 +144,8 @@ export class EventModel extends BaseMongo<IEvent> {
     delete templateEvent.requestDetails;
     delete templateEvent.requestDetails;
     delete templateEvent.assignmentIds;
+    delete templateEvent.docusignEnvelopeId;
+    delete templateEvent.docusignEnvelopeStatus;
     templateEvent.status = status;
     templateEvent.createdById = user._id!;
     templateEvent.modifiedById = user._id!;
@@ -384,6 +386,36 @@ export class EventModel extends BaseMongo<IEvent> {
       $set: {
         status: transition,
         updatedAt: new Date(),
+      },
+    });
+  }
+
+  async setDocusignEnvelopeId(
+    eventId: ObjectId,
+    envelopeId: string,
+  ) {
+    await this.collection.updateOne({
+      _id: eventId,
+    }, {
+      $set: {
+        docusignEnvelopeId: envelopeId,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  getByEnvelopeId(envelopeId: string) {
+    return this.collection.findOne<IEvent>({
+      docusignEnvelopeId: envelopeId,
+    });
+  }
+
+  async setDocusignStatus(eventId: ObjectId, status: string) {
+    await this.collection.updateOne({
+      _id: eventId,
+    }, {
+      $set: {
+        docusignEnvelopeStatus: status,
       },
     });
   }

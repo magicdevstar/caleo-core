@@ -396,6 +396,11 @@
     orgId: String!
     status: EventStatus!
     lotteryNumber: Int
+    docusignEnvelopeId: String
+    docusignEnvelopeStatus: String
+
+    # For the St Pete Demo. This might move to a different place once we get feedback
+    callSign: String
 
     # When interest list will be avilable for officers
     scheduledInterestList: String
@@ -439,6 +444,11 @@
     lotteryCounter: LotteryCounter
     supervisor: User
     lieutenant: User
+    docusignEvent: DocusignEvent
+  }
+
+  type EventInvoiceResponse {
+    signingUrl: String!
   }
 
   type EventRequestDetails {
@@ -724,6 +734,7 @@
   input UpsertEvent {
     id: String
     name: String!
+    callSign: String
     attachmentPaths: [String]
     status: EventStatus
     lotteryNumber: Int
@@ -826,8 +837,8 @@ type DocusignEvent {
   id: ID!
   envelopeId: String!
   eventId: String!
-  assignmentId: String!
-  shiftId: String!
+  assignmentId: String
+  shiftId: String
   userId: String!
   orgId: String!
   status: String!
@@ -1261,6 +1272,8 @@ type DocusignSignerDetailsData {
     eventTemplates: Boolean!
     noShowReport: Boolean!
     rankHourlyRate: Boolean!
+    callSign: Boolean!
+    eventInvoice: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1437,6 +1450,8 @@ type DocusignSignerDetailsData {
     eventTemplates: Boolean
     noShowReport: Boolean
     rankHourlyRate: Boolean
+    callSign: Boolean
+    eventInvoice: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -2061,6 +2076,8 @@ type Mutation {
   removeVenue(id: String!): ID!
 
   event(event: UpsertEvent!): Event
+  generateInvoice(eventId: String!): String
+  generateDSInvoice(eventId: String!): EventInvoiceResponse
   cloneEvent(id: String!): Event
   templateEvent(id: String!): Event
   approveEvent(id: String!): Event

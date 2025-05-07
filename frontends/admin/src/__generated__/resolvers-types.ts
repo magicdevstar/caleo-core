@@ -258,7 +258,7 @@ export enum DocType {
 
 export type DocusignEvent = {
   __typename?: 'DocusignEvent';
-  assignmentId: Scalars['String']['output'];
+  assignmentId?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   docType: DocType;
   documentUrl?: Maybe<Scalars['String']['output']>;
@@ -269,7 +269,7 @@ export type DocusignEvent = {
   orgId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   shift?: Maybe<Shift>;
-  shiftId: Scalars['String']['output'];
+  shiftId?: Maybe<Scalars['String']['output']>;
   signerDetails?: Maybe<Array<DocusignSignerDetails>>;
   status: Scalars['String']['output'];
   supervisorId?: Maybe<Scalars['String']['output']>;
@@ -385,10 +385,14 @@ export type Event = {
   autoAssignInterestList?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
+  callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
   docType: DocType;
+  docusignEnvelopeId?: Maybe<Scalars['String']['output']>;
+  docusignEnvelopeStatus?: Maybe<Scalars['String']['output']>;
+  docusignEvent?: Maybe<DocusignEvent>;
   endTime?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   interestListAutoAssignCutoff?: Maybe<Scalars['String']['output']>;
@@ -429,6 +433,11 @@ export type EventAttachmentUpload = {
   __typename?: 'EventAttachmentUpload';
   attachmentPath: Scalars['String']['output'];
   uploadUrl: Scalars['String']['output'];
+};
+
+export type EventInvoiceResponse = {
+  __typename?: 'EventInvoiceResponse';
+  signingUrl: Scalars['String']['output'];
 };
 
 export type EventRequestDetails = {
@@ -814,6 +823,8 @@ export type Mutation = {
   equipment?: Maybe<Equipment>;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
+  generateDSInvoice?: Maybe<EventInvoiceResponse>;
+  generateInvoice?: Maybe<Scalars['String']['output']>;
   impersonateUser?: Maybe<Scalars['Boolean']['output']>;
   inviteUser?: Maybe<User>;
   newUser?: Maybe<User>;
@@ -931,6 +942,16 @@ export type MutationEquipmentArgs = {
 
 export type MutationEventArgs = {
   event: UpsertEvent;
+};
+
+
+export type MutationGenerateDsInvoiceArgs = {
+  eventId: Scalars['String']['input'];
+};
+
+
+export type MutationGenerateInvoiceArgs = {
+  eventId: Scalars['String']['input'];
 };
 
 
@@ -1328,12 +1349,14 @@ export type OrganizationFeatureOptions = {
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
   autoEnroll: Scalars['Boolean']['output'];
+  callSign: Scalars['Boolean']['output'];
   disabledTierUntil: Scalars['Boolean']['output'];
   disabledTiers: Scalars['Boolean']['output'];
   docusign: Scalars['Boolean']['output'];
   equipment: Scalars['Boolean']['output'];
   eventCheckIn: Scalars['Boolean']['output'];
   eventCheckOut: Scalars['Boolean']['output'];
+  eventInvoice: Scalars['Boolean']['output'];
   eventTemplates: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
@@ -2206,6 +2229,7 @@ export type UpsertEvent = {
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
+  callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
@@ -2316,12 +2340,14 @@ export type UpsertOrganizationCustomizationsTiers = {
 
 export type UpsertOrganizationFeatures = {
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
+  callSign?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   docusign?: InputMaybe<Scalars['Boolean']['input']>;
   equipment?: InputMaybe<Scalars['Boolean']['input']>;
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   eventCheckOut?: InputMaybe<Scalars['Boolean']['input']>;
+  eventInvoice?: InputMaybe<Scalars['Boolean']['input']>;
   eventTemplates?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2695,6 +2721,7 @@ export type ResolversTypes = ResolversObject<{
   EquipmentStatus: EquipmentStatus;
   Event: ResolverTypeWrapper<Event>;
   EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
+  EventInvoiceResponse: ResolverTypeWrapper<EventInvoiceResponse>;
   EventRequestDetails: ResolverTypeWrapper<EventRequestDetails>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
@@ -2887,6 +2914,7 @@ export type ResolversParentTypes = ResolversObject<{
   EquipmentSearchResult: EquipmentSearchResult;
   Event: Event;
   EventAttachmentUpload: EventAttachmentUpload;
+  EventInvoiceResponse: EventInvoiceResponse;
   EventRequestDetails: EventRequestDetails;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
@@ -3156,7 +3184,7 @@ export type DivisionSearchResultResolvers<ContextType = any, ParentType extends 
 }>;
 
 export type DocusignEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignEvent'] = ResolversParentTypes['DocusignEvent']> = ResolversObject<{
-  assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  assignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3167,7 +3195,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
-  shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  shiftId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   signerDetails?: Resolver<Maybe<Array<ResolversTypes['DocusignSignerDetails']>>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3248,10 +3276,14 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   autoAssignInterestList?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  docusignEnvelopeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  docusignEnvelopeStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interestListAutoAssignCutoff?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3292,6 +3324,11 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
 export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventAttachmentUpload'] = ResolversParentTypes['EventAttachmentUpload']> = ResolversObject<{
   attachmentPath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventInvoiceResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventInvoiceResponse'] = ResolversParentTypes['EventInvoiceResponse']> = ResolversObject<{
+  signingUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3542,6 +3579,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<MutationEquipmentArgs, 'equipment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
+  generateDSInvoice?: Resolver<Maybe<ResolversTypes['EventInvoiceResponse']>, ParentType, ContextType, RequireFields<MutationGenerateDsInvoiceArgs, 'eventId'>>;
+  generateInvoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationGenerateInvoiceArgs, 'eventId'>>;
   impersonateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationImpersonateUserArgs, 'userId'>>;
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
@@ -3685,12 +3724,14 @@ export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType ex
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
   autoEnroll?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  callSign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTierUntil?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTiers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   docusign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   equipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventCheckOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  eventInvoice?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventTemplates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4201,6 +4242,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   EquipmentSearchResult?: EquipmentSearchResultResolvers<ContextType>;
   Event?: EventResolvers<ContextType>;
   EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
+  EventInvoiceResponse?: EventInvoiceResponseResolvers<ContextType>;
   EventRequestDetails?: EventRequestDetailsResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;

@@ -35,6 +35,7 @@ import { InterestListService } from "../services/interestList.service";
 import { OrganizationService } from "../models/organizations/organization.service";
 import { OrganizationRepo } from "../models/organizations/organization.repository";
 import { IOrganization } from "../models/organizations/organization.entity";
+import { InvoiceService } from "../services/invoice.service";
 
 let db: Db;
 
@@ -70,6 +71,7 @@ export interface Context {
   interestList: InterestListService;
   user?: IUser;
   originalUser?: IUser;
+  invoiceService?: InvoiceService;
   lambdaEvent?: any;
   lambdaContext?: any;
 };
@@ -81,6 +83,7 @@ export const createContext = async (): Promise<Context> => {
 
   const document = new DocumentModel();
   const scheduler = new SchedulerModel();
+  const invoiceService = new InvoiceService();
 
   const orgRepo = new OrganizationRepo(db);
   const organizations = new OrganizationService(orgRepo, new SchedulerModel());
@@ -132,6 +135,7 @@ export const createContext = async (): Promise<Context> => {
     document,
     assignments,
     equipments,
+    invoiceService,
   );
   const interestList = new InterestListService(
     shiftInterestRequests,
@@ -168,5 +172,6 @@ export const createContext = async (): Promise<Context> => {
     unit,
     docusign,
     interestList,
+    invoiceService,
   };
 };

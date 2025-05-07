@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 // types
+import { useFeatures } from 'src/hooks/use-features';
 import { get } from 'lodash';
 import { FrontendUser } from 'src/api/user';
 import { MemberStatus } from 'src/__generated__/resolvers-types';
@@ -80,6 +81,7 @@ export default function MainAccountView({
   adminViewer: boolean;
   excludePassword?: boolean;
 }) {
+  const { docusignCheckout } = useFeatures();
   const [currentTab, setCurrentTab] = useState('general');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
@@ -106,7 +108,12 @@ export default function MainAccountView({
         }}
       >
         {TABS
-          .filter(({userKey, visible}) => userKey ? visible(get(user, userKey)) : visible(adminViewer))
+          .filter(({value, userKey, visible}) => {
+            if (value === 'docusignEvents' && !docusignCheckout) {
+              return false;
+            }
+            return userKey ? visible(get(user, userKey)) : visible(adminViewer)
+          })
           .map((tab) => (
             <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
           ))

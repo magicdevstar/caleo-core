@@ -14,7 +14,7 @@ export const useCheckInOut = ({
   userId?: string;
 } = {}) => {
   const { user } = useAuthContext();
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, eventCheckOut } = useFeatures();
   const rightNow = useMemo(() => getNow({ organization: user.member.org! }), [user.member.org]);
   const minutesBeforeStartTime = user.member.org?.settings?.checkInOut?.minutesBeforeShiftStart || 15;
   const minutesAfterEndTime = user.member.org?.settings?.checkInOut?.minutesAfterShiftEnd || 60;
@@ -41,7 +41,7 @@ export const useCheckInOut = ({
   const { data, loading } = useQuery(GET_ALL_SHIFTS, {
     fetchPolicy: 'no-cache',
     nextFetchPolicy: 'cache-first',
-    skip: !eventCheckIn,
+    skip: !eventCheckIn && !eventCheckOut,
     variables: {
       input: filter,
     },
@@ -54,10 +54,19 @@ export const useCheckInOut = ({
       endTime,
       shiftCheckInOut
     }) => {
-      if (eventCheckIn) {
-        if (shiftCheckInOut?.checkInTime && shiftCheckInOut.checkOutTime) {
+      if (eventCheckIn || eventCheckOut) {
+        // Check if the user has completed check-in/out or not
+        let complete = true;
+        if (eventCheckIn && !shiftCheckInOut?.checkInTime) {
+          complete = false;
+        }
+        if (eventCheckOut && !shiftCheckInOut?.checkOutTime) {
+          complete = false;
+        }
+        if (complete) {
           return false;
         }
+
         const now = getNow({ organization: user.member.org! });
         const formattedStart = convertDate({
           date: new Date(startTime),
@@ -67,13 +76,14 @@ export const useCheckInOut = ({
           date: new Date(endTime),
           user,
         });
+
         return now.add(minutesBeforeStartTime, 'minutes').isAfter(formattedStart) && now.isBefore(formattedEnd.add(minutesAfterEndTime, 'minutes'));
       }
       return false;
     });
 
     return runningShifts;
-  }, [shifts, user, eventCheckIn, minutesAfterEndTime, minutesBeforeStartTime]);  
+  }, [shifts, user, eventCheckIn, eventCheckOut, minutesAfterEndTime, minutesBeforeStartTime]);  
 
   return {
     loading,

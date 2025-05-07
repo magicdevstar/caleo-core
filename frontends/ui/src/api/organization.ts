@@ -45,6 +45,8 @@ query ORGANIZATION {
       eventTemplates
       noShowReport
       rankHourlyRate
+      callSign
+      eventInvoice
     }
     customizations {
       pNumber

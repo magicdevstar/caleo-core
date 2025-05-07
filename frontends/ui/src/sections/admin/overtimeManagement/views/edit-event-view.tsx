@@ -14,10 +14,11 @@ import IconButton from '@mui/material/IconButton';
 import { useParams, useRouter } from 'src/routes/hooks';
 // types
 import { paths } from 'src/routes/paths';
+import { EventStatus } from 'src/__generated__/resolvers-types';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GET_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GENERATE_DS_INVOICE, GENERATE_INVOICE, GET_EVENT } from 'src/api/event';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import Iconify from 'src/components/iconify/iconify';
 import QueryView from 'src/components/query-view';
@@ -29,7 +30,7 @@ import EditEvent from '../events/edit-event';
 
 export default function VenueDetail() {
   const { enqueueSnackbar } = useSnackbar();
-  const { kiosk, lasdEventFields } = useFeatures();
+  const { kiosk, lasdEventFields, eventInvoice } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
   const router = useRouter();
@@ -45,6 +46,33 @@ export default function VenueDetail() {
   const menuClose = () => {
     setAnchorEl(null);
   };
+
+  const [generateInvoice] = useMutation(GENERATE_INVOICE, {
+    onError: () => {
+      enqueueSnackbar('Failed to create invoice. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+    },
+    onCompleted: (data) => {
+      const html = data?.generateInvoice;
+      // Create a Blob with the HTML content
+      const blob = new Blob([html], { type: 'text/html' });
+      // Create a URL for the Blob
+      const url = URL.createObjectURL(blob);
+      // Open the Blob URL in a new tab
+      window.open(url, '_blank');
+    },
+  });
+
+  const [generateDSInvoice] = useMutation(GENERATE_DS_INVOICE, {
+    onError: () => {
+      enqueueSnackbar('Failed to create invoice. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+    },
+    onCompleted: (data) => {
+      const signingUrl = data?.generateDSInvoice?.signingUrl;
+      if (signingUrl) {
+        window.open(signingUrl, '_blank');
+      }
+    },
+  });
 
   const [cloneEvent] = useMutation(CLONE_EVENT_BY_ID, {
     onError: () => {
@@ -156,6 +184,61 @@ export default function VenueDetail() {
               </ListItemIcon>
               <ListItemText>Download Overtime Slips</ListItemText>
             </MenuItem>
+          )}
+          {eventInvoice && (
+            <>
+              <MenuItem disabled={
+                !data?.event ||
+                [EventStatus.Draft, EventStatus.Removed, EventStatus.Requested].includes(data?.event?.status)
+              } onClick={() => {
+                if (data?.event) {
+                  generateInvoice({
+                    variables: {
+                      eventId: data?.event?.id,
+                    },
+                  });
+                }
+                menuClose();
+              }}>
+                <ListItemIcon>
+                  <Iconify icon="mdi:invoice-text-edit" />
+                </ListItemIcon>
+                <ListItemText>Invoice Preview</ListItemText>
+              </MenuItem>
+              <MenuItem disabled={
+                !data?.event ||
+                [EventStatus.Draft, EventStatus.Removed, EventStatus.Requested].includes(data?.event?.status)
+              } onClick={() => {
+                if (data?.event) {
+                  generateDSInvoice({
+                    variables: {
+                      eventId: data?.event?.id,
+                    },
+                  });
+                }
+                menuClose();
+              }}>
+                <ListItemIcon>
+                  <Iconify icon="mdi:invoice-text-send" />
+                </ListItemIcon>
+                <ListItemText>Generate Invoice</ListItemText>
+              </MenuItem>
+              <MenuItem disabled={
+                !data?.event ||
+                [EventStatus.Draft, EventStatus.Removed, EventStatus.Requested].includes(data?.event?.status) ||
+                !data?.event?.docusignEvent?.documentUrl
+              } onClick={() => {
+                if (data?.event?.docusignEvent?.documentUrl) {
+                  window.open(data?.event?.docusignEvent?.documentUrl, '_blank');
+                }
+                menuClose();
+              }}>
+                <ListItemIcon>
+                  <Iconify icon="mdi:download" />
+                </ListItemIcon>
+                <ListItemText>Download Invoice</ListItemText>
+              </MenuItem>
+            </>
           )}
           <MenuItem onClick={() => {
             router.push(

@@ -83,7 +83,7 @@ export default function EditShift({
   const router = useRouter();
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
-  const { eventCheckIn, interestLists } = useFeatures();
+  const { eventCheckIn, eventCheckOut, interestLists } = useFeatures();
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const editCheckInOutModal = useBoolean();
   const deleteConfirm = useBoolean();
@@ -491,6 +491,8 @@ export default function EditShift({
           clickable: () => true,
           onClick: clickCheckInOut,
         },
+      ] : []),
+      ...(eventCheckOut ? [
         {
           id: 'shiftCheckInOut.checkOutTime',
           label: 'Check Out',

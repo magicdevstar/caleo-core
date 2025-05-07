@@ -51,6 +51,8 @@ export const features = {
   eventTemplates: false,
   noShowReport: false,
   rankHourlyRate: false,
+  callSign: false,
+  eventInvoice: false,
 };
 
 export const flatFeatures = [
@@ -137,6 +139,14 @@ export const flatFeatures = [
   {
     value: 'rankHourlyRate',
     label: 'Rank with Hourly Rate',
+  },
+  {
+    value: 'callSign',
+    label: 'Call Sign',
+  },
+  {
+    value: 'eventInvoice',
+    label: 'Event Invoice',
   },
 ];
 

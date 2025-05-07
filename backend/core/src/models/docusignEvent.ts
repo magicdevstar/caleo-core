@@ -29,8 +29,8 @@ export interface IDocusignEvent extends Omit<
   userId: ObjectId;
   orgId: ObjectId;
   eventId: ObjectId;
-  assignmentId: ObjectId;
-  shiftId: ObjectId;
+  assignmentId?: ObjectId;
+  shiftId?: ObjectId;
   lieutenantId?: ObjectId;
   supervisorId?: ObjectId;
 
@@ -46,7 +46,16 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
       shiftId: { $in: ids },
       status: { $nin: ['voided', 'declined'] },
     }).toArray();
-    return keys.map((key) => res.find((item) => item.shiftId.toString() === key));
+    return keys.map((key) => res.find((item) => item.shiftId?.toString() === key));
+  });
+
+  public loadByEventId = new DataLoader(async (keys: readonly string[]) => {
+    const ids = keys.map((key) => new ObjectId(key));
+    const res = await this.collection.find<IDocusignEvent>({
+      eventId: { $in: ids },
+      status: { $nin: ['voided', 'declined'] },
+    }).toArray();
+    return keys.map((key) => res.find((item) => item.eventId.toString() === key));
   });
 
   documentBasePath: string = 'docusign';

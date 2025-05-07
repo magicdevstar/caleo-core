@@ -98,7 +98,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
-  const { eventCheckIn, lasdEventFields } = useFeatures();
+  const { eventCheckIn, eventCheckOut, lasdEventFields } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
@@ -285,7 +285,7 @@ export default function ShiftItem({
     }).format(dateTimeFormat),
   };
 
-  const hasCheckInOutData = eventCheckIn && shift.shiftCheckInOut;
+  const hasCheckInOutData = (eventCheckIn || eventCheckOut) && shift.shiftCheckInOut;
   const checkIn = shift.shiftCheckInOut?.checkInTime;
   const checkOut = shift.shiftCheckInOut?.checkOutTime;
   const firstRowSize = hasCheckInOutData ? 3 : 4;

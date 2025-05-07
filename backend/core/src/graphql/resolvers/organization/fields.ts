@@ -64,6 +64,8 @@ export const fields = {
     eventTemplates: (parent: OrganizationFeatures) => !!parent.eventTemplates,
     noShowReport: (parent: OrganizationFeatures) => !!parent.noShowReport,
     rankHourlyRate: (parent: OrganizationFeatures) => !!parent.rankHourlyRate,
+    callSign: (parent: OrganizationFeatures) => !!parent.callSign,
+    eventInvoice: (parent: OrganizationFeatures) => !!parent.eventInvoice,
   },
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),

@@ -19,6 +19,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
 import { useAuthContext } from 'src/auth/hooks';
 import { getNow } from 'src/hooks/use-datejs';
+import { useFeatures } from 'src/hooks/use-features';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,11 +33,12 @@ export default function CheckInOutConfirm({
   confirm: UseBooleanReturnType<unknown>;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const { eventCheckIn, docusignCheckout } = useFeatures();
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const now = getNow({ organization: user.member.org! });
   const requiredEquipmentTime = useMemo(() => checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime), [checkInOutConfirm]);
-  const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime, [checkInOutConfirm]);
+  const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime || !eventCheckIn, [checkInOutConfirm, eventCheckIn]);
   const [equipmentTime, setEquipmentTime] = useState<Dayjs | null>(checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime) ? dayjs() : null);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -168,7 +170,7 @@ export default function CheckInOutConfirm({
             }}
           />
           {
-            isCheckout && (
+            isCheckout && docusignCheckout && (
               <FormControlLabel
                 control={
                   <Switch

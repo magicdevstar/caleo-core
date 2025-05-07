@@ -1348,12 +1348,15 @@ export class ShiftModel extends BaseMongo<IShift> {
 
   findAllByEventId({
     eventId,
+    assignedOnly,
   }: {
     eventId: ObjectId;
+    assignedOnly?: boolean;
   }) {
     return this.collection.find<IShift>({
       eventId,
       removedAt: { $exists: false },
+      ...(assignedOnly && { status: ShiftStatus.Assigned }),
     })
     .toArray()
     .then((shifts) => shifts.map((shift) => ({

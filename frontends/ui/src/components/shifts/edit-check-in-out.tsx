@@ -1,5 +1,7 @@
 import { useMemo, useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 import { useMutation } from '@apollo/client';
+import { client } from 'src/utils/apollo';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -20,14 +22,13 @@ import MapMarkersPopups from 'src/components/map/map-marker-popups';
 import FormProvider, {
   RHFDateTimePicker, RHFSwitch, RHFTextField,
 } from 'src/components/hook-form';
+import { useFeatures } from 'src/hooks/use-features';
 // Types
 import { Shift } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
 import { MAPBOX_API } from 'src/config-global';
 import { convertDate } from 'src/hooks/use-datejs';
 import { EDIT_CHECK_IN_OUT, GET_GROUPED_SHIFTS } from 'src/api/shifts';
-import { useSnackbar } from 'notistack';
-import { client } from 'src/utils/apollo';
 import Iconify from '../iconify';
 
 const StyledMapContainer = styled('div')(({ theme }) => ({
@@ -68,6 +69,7 @@ export const EditCheckInOut = ({
   handleClose: () => void;
   closeOnSave?: boolean;
 }) => {
+  const { eventCheckIn, eventCheckOut } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
 
@@ -200,8 +202,8 @@ export const EditCheckInOut = ({
             gap: '10px',
             mt: 1
           }}>
-            <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />
-            <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />
+            {eventCheckIn && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />}
+            {eventCheckOut && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />}
           </Box>
 
           {

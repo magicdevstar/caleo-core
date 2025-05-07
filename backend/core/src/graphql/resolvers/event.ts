@@ -5,7 +5,8 @@ import {
   EventStatus,
   EventAttachmentUpload,
   VenueStatus,
-  DocType
+  DocType,
+  EventInvoiceResponse
 } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
@@ -142,6 +143,34 @@ export const event = {
     }
   },
   Mutation: {
+    generateInvoice: async (
+      _parent: unknown,
+      { eventId }: { eventId: string },
+      { docusign, user, organization }: Context
+    ): Promise<string> => {
+      adminOnly(user);
+      const invoice = await docusign.createInvoiceHTML({
+        eventId: new ObjectId(eventId),
+        user: user!,
+        organization: organization!,
+      })
+      return invoice;
+    },
+    generateDSInvoice: async (
+      _parent: unknown,
+      { eventId }: { eventId: string },
+      { docusign, user, organization }: Context
+    ): Promise<EventInvoiceResponse> => {
+      adminOnly(user);
+      const signingUrl = await docusign.submitEventInvoice({
+        eventId: new ObjectId(eventId),
+        user: user!,
+        organization: organization!,
+      })
+      return {
+        signingUrl: signingUrl || '',
+      };
+    },
     notifyUsersOfEvent: async (
       _parent: unknown,
       { eventId }: { eventId: string },
@@ -546,6 +575,10 @@ export const event = {
       },
       availableShifts: async (item: IEvent, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnEvent.load(item.id!),
       totalShifts: async (item: IEvent, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnEvent.load(item.id!),
+      docusignEvent: (item: IEvent, _, context: Context) => {
+        if (!item.docusignEnvelopeId) return null;
+        return context.docusign.loadEventsByEventId((item.id?.toString() || item._id?.toString())!);
+      },
     },
   },
 };

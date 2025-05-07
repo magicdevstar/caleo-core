@@ -1,4 +1,4 @@
-import ds, { EnvelopeDefinition, TemplateRole } from 'docusign-esign';
+import ds, { EnvelopeDefinition, TemplateRole, Document as DSDocument, Signer, SignHere, Tabs, Recipients, Text } from 'docusign-esign';
 import { Db, ObjectId } from "mongodb";
 import { format } from 'date-fns';
 import {
@@ -460,5 +460,115 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       '1',
       null
     );
+  }
+
+  async createInvoiceEnvelope({
+    org,
+    eventId,
+    invoice,
+    user,
+  }: {
+    org: IOrganization;
+    eventId: string;
+    invoice: string;
+    user: IUser;
+  }) {
+    const {
+      envAPI,
+      tokenRecord,
+    } = await this.initDocusignEnvelopeAPI({
+      org,
+    });
+    const clientUserId = '1001';
+
+    const doc: DSDocument = {
+      documentBase64: Buffer.from(invoice).toString('base64'),
+      name: 'Invoice',
+      fileExtension: 'html',
+      documentId: '1',
+    };
+
+    const orgTab: Text = {
+      anchorString: '###ORG_ID###',
+      anchorXOffset: '0',
+      anchorYOffset: '0',
+      anchorUnits: 'pixels',
+      value: org._id!.toString(),
+      locked: 'true',
+      tabLabel: 'orgId',
+      tabId: 'orgId',
+      fontColor: 'White',
+    };
+    const eventTab: Text = {
+      tabId: 'eventId',
+      tabLabel: 'eventId',
+      anchorString: '###EVENT_ID###',
+      anchorXOffset: '0',
+      anchorYOffset: '0',
+      anchorUnits: 'pixels',
+      value: eventId,
+      fontColor: 'White',
+      locked: 'true',
+    };
+    const signHere: SignHere = {
+      anchorString: '###SIGN_HERE###',
+      anchorXOffset: '0',
+      anchorYOffset: '0',
+      anchorUnits: 'pixels',
+    };
+    const tabs: Tabs = {
+      signHereTabs: [signHere],
+      textTabs: [
+        orgTab,
+        eventTab,
+      ],
+    };
+    const signer: Signer = {
+      email: user.member.contactInfo?.primaryEmail.address,
+      name: user.name,
+      recipientId: '1',
+      routingOrder: '1',
+      clientUserId,
+      tabs,
+    };
+
+    const recipients: Recipients = {
+      signers: [signer],
+    };
+
+    const envDef: EnvelopeDefinition = {
+      emailSubject: 'St. Petersburg Police Department Invoice',
+      emailBlurb: 'Please sign the invoice',
+      status: 'sent',
+      documents: [doc],
+      recipients,
+    };
+
+    const envelope = await envAPI.createEnvelope(tokenRecord.accountId, {
+      envelopeDefinition: envDef,
+    });
+
+    const baseDomain = process.env.APP_URL!;
+    const viewRequest = {
+      returnUrl: `${baseDomain}/dashboard`,
+      authenticationMethod: 'none',
+      email: user.member.contactInfo?.primaryEmail.address,
+      userName: user.name,
+      clientUserId,
+      frameAncestors: [baseDomain],
+      messageOrigins: [baseDomain]
+    };
+    let signingUrl = '';
+    try {
+      const recipientView = await envAPI.createRecipientView(tokenRecord.accountId, envelope.envelopeId!, { recipientViewRequest: viewRequest });
+      signingUrl = recipientView.url!;
+    } catch(error) {
+      console.error('Error creating invoice envelope', error);
+    }
+
+    return {
+      signingUrl,
+      envelopeId: envelope.envelopeId!
+    };
   }
 }

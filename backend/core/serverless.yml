@@ -155,6 +155,13 @@ functions:
       - httpApi:
           path: /docusign
           method: POST
+  docusignInvoice:
+    handler: src/handlers/api/public/docusignInvoice.handler
+    timeout: 15
+    events:
+      - httpApi:
+          path: /docusign/invoice
+          method: POST
   getVenues:
     handler: src/handlers/api/public/getVenues.handler
     timeout: 15

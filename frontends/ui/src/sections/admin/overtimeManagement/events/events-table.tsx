@@ -16,7 +16,7 @@ import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
 // types
 import { Event, EventStatus, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
-import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
+import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GENERATE_DS_INVOICE, GENERATE_INVOICE, GET_ALL_EVENTS, NOTIFY_OF_EVENT, REMOVE_EVENT } from 'src/api/event';
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
@@ -39,6 +39,7 @@ export default function EventsTable() {
     externalEventRequests,
     kiosk,
     eventTemplates,
+    eventInvoice,
   } = useFeatures();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
@@ -52,6 +53,32 @@ export default function EventsTable() {
   const [templateFromEventId] = useMutation(CREATE_TEMPLATE_FROM_EVENT_ID, {
     refetchQueries: [GET_ALL_EVENTS],
   });
+  const [generateInvoice] = useMutation(GENERATE_INVOICE, {
+      onError: () => {
+        enqueueSnackbar('Failed to create invoice. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+      },
+      onCompleted: (data) => {
+        const html = data?.generateInvoice;
+        // Create a Blob with the HTML content
+        const blob = new Blob([html], { type: 'text/html' });
+        // Create a URL for the Blob
+        const url = URL.createObjectURL(blob);
+        // Open the Blob URL in a new tab
+        window.open(url, '_blank');
+      },
+    });
+  
+    const [generateDSInvoice] = useMutation(GENERATE_DS_INVOICE, {
+      onError: () => {
+        enqueueSnackbar('Failed to create invoice. Please try again.', { variant: 'error', autoHideDuration: 2000 });
+      },
+      onCompleted: (data) => {
+        const signingUrl = data?.generateDSInvoice?.signingUrl;
+        if (signingUrl) {
+          window.open(signingUrl, '_blank');
+        }
+      },
+    });
 
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const deleteConfirm = useBoolean();
@@ -134,6 +161,60 @@ export default function EventsTable() {
             } catch(error) {
               console.error('Error creating event template:', error);
               enqueueSnackbar('Error creating event template. Please try again.', { variant: 'error' });
+            }
+          },
+        },
+      ] : []),
+      ...(eventInvoice ? [
+        {
+          getName: () => 'Invoice Preview',
+          getIcon: () => 'mdi:invoice-text-edit',
+          getDisabled: (row: Event) => [
+            EventStatus.Draft,
+            EventStatus.Removed,
+            EventStatus.Requested,
+            EventStatus.PreFirstComeFirstServe,
+            EventStatus.PreLottery,
+          ].includes(row.status),
+          onClick: (row: Event) => {
+            generateInvoice({
+              variables: {
+                eventId: row.id,
+              },
+            });
+          },
+        },
+        {
+          getName: () => 'Generate Invoice',
+          getIcon: () => 'mdi:invoice-text-send',
+          getDisabled: (row: Event) => [
+            EventStatus.Draft,
+            EventStatus.Removed,
+            EventStatus.Requested,
+            EventStatus.PreFirstComeFirstServe,
+            EventStatus.PreLottery,
+          ].includes(row.status),
+          onClick: (row: Event) => {
+            generateDSInvoice({
+              variables: {
+                eventId: row.id,
+              },
+            });
+          },
+        },
+        {
+          getName: () => 'Download Invoice',
+          getIcon: () => 'mdi:download',
+          getDisabled: (row: Event) => [
+            EventStatus.Draft,
+            EventStatus.Removed,
+            EventStatus.Requested,
+            EventStatus.PreFirstComeFirstServe,
+            EventStatus.PreLottery,
+          ].includes(row.status) || !row.docusignEvent?.documentUrl,
+          onClick: (row: Event) => {
+            if (row.docusignEvent?.documentUrl) {
+              window.open(row.docusignEvent.documentUrl, '_blank');
             }
           },
         },

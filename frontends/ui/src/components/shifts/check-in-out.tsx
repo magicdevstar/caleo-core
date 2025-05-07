@@ -10,6 +10,7 @@ import Button from "@mui/material/Button";
 import { Shift } from "src/__generated__/resolvers-types";
 import { CHECK_IN_OUT_STATUS } from "src/types/checkinout";
 // hooks
+import { useFeatures } from "src/hooks/use-features";
 import { useBoolean } from "src/hooks/use-boolean";
 import { useCheckInOut } from "src/hooks/use-check-in-out";
 import { useAuthContext } from "src/auth/hooks";
@@ -32,6 +33,7 @@ export default function CheckInOut({
   allowView?: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const { eventCheckIn } = useFeatures();
   const { user } = useAuthContext();
   const theme = useTheme();
   const { currentShifts, loading } = useCheckInOut({
@@ -50,7 +52,7 @@ export default function CheckInOut({
         date: shift.startTime,
       }).format(dateTimeFormat),
     };
-    if (shift.shiftCheckInOut?.checkInTime) {
+    if (shift.shiftCheckInOut?.checkInTime || !eventCheckIn) {
       customContent.name = 'Check Out';
       customContent.icon = <Iconify icon="solar:logout-2-bold-duotone" />;
       customContent.timeDisplay = convertDate({
@@ -64,6 +66,7 @@ export default function CheckInOut({
     };
   }), [
     user,
+    eventCheckIn,
     currentShifts
   ]);
 

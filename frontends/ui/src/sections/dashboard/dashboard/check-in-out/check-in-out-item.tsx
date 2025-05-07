@@ -4,6 +4,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import Iconify from 'src/components/iconify';
 import { Shift } from 'src/__generated__/resolvers-types';
@@ -16,6 +18,8 @@ export type CheckInOutItemProps = {
 };
 
 export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) {
+  const { eventCheckIn } = useFeatures();
+  const isCheckOut = shift.shiftCheckInOut?.checkInTime || !eventCheckIn;
   const action = (
     <Stack
       spacing={1}
@@ -31,7 +35,7 @@ export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) 
         size="small"
         variant="contained"
       >
-        {shift.shiftCheckInOut?.checkInTime ? 'Check Out' : 'Check In'}
+        {isCheckOut ? 'Check Out' : 'Check In'}
       </Button>
     </Stack>
   );
@@ -59,11 +63,11 @@ export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) 
               bgcolor: 'background.neutral',
             }}
           >
-            {shift.shiftCheckInOut?.checkInTime ? <Iconify icon="solar:logout-2-bold-duotone" /> : <Iconify icon="solar:login-2-bold-duotone" />}
+            {isCheckOut ? <Iconify icon="solar:logout-2-bold-duotone" /> : <Iconify icon="solar:login-2-bold-duotone" />}
           </Stack>
 
           <ListItemText
-            primary={shift.shiftCheckInOut?.checkInTime ? 'Check Out' : 'Check In'}
+            primary={isCheckOut ? 'Check Out' : 'Check In'}
             secondary={`${shift?.event?.name} - ${shift?.assignment?.name}`}
             secondaryTypographyProps={{
               component: 'span',
@@ -75,7 +79,7 @@ export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) 
         </Stack>
 
         <Typography variant="body2" color="textSecondary" sx={{ m: 0 }}>
-          Are you ready to {shift.shiftCheckInOut?.checkInTime ? 'check out' : 'check in'} of {shift?.event?.name} - {shift?.assignment?.name}
+          Are you ready to {isCheckOut ? 'check out' : 'check in'} of {shift?.event?.name} - {shift?.assignment?.name}
         </Typography>
       </Box>
 

@@ -123,7 +123,7 @@ export default function NoShowByOfficer() {
         'Officer First Name': shift.user?.firstName || '',
         'Officer Last Name': shift.user?.lastName || '',
         [`Officer ${pNumberLabel}`]: shift.user?.member?.pNumber || '',
-        'No Show': !shift?.shiftCheckInOut?.checkInTime ? 'Yes' : 'NO',
+        'No Show': !shift?.shiftCheckInOut?.noShow ? 'Yes' : 'NO',
         'Admin Comment': shift?.shiftCheckInOut?.adminNotes || 'N/A',
         'Event Ref. #': shift?.event?.referenceId,
         'Event Name': shift?.event?.name || '',

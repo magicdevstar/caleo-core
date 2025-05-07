@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { DocumentModel } from "../models/document";
 import { DocusignModel } from "../models/docusign";
 import { DocusignEventModel, IDocusignEvent } from "../models/docusignEvent";
-import { EventModel } from "../models/event";
+import { EventModel, IEvent } from "../models/event";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { RankModel } from "../models/rank";
 import { IShift, ShiftModel } from "../models/shift";
@@ -15,6 +15,7 @@ import { DocusignEventSearchInput, DocusignEventUserRole } from "../__generated_
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
+import { InvoiceService } from "./invoice.service";
 
 export class Docusign {
   constructor(
@@ -29,6 +30,7 @@ export class Docusign {
     private document: DocumentModel,
     private assignments: AssignmentModel,
     private equipments: EquipmentModel,
+    private invoiceService: InvoiceService,
   ) {}
 
   async findEventsByUserId({
@@ -69,6 +71,10 @@ export class Docusign {
 
   async loadEventsByShiftId(id: string) {
     return this.docusignEvent.loadByShiftId.load(id);
+  }
+
+  async loadEventsByEventId(id: string) {
+    return this.docusignEvent.loadByEventId.load(id);
   }
 
   async saveEvent({
@@ -142,6 +148,68 @@ export class Docusign {
       Key: this.docusignEvent.buildDocumentPath({
         envelopeId,
         orgId: shift.orgId.toString(),
+      }),
+    });
+  }
+
+  async saveInvoiceEvent({
+    event,
+    status,
+    envelopeId,
+    signers,
+  }: {
+    event: IEvent;
+    status: string;
+    envelopeId: string;
+    signers: Signer[];
+  }) {
+    await this.events.setDocusignStatus(event._id!, status);
+    await this.docusignEvent.upsertEvent({
+      envelopeId,
+      orgId: event.orgId,
+      eventId: event._id!,
+      userId: event.modifiedById!,
+      status,
+      signerDetails: signers.map((signer) => {
+        const fields = {};
+        const tabs = signer.tabs || {};
+
+        for (const [tabType, tabArray] of Object.entries(tabs)) {
+          if ([
+            'dateSignedTabs',
+            'signHereTabs',
+            'initialHereTabs',
+          ].includes(tabType)) {
+            continue;
+          }
+    
+          for (const tab of tabArray) {
+            const tabName = tab.tabLabel || tab.name || `tab_${tab.tabId}`;
+            const tabValue = tab.value ?? tab.originalValue ?? '';
+            fields[tabName] = tabValue;
+          }
+        }
+
+        return {
+          email: signer.email!,
+          status: signer.status || 'n/a',
+          roleName: signer.roleName!,
+          routingOrder: signer.routingOrder!,
+          data: fields,
+        };
+      }),
+    });
+
+    // Save document to s3
+    const document = await this.docusign.getDocument({
+      envelopeId,
+      orgId: event.orgId.toString(),
+    });
+    await this.document.save({
+      data: Buffer.from(document, 'binary'),
+      Key: this.docusignEvent.buildDocumentPath({
+        envelopeId,
+        orgId: event.orgId.toString(),
       }),
     });
   }
@@ -298,11 +366,72 @@ export class Docusign {
     }
   }
 
-  async updateEndOfShiftPrefilledTabs ({
-    shift,
+  async createInvoiceHTML({
+    eventId,
+    user,
+    organization,
   }: {
-    shift: IShift,
+    eventId: ObjectId;
+    user: IUser;
+    organization: IOrganization;
   }) {
+    const event = await this.events.get(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+    const allShifts = await this.shifts.findAllByEventId({ eventId, assignedOnly: true });
+    const userIds = allShifts.map((shift) => shift.userId!);
+    const allUsers = await this.users.findAll(userIds);
+    const allRankIds = allUsers.map((user) => user.member.rankId!);
+    const allRanks = await this.ranks.findAll(allRankIds);
 
+    const invoiceHtml = this.invoiceService.createInvoice({
+      event,
+      organization,
+      ranks: allRanks,
+      users: allUsers,
+      shifts: allShifts,
+    });
+
+    return invoiceHtml;
+  }
+
+  async submitEventInvoice({
+    eventId,
+    user,
+    organization,
+  }: {
+    eventId: ObjectId;
+    user: IUser;
+    organization: IOrganization;
+  }) {
+    if (organization.docusign) {
+      try {
+        const invoiceHtml = await this.createInvoiceHTML({
+          eventId,
+          user,
+          organization,
+        });
+
+        const res = await this.docusign.createInvoiceEnvelope({
+          org: organization,
+          eventId: eventId.toString(),
+          invoice: invoiceHtml,
+          user,
+        });
+
+        await this.events.setDocusignEnvelopeId(eventId, res.envelopeId);
+
+        return res.signingUrl;
+      } catch(error) {
+        console.error('Error creating invoice envelope', error);
+        logger.error('Error submitting event invoice', {
+          error,
+          eventId,
+          user,
+          organization,
+        });
+      }
+    }
   }
 };

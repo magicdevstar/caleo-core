@@ -10,7 +10,7 @@ import { LotteryCounterModel } from './lotteryCounter';
 import { userIsAdmin } from '../utils/access';
 import { SearchResults } from '../utils/common.resolvers';
 import { IOrganization } from './organizations/organization.entity';
-import { IAssignmentShiftSlots, IUser } from '../types/common';
+import { IAssignmentShiftSlots, IShiftHoursPerMonthInput, IUser } from '../types/common';
 import { BaseMongo } from './base.v2';
 import { IAssignment } from './assignment';
 import { IEvent } from './event';
@@ -215,51 +215,81 @@ export class ShiftModel extends BaseMongo<IShift> {
     return keys.map((key) => res.find((item: any) => item._id.toString() === key.id) || { count: 0 }).map(({ count }: any) => count);
   });
 
-  public shiftHoursLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfMonth: Date; endOfMonth: Date;}[]) => {
+  public shiftHoursLoader = new DataLoader(async (keys: readonly IShiftHoursPerMonthInput[]) => {
     const beginningOfMonth = keys[0].beginningOfMonth;
     const endOfMonth = keys[0].endOfMonth;
     const orgId = new ObjectId(keys[0].orgId);
+    const ignoreShiftId = keys[0].ignoreShiftId;
     const userIds = keys.map(({ id }) => new ObjectId(id));
-    const query = {
-      userId: {
-        $in: userIds,
-      },
-      orgId,
-      status: ShiftStatus.Assigned,
-      startTime: {
-        $gte: beginningOfMonth,
-        $lte: endOfMonth,
-      }
-    };
-    const allShifts = await this.collection.find<IShift>(query).toArray();
-    const shiftsGroupedByUser = allShifts.reduce((acc, shift) => {
-      if (shift.userId) {
-        acc[shift.userId.toString()] = acc[shift.userId.toString()] || [];
-        acc[shift.userId.toString()].push(shift);
-      }
-      return acc;
-    }, {} as Record<string, IShift[]>);
-    const res: Record<string, number> = {};
-    for (const key of Object.keys(shiftsGroupedByUser)) {
-      const allShifts = shiftsGroupedByUser[key];
-      const totalMilliseconds = allShifts.reduce((total, {
-        startTime,
-        endTime,
-        shiftCheckInOut
-      }) => {
-        let milliseconds = endTime.getTime() - startTime.getTime();
-        if (shiftCheckInOut?.checkInTime && shiftCheckInOut?.checkOutTime) {
-          milliseconds = shiftCheckInOut.checkOutTime.getTime() - shiftCheckInOut.checkInTime.getTime();
+
+    const pipeline = [
+      {
+        $match: {
+          orgId,
+          userId: {
+            $in: userIds,
+          },
+          status: ShiftStatus.Assigned,
+          removedAt: {
+            $eq: null
+          },
+          startTime: {
+            $gte: beginningOfMonth,
+            $lt: endOfMonth,
+          },
+          ...(ignoreShiftId && {
+            shiftId: {
+              $ne: ignoreShiftId,
+            },
+          }),
         }
-  
-        return total + milliseconds;
-      }, 0);
-  
-      const totalHours = Math.floor(totalMilliseconds / 3600000);
-      res[key] = totalHours;
-    }
-    
-    return keys.map((key) => res[key.id] || 0);
+      },
+      {
+        $project: {
+          userId: 1,
+          hoursWorked: {
+            $divide: [
+              {
+                $subtract: ["$endTime", "$startTime"]
+              },
+              1000 * 60 * 60 // convert milliseconds to hours
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$userId",
+          totalHours: {
+            $sum: "$hoursWorked"
+          }
+        }
+      },
+      {
+        $sort: {
+          totalHours: 1
+        }
+      }
+    ];
+
+    const res = await this.collection.aggregate<{_id: ObjectId, totalHours: number;}>(pipeline).toArray();
+    const groupedResponseByUserId = res.reduce((acc, shift) => {
+      acc[shift._id.toString()] = shift.totalHours;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const response = keys.map((key) => {
+      if (groupedResponseByUserId[key.id]) {
+        return groupedResponseByUserId[key.id];
+      }
+      // If nothing if found for the user for this month nothing will be returned
+      // so we need to default to 0
+      return 0;
+    });
+
+    logger.info('Shift hours loader results', { keys, response });
+
+    return response;
   });
 
   public weekShiftsLoader = new DataLoader(async (keys: readonly {id: string; orgId: string; beginningOfWeek: Date; endOfWeek: Date;}[]) => {

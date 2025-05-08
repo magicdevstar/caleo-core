@@ -50,6 +50,9 @@ export default function ShiftDetail() {
         shiftGroupId: params.shiftId,
       },
       shiftStart,
+      // This way we show the number of hours for the month excluding the current shift
+      // this makes it easier to understand why someone was assigned a shift over someone else
+      ignoreShiftId: params.shiftId,
       timezoneOffset: timezoneValues[user?.member?.org?.timezone || 'America/Los_Angeles'],
     },
     skip: !params.shiftId || params.shiftId === 'new' || !interestLists || !shiftStart,

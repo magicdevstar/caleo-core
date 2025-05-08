@@ -17,6 +17,7 @@ import { IShiftInterestRequest, IUpsertShiftInterestRequest } from "../../models
 import logger from "../../utils/logger";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { IShift } from "../../models/shift";
+import { EnhancedUser } from "../../types/common";
 
 const lambda = new LambdaClient();
 
@@ -250,11 +251,24 @@ export const shiftInterestRequests = {
       org: (item: IShiftInterestRequest, _, { organizations }: Context) => organizations.loader.load(item.orgId.toString()),
       event: (item: IShiftInterestRequest, _, { events }: Context) => events.loader.load(item.eventId.toString()),
       assignment: (item: IShiftInterestRequest, _, { assignments }: Context) => assignments.loader.load(item.assignmentId.toString()),
-      user: async (item: IShiftInterestRequest, {shiftStart, timezoneOffset}: {shiftStart: string; timezoneOffset: number;}, { users }: Context) => {
+      user: async (
+        item: IShiftInterestRequest,
+        {
+          shiftStart,
+          timezoneOffset,
+          ignoreShiftId
+        }: {
+          shiftStart: string;
+          timezoneOffset: number;
+          ignoreShiftId: string;
+        },
+        { users }: Context
+      ): Promise<EnhancedUser> => {
         const user = await users.loader.load(item.userId.toString());
         return {
-          ...user,
+          ...user!,
           shiftStart,
+          ignoreShiftId,
           timezoneOffset,
         };
       },

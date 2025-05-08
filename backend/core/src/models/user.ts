@@ -20,7 +20,7 @@ import {
   User,
 } from '../__generated__/resolvers-types';
 import { AssignmentModel } from './assignment';
-import { IShift, IShiftWithAssignment, ShiftModel } from './shift';
+import { IShift, ShiftModel } from './shift';
 import { GraphQLError } from 'graphql';
 import logger from '../utils/logger';
 import { EventModel } from './event';

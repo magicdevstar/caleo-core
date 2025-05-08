@@ -24,6 +24,7 @@ const assignShiftGroup = async ({
 }: InputEvent) => {
   const {
     shiftInterestRequests: interest,
+    interestList,
     organizations,
     users,
     memberSkills,
@@ -49,7 +50,10 @@ const assignShiftGroup = async ({
     throw new Error('Organization not found');
   }
 
-  const requests = await interest.requestsStagedForAssignment(shiftGroupId);
+  const requests = await interestList.sortedInterestRequests({
+    org: organization,
+    sampleShift: shifts[0],
+  });
 
   const assignment = await assignments.get(shifts[0].assignmentId);
   const assignmentRankIds = (assignment?.rankIds || []).map((id) => id.toString());

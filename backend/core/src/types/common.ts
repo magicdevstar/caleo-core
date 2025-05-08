@@ -1,6 +1,20 @@
 import { ObjectId } from "mongodb";
 import { Member, User, UserSearchResult } from "../__generated__/resolvers-types";
 
+export interface IShiftHoursPerMonthInput {
+  id: string;
+  orgId: string;
+  beginningOfMonth: Date;
+  endOfMonth: Date;
+  ignoreShiftId?: string;
+};
+
+export interface EnhancedUser extends IUser {
+  shiftStart?: string;
+  timezoneOffset?: number;
+  ignoreShiftId?: string;
+}
+
 export interface AuthorizerContext {
   user: IUser;
 }

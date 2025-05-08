@@ -581,7 +581,7 @@
     removedAt: String
     modifiedById: String
 
-    user(shiftStart: String, timezoneOffset: Int): User
+    user(shiftStart: String, timezoneOffset: Int, ignoreShiftId: String): User
     event: Event!
     assignment: Assignment!
     org: Organization!

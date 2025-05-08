@@ -46,6 +46,7 @@ export interface IUpsertShiftInterestRequest extends Omit<UpsertShiftInterestReq
 
 export interface IStagedShiftInterestRequest extends IShiftInterestRequest {
   user: IUser;
+  totalHours: number;
 }
 
 export class ShiftInterestRequestModel extends BaseMongo<IShiftInterestRequest> {
@@ -116,9 +117,7 @@ export class ShiftInterestRequestModel extends BaseMongo<IShiftInterestRequest> 
       {
         $sort:
           {
-            _id: 1,
             "user.member.tier": 1,
-            tenor: 1,
           },
       },
       {

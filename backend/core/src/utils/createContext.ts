@@ -138,6 +138,7 @@ export const createContext = async (): Promise<Context> => {
     invoiceService,
   );
   const interestList = new InterestListService(
+    shifts,
     shiftInterestRequests,
     events,
     scheduler,

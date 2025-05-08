@@ -3,8 +3,9 @@ import { useMutation } from "@apollo/client";
 import { useSnackbar } from "notistack";
 // @mui
 import LoadingButton from "@mui/lab/LoadingButton";
-import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import Alert from "@mui/material/Alert";
+import Card from "@mui/material/Card";
 // types
 import { MemberTier, ShiftInterestRequest, ShiftInterestRequestStatus, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_GROUPED_SHIFTS, SHIFT_INTEREST_REQUESTS, UPSERT_SHIFT_INTEREST_REQUEST } from "src/api/shifts";
@@ -17,7 +18,7 @@ import { ConfirmDialog } from "src/components/custom-dialog";
 import { client } from "src/utils/apollo";
 import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
-import { get } from "lodash";
+import { get, orderBy } from "lodash";
 import { useFeatures } from "src/hooks/use-features";
 import { useTiers } from "src/hooks/use-tiers";
 
@@ -61,16 +62,23 @@ export function InterestList({
   const downloadInterestSummary = useCallback(async () => {
     try {
       setDownloadingSummary(true);
-      const csvData = interestList.map((interest) => {
+      const sortedList = orderBy(
+        interestList,
+        ['user.member.tier', 'user.numberOfHoursThisMonth', 'user.member.tenor'],
+        ['asc', 'asc', 'asc']
+      );
+      const csvData = sortedList.map((interest) => {
         const createdAtTime = convertDate({date: interest.createdAt, user});
         return {
           'Name': interest.user?.name,
           'Status': formatStatus(interest.status, interest.assignedShift?.status),
           ...(lasdUserFields && {
             'Tier': interest.user?.member?.tier ? tierNames[interest.user.member.tier] || 'N/A' : 'N/A',
+          }),
+          'Hours/month': interest.user?.numberOfHoursThisMonth,
+          ...(lasdUserFields && {
             'Hire Date': interest.user?.member?.tenor ? convertDate({date: interest.user?.member?.tenor, user}).format(dateTimeFormat) : 'N/A',
           }),
-          ...(monthlyMaxHours && { 'Hours/month': interest.user?.numberOfHoursThisMonth }),
           'Created Date': createdAtTime.format(dateTimeFormat),
         };
       });
@@ -82,7 +90,6 @@ export function InterestList({
       setDownloadingSummary(false);
     }
   }, [
-    monthlyMaxHours,
     user,
     interestList,
     lasdUserFields,
@@ -125,9 +132,10 @@ export function InterestList({
             );
           }
         }
+
         return {
           total: filteredData.length,
-          items: filteredData,
+          items: orderBy(filteredData, ['user.member.tier', 'user.numberOfHoursThisMonth', 'user.member.tenor'], ['asc', 'asc', 'asc']),
         }
       },
     },
@@ -138,6 +146,7 @@ export function InterestList({
         id: 'user.name',
         label: 'Name',
         columnType: 'string',
+        noSort: true,
         width: '40%',
       },
       ...(lasdUserFields ? [
@@ -145,27 +154,33 @@ export function InterestList({
           id: 'user.member.tier',
           label: 'Tier',
           columnType: 'string',
+          noSort: true,
           width: '10%',
           renderValue: (tier: MemberTier) => tierNames[tier] || 'N/A',
         },
+      ] : [] as any),
+      {
+        id: 'user.numberOfHoursThisMonth',
+        label: 'Hours/month',
+        columnType: 'string',
+        noSort: true,
+        width: '20%',
+      },
+      ...(lasdUserFields ? [
         {
           id: 'user.member.tenor',
           label: 'Hire Date',
           columnType: 'date',
+          noSort: true,
           width: '10%',
-        }
-      ] : []),
-      ...(monthlyMaxHours ? [{
-        id: 'user.numberOfHoursThisMonth',
-        label: 'Hours/month',
-        columnType: 'string',
-        width: '20%',
-      }]: []) as any,
+        },
+      ] : [] as any),
       {
         id: 'status',
         label: 'Status',
         width: '20%',
         columnType: 'string',
+        noSort: true,
         renderValue: (eventStatus: any, _, row) => formatStatus(eventStatus, row.assignedShift?.status),
         getLabelColor: (event: any) => {
           if (event.assignedShift?.status === ShiftStatus.Relinquished) {
@@ -187,6 +202,7 @@ export function InterestList({
         id: '',
         width: '20%',
         columnType: 'action',
+        noSort: true,
         label: '',
         renderValue: (_value: any, index: number, row: ShiftInterestRequest) => {
           let disableBoth = false;
@@ -276,9 +292,12 @@ export function InterestList({
         }
       }}
       content={(
-        <Box sx={{ pt: 2 }}>
+        <Card sx={{ pt: 2 }}>
+          <Alert severity="info" sx={{ mb: 2, mx: 2 }}>
+            Hours/Month exclude the number of hours for the current shift.
+          </Alert>
           <GQLTable config={config} />
-        </Box>
+        </Card>
       )}
       hasCancel={false}
       action={<span />}

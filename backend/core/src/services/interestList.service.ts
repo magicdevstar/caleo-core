@@ -7,14 +7,19 @@ import { EventStatus } from "../__generated__/resolvers-types";
 import { EventModel, IEvent } from "../models/event";
 import { ScheduleEvent, SchedulerModel, Timezone } from "../models/scheduler";
 import { IOrganization } from "../models/organizations/organization.entity";
-import { IShift } from "../models/shift";
+import { IShift, ShiftModel } from "../models/shift";
 import logger from "../utils/logger";
-import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
+import { IStagedShiftInterestRequest, ShiftInterestRequestModel } from "../models/shiftInterestRequest";
+import { toZonedTime } from "../utils/date.helpers";
+import startOfMonth from "date-fns/startOfMonth";
+import endOfMonth from "date-fns/endOfMonth";
+import { IShiftHoursPerMonthInput } from "../types/common";
 
 const lambda = new LambdaClient();
 
 export class InterestListService {
   constructor(
+    private shifts: ShiftModel,
     private shiftInterestRequests: ShiftInterestRequestModel,
     private events: EventModel,
     private scheduler: SchedulerModel,
@@ -202,5 +207,60 @@ export class InterestListService {
         },
       }))
     );
+  }
+
+  async sortedInterestRequests({
+    org,
+    sampleShift,
+  }: {
+    org: IOrganization;
+    sampleShift: IShift;
+  }) {
+    // Get all interest requests for the shift group
+    // sorted by tier
+    const requests = await this.shiftInterestRequests.requestsStagedForAssignment(sampleShift.shiftId);
+
+    // Get total hours for each user in the month of the shift
+    const userIds = requests.map((request) => request.userId);
+    const zonedStart = toZonedTime(sampleShift.startTime, org.timezone);
+    const shiftMonthStart = startOfMonth(zonedStart);
+    const shiftMonthEnd = endOfMonth(zonedStart);
+    const totalHoursInput: IShiftHoursPerMonthInput[] = userIds.map((userId) => ({
+      id: userId.toString(),
+      orgId: org._id!.toString(),
+      beginningOfMonth: shiftMonthStart,
+      endOfMonth: shiftMonthEnd,
+    }));
+    const totalHoursPerUser = await this.shifts
+      .shiftHoursLoader
+      .loadMany(totalHoursInput);
+
+    // Sort the requests by total hours then by tenor
+    const sortedRequests = requests
+      .map((request, index) => {
+        let totalHours = totalHoursPerUser[index];
+        if (totalHours instanceof Error) {
+          totalHours = 0;
+        }
+        return {
+          ...request,
+          totalHours,
+        };
+      })
+      .sort((a, b) => {
+        const aTotalHours = a.totalHours;
+        const bTotalHours = b.totalHours;
+        if (aTotalHours !== bTotalHours) {
+          return aTotalHours - bTotalHours;
+        }
+
+        if (a.user.member.tenor && b.user.member.tenor) {
+          return new Date(a.user.member.tenor).getTime() - new Date(b.user.member.tenor).getTime();
+        }
+
+        return 0;
+      });
+
+    return sortedRequests;
   }
 }

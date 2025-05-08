@@ -1933,6 +1933,7 @@ export type ShiftInterestRequest = {
 
 
 export type ShiftInterestRequestUserArgs = {
+  ignoreShiftId?: InputMaybe<Scalars['String']['input']>;
   shiftStart?: InputMaybe<Scalars['String']['input']>;
   timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
 };

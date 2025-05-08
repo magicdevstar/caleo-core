@@ -1,4 +1,6 @@
 import { GraphQLError } from "graphql";
+import startOfMonth from "date-fns/startOfMonth";
+import endOfMonth from "date-fns/endOfMonth";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
@@ -25,16 +27,12 @@ import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { addHours, endOfWeek, format, startOfWeek } from "date-fns";
 import logger from "../../utils/logger";
-import { IMember, IUser } from "../../types/common";
+import { IMember, IUser, EnhancedUser } from "../../types/common";
 import { defaultUserAvailability } from "../../models/user";
+import { toZonedTime } from "../../utils/date.helpers";
 
 const lambda = new LambdaClient();
 const cognito = new CognitoIdentityProviderClient({});
-
-interface EnhancedUser extends IUser {
-  shiftStart?: string;
-  timezoneOffset?: number;
-}
 
 export const user = {
   Query: {
@@ -448,17 +446,21 @@ export const user = {
           endOfWeek: endOfTheWeek,
         });
       },
-      numberOfHoursThisMonth: (parent: EnhancedUser, _args: any, { shifts }: Context) => {
-        if (!parent.shiftStart || !parent.timezoneOffset) {
+      numberOfHoursThisMonth: (parent: EnhancedUser, _args: any, { shifts, organization }: Context) => {
+        if (!parent.shiftStart) {
           return null;
         }
-        const beginningOfMonth = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
-        const endOfTheMonth = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
+
+        const zonedStart = toZonedTime(parent.shiftStart, organization?.timezone!);
+        const beginningOfMonth = startOfMonth(zonedStart);
+        const endOfTheMonth = endOfMonth(zonedStart);
+
         return shifts.shiftHoursLoader.load({
           id: parent._id?.toString()!,
           orgId: parent.member.orgId.toString(),
           beginningOfMonth,
           endOfMonth: endOfTheMonth,
+          ignoreShiftId: parent.ignoreShiftId,
         });
       },
       numberOfShiftsThisWeek: (parent: EnhancedUser, _args: any, { shifts }: Context) => {

@@ -403,7 +403,7 @@
     # For the St Pete Demo. This might move to a different place once we get feedback
     callSign: String
 
-    # When interest list will be avilable for officers
+    # When interest list will be available for officers
     scheduledInterestList: String
     # When the interest list will start automatically assigning officers
     scheduledCloseInterestList: String
@@ -413,6 +413,7 @@
     interestListTransition: EventStatus
     # Boolean stating if we want the interest list to auto assign when it closes
     autoAssignInterestList: Boolean
+
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean

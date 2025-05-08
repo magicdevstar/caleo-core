@@ -495,6 +495,47 @@ export default function EditEvent({
 
   const currentFormValues = getValues();
 
+  const autoHireEndTime = useMemo(() => {
+    if (currentFormValues?.interestListAutoAssignCutoff) {
+      return dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff));
+    }
+
+    const proposedEndTime = dayjs(
+      currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+    ).subtract(
+      user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
+      'days'
+    );
+
+    if (dayjs(Date.now()).isAfter(proposedEndTime)) {
+      return dayjs(new Date(currentEvent?.startTime || Date.now())).add(24, 'hours');
+    }
+
+    return proposedEndTime;
+  }, [
+    currentEvent,
+    currentFormValues?.interestListAutoAssignCutoff,
+    user.member.org?.settings?.interestList?.defaultAutoHireCutoff
+  ]);
+
+  const autoHireStartTime = useMemo(() => {
+    if (currentFormValues?.scheduledCloseInterestList) {
+      return dayjs(new Date(currentFormValues?.scheduledCloseInterestList));
+    }
+
+    const proposedStartTime = dayjs(autoHireEndTime).subtract(24, 'hours');
+
+    if (dayjs(Date.now()).isAfter(proposedStartTime)) {
+      return dayjs(Date.now());
+    }
+
+    return proposedStartTime;
+  },
+  [
+    currentFormValues?.scheduledCloseInterestList,
+    autoHireEndTime
+  ]);
+
   const renderDetails = (
     <>
       {mdUp && (
@@ -786,16 +827,7 @@ export default function EditEvent({
                             timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                             timezone={user.member.org?.timezone}
                             minDate={currentFormValues?.scheduledInterestList ? dayjs(new Date(currentFormValues?.scheduledInterestList)) : dayjs(new Date())}
-                            value={
-                              currentFormValues?.scheduledCloseInterestList ?
-                              dayjs(new Date(currentFormValues?.scheduledCloseInterestList)) :
-                              dayjs(
-                                currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-                              ).subtract(
-                                user.member.org?.settings?.interestList?.defaultHoursBeforeShift || 24,
-                                'hours'
-                              )
-                            }
+                            value={autoHireStartTime}
                             onChange={(date) => {
                               setValue('scheduledCloseInterestList', date ? dayjs(date).toISOString() : '')
                             }}
@@ -812,18 +844,10 @@ export default function EditEvent({
                             label="Auto Hire End Time"
                             ampm={false}
                             disabled={allDisabled || isComplete}
+                            minDate={autoHireStartTime}
                             timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                             timezone={user.member.org?.timezone}
-                            value={
-                              currentFormValues?.interestListAutoAssignCutoff ?
-                                dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff)) :
-                                dayjs(
-                                  currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-                                ).subtract(
-                                  user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
-                                  'days'
-                                )
-                            }
+                            value={autoHireEndTime}
                             onChange={(date) => {
                               setValue('interestListAutoAssignCutoff', date ? dayjs(date).toISOString() : '')
                             }}

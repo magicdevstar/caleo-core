@@ -141,7 +141,7 @@ export default function EventBillingByEvent() {
       }
 
       // read template file
-      const templateFile = await fetch('/report-templates/event-billing.xlsx');
+      const templateFile = await fetch(`${process.env.PUBLIC_URL}/report-templates/event-billing.xlsx`);
       const templateFileBuffer = await templateFile.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(templateFileBuffer);

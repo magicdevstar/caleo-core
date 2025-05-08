@@ -32,7 +32,8 @@ export function generatePayAndLeaveWorksheet(
   if (shifts?.length > defaultNumberOfRows) {
     worksheet.duplicateRow(headerRows + defaultNumberOfRows, rowDiff, true);
   } else if (shifts?.length < defaultNumberOfRows) {
-    worksheet.spliceRows(headerRows + shifts.length, rowDiff);
+    // remove all excess rows (start from 2nd row to avoid deleting original)
+    worksheet.spliceRows(headerRows + shifts.length + 1, rowDiff);
   }
 
   let totalTravelTime = 0;
@@ -274,7 +275,9 @@ export function generateContractLawWorksheet(
   const lastRow = worksheet.getRow(lastRowIdx);
 
   // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
-  worksheet.mergeCells(`A${rowIdx}:E${rowIdx}`);
+  if (!lastRow.getCell(1).isMerged) {
+    worksheet.mergeCells(`A${rowIdx}:E${rowIdx}`);
+  }
 
   // Complete Total Overtime Hours
   lastRow.getCell(6).value = {
@@ -305,13 +308,13 @@ export function generateContractLawWorksheet(
 
 export function generateContractLawVehicleWorksheet(
   shiftsByVehicle: Record<string, Shift[]>,
-  worksheet: ExcelJS.Worksheet,
+  worksheet: ExcelJS.Worksheet
 ) {
   // initialize template totals and props
   const headerRows = 2;
   const grandTotal = {
     total: 0,
-    rows: [] as number[]
+    rows: [] as number[],
   };
   let rowIdx = 1 + headerRows;
 
@@ -354,7 +357,8 @@ export function generateContractLawVehicleWorksheet(
       // Call Sign
       shiftRow.getCell(4).value = shift.docusignEvent?.signerDetails?.[0]?.data?.callSign || '';
       // Vehicle ID
-      shiftRow.getCell(5).value = shift.docusignEvent?.signerDetails?.[0]?.data?.vehicleNumber || '';
+      shiftRow.getCell(5).value =
+        shift.docusignEvent?.signerDetails?.[0]?.data?.vehicleNumber || '';
       // Make
       shiftRow.getCell(6).value = shift.docusignEvent?.signerDetails?.[0]?.data?.vehicleMake || '';
       // Model
@@ -362,9 +366,15 @@ export function generateContractLawVehicleWorksheet(
       // Category
       shiftRow.getCell(8).value = '';
       // Start Miles
-      shiftRow.getCell(9).value = parseInt(shift.docusignEvent?.signerDetails?.[0]?.data?.startingMilage || '0', 10);
+      shiftRow.getCell(9).value = parseInt(
+        shift.docusignEvent?.signerDetails?.[0]?.data?.startingMilage || '0',
+        10
+      );
       // End Miles
-      shiftRow.getCell(10).value = parseInt(shift.docusignEvent?.signerDetails?.[0]?.data?.endingMilage || '0', 10);
+      shiftRow.getCell(10).value = parseInt(
+        shift.docusignEvent?.signerDetails?.[0]?.data?.endingMilage || '0',
+        10
+      );
 
       // Event Miles
       // NOTE: Not sure if I actually have to calculate the result of formulas as it works without, but docs recommend it.
@@ -373,17 +383,21 @@ export function generateContractLawVehicleWorksheet(
         formula: `SUM(J${rowIdx}-I${rowIdx})`,
         result: (shiftRow.getCell(10).value as number) - (shiftRow.getCell(9).value as number),
       };
-      perVehicleTotal += (shiftRow.getCell(11).result as number);
+      perVehicleTotal += shiftRow.getCell(11).result as number;
 
       // jump to next row
       rowIdx += 1;
     });
 
+    // get per vehicle total row
+    const perVehicleTotalRow = worksheet.getRow(rowIdx);
+
     // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
-    worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+    if (!perVehicleTotalRow.getCell(1).isMerged) {
+      worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+    }
 
     // fill out per rank totals
-    const perVehicleTotalRow = worksheet.getRow(rowIdx);
     const vehicleCategory = '';
     const rankTitleLabel = perVehicleTotalRow.getCell(10).value as string;
     // Rank Title Header
@@ -411,7 +425,9 @@ export function generateContractLawVehicleWorksheet(
   const lastRow = worksheet.getRow(lastRowIdx);
 
   // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
-  worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+  if (!lastRow.getCell(1).isMerged) {
+    worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+  }
 
   // Complete Total Overtime Hours
   lastRow.getCell(11).value = {

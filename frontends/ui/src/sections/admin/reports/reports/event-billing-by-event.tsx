@@ -121,7 +121,7 @@ export default function EventBillingByEvent() {
           }
 
           // add to shifts by vehicle grouping
-          const vehicleKey = 'default' // TODO: Find where to get vehicle Category
+          const vehicleKey = shift?.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || 'default';
           if (vehicleKey && shift?.docusignEvent?.signerDetails?.[0]?.data?.startingMilage) {
             if (!shiftsByVehicle[vehicleKey]) {
               shiftsByVehicle[vehicleKey] = [];

@@ -20,6 +20,7 @@ import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
 import { useAuthContext } from 'src/auth/hooks';
 import { getNow } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
+import VehicleCategoriesSelect from '../vehicle-categories/vehicle-categories-select';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -33,14 +34,16 @@ export default function CheckInOutConfirm({
   confirm: UseBooleanReturnType<unknown>;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
-  const { eventCheckIn, docusignCheckout } = useFeatures();
+  const { eventCheckIn, docusignCheckout, vehicleCategories } = useFeatures();
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const now = getNow({ organization: user.member.org! });
   const requiredEquipmentTime = useMemo(() => checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime), [checkInOutConfirm]);
+  const requiredVehicleInformation = useMemo(() => checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresVehicleInformation), [checkInOutConfirm]);
   const isCheckout = useMemo(() => checkInOutConfirm?.shiftCheckInOut?.checkInTime || !eventCheckIn, [checkInOutConfirm, eventCheckIn]);
   const [equipmentTime, setEquipmentTime] = useState<Dayjs | null>(checkInOutConfirm?.assignment?.requiredEquipment?.some?.((equipment) => equipment?.requiresEquipmentTime) ? dayjs() : null);
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
+  const [vehicleCategoryId, setVehicleCategoryId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [signNow, setSignNow] = useState(true);
 
@@ -74,6 +77,7 @@ export default function CheckInOutConfirm({
           input: {
             id: shift.id,
             note: checkInOutNote,
+            ...(vehicleCategories && vehicleCategoryId && { vehicleCategoryId }),
             signNow,
             ...(requiredEquipmentTime && equipmentTime && {
               equipmentDateTime: equipmentTime.toISOString(),
@@ -120,6 +124,8 @@ export default function CheckInOutConfirm({
     enqueueSnackbar,
     onSuccess,
     setEquipmentTime,
+    vehicleCategories,
+    vehicleCategoryId,
     now,
     requiredEquipmentTime,
     isCheckout,
@@ -157,6 +163,14 @@ export default function CheckInOutConfirm({
                       'What time did you pick up your equipment?',
                   },
                 }}
+              />
+            )
+          }
+          {
+            isCheckout && requiredVehicleInformation && (
+              <VehicleCategoriesSelect
+                value={vehicleCategoryId}
+                onChange={(id) => setVehicleCategoryId(id)}
               />
             )
           }

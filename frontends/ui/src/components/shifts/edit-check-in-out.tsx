@@ -30,6 +30,7 @@ import { MAPBOX_API } from 'src/config-global';
 import { convertDate } from 'src/hooks/use-datejs';
 import { EDIT_CHECK_IN_OUT, GET_GROUPED_SHIFTS } from 'src/api/shifts';
 import Iconify from '../iconify';
+import { RHFVehicleCategoriesSelect } from '../hook-form/rhf-vehicle-categories-select';
 
 const StyledMapContainer = styled('div')(({ theme }) => ({
   zIndex: 0,
@@ -69,7 +70,7 @@ export const EditCheckInOut = ({
   handleClose: () => void;
   closeOnSave?: boolean;
 }) => {
-  const { eventCheckIn, eventCheckOut } = useFeatures();
+  const { eventCheckIn, eventCheckOut, vehicleCategories } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
 
@@ -81,6 +82,7 @@ export const EditCheckInOut = ({
     checkOutTime: Yup.date().nullable(),
     checkInEquipmentTime: Yup.date().nullable(),
     checkOutEquipmentTime: Yup.date().nullable(),
+    vehicleCategoryId: Yup.string().nullable(),
     checkInNote: Yup.string().nullable(),
     checkOutNote: Yup.string().nullable(),
     adminNotes: Yup.string().nullable(),
@@ -93,6 +95,7 @@ export const EditCheckInOut = ({
       checkInNote: shift?.shiftCheckInOut?.checkInNote,
       checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
       adminNotes: shift?.shiftCheckInOut?.adminNotes,
+      vehicleCategoryId: shift?.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.id,
       checkInEquipmentTime: shift?.shiftCheckInOut?.equipmentDetails?.checkInTime ? convertDate({
         date: new Date(shift.shiftCheckInOut.equipmentDetails.checkInTime),
         user
@@ -147,6 +150,11 @@ export const EditCheckInOut = ({
 
       if (formData.checkOutTime) {
         payload.checkOutTime = formData.checkOutTime.toISOString();
+      }
+
+      if (formData.vehicleCategoryId && vehicleCategories) {
+        payload.equipmentDetails = payload.equipmentDetails || {};
+        payload.equipmentDetails.vehicleCategoryId = formData.vehicleCategoryId;
       }
 
       if (formData.checkInEquipmentTime) {
@@ -219,6 +227,12 @@ export const EditCheckInOut = ({
                 <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInEquipmentTime" label="Equipment Check In Time" />
                 <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutEquipmentTime" label="Equipment Check Out Time" />
               </Box>
+            )
+          }
+
+          {
+            vehicleCategories && (
+              <RHFVehicleCategoriesSelect sx={{ mt: 2 }} name="vehicleCategoryId" label='Vehicle Category' />
             )
           }
 

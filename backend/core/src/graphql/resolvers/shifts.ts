@@ -142,6 +142,7 @@ export const shift = {
         id,
         checkInTime,
         checkOutTime,
+        ...(equipmentDetails?.vehicleCategoryId && { vehicleCategoryId: new ObjectId(equipmentDetails?.vehicleCategoryId) }),
         checkInEquipmentTime: equipmentDetails?.checkInTime,
         checkOutEquipmentTime: equipmentDetails?.checkOutTime,
         adminNotes,
@@ -219,6 +220,7 @@ export const shift = {
           time,
           note,
           adminNotes,
+          vehicleCategoryId,
           equipmentDateTime,
           signNow
         }
@@ -245,6 +247,7 @@ export const shift = {
         adminNotes: finalAdminNote,
         user: user!,
         equipmentTime: equipmentDateTime || undefined,
+        ...(vehicleCategoryId && { vehicleCategoryId: new ObjectId(vehicleCategoryId) }),
       });
       const updatedShift = await shifts.get(id);
 
@@ -776,6 +779,7 @@ export const shift = {
     ShiftCheckInOutEquipment: {
       checkInTime: (item: IShiftCheckInOutEquipment) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
       checkOutTime: (item: IShiftCheckInOutEquipment) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
+      vehicleCategory: (item: IShiftCheckInOutEquipment, _, { vehicleCategories }: Context) => item.vehicleCategoryId ? vehicleCategories.loader.load(item.vehicleCategoryId.toString()) : null,
     }
   },
 };

@@ -36,6 +36,7 @@ import { OrganizationService } from "../models/organizations/organization.servic
 import { OrganizationRepo } from "../models/organizations/organization.repository";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { InvoiceService } from "../services/invoice.service";
+import { VehicleCategoriesModel } from "../models/vehicleCategories";
 
 let db: Db;
 
@@ -67,11 +68,12 @@ export interface Context {
   shiftLotteryRequests: ShiftLotteryRequestModel;
   memberNotifications: MemberNotificationModel;
   scheduler: SchedulerModel;
-  organization?: IOrganization;
   interestList: InterestListService;
+  invoiceService: InvoiceService;
+  vehicleCategories: VehicleCategoriesModel;
+  organization?: IOrganization;
   user?: IUser;
   originalUser?: IUser;
-  invoiceService?: InvoiceService;
   lambdaEvent?: any;
   lambdaContext?: any;
 };
@@ -88,6 +90,7 @@ export const createContext = async (): Promise<Context> => {
   const orgRepo = new OrganizationRepo(db);
   const organizations = new OrganizationService(orgRepo, new SchedulerModel());
 
+  const vehicleCategories = new VehicleCategoriesModel(db);
   const shiftInterestRequests = new ShiftInterestRequestModel(db);
   const lotteryState = new LotteryStateModel(db);
   const siteLock = new SiteLockModel(db);
@@ -172,6 +175,7 @@ export const createContext = async (): Promise<Context> => {
     division,
     unit,
     docusign,
+    vehicleCategories,
     interestList,
     invoiceService,
   };

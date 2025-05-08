@@ -26,6 +26,7 @@ const defaultFeatures: OrganizationFeatures = {
   rankHourlyRate: false,
   callSign: false,
   eventInvoice: false,
+  vehicleCategories: false,
 };
 
 export const useFeatures = (): OrganizationFeatures => {

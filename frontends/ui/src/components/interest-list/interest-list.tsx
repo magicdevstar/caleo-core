@@ -47,7 +47,7 @@ export function InterestList({
   open,
   interestList
 }: Props) {
-  const { monthlyMaxHours, lasdUserFields } = useFeatures();
+  const { lasdUserFields } = useFeatures();
   const { user } = useAuthContext();
   const { tierNames } = useTiers();
   const { enqueueSnackbar } = useSnackbar();

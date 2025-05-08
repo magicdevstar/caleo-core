@@ -30,6 +30,7 @@ const defaultFeatures: OrganizationFeatures = {
   officerCheckInOut: false,
   callSign: false,
   eventInvoice: false,
+  vehicleCategories: false,
 };
 
 export const useFeatures = (): IOrganizationFeatures => {

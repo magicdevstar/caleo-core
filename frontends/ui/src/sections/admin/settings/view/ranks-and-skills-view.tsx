@@ -2,17 +2,18 @@
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 // hooks
-import { useAuthContext } from 'src/auth/hooks';
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import RankTable from '../rank/rank-table';
 import SkillTable from '../skills/skill-table';
 import EquipmentTable from '../equipment/equipment-table';
+import VehicleCategoriesTable from '../vehicleCategories/vehicleCategories-table';
 
 // ----------------------------------------------------------------------
 
 export default function RanksAndSkillsView() {
-  const { user } = useAuthContext();
+  const { equipment, vehicleCategories } = useFeatures();
   const settings = useSettingsContext();
 
   return (
@@ -20,10 +21,16 @@ export default function RanksAndSkillsView() {
       <RankTable />
       <Box sx={{ mb: 4 }} />
       <SkillTable />
-      {user?.member?.org?.features?.equipment && (
+      {equipment && (
         <>
           <Box sx={{ mb: 4 }} />
           <EquipmentTable />
+        </>
+      )}
+      {vehicleCategories && (
+        <>
+          <Box sx={{ mb: 4 }} />
+          <VehicleCategoriesTable />
         </>
       )}
     </Container>

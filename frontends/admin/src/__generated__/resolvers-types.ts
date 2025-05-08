@@ -253,6 +253,7 @@ export enum DocType {
   Unit = 'UNIT',
   User = 'USER',
   UserAnalytics = 'USER_ANALYTICS',
+  VehicleCategories = 'VEHICLE_CATEGORIES',
   Venue = 'VENUE'
 }
 
@@ -856,6 +857,7 @@ export type Mutation = {
   removeUser: Scalars['ID']['output'];
   removeUserEquipment: Scalars['ID']['output'];
   removeUserSkill: Scalars['ID']['output'];
+  removeVehicleCategory: Scalars['ID']['output'];
   removeVenue: Scalars['ID']['output'];
   resetImpersonation?: Maybe<Scalars['Boolean']['output']>;
   seenNotifications?: Maybe<Scalars['Boolean']['output']>;
@@ -874,6 +876,7 @@ export type Mutation = {
   userEquipmentAttachmentUploadUrl?: Maybe<MemberEquipmentAttachmentUpload>;
   userSkill?: Maybe<MemberSkill>;
   userSkillAttachmentUploadUrl?: Maybe<MemberSkillAttachmentUpload>;
+  vehicleCategory?: Maybe<VehicleCategories>;
   venue?: Maybe<Venue>;
 };
 
@@ -1111,6 +1114,11 @@ export type MutationRemoveUserSkillArgs = {
 };
 
 
+export type MutationRemoveVehicleCategoryArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationRemoveVenueArgs = {
   id: Scalars['String']['input'];
 };
@@ -1188,6 +1196,11 @@ export type MutationUserEquipmentArgs = {
 
 export type MutationUserSkillArgs = {
   userSkill: UpsertMemberSkill;
+};
+
+
+export type MutationVehicleCategoryArgs = {
+  vehicleCategory: UpsertVehicleCategories;
 };
 
 
@@ -1370,6 +1383,7 @@ export type OrganizationFeatures = {
   profileTenor: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
+  vehicleCategories: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
   weeklyMaxShifts: Scalars['Boolean']['output'];
 };
@@ -1468,6 +1482,8 @@ export type Query = {
   units?: Maybe<UnitSearchResult>;
   user?: Maybe<User>;
   users?: Maybe<UserSearchResult>;
+  vehicleCategories?: Maybe<VehicleCategoriesSearchResult>;
+  vehicleCategory?: Maybe<Division>;
   venue?: Maybe<Venue>;
   venues?: Maybe<VenueSearchResult>;
 };
@@ -1663,6 +1679,16 @@ export type QueryUserArgs = {
 
 export type QueryUsersArgs = {
   input?: InputMaybe<UserSearchInput>;
+};
+
+
+export type QueryVehicleCategoriesArgs = {
+  input?: InputMaybe<VehicleCategoriesSearchInput>;
+};
+
+
+export type QueryVehicleCategoryArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1878,11 +1904,14 @@ export type ShiftCheckInOutEquipment = {
   __typename?: 'ShiftCheckInOutEquipment';
   checkInTime?: Maybe<Scalars['String']['output']>;
   checkOutTime?: Maybe<Scalars['String']['output']>;
+  vehicleCategory?: Maybe<VehicleCategories>;
+  vehicleCategoryId?: Maybe<Scalars['String']['output']>;
 };
 
 export type ShiftCheckInOutEquipmentEvent = {
   checkInTime?: InputMaybe<Scalars['String']['input']>;
   checkOutTime?: InputMaybe<Scalars['String']['input']>;
+  vehicleCategoryId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ShiftCheckInOutEvent = {
@@ -1895,6 +1924,7 @@ export type ShiftCheckInOutEvent = {
   note?: InputMaybe<Scalars['String']['input']>;
   signNow?: InputMaybe<Scalars['Boolean']['input']>;
   time?: InputMaybe<Scalars['String']['input']>;
+  vehicleCategoryId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ShiftCheckOutResponse = {
@@ -2362,6 +2392,7 @@ export type UpsertOrganizationFeatures = {
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
+  vehicleCategories?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
   weeklyMaxShifts?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -2459,6 +2490,12 @@ export type UpsertUserRelinquishShift = {
   requireNoteWhenRelinquishing: Scalars['Boolean']['input'];
 };
 
+export type UpsertVehicleCategories = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpsertVenue = {
   address?: InputMaybe<Scalars['String']['input']>;
   city?: InputMaybe<Scalars['String']['input']>;
@@ -2550,6 +2587,36 @@ export type UserSearchInput = {
 export type UserSearchResult = {
   __typename?: 'UserSearchResult';
   items?: Maybe<Array<Maybe<User>>>;
+  total: Scalars['Int']['output'];
+};
+
+export type VehicleCategories = {
+  __typename?: 'VehicleCategories';
+  active: Scalars['Boolean']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org?: Maybe<Organization>;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type VehicleCategoriesSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type VehicleCategoriesSearchResult = {
+  __typename?: 'VehicleCategoriesSearchResult';
+  items?: Maybe<Array<Maybe<VehicleCategories>>>;
   total: Scalars['Int']['output'];
 };
 
@@ -2864,6 +2931,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertSkill: UpsertSkill;
   UpsertUnit: UpsertUnit;
   UpsertUserRelinquishShift: UpsertUserRelinquishShift;
+  UpsertVehicleCategories: UpsertVehicleCategories;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
   UpsertVenueContract: UpsertVenueContract;
@@ -2872,6 +2940,9 @@ export type ResolversTypes = ResolversObject<{
   UserRelinquishShift: ResolverTypeWrapper<UserRelinquishShift>;
   UserSearchInput: UserSearchInput;
   UserSearchResult: ResolverTypeWrapper<UserSearchResult>;
+  VehicleCategories: ResolverTypeWrapper<VehicleCategories>;
+  VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
+  VehicleCategoriesSearchResult: ResolverTypeWrapper<VehicleCategoriesSearchResult>;
   Venue: ResolverTypeWrapper<Venue>;
   VenueContact: ResolverTypeWrapper<VenueContact>;
   VenueContract: ResolverTypeWrapper<VenueContract>;
@@ -3046,6 +3117,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertSkill: UpsertSkill;
   UpsertUnit: UpsertUnit;
   UpsertUserRelinquishShift: UpsertUserRelinquishShift;
+  UpsertVehicleCategories: UpsertVehicleCategories;
   UpsertVenue: UpsertVenue;
   UpsertVenueContact: UpsertVenueContact;
   UpsertVenueContract: UpsertVenueContract;
@@ -3054,6 +3126,9 @@ export type ResolversParentTypes = ResolversObject<{
   UserRelinquishShift: UserRelinquishShift;
   UserSearchInput: UserSearchInput;
   UserSearchResult: UserSearchResult;
+  VehicleCategories: VehicleCategories;
+  VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
+  VehicleCategoriesSearchResult: VehicleCategoriesSearchResult;
   Venue: Venue;
   VenueContact: VenueContact;
   VenueContract: VenueContract;
@@ -3613,6 +3688,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeUser?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserArgs, 'id'>>;
   removeUserEquipment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserEquipmentArgs, 'id'>>;
   removeUserSkill?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveUserSkillArgs, 'id'>>;
+  removeVehicleCategory?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveVehicleCategoryArgs, 'id'>>;
   removeVenue?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveVenueArgs, 'id'>>;
   resetImpersonation?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   seenNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSeenNotificationsArgs, 'notificationIds'>>;
@@ -3631,6 +3707,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   userEquipmentAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['MemberEquipmentAttachmentUpload']>, ParentType, ContextType>;
   userSkill?: Resolver<Maybe<ResolversTypes['MemberSkill']>, ParentType, ContextType, RequireFields<MutationUserSkillArgs, 'userSkill'>>;
   userSkillAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['MemberSkillAttachmentUpload']>, ParentType, ContextType>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['VehicleCategories']>, ParentType, ContextType, RequireFields<MutationVehicleCategoryArgs, 'vehicleCategory'>>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<MutationVenueArgs, 'venue'>>;
 }>;
 
@@ -3746,6 +3823,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  vehicleCategories?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   weeklyMaxShifts?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -3834,6 +3912,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   units?: Resolver<Maybe<ResolversTypes['UnitSearchResult']>, ParentType, ContextType, Partial<QueryUnitsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
+  vehicleCategories?: Resolver<Maybe<ResolversTypes['VehicleCategoriesSearchResult']>, ParentType, ContextType, Partial<QueryVehicleCategoriesArgs>>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<QueryVehicleCategoryArgs, 'id'>>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<QueryVenueArgs, 'id'>>;
   venues?: Resolver<Maybe<ResolversTypes['VenueSearchResult']>, ParentType, ContextType, Partial<QueryVenuesArgs>>;
 }>;
@@ -3978,6 +4058,8 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
 export type ShiftCheckInOutEquipmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckInOutEquipment'] = ResolversParentTypes['ShiftCheckInOutEquipment']> = ResolversObject<{
   checkInTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   checkOutTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['VehicleCategories']>, ParentType, ContextType>;
+  vehicleCategoryId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4175,6 +4257,27 @@ export type UserSearchResultResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type VehicleCategoriesResolvers<ContextType = any, ParentType extends ResolversParentTypes['VehicleCategories'] = ResolversParentTypes['VehicleCategories']> = ResolversObject<{
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type VehicleCategoriesSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['VehicleCategoriesSearchResult'] = ResolversParentTypes['VehicleCategoriesSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['VehicleCategories']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type VenueResolvers<ContextType = any, ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue']> = ResolversObject<{
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4307,6 +4410,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   UserAvailability?: UserAvailabilityResolvers<ContextType>;
   UserRelinquishShift?: UserRelinquishShiftResolvers<ContextType>;
   UserSearchResult?: UserSearchResultResolvers<ContextType>;
+  VehicleCategories?: VehicleCategoriesResolvers<ContextType>;
+  VehicleCategoriesSearchResult?: VehicleCategoriesSearchResultResolvers<ContextType>;
   Venue?: VenueResolvers<ContextType>;
   VenueContact?: VenueContactResolvers<ContextType>;
   VenueContract?: VenueContractResolvers<ContextType>;

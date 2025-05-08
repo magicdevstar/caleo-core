@@ -1,6 +1,7 @@
 import { health } from './health';
 import { notification } from './notification';
 import { organizationFields, organizationMutation, organizationQuery } from './organization';
+import { vehicleCategoriesFields, vehicleCategoriesMutation, vehicleCategoriesQuery } from './vehicleCategories';
 import { rank } from './rank';
 import { skill } from './skills';
 import { equipment } from './equipments';
@@ -43,6 +44,7 @@ export default {
     ...unit.Query,
     ...division.Query,
     ...docusignEvents.Query,
+    ...vehicleCategoriesQuery,
   },
   Mutation: {
     ...health.Mutation,
@@ -65,6 +67,7 @@ export default {
     ...equipment.Mutation,
     ...unit.Mutation,
     ...division.Mutation,
+    ...vehicleCategoriesMutation
   },
   ...health.fields,
   ...organizationFields,
@@ -87,4 +90,5 @@ export default {
   ...unit.fields,
   ...division.fields,
   ...docusignEvents.fields,
+  ...vehicleCategoriesFields,
 };

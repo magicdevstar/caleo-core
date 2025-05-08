@@ -50,6 +50,7 @@ const userDetailProperties = `
         rankHourlyRate
         callSign
         eventInvoice
+        vehicleCategories
       }
       customizations {
         pNumber

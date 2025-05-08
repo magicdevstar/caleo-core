@@ -17,6 +17,11 @@ export const divisionErrors = {
   NAME_MUST_BE_UNIQUE: 'DIVISION_NAME_MUST_BE_UNIQUE',
 };
 
+export const vehicleCategories = {
+  NOT_FOUND: 'VEHICLE_CATEGORY_NOT_FOUND',
+  NAME_MUST_BE_UNIQUE: 'VEHICLE_CATEGORY_MUST_BE_UNIQUE',
+};
+
 export const skillErrors = {
   NOT_FOUND: 'SKILL_NOT_FOUND',
   NAME_MUST_BE_UNIQUE: 'SKILL_NAME_MUST_BE_UNIQUE',

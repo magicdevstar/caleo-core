@@ -47,10 +47,13 @@ export interface IShiftCheckInOutEquipment extends Omit<
   ShiftCheckInOutEquipment,
   'checkInTime' |
   'checkOutTime' |
+  'vehicleCategoryId' |
+  'vehicleCategory' |
   '__typename'
 > {
   checkInTime?: Date;
   checkOutTime?: Date;
+  vehicleCategoryId?: ObjectId;
 }
 
 export interface IShift extends Omit<
@@ -397,6 +400,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkInTime,
     checkOutTime,
     checkInEquipmentTime,
+    vehicleCategoryId,
     checkOutEquipmentTime,
     adminNotes,
     noShow,
@@ -406,6 +410,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkInTime?: string | null,
     checkOutTime?: string | null,
     adminNotes?: string | null,
+    vehicleCategoryId?: ObjectId,
     checkInEquipmentTime?: string | null,
     checkOutEquipmentTime?: string | null,
     noShow: boolean,
@@ -418,6 +423,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         modifiedById: user._id!,
         updatedAt: new Date(),
         'shiftCheckInOut.noShow': noShow,
+        ...(vehicleCategoryId && { 'shiftCheckInOut.equipmentDetails.vehicleCategoryId': vehicleCategoryId }),
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
         ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
@@ -467,6 +473,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     time,
     checkOutNote,
     adminNotes,
+    vehicleCategoryId,
     user,
     equipmentTime,
   } : {
@@ -475,6 +482,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     time?: Date,
     checkOutNote?: string,
     adminNotes?: string,
+    vehicleCategoryId?: ObjectId,
     user: IUser,
     equipmentTime?: string,
   }) {
@@ -485,6 +493,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         modifiedById: user._id!,
         updatedAt: new Date(),
         'shiftCheckInOut.checkOutTime': time || new Date(),
+        ...(vehicleCategoryId && { 'shiftCheckInOut.equipmentDetails.vehicleCategoryId': vehicleCategoryId }),
         ...(checkOutNote ? { 'shiftCheckInOut.checkOutNote': checkOutNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
         ...(coords ? { 'shiftCheckInOut.checkOutCoords': coords } : {}),

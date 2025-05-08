@@ -23,6 +23,7 @@
     USER_ANALYTICS
     UNIT
     DIVISION
+    VEHICLE_CATEGORIES
     DS_TOKEN
     DS_EVENTS
   }
@@ -647,6 +648,9 @@
   type ShiftCheckInOutEquipment {
     checkInTime: String
     checkOutTime: String
+    vehicleCategoryId: String
+
+    vehicleCategory: VehicleCategories
   }
 
   type Shift {
@@ -700,6 +704,7 @@
     coords: CheckInOutCoordinates
     equipmentTime: Float @deprecated(reason: "Use equipmentDateTime instead!")
     equipmentDateTime: String
+    vehicleCategoryId: String
     note: String
     adminNotes: String
     signNow: Boolean
@@ -708,6 +713,7 @@
   input ShiftCheckInOutEquipmentEvent {
     checkInTime: String
     checkOutTime: String
+    vehicleCategoryId: String
   }
 
   input ShiftAdminCheckInOutEvent {
@@ -1113,6 +1119,29 @@ type DocusignSignerDetailsData {
   }
 ###### END Unit ######
 
+###### START Vehicle Categories ######
+  type VehicleCategories {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertVehicleCategories {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END Vehicle Categories ######
+
 ###### START Equipment ######
   enum EquipmentStatus {
     APPROVED
@@ -1274,6 +1303,7 @@ type DocusignSignerDetailsData {
     rankHourlyRate: Boolean!
     callSign: Boolean!
     eventInvoice: Boolean!
+    vehicleCategories: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1452,6 +1482,7 @@ type DocusignSignerDetailsData {
     rankHourlyRate: Boolean
     callSign: Boolean
     eventInvoice: Boolean
+    vehicleCategories: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1663,8 +1694,22 @@ type DocusignSignerDetailsData {
     order: String
   }
 
+  input VehicleCategoriesSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
   type DivisionSearchResult {
     items: [Division]
+    total: Int!
+  }
+
+  type VehicleCategoriesSearchResult {
+    items: [VehicleCategories]
     total: Int!
   }
 
@@ -1993,6 +2038,9 @@ type Query {
 
   division(id: String!): Division
   divisions(input: DivisionSearchInput): DivisionSearchResult
+
+  vehicleCategory(id: String!): Division
+  vehicleCategories(input: VehicleCategoriesSearchInput): VehicleCategoriesSearchResult
   
   skill(id: String!): Skill
   skills(input: SkillSearchInput): SkillSearchResult
@@ -2059,6 +2107,9 @@ type Mutation {
 
   division(division: UpsertDivision!): Division
   removeDivision(id: String!): ID!
+
+  vehicleCategory(vehicleCategory: UpsertVehicleCategories!): VehicleCategories
+  removeVehicleCategory(id: String!): ID!
 
   skill(skill: UpsertSkill!): Skill
   removeSkill(id: String!): ID!

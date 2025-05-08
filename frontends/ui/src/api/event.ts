@@ -209,6 +209,10 @@ query GetEvent($id: String!) {
           equipmentDetails {
             checkInTime
             checkOutTime
+            vehicleCategory {
+              id
+              name
+            }
           }
         }
       }

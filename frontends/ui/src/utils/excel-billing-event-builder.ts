@@ -364,7 +364,7 @@ export function generateContractLawVehicleWorksheet(
       // Model
       shiftRow.getCell(7).value = shift.docusignEvent?.signerDetails?.[0]?.data?.vehicleModel || '';
       // Category
-      shiftRow.getCell(8).value = '';
+      shiftRow.getCell(8).value = shift.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
       // Start Miles
       shiftRow.getCell(9).value = parseInt(
         shift.docusignEvent?.signerDetails?.[0]?.data?.startingMilage || '0',

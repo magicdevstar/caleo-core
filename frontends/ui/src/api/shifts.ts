@@ -363,6 +363,7 @@ export const GET_ALL_SHIFTS = gql`
             id
             name
             requiresEquipmentTime
+            requiresVehicleInformation
           }
           requiredSkills {
             id
@@ -410,6 +411,10 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           equipmentDetails {
             checkInTime
             checkOutTime
+            vehicleCategory {
+              id
+              name
+            }
           }
           checkInCoords {
             accuracy
@@ -466,6 +471,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
             id
             name
             requiresEquipmentTime
+            requiresVehicleInformation
           }
           requiredSkills {
             id
@@ -713,6 +719,10 @@ export const GET_GROUPED_SHIFTS = gql`
         equipmentDetails {
           checkInTime
           checkOutTime
+          vehicleCategory {
+            id
+            name
+          }
         }
         adminNotes
         checkInCoords {
@@ -742,6 +752,7 @@ export const GET_GROUPED_SHIFTS = gql`
         requiredEquipment {
           id
           requiresEquipmentTime
+          requiresVehicleInformation
         }
       }
 

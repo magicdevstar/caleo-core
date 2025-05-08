@@ -240,28 +240,34 @@ export default function VenueDetail() {
               </MenuItem>
             </>
           )}
-          <MenuItem onClick={() => {
-            router.push(
-              paths.kiosk.dashboard.replace(':eventId', data?.event?.id)
-            );
-            menuClose();
-          }}>
-            <ListItemIcon>
-              <Iconify icon="ic:baseline-dashboard" />
-            </ListItemIcon>
-            <ListItemText>Event Dashboard</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={() => {
-            router.push(
-              paths.kiosk.root.replace(':eventId', data?.event?.id)
-            );
-            menuClose();
-          }}>
-            <ListItemIcon>
-              <Iconify icon="material-symbols:moved-location" />
-            </ListItemIcon>
-            <ListItemText>Check in kiosk</ListItemText>
-          </MenuItem>
+          {
+            kiosk && (
+              <>
+                <MenuItem onClick={() => {
+                  router.push(
+                    paths.kiosk.dashboard.replace(':eventId', data?.event?.id)
+                  );
+                  menuClose();
+                }}>
+                  <ListItemIcon>
+                    <Iconify icon="ic:baseline-dashboard" />
+                  </ListItemIcon>
+                  <ListItemText>Event Dashboard</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={() => {
+                  router.push(
+                    paths.kiosk.root.replace(':eventId', data?.event?.id)
+                  );
+                  menuClose();
+                }}>
+                  <ListItemIcon>
+                    <Iconify icon="material-symbols:moved-location" />
+                  </ListItemIcon>
+                  <ListItemText>Check in kiosk</ListItemText>
+                </MenuItem>
+              </>
+            )
+          }
         </Menu>
       </>
     )

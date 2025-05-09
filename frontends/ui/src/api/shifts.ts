@@ -337,6 +337,7 @@ export const GET_ALL_SHIFTS = gql`
           name
           attachments
           notes
+          callSign
           venue {
             id
             name

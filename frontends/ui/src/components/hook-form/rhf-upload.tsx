@@ -9,6 +9,7 @@ import { UploadAvatar, Upload, UploadBox, UploadProps } from '../upload';
 interface Props extends Omit<UploadProps, 'file'> {
   name: string;
   multiple?: boolean;
+  accept?: { [key: string]: string[] };
 }
 
 // ----------------------------------------------------------------------
@@ -53,8 +54,10 @@ export function RHFUploadBox({ name, ...other }: Props) {
 
 // ----------------------------------------------------------------------
 
-export function RHFUpload({ name, multiple, helperText, ...other }: Props) {
+export function RHFUpload({ name, multiple, helperText, accept, ...other }: Props) {
   const { control } = useFormContext();
+
+  const uploadAccept = accept ?? { 'image/*': [] };
 
   return (
     <Controller
@@ -64,7 +67,7 @@ export function RHFUpload({ name, multiple, helperText, ...other }: Props) {
         multiple ? (
           <Upload
             multiple
-            accept={{ 'image/*': [] }}
+            accept={uploadAccept}
             files={field.value}
             error={!!error}
             helperText={
@@ -78,7 +81,7 @@ export function RHFUpload({ name, multiple, helperText, ...other }: Props) {
           />
         ) : (
           <Upload
-            accept={{ 'image/*': [] }}
+            accept={uploadAccept}
             file={field.value}
             error={!!error}
             helperText={

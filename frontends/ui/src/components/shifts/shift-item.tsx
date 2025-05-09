@@ -13,7 +13,7 @@ import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import { SxProps } from "@mui/material";
 // types
-import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
+import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, ShiftStatus, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -98,7 +98,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
-  const { eventCheckIn, eventCheckOut, lasdEventFields } = useFeatures();
+  const { eventCheckIn, eventCheckOut, lasdEventFields, callSign } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
@@ -341,15 +341,26 @@ export default function ShiftItem({
       </Grid>
 
       <Grid item xs={12} sm={firstRowSize}>
-        {/* Event Ref */}
-        <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <Label variant="soft" color='default' sx={labelSx}>
-              {shift.event.referenceId}
-            </Label>
-          </Box>
-        </Stack>
+        {/* Event Ref or call sign */}
+        { callSign && shift.status === ShiftStatus.Assigned ? (
+          <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Call Sign</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <Label variant="soft" color='default' sx={labelSx}>
+                {shift.event.callSign || '-'}
+              </Label>
+            </Box>
+          </Stack>
+        ) : (
+          <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Event Ref</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <Label variant="soft" color='default' sx={labelSx}>
+                {shift.event.referenceId}
+              </Label>
+            </Box>
+          </Stack>
+        )}
       </Grid>
 
       <Grid item xs={12} sm={firstRowSize}>

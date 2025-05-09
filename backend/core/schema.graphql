@@ -208,7 +208,7 @@
     image: String
     modifiedBy: User
     # Only used when getting interest list requests
-    numberOfHoursThisMonth: Int
+    numberOfHoursThisMonth: Float
     # Only used when getting lotto requests
     # for the admin site. We could expand this later
     # but for now 🤷‍♂️

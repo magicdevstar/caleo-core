@@ -277,7 +277,7 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     const res = await this.collection.aggregate<{_id: ObjectId, totalHours: number;}>(pipeline).toArray();
     const groupedResponseByUserId = res.reduce((acc, shift) => {
-      acc[shift._id.toString()] = shift.totalHours;
+      acc[shift._id.toString()] = Math.round(shift.totalHours * 100) / 100;
       return acc;
     }, {} as Record<string, number>);
 

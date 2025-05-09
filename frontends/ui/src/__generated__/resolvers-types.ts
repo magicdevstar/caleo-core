@@ -2538,7 +2538,7 @@ export type User = {
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
-  numberOfHoursThisMonth?: Maybe<Scalars['Int']['output']>;
+  numberOfHoursThisMonth?: Maybe<Scalars['Float']['output']>;
   numberOfShiftsThisWeek?: Maybe<Scalars['Int']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   shiftsThisWeek?: Maybe<Array<Maybe<Shift>>>;
@@ -4223,7 +4223,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  numberOfHoursThisMonth?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  numberOfHoursThisMonth?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   numberOfShiftsThisWeek?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftsThisWeek?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;

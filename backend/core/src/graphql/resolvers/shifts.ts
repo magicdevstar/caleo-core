@@ -604,7 +604,11 @@ export const shift = {
         if (existingUserId !== user!.id && userIsAdmin(user)) {
           status = ShiftStatus.Unassigned;
         }
-        if (status === ShiftStatus.Relinquished && shifts.canRelinquishShift({ shift, organization: organization! })) {
+        if (
+          user?.member?.role !== MemberRole.Admin &&
+          status === ShiftStatus.Relinquished &&
+          shifts.canRelinquishShift({ shift, organization: organization! })
+        ) {
           throw new GraphQLError("You cannot relinquish this shift. Please contact an administrator.");
         }
         removedShift = await shifts.create<IShift>({

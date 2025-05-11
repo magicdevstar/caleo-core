@@ -110,6 +110,10 @@ export default function EventBillingByEvent() {
       const shiftsByVehicle: Record<string, Shift[]> = {};
       (event.assignments || []).forEach((assignment: Assignment) => {
         (assignment.shifts || []).forEach((shift) => {
+          if (!shift?.user || shift.shiftCheckInOut?.noShow) {
+            // skip if user is not assigned or was a no show
+            return;
+          }
           const newShift = {...shift, assignment, event} as Shift;
           // add to shift list
           shifts.push(newShift);
@@ -151,17 +155,16 @@ export default function EventBillingByEvent() {
       modifyReportHeader(event, payAndLeaveWorksheet, user);
       generatePayAndLeaveWorksheet(shifts, payAndLeaveWorksheet, user);
 
+      // reports that were skipped due to empty shift groupings
+      const skippedReports: string[] = [];
+
       // Contract Law Worksheet
       const contractLawWorksheet = workbook.worksheets[1];
       modifyReportHeader(event, contractLawWorksheet, user);
       if (Object.keys(shiftsByRank).length > 0) {
         generateContractLawWorksheet(shiftsByRank, contractLawWorksheet, user);
       } else {
-        // Skip Contract law worksheet and notify user, if no valid shifts are found
-        enqueueSnackbar('Skipped Contract Law Worksheet. No valid shifts were found for this Event.', {
-          variant: 'info',
-          autoHideDuration: 3000,
-        });
+        skippedReports.push('Contract Law');
       }
 
       // Contract Law Worksheet (TODO: figure out which property to group shifts by)
@@ -170,10 +173,14 @@ export default function EventBillingByEvent() {
       if (Object.keys(shiftsByVehicle).length > 0) {
         generateContractLawVehicleWorksheet(shiftsByVehicle, contractLawVehicleWorksheet);
       } else {
-        // Skip Contract law worksheet and notify user, if no valid shifts are found
-        enqueueSnackbar('Skipped Contract Law Vehicle Worksheet. No valid shifts were found for this Event.', {
+        skippedReports.push('Contract Law Vehicle');
+      }
+
+      // Show warning if reports were skipped
+      if (skippedReports.length) {
+        enqueueSnackbar(`No valid shifts were found for the following reports: ${skippedReports.join(',')}`, {
           variant: 'info',
-          autoHideDuration: 3000,
+          autoHideDuration: 6000,
         });
       }
 

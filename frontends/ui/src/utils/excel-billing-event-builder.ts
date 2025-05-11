@@ -26,6 +26,8 @@ export function generatePayAndLeaveWorksheet(
   // initialize template props
   const headerRows = 2;
   const defaultNumberOfRows = 123;
+  const oddRowColor = "FFD9E2F3";
+  const evenRowColor = "FFB4C6E7";
 
   // add or remove rows from template
   const rowDiff = Math.abs(shifts.length - defaultNumberOfRows);
@@ -112,6 +114,61 @@ export function generatePayAndLeaveWorksheet(
     formula: lastRowTotalTimeFormula.replace('K$125', `K$${lastRowIdx - 1}`),
     result: totalTime,
   };
+
+  // Add back in original styling that was lost during import
+  worksheet.addConditionalFormatting({
+    ref: `A${headerRows}:K${lastRowIdx}`,
+    rules: [
+      {
+        priority: 1,
+        type: 'expression',
+        formulae: ['ROW()=2'],
+        style: {
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { theme: 4 }
+          }
+        }
+      },
+      {
+        priority: 1,
+        type: 'expression',
+        formulae: [`ROW()=${lastRowIdx}`],
+        style: {
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFFFFF' }
+          }
+        }
+      },
+      {
+        priority: 2,
+        type: 'expression',
+        formulae: ['MOD(ROW(),2)=1'],
+        style: {
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: oddRowColor }
+          }
+        }
+      },
+      {
+        priority: 2,
+        type: 'expression',
+        formulae: ['MOD(ROW(),2)=0'],
+        style: {
+          fill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: evenRowColor }
+          }
+        }
+      }
+    ]
+  });
 }
 
 export function generateContractLawWorksheet(
@@ -398,7 +455,7 @@ export function generateContractLawVehicleWorksheet(
     }
 
     // fill out per rank totals
-    const vehicleCategory = '';
+    const vehicleCategory = shifts[0].shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
     const rankTitleLabel = perVehicleTotalRow.getCell(10).value as string;
     // Rank Title Header
     perVehicleTotalRow.getCell(10).value = rankTitleLabel.replace('[category]', vehicleCategory);

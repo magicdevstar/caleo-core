@@ -1,25 +1,20 @@
 import { GraphQLError } from "graphql";
-import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Context } from "../../utils/createContext";
 import {
-  ShiftLotteryRequest,
   ShiftLotteryRequestStatus,
   ShiftInterestRequestsSearchInput,
   UpsertShiftInterestRequest,
   ShiftInterestRequestStatus,
   ShiftStatus,
-  Shift
 } from "../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { ObjectId } from "mongodb";
 import { IShiftInterestRequest, IUpsertShiftInterestRequest } from "../../models/shiftInterestRequest";
 import logger from "../../utils/logger";
-import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { IShift } from "../../models/shift";
 import { EnhancedUser } from "../../types/common";
-
-const lambda = new LambdaClient();
+import { ShiftNotificationType } from "../../services/notification.service";
 
 export const shiftInterestRequests = {
   Query: {
@@ -74,6 +69,7 @@ export const shiftInterestRequests = {
         user,
         interestList,
         organization,
+        notificationService,
       }: Context
     ): Promise<IUpsertShiftInterestRequest> => {
       adminOrOwnerOnly(shiftInterestRequest.userId, user);
@@ -86,10 +82,7 @@ export const shiftInterestRequests = {
         throw new GraphQLError('Shift not found');
       }
 
-      let notificationData: {
-        template: MailerEvents;
-        data: any;
-      } | undefined;
+      let notificationPayload: any = null;
       let assignedShiftId: ObjectId | undefined;
       if (shiftInterestRequest.id) {
         // If the status is approved then ensure we add the user to the shift group
@@ -135,13 +128,11 @@ export const shiftInterestRequests = {
               });
               assignedShiftId = updatedShift._id!;
 
-              notificationData = {
-                template: MailerEvents.OfficerAdminAssignedShift,
-                data: {
-                  adminAssignedShift: true,
-                  shift: updatedShift,
-                  organization,
-                }
+              notificationPayload = {
+                organization,
+                user,
+                shift: updatedShift,
+                type: ShiftNotificationType.SHIFT_ADMIN_ASSIGNED,
               };
             } else {
               throw new GraphQLError('There are no shifts left to assign.');
@@ -177,15 +168,14 @@ export const shiftInterestRequests = {
               throw new GraphQLError('User is not assigned to this shift');
             }
 
-            notificationData = {
-              template: MailerEvents.OfficerRemovedFromShift,
-              data: {
-                shift: slot!,
-                existingUserId: slot.userId,
-                removeUser: user,
-                organization,
-              }
-            }
+            notificationPayload = {
+              organization,
+              user,
+              shift: slot,
+              existingUserId: slot.userId,
+              type: ShiftNotificationType.SHIFT_ADMIN_REMOVED,
+            };
+
             const {_id, ...createShift} = slot;
             await shifts.create<any>({
               ...createShift,
@@ -221,17 +211,9 @@ export const shiftInterestRequests = {
       }
       const res = await shiftInterestRequests.upsert(upsert);
 
-      // TODO: Send notification to user if the status changed from pending to approved or rejected?
-      if (notificationData) {
-        await lambda.send(new InvokeCommand({
-          FunctionName: process.env.MAILER_LAMBDA!,
-          InvocationType: 'Event',
-          Payload: JSON.stringify({
-            action: Action.Email,
-            template: notificationData.template,
-            data: notificationData.data,
-          } as MailerEvent),
-        }));
+      logger.info('Sending notification', { notificationPayload });
+      if (notificationPayload) {
+        await notificationService.shiftAssignmentNotifications(notificationPayload);
       }
 
       await interestList.maybeTriggerNextAssignment({

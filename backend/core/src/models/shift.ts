@@ -693,32 +693,6 @@ export class ShiftModel extends BaseMongo<IShift> {
     return res;
   }
 
-  async notifyUsersOfShiftAvailability(shiftId: string, organization: IOrganization) {
-    const emptyShifts = await this.collection.find<IShift>({
-      shiftId,
-      removedAt: { $exists: false },
-      $or: [
-        { userId: null },
-        { userId: { $exists: false } },
-      ],
-    }).toArray();
-    
-    if (emptyShifts.length > 0) {
-      await lambda.send(new InvokeCommand({
-        FunctionName: process.env.MAILER_LAMBDA!,
-        InvocationType: 'Event',
-        Payload: JSON.stringify({
-          action: Action.Email,
-          template: MailerEvents.OfficerFcfsShiftAvailable,
-          data: {
-            shiftId,
-            organization,
-          },
-        } as MailerEvent),
-      }));
-    }
-  }
-
   createAvailability(shift: IShift, timezone: string) {
     const startTime = utcToZonedTime(shift.startTime, timezone);
     const endTime = utcToZonedTime(shift.endTime, timezone);

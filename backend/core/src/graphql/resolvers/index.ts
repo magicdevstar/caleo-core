@@ -9,7 +9,7 @@ import { user } from './user';
 import { venue } from './venue';
 import { event } from './event';
 import { assignments } from './assignments';
-import { shift } from './shifts';
+import { shiftsQuery, shiftsFields, shiftsMutation } from './shifts';
 import { shiftBufferRequests } from './shiftBufferRequests';
 import { shiftLotteryRequests } from './shiftLotteryRequests';
 import { lotteryCounter } from './lotteryCounter';
@@ -32,7 +32,7 @@ export default {
     ...notification.Query,
     ...event.Query,
     ...assignments.Query,
-    ...shift.Query,
+    ...shiftsQuery,
     ...shiftBufferRequests.Query,
     ...shiftLotteryRequests.Query,
     ...lotteryCounter.Query,
@@ -56,7 +56,7 @@ export default {
     ...notification.Mutation,
     ...event.Mutation,
     ...assignments.Mutation,
-    ...shift.Mutation,
+    ...shiftsMutation,
     ...shiftBufferRequests.Mutation,
     ...shiftLotteryRequests.Mutation,
     ...lotteryCounter.Mutation,
@@ -78,7 +78,7 @@ export default {
   ...notification.fields,
   ...event.fields,
   ...assignments.fields,
-  ...shift.fields,
+  ...shiftsFields,
   ...shiftBufferRequests.fields,
   ...shiftLotteryRequests.fields,
   ...lotteryCounter.fields,

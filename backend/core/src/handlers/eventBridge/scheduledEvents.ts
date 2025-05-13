@@ -98,7 +98,10 @@ const scheduledEvents = async (event) => {
           },
         } as MailerEvent),
       }));
-    } else if (action === ScheduleEvent.SHIFT_REMINDER) {
+    } else if ([
+      ScheduleEvent.SHIFT_REMINDER,
+      ScheduleEvent.SHIFT_REMINDER_2
+    ].includes(action)) {
       const { shift: { id, userId } } = eventParams as ShiftReminderEvent;
       await lambda.send(new InvokeCommand({
         FunctionName: process.env.MAILER_LAMBDA,

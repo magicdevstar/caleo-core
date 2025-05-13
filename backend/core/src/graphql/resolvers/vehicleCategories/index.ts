@@ -1,6 +1,6 @@
-import { Query } from './query';
-import { Mutation } from './mutation';
-import { fields } from './fields';
+import { Query } from './vehicleCategories.query';
+import { Mutation } from './vehicleCategories.mutation';
+import { fields } from './vehicleCategories.fields';
 
 export {
   Query as vehicleCategoriesQuery,

@@ -1,6 +1,6 @@
-import { Query } from './query';
-import { Mutation } from './mutation';
-import { fields } from './fields';
+import { Query } from './organization.query';
+import { Mutation } from './organization.mutation';
+import { fields } from './organization.fields';
 
 export {
   Query as organizationQuery,

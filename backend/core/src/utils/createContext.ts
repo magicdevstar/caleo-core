@@ -37,6 +37,7 @@ import { OrganizationRepo } from "../models/organizations/organization.repositor
 import { IOrganization } from "../models/organizations/organization.entity";
 import { InvoiceService } from "../services/invoice.service";
 import { VehicleCategoriesModel } from "../models/vehicleCategories";
+import { NotificationService } from "../services/notification.service";
 
 let db: Db;
 
@@ -71,6 +72,7 @@ export interface Context {
   interestList: InterestListService;
   invoiceService: InvoiceService;
   vehicleCategories: VehicleCategoriesModel;
+  notificationService: NotificationService;
   organization?: IOrganization;
   user?: IUser;
   originalUser?: IUser;
@@ -147,6 +149,10 @@ export const createContext = async (): Promise<Context> => {
     scheduler,
   );
 
+  const notificationService = new NotificationService(
+    shifts
+  );
+
   return {
     organizations,
     eventReferenceNumber,
@@ -178,5 +184,6 @@ export const createContext = async (): Promise<Context> => {
     vehicleCategories,
     interestList,
     invoiceService,
+    notificationService,
   };
 };

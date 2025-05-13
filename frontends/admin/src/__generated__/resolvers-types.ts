@@ -1394,6 +1394,7 @@ export type OrganizationOvertimeSettings = {
   hoursPerMonth: Scalars['Int']['output'];
   interestList?: Maybe<InterestListSetting>;
   lottery: LotterySettings;
+  secondaryShiftReminder?: Maybe<ShiftReminder>;
   shiftBuffer: ShiftBuffer;
   shiftReminder: ShiftReminder;
   shiftsPerWeek: Scalars['Int']['output'];
@@ -2402,6 +2403,7 @@ export type UpsertOrganizationOvertimeSettings = {
   hoursPerMonth?: InputMaybe<Scalars['Int']['input']>;
   interestList?: InputMaybe<UpsertInterestListSetting>;
   lottery: UpsertLotterySettings;
+  secondaryShiftReminder?: InputMaybe<UpsertShiftReminder>;
   shiftBuffer: UpsertShiftBuffer;
   shiftReminder: UpsertShiftReminder;
   shiftsPerWeek: Scalars['Int']['input'];
@@ -3834,6 +3836,7 @@ export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType 
   hoursPerMonth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   interestList?: Resolver<Maybe<ResolversTypes['InterestListSetting']>, ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
+  secondaryShiftReminder?: Resolver<Maybe<ResolversTypes['ShiftReminder']>, ParentType, ContextType>;
   shiftBuffer?: Resolver<ResolversTypes['ShiftBuffer'], ParentType, ContextType>;
   shiftReminder?: Resolver<ResolversTypes['ShiftReminder'], ParentType, ContextType>;
   shiftsPerWeek?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

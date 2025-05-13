@@ -113,6 +113,11 @@ query ORGANIZATION {
         time
         unit
       }
+      secondaryShiftReminder {
+        enabled
+        time
+        unit
+      }
     }
   }
 }

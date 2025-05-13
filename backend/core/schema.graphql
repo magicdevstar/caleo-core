@@ -1325,6 +1325,7 @@ type DocusignSignerDetailsData {
     shiftBuffer: ShiftBuffer!
     userRelinquishShift: UserRelinquishShift!
     shiftReminder: ShiftReminder!
+    secondaryShiftReminder: ShiftReminder
     checkInOut: CheckInOutSetting
     interestList: InterestListSetting
   }
@@ -1448,6 +1449,7 @@ type DocusignSignerDetailsData {
     shiftBuffer: UpsertShiftBuffer!
     userRelinquishShift: UpsertUserRelinquishShift!
     shiftReminder: UpsertShiftReminder!
+    secondaryShiftReminder: UpsertShiftReminder
     checkInOut: UpsertCheckInOutSetting
     interestList: UpsertInterestListSetting
   }

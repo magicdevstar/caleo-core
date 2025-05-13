@@ -191,6 +191,12 @@ const shiftReminder = {
   unit: ShiftReminderUnit.Hour,
 };
 
+const secondaryShiftReminder = {
+  enabled: false,
+  time: 7,
+  unit: ShiftReminderUnit.Day,
+};
+
 export const settings = {
   shiftsPerWeek: 6,
   hoursPerMonth: 100,
@@ -200,4 +206,5 @@ export const settings = {
   shiftBuffer,
   userRelinquishShift,
   shiftReminder,
+  secondaryShiftReminder,
 };

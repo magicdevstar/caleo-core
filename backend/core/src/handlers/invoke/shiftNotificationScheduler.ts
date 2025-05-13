@@ -14,10 +14,66 @@ import {
   ShiftUpsertAllNotifications,
   ShiftUpsertNotification
 } from '../../types/notifications';
-import { ScheduleEvent } from '../../models/scheduler';
+import { ScheduleEvent, SchedulerModel } from '../../models/scheduler';
 import { ObjectId } from 'mongodb';
 import { utcToZonedTime } from 'date-fns-tz';
-import { format, subHours } from 'date-fns';
+import { format, subHours, subDays, isAfter } from 'date-fns';
+import { ShiftReminderUnit } from '../../__generated__/resolvers-types';
+
+interface IShiftNotificationScheduler {
+  action: NotificationType;
+  eventId: string;
+  shift: {
+    id: string;
+    userId: string;
+  };
+};
+
+const upsertShiftReminder = async ({
+  scheduler,
+  orgId,
+  startTime,
+  time,
+  unit = ShiftReminderUnit.Hour,
+  customEventName,
+  payload,
+  tz,
+  event
+}: {
+  event: ScheduleEvent;
+  customEventName: string;
+  payload: IShiftNotificationScheduler;
+  scheduler: SchedulerModel
+  startTime: Date;
+  orgId: string;
+  time: number;
+  unit: ShiftReminderUnit;
+  tz: string;
+}) => {
+  const startDate = new Date(startTime);
+  let modifiedDate = subHours(startDate, time);
+  if (unit === ShiftReminderUnit.Day) {
+    modifiedDate = subDays(startDate, time);
+  }
+  const zonedDate = utcToZonedTime(modifiedDate, tz);
+
+  const now = utcToZonedTime(new Date(), tz);
+  if (isAfter(now, zonedDate)) {
+    logger.info('Skipping reminder', { startTime, now, zonedDate });
+    return;
+  }
+
+  await scheduler.updateScheduledEvent({
+    event,
+    orgId: new ObjectId(orgId),
+    eventTime: `at(${format(zonedDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+    eventTimeZone: tz as any,
+    customEventName,
+    eventInput: payload,
+  });
+
+  return;
+};
 
 const upsertNotification = async ({
   context: { scheduler, shifts, organizations },
@@ -32,29 +88,47 @@ const upsertNotification = async ({
   }
   const organization = await organizations.get(shift.orgId);
   const eventId = shift.notificationId || uuid();
-  const payload = {
+  const tz = organization?.timezone || 'America/Los_Angeles';
+  const payload: IShiftNotificationScheduler = {
     action: NotificationType.Shift,
     eventId,
     shift: {
       id,
-      userId: shift.userId,
+      userId: shift.userId.toString(),
     },
   };
-  // TODO: Get user preference for shift reminder
+
+  // Primary reminder
   const reminderHours = organization?.settings?.shiftReminder.time || 24;
-  const tz = organization?.timezone || 'America/Los_Angeles';
-
-  const shiftNotificationTime = subHours(new Date(shift.startTime), reminderHours);
-  const zonedDate = utcToZonedTime(shiftNotificationTime, tz);
-
-  await scheduler.updateScheduledEvent({
+  const reminderUnit = organization?.settings?.shiftReminder.unit || ShiftReminderUnit.Hour;
+  await upsertShiftReminder({
     event: ScheduleEvent.SHIFT_REMINDER,
-    orgId: new ObjectId(shift.orgId),
-    eventTime: `at(${format(zonedDate, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
-    eventTimeZone: tz as any,
+    payload,
+    scheduler,
+    orgId: shift.orgId.toString(),
+    startTime: shift.startTime,
+    time: reminderHours,
+    unit: reminderUnit,
     customEventName: eventId,
-    eventInput: payload,
+    tz,
   });
+
+  // Secondary reminder
+  if (organization?.settings?.secondaryShiftReminder?.enabled) {
+    const secondaryReminderHours = organization?.settings?.secondaryShiftReminder.time || 7;
+    const secondaryReminderUnit = organization?.settings?.secondaryShiftReminder.unit || ShiftReminderUnit.Day;
+    await upsertShiftReminder({
+      event: ScheduleEvent.SHIFT_REMINDER_2,
+      payload,
+      scheduler,
+      orgId: shift.orgId.toString(),
+      startTime: shift.startTime,
+      time: secondaryReminderHours,
+      unit: secondaryReminderUnit,
+      customEventName: `${ScheduleEvent.SHIFT_REMINDER_2}_${shift.id}`,
+      tz,
+    });
+  }
 
   await shifts.collection.updateOne({ _id: new ObjectId(id) }, {
     $set: {
@@ -78,6 +152,12 @@ const removeNotification = async ({
     customEventName: shift.notificationId,
     ignoreError: true,
   });
+  
+  await scheduler.removeSchedule({
+    customEventName: `${ScheduleEvent.SHIFT_REMINDER_2}_${shift.id}`,
+    ignoreError: true,
+  });
+
   await shifts.collection.updateOne({ _id: new ObjectId(id) }, {
     $set: {
       notificationId: null,
@@ -112,6 +192,10 @@ const removeAll = async ({
 }) => {
   const allShifts = await context.shifts.collection.find({
     shiftId,
+    $or: [
+      { userId: null },
+      { userId: { $exists: false } },
+    ],
     removedAt: { $exists: false },
   }).toArray();
   await Promise.all(allShifts.map(async (shift) => {

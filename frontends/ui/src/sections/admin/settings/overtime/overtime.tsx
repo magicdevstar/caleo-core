@@ -26,7 +26,7 @@ import { useFeatures } from 'src/hooks/use-features';
 // Components
 import { useResponsive } from 'src/hooks/use-responsive';
 import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
-import { DayOfWeek, Organization, OrganizationOvertimeSettings } from 'src/__generated__/resolvers-types';
+import { DayOfWeek, Organization, OrganizationOvertimeSettings, ShiftReminderUnit } from 'src/__generated__/resolvers-types';
 import { useTiers } from 'src/hooks/use-tiers';
 
 dayjs.extend(utc);
@@ -100,15 +100,31 @@ export default function Overtime({
         time: Yup.number().required(),
         unit: Yup.string().required(),
       }),
+      secondaryShiftReminder: Yup.object().shape({
+        enabled: Yup.boolean().required(),
+        time: Yup.number().nullable(),
+        unit: Yup.string().required(),
+      }),
     }),
   });
 
   const defaultValues = useMemo(
-    () => ({
-      id: organization?.id,
-      name: organization?.name,
-      settings: omitDeep(JSON.parse(JSON.stringify(organization.settings)), ['__typename']) as OrganizationOvertimeSettings,
-    }),
+    () => {
+      const settings = omitDeep(JSON.parse(JSON.stringify(organization.settings)), ['__typename']) as OrganizationOvertimeSettings;
+      return {
+        id: organization?.id,
+        name: organization?.name,
+        settings: {
+          ...settings,
+          secondaryShiftReminder: {
+            ...settings.secondaryShiftReminder,
+            enabled: settings.secondaryShiftReminder?.enabled || false,
+            time: settings.secondaryShiftReminder?.time || 7,
+            unit: settings.secondaryShiftReminder?.unit || ShiftReminderUnit.Day,
+          }
+        },
+      }
+    },
     [organization]
   );
 
@@ -122,9 +138,10 @@ export default function Overtime({
     formState: { isSubmitting },
     getValues,
     setValue,
+    watch,
   } = methods;
 
-
+  const secondaryShiftReminderUnit = watch('settings.secondaryShiftReminder.unit');
   const values = getValues();
 
   const onSubmit = handleSubmit(async (formData) => {
@@ -512,13 +529,34 @@ export default function Overtime({
           <Card>
             {!mdUp && <CardHeader title="Shift Reminders" />}
             <Stack spacing={3} sx={{ p: 3 }}>
-              <RHFSwitch name="settings.shiftReminder.enabled" label="Enable shift reminders" />
+              <RHFSwitch name="settings.shiftReminder.enabled" label="Enable shift reminder" />
               <RHFTextField
                 type="number"
                 name="settings.shiftReminder.time"
                 label="hours before shift"
                 helperText="The number of hours before a shift to send a reminder"
               />
+
+              <RHFSwitch name="settings.secondaryShiftReminder.enabled" label="Enable secondary shift reminder" />
+              <Stack direction="row" alignContent="center" spacing={2}>
+                <RHFTextField
+                  type="number"
+                  name="settings.secondaryShiftReminder.time"
+                  label={`${secondaryShiftReminderUnit === ShiftReminderUnit.Day ? 'Days' : 'Hours'} before shift`}
+                />
+                <RHFSelect
+                  name="settings.secondaryShiftReminder.unit"
+                  label="Unit"
+                  helperText="The unit of time for the secondary shift reminder"
+                >
+                  <MenuItem value={ShiftReminderUnit.Hour}>
+                    Hours
+                  </MenuItem>
+                  <MenuItem value={ShiftReminderUnit.Day}>
+                    Days
+                  </MenuItem>
+                </RHFSelect>
+              </Stack>
             </Stack>
           </Card>
         </Grid>

@@ -15,7 +15,9 @@ import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import logger from "../utils/logger";
 import { ObjectId } from "mongodb";
 
-const scheduler = new SchedulerClient({});
+const scheduler = new SchedulerClient({
+  maxAttempts: 6,
+});
 const sfn = new SFNClient({});
 
 export enum ScheduleEvent {
@@ -23,6 +25,7 @@ export enum ScheduleEvent {
   LOTTO_END = 'lotto_end',
   LOTTO_NOTIFY = 'lotto_notify',
   SHIFT_REMINDER = 'shift_reminder',
+  SHIFT_REMINDER_2 = '2_shift_reminder',
   EVENT_COMPLETE = 'event_complete',
   EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE = 'event_fcfs_live',
   EVENT_INTEREST_GO_LIVE = 'event_int_live',

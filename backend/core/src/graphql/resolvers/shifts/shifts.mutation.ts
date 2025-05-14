@@ -290,6 +290,7 @@ export const Mutation = {
       events,
       organization,
       notificationService,
+      changeStream,
     }: Context
   ): Promise<string> => {
     adminOnly(user);
@@ -323,6 +324,18 @@ export const Mutation = {
         modifiedById: user!._id!,
         lasdEventFields: organization?.features.lasdEventFields,
         timezone: organization?.timezone,
+      });
+      await changeStream.handleShift({
+        shiftId,
+        orgId: user?.member.orgId!,
+        endTime: {
+          newValue: endTime,
+          oldValue: existingShifts[0].endTime,
+        },
+        startTime: {
+          newValue: startTime,
+          oldValue: existingShifts[0].startTime,
+        },
       });
     }
 

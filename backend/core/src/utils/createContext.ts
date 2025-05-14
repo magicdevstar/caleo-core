@@ -38,6 +38,8 @@ import { IOrganization } from "../models/organizations/organization.entity";
 import { InvoiceService } from "../services/invoice.service";
 import { VehicleCategoriesModel } from "../models/vehicleCategories";
 import { NotificationService } from "../services/notification.service";
+import { ChangeStreamService } from "../services/changeStream.service";
+import { ChangesModel } from "../models/changes";
 
 let db: Db;
 
@@ -73,6 +75,7 @@ export interface Context {
   invoiceService: InvoiceService;
   vehicleCategories: VehicleCategoriesModel;
   notificationService: NotificationService;
+  changeStream: ChangeStreamService;
   organization?: IOrganization;
   user?: IUser;
   originalUser?: IUser;
@@ -153,6 +156,14 @@ export const createContext = async (): Promise<Context> => {
     shifts
   );
 
+  const changesModel = new ChangesModel(db);
+  const changeStream = new ChangeStreamService(
+    events,
+    assignments,
+    notificationService,
+    changesModel,
+  );
+
   return {
     organizations,
     eventReferenceNumber,
@@ -185,5 +196,6 @@ export const createContext = async (): Promise<Context> => {
     interestList,
     invoiceService,
     notificationService,
+    changeStream,
   };
 };

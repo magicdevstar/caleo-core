@@ -1,9 +1,13 @@
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { IShift, ShiftModel } from "../models/shift";
-import { NotificationType, ShiftNotificationAction } from "../types/notifications";
+import { IEventUpdates, NotificationType, ShiftNotificationAction } from "../types/notifications";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { Action, MailerEvent, MailerEvents } from "../types/mailer";
 import { IUser } from "../types/common";
+import { IEvent } from "../models/event";
+import { IChangeData } from "../types/change.streams";
+import { ObjectId } from "mongodb";
+import { IAssignment } from "../models/assignment";
 
 const lambda = new LambdaClient({
   maxAttempts: 3,
@@ -185,6 +189,78 @@ export class NotificationService {
           originalShift,
           shift: shift,
           organization,
+        }
+      } as MailerEvent),
+    }));
+  }
+
+  async eventChange({
+    eventId,
+    orgId,
+    updates,
+  }: {
+    eventId: ObjectId;
+    orgId: ObjectId;
+    updates: IEventUpdates;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerEventEdited,
+        data: {
+          eventId,
+          orgId,
+          updates,
+        }
+      } as MailerEvent),
+    }));
+  }
+
+  async assignmentChange({
+    assignmentId,
+    orgId,
+    updates,
+  }: {
+    assignmentId: ObjectId;
+    orgId: ObjectId;
+    updates: IEventUpdates;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerAssignmentEdited,
+        data: {
+          assignmentId,
+          orgId,
+          updates,
+        }
+      } as MailerEvent),
+    }));
+  }
+
+  async shiftChange({
+    shiftId,
+    orgId,
+    updates,
+  }: {
+    shiftId: string;
+    orgId: ObjectId;
+    updates: IEventUpdates;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerShiftEdited,
+        data: {
+          shiftId,
+          orgId,
+          updates,
         }
       } as MailerEvent),
     }));

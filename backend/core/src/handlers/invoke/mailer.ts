@@ -19,6 +19,8 @@ import { IShift, IShiftExpanded } from "../../models/shift";
 import { IInAppNotificationMeta } from "../../models/inAppNotifications";
 import { IUser } from "../../types/common";
 import { IEvent } from "../../models/event";
+import { IIVenue } from "../../models/venue";
+import { IAssignmentUpdates, IEventUpdates, IShiftUpdates } from "../../types/notifications";
 
 const pinpoint = new PinpointClient({});
 
@@ -2474,6 +2476,451 @@ const sendEmail = async (input: MailerEvent) => {
           },
         },
       };
+    } else if (input.template === MailerEvents.OfficerEventEdited) {
+      const {
+        eventId,
+        orgId,
+        updates,
+      }: {
+        eventId: string;
+        orgId: string;
+        updates: IEventUpdates;
+      } = input.data;
+
+      const event = await context.events.get(eventId);
+      if (!event) {
+        logger.error('Event not found', { input, eventId });
+        return;
+      }
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+
+      if (!event.venueId) {
+        logger.error('Event venueId not found', { input, event });
+        return;
+      }
+      const newVenue = await context.venues.get(event.venueId!);
+      if (!newVenue) {
+        logger.error('Event new venue not found', { input, event });
+        return;
+      }
+      let oldVenue: IIVenue | null = newVenue;
+      if (updates.venueId?.oldValue) {
+        oldVenue = await context.venues.get(updates.venueId?.oldValue as string);
+        if (!oldVenue) {
+          logger.error('Event old venue not found', { input, event });
+        }
+      }
+      fromEmail = organization.fromEmail || fromEmail;
+      let url = process.env.LOGIN_URL || '';
+      if ((organization as IOrganization).features.sso) {
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
+
+      const eventStart = convertDate(new Date(event.startTime!), organization);
+      const eventEnd = convertDate(new Date(event.endTime!), organization);
+      let oldEventStart = eventStart;
+      let oldEventEnd = eventEnd;
+      if (updates.startTime?.oldValue) {
+        oldEventStart = convertDate(new Date(updates.startTime?.oldValue as string), organization);
+      }
+      if (updates.endTime?.oldValue) {
+        oldEventEnd = convertDate(new Date(updates.endTime?.oldValue as string), organization);
+      }
+
+      const allUsersOnEvent = await context.shifts.collection.aggregate<IShiftExpanded>([
+        {
+          $match: {
+            eventId: new ObjectId(event.id),
+            removedAt: { $exists: false },
+            status: ShiftStatus.Assigned,
+          },
+        },
+        {
+          $lookup:{
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        {
+          $unwind: {
+            path: "$user"
+          }
+        }
+      ]).toArray();
+      if (allUsersOnEvent.length === 0) {
+        logger.warn('No users found on event', { input, event });
+        return;
+      }
+
+      logger.info('Users', { allUsersOnEvent });
+
+      const inAppPromises: Promise<any>[] = [];
+      Addresses = (allUsersOnEvent || [])
+        .filter(({ user }) => {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: user!._id!.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              eventId: new ObjectId(event.id),
+            }
+          }));
+          return user!.member.contactInfo?.primaryEmail.receiveEmails
+        })
+        .reduce((obj, shift) => {
+          const Substitutions: Record<string, string[]> = {
+            "event.name": [event.name],
+            "user.first_name": [shift.user?.firstName || ''],
+            "system.login_url": [url],
+            "system.metro_name": [organization.name],
+
+            "event.name_old": [`${updates.name?.oldValue || event.name}`],
+            "event.name_updated": [`${updates.name?.newValue || event.name}`],
+
+            "venue.name_old": [`${oldVenue!.name}`],
+            "venue.name_updated": [`${newVenue!.name}`],
+            "venue.street_address_old": [`${oldVenue!.address}`],
+            "venue.street_address_updated": [`${newVenue!.address}`],
+
+            "event.start_date_old": [`${oldEventStart.date}`],
+            "event.start_time_old": [`${oldEventStart.time}`],
+            "event.start_date_updated": [`${eventStart.date}`],
+            "event.start_time_updated": [`${eventStart.time}`],
+
+            "event.end_date_old": [`${oldEventEnd.date}`],
+            "event.end_time_old": [`${oldEventEnd.time}`],
+            "event.end_date_updated": [`${eventEnd.date}`],
+            "event.end_time_updated": [`${eventEnd.time}`],
+
+            "event.notes_old": [`${updates.notes?.oldValue || event.notes}`],
+            "event.notes_updated": [`${updates.notes?.newValue || event.notes}`],
+          };
+          const email = shift.user!.member.contactInfo!.primaryEmail.address;
+          if (!email) {
+            return obj;
+          }
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
+
+    } else if (input.template === MailerEvents.OfficerAssignmentEdited) {
+      const {
+        assignmentId,
+        orgId,
+        updates,
+      }: {
+        assignmentId: string;
+        orgId: string;
+        updates: IAssignmentUpdates;
+      } = input.data;
+
+      const assignment = await context.assignments.get(assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, assignmentId });
+        return;
+      }
+
+      const event = await context.events.get(assignment.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, assignment });
+        return;
+      }
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+
+      let skills: string[] = [];
+      if (assignment.requiredSkillIds.length > 0) {
+        const skillList = await context.skills.collection.find<{ _id: ObjectId; name: string; }>({
+          _id: { $in: assignment.requiredSkillIds.map((id) => new ObjectId(id)) },
+        }, {
+          projection: {
+            _id: 1,
+            name: 1,
+          },
+        }).toArray();
+        skills = skillList.map((skill) => skill.name);
+      }
+
+      let oldSkills: string[] = skills;
+      if ((updates.requiredSkillIds?.oldValue as Array<any>)?.length > 0) {
+        const skillList = await context.skills.collection.find<{ _id: ObjectId; name: string; }>({
+          _id: { $in: (updates.requiredSkillIds?.oldValue as Array<any>).map((id) => new ObjectId(id)) },
+        }, {
+          projection: {
+            _id: 1,
+            name: 1,
+          },
+        }).toArray();
+        oldSkills = skillList.map((skill) => skill.name);
+      }
+
+      fromEmail = organization.fromEmail || fromEmail;
+      let url = process.env.LOGIN_URL || '';
+      if ((organization as IOrganization).features.sso) {
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
+
+      const eventStart = convertDate(new Date(event.startTime!), organization);
+      const eventEnd = convertDate(new Date(event.endTime!), organization);
+
+      const allUsersOnEvent = await context.shifts.collection.aggregate<IShiftExpanded>([
+        {
+          $match: {
+            eventId: new ObjectId(event.id),
+            removedAt: { $exists: false },
+            status: ShiftStatus.Assigned,
+            assignmentId: new ObjectId(assignment.id),
+          },
+        },
+        {
+          $lookup:{
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        {
+          $unwind: {
+            path: "$user"
+          }
+        }
+      ]).toArray();
+      if (allUsersOnEvent.length === 0) {
+        logger.warn('No users found on event', { input, event });
+        return;
+      }
+
+      logger.info('Users', { allUsersOnEvent });
+
+      const inAppPromises: Promise<any>[] = [];
+      Addresses = (allUsersOnEvent || [])
+        .filter(({ user }) => {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            assignmentName: assignment.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: user!._id!.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              eventId: new ObjectId(event.id),
+            }
+          }));
+          return user!.member.contactInfo?.primaryEmail.receiveEmails
+        })
+        .reduce((obj, shift) => {
+          const Substitutions: Record<string, string[]> = {
+            "shift.name_updated": [`${updates.name?.newValue || assignment.name}`],
+            "shift.name_old": [`${updates.name?.oldValue || assignment.name}`],
+
+            "event.name": [event.name],
+            "user.first_name": [shift.user?.firstName || ''],
+            "system.login_url": [url],
+            "system.metro_name": [organization.name],
+            "event.start_date": [`${eventStart.date}`],
+            "event.start_time": [`${eventStart.time}`],
+            "event.end_date": [`${eventEnd.date}`],
+            "event.end_time": [`${eventEnd.time}`],
+
+            "num_personnel_old": [`${(updates.shiftIds?.oldValue as Array<any>)?.length || assignment.shiftIds.length || 0}`],
+            "num_personnel_updated": [`${(updates.shiftIds?.newValue as Array<any>)?.length || assignment.shiftIds.length || 0}`],
+
+            "skills_old": [`${oldSkills.join(', ') || '-'}`],
+            "skills_updated": [`${skills.join(', ') || '-'}`],
+
+            "shift.notes_old": [`${updates.notes?.oldValue || assignment.description || ''}`],
+            "shift.notes_updated": [`${updates.notes?.newValue || assignment.description || ''}`],
+
+            "bw_old": [`${updates.bwNeeded?.oldValue || assignment.bwNeeded}`],
+            "bw_updated": [`${updates.bwNeeded?.newValue || assignment.bwNeeded}`],
+          };
+          const email = shift.user!.member.contactInfo!.primaryEmail.address;
+          if (!email) {
+            return obj;
+          }
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
+
+    } else if (input.template === MailerEvents.OfficerShiftEdited) {
+      const {
+        shiftId,
+        orgId,
+        updates,
+      }: {
+        shiftId: string;
+        assignment: IAssignment;
+        orgId: string;
+        updates: IShiftUpdates;
+      } = input.data;
+
+      const organization = await context.organizations.get(orgId);
+      if (!organization) {
+        logger.error('Organization not found', { input, orgId });
+        return;
+      }
+      fromEmail = organization.fromEmail || fromEmail;
+      let url = process.env.LOGIN_URL || '';
+      if ((organization as IOrganization).features.sso) {
+        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+        urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+        urlBuilder.searchParams.append('response_type', 'code');
+        urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+        urlBuilder.searchParams.append('identity_provider', domain);
+        url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+      }
+
+      const allUsersOnEvent = await context.shifts.collection.aggregate<IShiftExpanded>([
+        {
+          $match: {
+            shiftId: shiftId,
+            removedAt: { $exists: false },
+            status: ShiftStatus.Assigned,
+          },
+        },
+        {
+          $lookup:{
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        {
+          $unwind: {
+            path: "$user"
+          }
+        }
+      ]).toArray();
+      if (allUsersOnEvent.length === 0) {
+        logger.warn('No users found on shiftId', { input, shiftId });
+        return;
+      }
+
+      const assignment = await context.assignments.get(allUsersOnEvent[0].assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, shiftId });
+        return;
+      }
+
+      const event = await context.events.get(assignment.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, shiftId });
+        return;
+      }
+
+      const shiftStart = convertDate(allUsersOnEvent[0].startTime, organization);
+      const shiftEnd = convertDate(allUsersOnEvent[0].endTime, organization);
+      let oldShiftStart = shiftStart;
+      let oldShiftEnd = shiftEnd;
+      if (updates.startTime?.oldValue) {
+        oldShiftStart = convertDate(updates.startTime?.oldValue as Date, organization);
+      }
+      if (updates.endTime?.oldValue) {
+        oldShiftEnd = convertDate(updates.endTime?.oldValue as Date, organization);
+      }
+
+      const inAppPromises: Promise<any>[] = [];
+      Addresses = (allUsersOnEvent || [])
+        .filter(({ user }) => {
+          const { title, body } = InAppTemplates[input.template]({
+            eventName: event.name,
+            assignmentName: assignment.name,
+          });
+          inAppPromises.push(sendInAppNotification({
+            context,
+            userId: user!._id!.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              eventId: new ObjectId(event.id),
+            }
+          }));
+          return user!.member.contactInfo?.primaryEmail.receiveEmails
+        })
+        .reduce((obj, shift) => {
+          const Substitutions: Record<string, string[]> = {
+            "assignment.name": [assignment.name],
+            "event.name": [event.name],
+            "user.first_name": [shift.user?.firstName || ''],
+            "system.metro_name": [organization.name],
+            "system.login_url": [url],
+
+            "shift.start_date_old": [`${oldShiftStart.date}`],
+            "shift.start_time_old": [`${oldShiftStart.time}`],
+            "shift.start_date_updated": [`${shiftStart.date}`],
+            "shift.start_time_updated": [`${shiftStart.time}`],
+
+            "shift.end_date_old": [`${oldShiftEnd.date}`],
+            "shift.end_time_old": [`${oldShiftEnd.time}`],
+            "shift.end_date_updated": [`${shiftEnd.date}`],
+            "shift.end_time_updated": [`${shiftEnd.time}`],
+          };
+          const email = shift.user!.member.contactInfo!.primaryEmail.address;
+          if (!email) {
+            return obj;
+          }
+          return {
+            ...obj,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions,
+            } as AddressConfiguration,
+          };
+        }, {} as Record<string, AddressConfiguration>);
+
+      await Promise.all(inAppPromises);
     }
 
     if (Object.keys(Addresses).length === 0) {

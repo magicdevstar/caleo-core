@@ -23,6 +23,8 @@ params:
     loginUrl: https://dev.caleopro.com/auth/login
     registerUrl: https://dev.caleopro.com/auth/register
     docusignBase: https://account-d.docusign.com
+    eventsChangeStreamId: 68239689ef62a3d84d50d85e
+    assignmentsChangeStreamId: 68240731e108a8235a5da7f3
   prod:
     dbName: caleo-prod
     legacyPoolName: lvmpd-oms-prod
@@ -40,6 +42,8 @@ params:
     loginUrl: https://app.caleopro.com/auth/login
     registerUrl: https://app.caleopro.com/auth/register
     docusignBase: https://account.docusign.com
+    eventsChangeStreamId: 6824d2ee5ee2e85fd3942eb0
+    assignmentsChangeStreamId: 6824d3860030512c8df3fe66
 
 provider:
   name: aws
@@ -216,12 +220,32 @@ functions:
   # Scheduled Tasks
   scheduledEvents:  
     handler: src/handlers/eventBridge/scheduledEvents.handler
-
   refreshDSTokens:
     handler: src/handlers/eventBridge/refreshDSToken.handler
     timeout: 120
     events:
       - schedule: rate(30 minutes)
+  changeNotifications:
+    handler: src/handlers/eventBridge/changeNotifications.handler
+    timeout: 120
+    events:
+      # 1 hour past midnight UTC
+      - schedule: cron(0 1 * * ? *)
+
+  # EventBridge
+  mongodbChangeStream:
+    handler: src/handlers/eventBridge/mongodbChangeStream.handler
+    events:
+      - eventBridge:
+          eventBus: arn:aws:events:${aws:region}::event-source/aws.partner/mongodb.com/stitch.trigger/${param:eventsChangeStreamId}
+          pattern:
+            source:
+              - aws.partner/mongodb.com/stitch.trigger/${param:eventsChangeStreamId}
+      - eventBridge:
+          eventBus: arn:aws:events:${aws:region}::event-source/aws.partner/mongodb.com/stitch.trigger/${param:assignmentsChangeStreamId}
+          pattern:
+            source:
+              - aws.partner/mongodb.com/stitch.trigger/${param:assignmentsChangeStreamId}
 
   # Lotto Step Function
   fetchShifts:

@@ -9,6 +9,26 @@ export const InAppTemplates = {
     title: 'Event Removed',
     body: `${eventName} has been removed from ${metroName} Caleo, so you are no longer required to work your ${shiftName} shift for this event.`,
   }),
+  [MailerEvents.OfficerEventEdited]: ({
+    eventName,
+  }) => ({
+    title: 'Event Modified',
+    body: `${eventName} has been modified. Please review the changes.`,
+  }),
+  [MailerEvents.OfficerAssignmentEdited]: ({
+    eventName,
+    assignmentName,
+  }) => ({
+    title: 'Assignment Modified',
+    body: `${eventName} ${assignmentName} has been modified. Please review the changes.`,
+  }),
+  [MailerEvents.OfficerShiftEdited]: ({
+    eventName,
+    assignmentName,
+  }) => ({
+    title: 'Shift time updated!',
+    body: `${eventName} ${assignmentName} times have been modified. Please review the changes.`,
+  }),
   [MailerEvents.OfficerAdminApprovedSkill]: ({
     metroName,
     skillName,

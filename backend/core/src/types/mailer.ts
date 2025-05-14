@@ -22,6 +22,8 @@ export enum MailerEvents {
   OfficerAdminUpdatedAccount = 'OfficerAdminUpdatedAccount',
   OfficerAssignmentRemoved = 'OfficerAssignmentRemoved',
   OfficerAvailableOtPosted = 'OfficerAvailableOtPosted',
+  OfficerAssignmentEdited = 'OfficerAssignmentEdited',
+  OfficerShiftEdited = 'OfficerShiftEdited',
   OfficerEventEdited = 'OfficerEventEdited',
   OfficerEventRemoved = 'OfficerEventRemoved',
   OfficerFcfsShiftAvailable = 'OfficerFcfsShiftAvailable',

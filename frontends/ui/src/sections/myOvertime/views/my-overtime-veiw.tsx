@@ -24,6 +24,7 @@ import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import CheckInOut from 'src/components/shifts/check-in-out';
 import RelinquishDialog from 'src/sections/dashboard/dashboard/overtime-shifts/relinquish-dialog';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -81,6 +82,7 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
   const theme = useTheme();
+  const { officerCheckInOut } = useFeatures();
   const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -202,7 +204,7 @@ export default function MyOvertimeView() {
     <Container sx={{
       height: '100%',
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
-      <CheckInOut allowView={false} />
+      <CheckInOut allowView={officerCheckInOut} />
 
       <Box>
         <Typography variant="h4" gutterBottom>

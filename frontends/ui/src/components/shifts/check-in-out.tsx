@@ -82,7 +82,7 @@ export default function CheckInOut({
     );
   }
 
-  if (currentShifts.length === 0 && !allowView) {
+  if (currentShifts.length === 0 || !allowView) {
     return emptyView || null;
   }
 

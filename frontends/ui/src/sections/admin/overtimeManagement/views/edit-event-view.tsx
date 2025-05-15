@@ -24,6 +24,8 @@ import Iconify from 'src/components/iconify/iconify';
 import QueryView from 'src/components/query-view';
 import { useFeatures } from 'src/hooks/use-features';
 import { useOvertimeSlips } from 'src/hooks/use-overtime-slips';
+import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
+import { useBoolean } from 'src/hooks/use-boolean';
 import EditEvent from '../events/edit-event';
 
 // ----------------------------------------------------------------------
@@ -31,6 +33,7 @@ import EditEvent from '../events/edit-event';
 export default function VenueDetail() {
   const { enqueueSnackbar } = useSnackbar();
   const { kiosk, lasdEventFields, eventInvoice } = useFeatures();
+  const kioskConfirm = useBoolean<string>();
   const settings = useSettingsContext();
   const params = useParams();
   const router = useRouter();
@@ -255,9 +258,7 @@ export default function VenueDetail() {
                   <ListItemText>Event Dashboard</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  router.push(
-                    paths.kiosk.root.replace(':eventId', data?.event?.id)
-                  );
+                  kioskConfirm.onTrue(data?.event?.id);
                   menuClose();
                 }}>
                   <ListItemIcon>
@@ -297,6 +298,7 @@ export default function VenueDetail() {
         refetch={refetch}
       >
         <EditEvent currentEvent={data?.event} />
+        <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />
       </QueryView>
     </Container>
   );

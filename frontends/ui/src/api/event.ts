@@ -410,6 +410,30 @@ export const GET_EVENT = gql`
   }
 `;
 
+export const REQUIRED_EVENT_FIELDS = gql`
+  query GetEvent($id: String!) {
+    event(id: $id) {
+      id
+      ocn
+      outsideOrgCode
+      overtimeReasonCode
+      budgetActivityCode
+      supervisor {
+        id
+        name
+      }
+      lieutenant {
+        id
+        name
+      }
+      venue {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export const UPSERT_EVENT = gql`
   mutation UpsertEvent($input: UpsertEvent!) {
     event(event: $input) {

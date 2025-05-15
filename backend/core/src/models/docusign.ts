@@ -55,41 +55,48 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     }).toArray();
 
     for(const organization of orgs) {
-      const {
-        SecretString: privateKey
-      } = await secretsManager.send(new GetSecretValueCommand({
-        SecretId: organization.docusign.secretKey,
-      }));
-      if (!privateKey) {
-        logger.warn('No secret found for organization', { organizationId: organization._id });
-        continue;
-      }
-      const refreshValue = await client.requestJWTUserToken(
-        organization.docusign.clientId,
-        organization.docusign.userId,
-        ['signature', 'impersonation'],
-        Buffer.from(privateKey!, 'utf-8'),
-        3600
-      );
-      const userInfo = await client.getUserInfo(refreshValue.body.access_token);
-      const accountInfo = userInfo.accounts.find(account => organization.docusign.accountName === account.accountName);
-      const token = refreshValue.body.access_token;
-      const date = new Date();
-      await this.collection.updateOne({
-        orgId: organization._id,
-      }, {
-        $set: {
-          token,
-          basePath: `${accountInfo.baseUri}/restapi`,
-          accountId: accountInfo.accountId,
-          updatedAt: date,
-        },
-        $setOnInsert: {
-          createdAt: date,
+      try {
+        const {
+          SecretString: privateKey
+        } = await secretsManager.send(new GetSecretValueCommand({
+          SecretId: organization.docusign.secretKey,
+        }));
+        if (!privateKey) {
+          logger.warn('No secret found for organization', { organizationId: organization._id });
+          continue;
         }
-      }, {
-        upsert: true,
-      });
+        const refreshValue = await client.requestJWTUserToken(
+          organization.docusign.clientId,
+          organization.docusign.userId,
+          ['signature', 'impersonation'],
+          Buffer.from(privateKey!, 'utf-8'),
+          3600
+        );
+        const userInfo = await client.getUserInfo(refreshValue.body.access_token);
+        const accountInfo = userInfo.accounts.find(account => organization.docusign.accountName === account.accountName);
+        const token = refreshValue.body.access_token;
+        const date = new Date();
+        await this.collection.updateOne({
+          orgId: organization._id,
+        }, {
+          $set: {
+            token,
+            basePath: `${accountInfo.baseUri}/restapi`,
+            accountId: accountInfo.accountId,
+            updatedAt: date,
+          },
+          $setOnInsert: {
+            createdAt: date,
+          }
+        }, {
+          upsert: true,
+        });
+      } catch(error) {
+        console.error('Error updating docusign token', {
+          error,
+          organizationId: organization._id,
+        });
+      }
     }
   }
 

@@ -10,6 +10,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 // graphql
 import { ME, UPDATE_USER } from 'src/api/user';
 import { GET_RANKS } from 'src/api/rank';
@@ -17,7 +18,7 @@ import { GET_UNITS } from 'src/api/unit';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // types
-import { Division, Rank, Unit } from 'src/__generated__/resolvers-types';
+import { Division, Rank, Unit, User } from 'src/__generated__/resolvers-types';
 // components
 import FormProvider, {
   RHFAutocomplete,
@@ -32,13 +33,25 @@ import TextField from '@mui/material/TextField';
 
 const bouncerIn = varBounce().in;
 
-export default function LasdCompleteProfile() {
+export default function LasdCompleteProfile({
+  inputUser,
+  returnPath,
+  close,
+  ignoreUserHook = false,
+}: {
+  inputUser?: User;
+  returnPath?: string;
+  close?: () => void;
+  ignoreUserHook?: boolean;
+}) {
   const router = useRouter();
-  const { user, reInitialize } = useAuthContext();
+  const { user: authUser, reInitialize } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
+  const user = useMemo(() => inputUser || authUser, [authUser, inputUser]);
 
   useEffect(() => {
     if (
+      !ignoreUserHook &&
       !isEmpty(user.member.rank) &&
       !isEmpty(user.member.unit) &&
       !isEmpty(user.member.division) &&
@@ -46,11 +59,15 @@ export default function LasdCompleteProfile() {
     ) {
       router.replace(paths.dashboard.root);
     }
-  }, [user, router]);
+  }, [
+    user,
+    ignoreUserHook,
+    router,
+  ]);
 
   const [updateUser] = useMutation(UPDATE_USER, {
     fetchPolicy: 'network-only',
-    refetchQueries: [
+    refetchQueries: ignoreUserHook ? [] : [
       { query: ME },
     ],
     awaitRefetchQueries: true,
@@ -129,8 +146,11 @@ export default function LasdCompleteProfile() {
         },
       });
       enqueueSnackbar('Profile complete!');
-      await reInitialize();
-      router.replace(paths.dashboard.root);
+      if (!ignoreUserHook) {
+        await reInitialize();
+      }
+      close?.();
+      router.replace(returnPath || paths.dashboard.root);
     } catch (error) {
       enqueueSnackbar('Failed to save changes. Please try again.', { variant: 'error' });
       console.error(error);
@@ -212,6 +232,18 @@ export default function LasdCompleteProfile() {
             <LoadingButton type="submit" variant="contained" loading={isSubmitting} fullWidth>
               Complete profile
             </LoadingButton>
+            {
+              close && (
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={close}
+                  fullWidth
+                >
+                  Cancel
+                </Button>
+              )
+            }
           </Stack>
         </m.div>
       </MotionContainer>

@@ -342,6 +342,9 @@ export const GET_USERS = gql`
             primaryEmail {
               address
             }
+            primaryPhone {
+              number
+            }
           }
           rank {
             id
@@ -350,6 +353,10 @@ export const GET_USERS = gql`
           unit {
             id
             name
+            divisions {
+              id
+              name
+            }
           }
           division {
             id

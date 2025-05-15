@@ -598,7 +598,12 @@ export const Mutation = {
       organization: organization!,
       user: user!,
       existingUserId,
-      shift: updatedShift!,
+      shift: {
+        ...updatedShift!,
+        // Include just incase the shift was removed
+        // since the relinquishNote is required for the notification
+        relinquishNote: note,
+      },
       type: notificationType,
     });
 

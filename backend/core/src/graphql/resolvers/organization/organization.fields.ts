@@ -67,6 +67,7 @@ export const fields = {
     callSign: (parent: OrganizationFeatures) => !!parent.callSign,
     eventInvoice: (parent: OrganizationFeatures) => !!parent.eventInvoice,
     vehicleCategories: (parent: OrganizationFeatures) => !!parent.vehicleCategories,
+    rankGrouping: (parent: OrganizationFeatures) => !!parent.rankGrouping,
   },
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),

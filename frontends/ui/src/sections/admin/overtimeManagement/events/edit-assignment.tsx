@@ -32,10 +32,10 @@ import FormProvider, {
 import { RouterLink } from 'src/routes/components';
 import { GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
-import { GET_RANKS } from 'src/api/rank';
 import { GET_SKILL_SLIM } from 'src/api/skill';
 import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 import { useFeatures } from 'src/hooks/use-features';
+import RHFRankAutocomplete from 'src/components/ranks/rhf-rank';
 import AssignmentShiftsTable from './assignment-shifts-table';
 
 // ----------------------------------------------------------------------
@@ -74,15 +74,6 @@ export default function EditAssignment({
     currentAssignment?.event?.status
   ]);
 
-  const { data: rankData } = useQuery(GET_RANKS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {
-        active: true,
-      }
-    },
-  });
   const { data: equipmentData } = useQuery(GET_EQUIPMENT_SLIM, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -107,7 +98,6 @@ export default function EditAssignment({
 
   const equipment = equipmentData?.equipments?.items || [];
   const skills = skillData?.skills?.items || [];
-  const ranks = rankData?.ranks?.items || [];
   const mdUp = useResponsive('up', 'md');
 
   const { enqueueSnackbar } = useSnackbar();
@@ -161,6 +151,7 @@ export default function EditAssignment({
     reset,
     handleSubmit,
     getValues,
+    setValue,
     formState: { isSubmitting, isValid },
   } = methods;
 
@@ -245,34 +236,11 @@ export default function EditAssignment({
               <RHFEditor readOnly={allDisabled} simple name="description" />
             </Stack>
 
-            <RHFAutocomplete
+            <RHFRankAutocomplete
               name="ranks"
-              placeholder="Open to Ranks"
-              multiple
-              disableCloseOnSelect
-              disabled={allDisabled || isComplete}
-              helperText="Enter the ranks that are allowed to work this assignment"
-              options={(ranks || [])}
-              getOptionLabel={(rank: any) => rank?.name}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderOption={(props, option, { selected }) => (
-                <li {...props} key={option?.id}>
-                  <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                  {option?.name}
-                </li>
-              )}
-              renderTags={(selected, getTagProps) =>
-                selected.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option?.id}
-                    label={option?.name}
-                    size="small"
-                    color="info"
-                    variant="soft"
-                  />
-                ))
-              }
+              setValue={setValue}
+              disabled={allDisabled}
+              isComplete={isComplete}
             />
 
             <RHFAutocomplete

@@ -26,6 +26,7 @@
     VEHICLE_CATEGORIES
     DS_TOKEN
     DS_EVENTS
+    RANK_GROUP
   }
   enum DayOfWeek {
     SUNDAY
@@ -1050,6 +1051,32 @@ type DocusignSignerDetailsData {
     name: String!
     active: Boolean!
     hourlyRate: Float
+    rankGroupId: String
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    rankGroup: RankGroup
+    modifiedBy: User
+  }
+
+  input UpsertRank {
+    id: String
+    name: String
+    rankGroupId: String
+    hourlyRate: Float
+    active: Boolean
+  }
+
+  type RankGroup {
+    id: ID!
+    name: String!
+    rankIds: [String!]
+
     docType: DocType!
     orgId: String!
     createdAt: String!
@@ -1059,13 +1086,14 @@ type DocusignSignerDetailsData {
 
     org: Organization
     modifiedBy: User
+
+    ranks: [Rank!]
   }
 
-  input UpsertRank {
+  input UpsertRankGroup {
     id: String
     name: String
-    hourlyRate: Float
-    active: Boolean
+    rankIds: [String!]
   }
 ###### END Rank ######
 
@@ -1305,6 +1333,7 @@ type DocusignSignerDetailsData {
     callSign: Boolean!
     eventInvoice: Boolean!
     vehicleCategories: Boolean!
+    rankGrouping: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1486,6 +1515,7 @@ type DocusignSignerDetailsData {
     callSign: Boolean
     eventInvoice: Boolean
     vehicleCategories: Boolean
+    rankGrouping: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1672,6 +1702,19 @@ type DocusignSignerDetailsData {
   type RankSearchResult {
     items: [Rank]
     total: Int!
+  }
+
+  type RankGroupSearchResult {
+    items: [RankGroup]
+    total: Int!
+  }
+
+  input RankGroupSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
   }
 
   input UnitSearchInput {
@@ -2035,6 +2078,7 @@ type Query {
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult
+  rankGroups(input: RankGroupSearchInput): RankGroupSearchResult
 
   unit(id: String!): Unit
   units(input: UnitSearchInput): UnitSearchResult
@@ -2104,6 +2148,10 @@ type Mutation {
 
   rank(rank: UpsertRank!): Rank
   removeRank(id: String!): ID!
+  rankGroup(rankGroup: UpsertRankGroup!): RankGroup
+  addRanksToGroup(rankIds: [String!]!, rankGroupId: String!): Boolean
+  removeRanksFromGroup(rankIds: [String!]!, rankGroupId: String!): Boolean
+  removeRankGroup(id: String!): ID!
 
   unit(unit: UpsertUnit!): Unit
   removeUnit(id: String!): ID!

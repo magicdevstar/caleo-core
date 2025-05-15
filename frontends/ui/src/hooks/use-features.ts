@@ -31,6 +31,7 @@ const defaultFeatures: OrganizationFeatures = {
   callSign: false,
   eventInvoice: false,
   vehicleCategories: false,
+  rankGrouping: false,
 };
 
 export const useFeatures = (): IOrganizationFeatures => {

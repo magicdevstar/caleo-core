@@ -244,6 +244,7 @@ export enum DocType {
   Notification = 'NOTIFICATION',
   Organization = 'ORGANIZATION',
   Rank = 'RANK',
+  RankGroup = 'RANK_GROUP',
   Shift = 'SHIFT',
   ShiftBufferRequest = 'SHIFT_BUFFER_REQUEST',
   ShiftInterestRequest = 'SHIFT_INTEREST_REQUEST',
@@ -810,6 +811,7 @@ export enum MemberTier {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addRanksToGroup?: Maybe<Scalars['Boolean']['output']>;
   adminEditPassword?: Maybe<Scalars['Boolean']['output']>;
   approveEvent?: Maybe<Event>;
   approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
@@ -836,6 +838,7 @@ export type Mutation = {
   partialShiftUpdate?: Maybe<Scalars['String']['output']>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
+  rankGroup?: Maybe<RankGroup>;
   readInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   rejectEvent?: Maybe<Event>;
   rejectLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
@@ -847,6 +850,8 @@ export type Mutation = {
   removeInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   removeNotification: Scalars['ID']['output'];
   removeRank: Scalars['ID']['output'];
+  removeRankGroup: Scalars['ID']['output'];
+  removeRanksFromGroup?: Maybe<Scalars['Boolean']['output']>;
   removeShift: Scalars['ID']['output'];
   removeShiftBufferRequest: Scalars['ID']['output'];
   removeShiftInterestRequest: Scalars['ID']['output'];
@@ -878,6 +883,12 @@ export type Mutation = {
   userSkillAttachmentUploadUrl?: Maybe<MemberSkillAttachmentUpload>;
   vehicleCategory?: Maybe<VehicleCategories>;
   venue?: Maybe<Venue>;
+};
+
+
+export type MutationAddRanksToGroupArgs = {
+  rankGroupId: Scalars['String']['input'];
+  rankIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -1004,6 +1015,11 @@ export type MutationRankArgs = {
 };
 
 
+export type MutationRankGroupArgs = {
+  rankGroup: UpsertRankGroup;
+};
+
+
 export type MutationReadInAppNotificationsArgs = {
   ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   readAll?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1061,6 +1077,17 @@ export type MutationRemoveNotificationArgs = {
 
 export type MutationRemoveRankArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveRankGroupArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveRanksFromGroupArgs = {
+  rankGroupId: Scalars['String']['input'];
+  rankIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -1381,6 +1408,7 @@ export type OrganizationFeatures = {
   noShowReport: Scalars['Boolean']['output'];
   officerCheckInOut: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
+  rankGrouping: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   vehicleCategories: Scalars['Boolean']['output'];
@@ -1468,6 +1496,7 @@ export type Query = {
   organizationFeatures?: Maybe<Array<Maybe<OrganizationFeatureOptions>>>;
   organizations?: Maybe<OrganizationSearchResult>;
   rank?: Maybe<Rank>;
+  rankGroups?: Maybe<RankGroupSearchResult>;
   ranks?: Maybe<RankSearchResult>;
   shift?: Maybe<Shift>;
   shiftBufferRequests?: Maybe<ShiftBufferRequestsSearchResult>;
@@ -1610,6 +1639,11 @@ export type QueryRankArgs = {
 };
 
 
+export type QueryRankGroupsArgs = {
+  input?: InputMaybe<RankGroupSearchInput>;
+};
+
+
 export type QueryRanksArgs = {
   input?: InputMaybe<RankSearchInput>;
 };
@@ -1714,8 +1748,40 @@ export type Rank = {
   name: Scalars['String']['output'];
   org?: Maybe<Organization>;
   orgId: Scalars['String']['output'];
+  rankGroup?: Maybe<RankGroup>;
+  rankGroupId?: Maybe<Scalars['String']['output']>;
   removedAt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
+};
+
+export type RankGroup = {
+  __typename?: 'RankGroup';
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org?: Maybe<Organization>;
+  orgId: Scalars['String']['output'];
+  rankIds?: Maybe<Array<Scalars['String']['output']>>;
+  ranks?: Maybe<Array<Rank>>;
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type RankGroupSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type RankGroupSearchResult = {
+  __typename?: 'RankGroupSearchResult';
+  items?: Maybe<Array<Maybe<RankGroup>>>;
+  total: Scalars['Int']['output'];
 };
 
 export type RankSearchInput = {
@@ -2391,6 +2457,7 @@ export type UpsertOrganizationFeatures = {
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   officerCheckInOut?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
+  rankGrouping?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   vehicleCategories?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2421,6 +2488,13 @@ export type UpsertRank = {
   hourlyRate?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  rankGroupId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpsertRankGroup = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  rankIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type UpsertShift = {
@@ -2857,6 +2931,9 @@ export type ResolversTypes = ResolversObject<{
   ProfilePhotoAttachmentUpload: ResolverTypeWrapper<ProfilePhotoAttachmentUpload>;
   Query: ResolverTypeWrapper<{}>;
   Rank: ResolverTypeWrapper<Rank>;
+  RankGroup: ResolverTypeWrapper<RankGroup>;
+  RankGroupSearchInput: RankGroupSearchInput;
+  RankGroupSearchResult: ResolverTypeWrapper<RankGroupSearchResult>;
   RankSearchInput: RankSearchInput;
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
   SearchInput: SearchInput;
@@ -2924,6 +3001,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
+  UpsertRankGroup: UpsertRankGroup;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
@@ -3049,6 +3127,9 @@ export type ResolversParentTypes = ResolversObject<{
   ProfilePhotoAttachmentUpload: ProfilePhotoAttachmentUpload;
   Query: {};
   Rank: Rank;
+  RankGroup: RankGroup;
+  RankGroupSearchInput: RankGroupSearchInput;
+  RankGroupSearchResult: RankGroupSearchResult;
   RankSearchInput: RankSearchInput;
   RankSearchResult: RankSearchResult;
   SearchInput: SearchInput;
@@ -3110,6 +3191,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
+  UpsertRankGroup: UpsertRankGroup;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
@@ -3643,6 +3725,7 @@ export type MemberSkillSearchResultResolvers<ContextType = any, ParentType exten
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  addRanksToGroup?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAddRanksToGroupArgs, 'rankGroupId' | 'rankIds'>>;
   adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
   approveEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationApproveEventArgs, 'id'>>;
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
@@ -3669,6 +3752,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   partialShiftUpdate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationPartialShiftUpdateArgs, 'shiftId' | 'updates'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
+  rankGroup?: Resolver<Maybe<ResolversTypes['RankGroup']>, ParentType, ContextType, RequireFields<MutationRankGroupArgs, 'rankGroup'>>;
   readInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationReadInAppNotificationsArgs>>;
   rejectEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationRejectEventArgs, 'id'>>;
   rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
@@ -3680,6 +3764,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
+  removeRankGroup?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankGroupArgs, 'id'>>;
+  removeRanksFromGroup?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveRanksFromGroupArgs, 'rankGroupId' | 'rankIds'>>;
   removeShift?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftArgs, 'id'>>;
   removeShiftBufferRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveShiftBufferRequestArgs, 'id'>>;
   removeShiftInterestRequest?: Resolver<ResolversTypes['ID'], ParentType, ContextType, Partial<MutationRemoveShiftInterestRequestArgs>>;
@@ -3823,6 +3909,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   officerCheckInOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  rankGrouping?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   vehicleCategories?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3900,6 +3987,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   organizationFeatures?: Resolver<Maybe<Array<Maybe<ResolversTypes['OrganizationFeatureOptions']>>>, ParentType, ContextType>;
   organizations?: Resolver<Maybe<ResolversTypes['OrganizationSearchResult']>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
+  rankGroups?: Resolver<Maybe<ResolversTypes['RankGroupSearchResult']>, ParentType, ContextType, Partial<QueryRankGroupsArgs>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
   shift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<QueryShiftArgs, 'id'>>;
   shiftBufferRequests?: Resolver<Maybe<ResolversTypes['ShiftBufferRequestsSearchResult']>, ParentType, ContextType, Partial<QueryShiftBufferRequestsArgs>>;
@@ -3932,8 +4020,32 @@ export type RankResolvers<ContextType = any, ParentType extends ResolversParentT
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rankGroup?: Resolver<Maybe<ResolversTypes['RankGroup']>, ParentType, ContextType>;
+  rankGroupId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type RankGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['RankGroup'] = ResolversParentTypes['RankGroup']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rankIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  ranks?: Resolver<Maybe<Array<ResolversTypes['Rank']>>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type RankGroupSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RankGroupSearchResult'] = ResolversParentTypes['RankGroupSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['RankGroup']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4387,6 +4499,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Rank?: RankResolvers<ContextType>;
+  RankGroup?: RankGroupResolvers<ContextType>;
+  RankGroupSearchResult?: RankGroupSearchResultResolvers<ContextType>;
   RankSearchResult?: RankSearchResultResolvers<ContextType>;
   Shift?: ShiftResolvers<ContextType>;
   ShiftAvailabilityTime?: ShiftAvailabilityTimeResolvers<ContextType>;

@@ -54,6 +54,7 @@ export const features = {
   callSign: false,
   eventInvoice: false,
   vehicleCategories: false,
+  rankGrouping: false,
 };
 
 export const flatFeatures = [
@@ -152,6 +153,10 @@ export const flatFeatures = [
   {
     value: 'vehicleCategories',
     label: 'Vehicle Categories',
+  },
+  {
+    value: 'rankGrouping',
+    label: 'Rank Grouping',
   },
 ];
 

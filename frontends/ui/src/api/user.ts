@@ -51,6 +51,7 @@ const userDetailProperties = `
         callSign
         eventInvoice
         vehicleCategories
+        rankGrouping
       }
       customizations {
         pNumber

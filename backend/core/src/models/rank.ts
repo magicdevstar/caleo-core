@@ -11,6 +11,8 @@ export interface IRank extends Omit<
   'createdAt' |
   'updatedAt' |
   'removedAt' |
+  'rankGroupId' |
+  'rankGroup' |
   'modifiedById' |
   'modifiedBy' |
   'orgId' |
@@ -21,6 +23,7 @@ export interface IRank extends Omit<
   id?: string;
   orgId: ObjectId;
   modifiedById: ObjectId;
+  rankGroupId?: ObjectId | null;
 
   createdAt: Date;
   updatedAt: Date;

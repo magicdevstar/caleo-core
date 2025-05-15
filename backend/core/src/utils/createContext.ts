@@ -40,6 +40,7 @@ import { VehicleCategoriesModel } from "../models/vehicleCategories";
 import { NotificationService } from "../services/notification.service";
 import { ChangeStreamService } from "../services/changeStream.service";
 import { ChangesModel } from "../models/changes";
+import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
 
 let db: Db;
 
@@ -76,6 +77,7 @@ export interface Context {
   vehicleCategories: VehicleCategoriesModel;
   notificationService: NotificationService;
   changeStream: ChangeStreamService;
+  rankGroups: RankGroupRepo;
   organization?: IOrganization;
   user?: IUser;
   originalUser?: IUser;
@@ -156,6 +158,8 @@ export const createContext = async (): Promise<Context> => {
     shifts
   );
 
+  const rankGroups = new RankGroupRepo(db);
+
   const changesModel = new ChangesModel(db);
   const changeStream = new ChangeStreamService(
     events,
@@ -197,5 +201,6 @@ export const createContext = async (): Promise<Context> => {
     invoiceService,
     notificationService,
     changeStream,
+    rankGroups,
   };
 };

@@ -1,20 +1,24 @@
-// react-
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 // @apollo/client
 import { useMutation } from '@apollo/client';
 
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
-import TextField from '@mui/material/TextField';
+import Stack from '@mui/material/Stack';
 
 // components
-import { ConfirmDialog } from "src/components/custom-dialog";
+import ConfirmDialogWithForm from "src/components/custom-dialog/confirm-dialog-with-form";
+import { RHFTextField } from 'src/components/hook-form';
+
 // Types
-import { Rank } from 'src/__generated__/resolvers-types';
+import { Rank, RankGroup } from 'src/__generated__/resolvers-types';
 import { GET_RANKS, UPSERT_RANK } from 'src/api/rank';
-import Stack from '@mui/material/Stack';
 import { useFeatures } from 'src/hooks/use-features';
+import { RHFRankGroup } from 'src/components/ranks/rhf-rank-group';
 
 interface InputProps {
   rank?: Rank | null;
@@ -22,108 +26,107 @@ interface InputProps {
   onUpsertRank?: () => void;
 }
 
+// Validation schema using yup
+const schema = yup.object().shape({
+  name: yup.string().trim().required('Name is required'),
+  hourlyRate: yup.number().min(0, 'Hourly Rate must be a positive number').nullable(),
+  rankGroup: yup.object().nullable(),
+});
+
 export default function UpsertRankDialogue({
   rank,
   upsertRank,
   onUpsertRank = () => {},
 }: InputProps) {
-  const { rankHourlyRate } = useFeatures();
-  const [rankMutation, { loading, error: newRankError }] = useMutation(UPSERT_RANK, {
+  const { rankHourlyRate, rankGrouping } = useFeatures();
+  const [rankMutation, { loading }] = useMutation(UPSERT_RANK, {
     refetchQueries: [GET_RANKS],
   });
-  const [name, setName] = useState('');
-  const [hourlyRate, setHourlyRate] = useState(0);
-  const [error, setError] = useState('');
-  const action = useMemo(() => rank ? 'Update' : 'Create', [rank]);
+
+  const action = useMemo(() => (rank ? 'Update' : 'Create'), [rank]);
+
+  // Initialize react-hook-form with default values and validation schema
+  const methods = useForm({
+    defaultValues: {
+      name: rank?.name || '',
+      hourlyRate: rankHourlyRate ? rank?.hourlyRate || 0 : null,
+      rankGroup: rank?.rankGroup || null,
+    },
+    resolver: yupResolver(schema),
+  });
+
+  const { handleSubmit, reset, setValue } = methods;
 
   useEffect(() => {
     if (rank) {
-      setName(rank.name);
+      setValue('name', rank.name);
       if (rankHourlyRate) {
-        setHourlyRate(rank.hourlyRate || 0);
+        setValue('hourlyRate', rank.hourlyRate || 0);
+      }
+      if (rankGrouping && rank.rankGroup) {
+        setValue('rankGroup', rank.rankGroup);
       }
     } else {
-      setHourlyRate(0);
-      setName('');
+      reset();
     }
-  }, [rank, rankHourlyRate, setHourlyRate])
+  }, [rank, rankHourlyRate, rankGrouping, reset, setValue]);
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: { name: string; hourlyRate: number | null, rankGroup: RankGroup | null }) => {
     try {
-      if (name.trim() === '') {
-        const errorMessage = 'Name is required';
-        setError(errorMessage);
-        throw new Error(errorMessage);
-      }
       await rankMutation({
         variables: {
           input: {
             id: rank?.id,
-            name: name.trim(),
-            ...(rankHourlyRate && { hourlyRate }),
+            name: data.name.trim(),
+            ...(rankHourlyRate && { hourlyRate: data.hourlyRate }),
             active: rank ? rank.active : true,
+            ...(rankGrouping && {
+              rankGroupId: data.rankGroup?.id || null,
+            }),
           },
         },
       });
       onUpsertRank();
       upsertRank.onFalse();
-      setName('');
-      setHourlyRate(0);
-    } catch(e) {
+      reset();
+    } catch (e) {
       console.error(e);
     }
   };
 
   const handleClose = useCallback(() => {
-    setName('');
+    reset();
     onUpsertRank();
     upsertRank.onFalse();
-  }, [upsertRank, setName, onUpsertRank]);
+  }, [reset, onUpsertRank, upsertRank]);
 
   return (
-    <ConfirmDialog
+    <ConfirmDialogWithForm
+      methods={methods}
+      handleSubmit={handleSubmit(onSubmit as any)}
       open={upsertRank.value}
       onClose={handleClose}
       title={`${action} Rank`}
       content={
-        <Stack spacing={2}>
-          <TextField
-            fullWidth
-            label="Name"
-            type="text"
-            autoFocus
-            value={name}
-            sx={{ mt: 1 }}
-            onChange={(event) => {
-              setName(event.target.value);
-            }}
-            error={!!error || !!newRankError}
-            helperText={error || newRankError?.message}
-          />
-
+        <Stack spacing={2} mt={1}>
+          <RHFTextField name="name" label="Name" type="text" autoFocus />
           {rankHourlyRate && (
-            <TextField
-              fullWidth
-              label="Hourly Rate"
-              type="number"
-              value={hourlyRate}
-              onChange={(event) => {
-                const value = parseFloat(event.target.value);
-                if (!Number.isNaN(value)) {
-                  setHourlyRate(value);
-                } else {
-                  setHourlyRate(0);
-                }
-              }}
-            />
+            <RHFTextField name="hourlyRate" label="Hourly Rate" type="number" />
+          )}
+          {rankGrouping && (
+            <RHFRankGroup name="rankGroup" label="Rank Group" />
           )}
         </Stack>
       }
       action={
-        <LoadingButton onClick={onSubmit} variant="contained" loading={loading}>
+        <LoadingButton
+          type="submit"
+          variant="contained"
+          loading={loading}
+        >
           {action} Rank
         </LoadingButton>
       }
     />
   );
-};
+}

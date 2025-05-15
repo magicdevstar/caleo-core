@@ -31,6 +31,7 @@ export const rank = {
       { id }: { id: string },
       {
         ranks,
+        rankGroups,
         skills,
         users,
         user,
@@ -43,6 +44,11 @@ export const rank = {
 
       if (existingUserWithRole) {
         throw new GraphQLError("Cannot remove a rank that is assigned to users");
+      }
+
+      const rank = await ranks.get(id);
+      if (!rank) {
+        throw new GraphQLError("Rank not found");
       }
 
       await ranks.remove(id, {
@@ -62,28 +68,53 @@ export const rank = {
         } as any,
       });
 
+      // Remove the rank from any rank groups
+      if (rank.rankGroupId) {
+        await rankGroups.removeRanks(rank.rankGroupId.toString(), [id], user!);
+      }
+
       return id;
     },
     rank: async (
       _parent: unknown,
       { rank }: { rank: IRank },
-      { ranks, user }: Context
+      { ranks, rankGroups, user }: Context
     ): Promise<IRank> => {
       adminOnly(user);
       if (Object.keys(rank).length === 0) {
         throw new GraphQLError("Rank is empty");
       }
-      return ranks.upsert({
+      let existingRank: IRank | null = null;
+      if (rank.id) {
+        existingRank = await ranks.get(rank.id);
+      }
+
+      const finalRank = await ranks.upsert({
+        ...existingRank,
         ...rank,
+        ...(rank.rankGroupId ? { rankGroupId: new ObjectId(rank.rankGroupId) } : { rankGroupId: null }),
         orgId: user?.member.orgId!,
         modifiedById: user!._id!,
       });
+
+      // Add to rank group if we added a rank group id
+      if (rank.rankGroupId && finalRank.id) {
+        await rankGroups.addRanks(rank.rankGroupId.toString(), [finalRank.id], user!);
+      }
+
+      // Remove rank group if one was removed
+      if (existingRank && existingRank.rankGroupId && rank.rankGroupId !== existingRank.rankGroupId) {
+        await rankGroups.removeRanks(existingRank.rankGroupId.toString(), [existingRank.id!], user!);
+      }
+
+      return finalRank;
     },
   },
   fields: {
     Rank: {
       ...commonResolvers,
       org: (rank: IRank, _, { organizations }: Context) => organizations.loader.load(rank.orgId.toString()),
+      rankGroup: (rank: IRank, _, { rankGroups }: Context) => rank.rankGroupId ? rankGroups.loader.load(rank.rankGroupId.toString()) : null,
     },
   },
 };

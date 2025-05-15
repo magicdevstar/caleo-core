@@ -20,7 +20,7 @@ import UpsertRankDialogue from './upsert-rank-dialogue';
 // ----------------------------------------------------------------------
 
 export default function RankTable() {
-  const { rankHourlyRate } = useFeatures();
+  const { rankHourlyRate, rankGrouping } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const [updateRank] = useMutation(UPSERT_RANK, {
     refetchQueries: [GET_RANKS],
@@ -99,6 +99,7 @@ export default function RankTable() {
     columns: [
       { id: 'name', label: 'Rank', columnType: 'string' },
       ...(rankHourlyRate ? [{ id: 'hourlyRate', label: 'Hourly Rate', width: 110, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
+      ...(rankGrouping ? [{ id: 'rankGroup.name', label: 'Group Name', width: 210, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

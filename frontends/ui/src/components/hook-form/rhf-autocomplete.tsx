@@ -41,6 +41,7 @@ export default function RHFAutocomplete<
       render={({ field, fieldState: { error } }) => (
         <Autocomplete
           {...field}
+          value={field.value || null}
           onChange={(event, newValue: any) => {
             if (valueKey && !other.multiple) {
               field.onChange(newValue[valueKey]) // Currently breaks with Multiple selection

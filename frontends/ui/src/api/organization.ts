@@ -47,6 +47,7 @@ query ORGANIZATION {
       rankHourlyRate
       callSign
       eventInvoice
+      rankGrouping
     }
     customizations {
       pNumber

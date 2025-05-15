@@ -2,6 +2,7 @@ import { health } from './health';
 import { notification } from './notification';
 import { organizationFields, organizationMutation, organizationQuery } from './organization';
 import { vehicleCategoriesFields, vehicleCategoriesMutation, vehicleCategoriesQuery } from './vehicleCategories';
+import { rankGroupFields, rankGroupMutation, rankGroupQuery } from './rankGroup';
 import { rank } from './rank';
 import { skill } from './skills';
 import { equipment } from './equipments';
@@ -45,6 +46,7 @@ export default {
     ...division.Query,
     ...docusignEvents.Query,
     ...vehicleCategoriesQuery,
+    ...rankGroupQuery,
   },
   Mutation: {
     ...health.Mutation,
@@ -67,7 +69,8 @@ export default {
     ...equipment.Mutation,
     ...unit.Mutation,
     ...division.Mutation,
-    ...vehicleCategoriesMutation
+    ...vehicleCategoriesMutation,
+    ...rankGroupMutation,
   },
   ...health.fields,
   ...organizationFields,
@@ -91,4 +94,5 @@ export default {
   ...division.fields,
   ...docusignEvents.fields,
   ...vehicleCategoriesFields,
+  ...rankGroupFields,
 };

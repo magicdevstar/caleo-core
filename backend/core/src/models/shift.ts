@@ -234,7 +234,7 @@ export class ShiftModel extends BaseMongo<IShift> {
           },
           status: ShiftStatus.Assigned,
           removedAt: {
-            $eq: null
+            $exists: false
           },
           startTime: {
             $gte: beginningOfMonth,

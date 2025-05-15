@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { Event, Shift } from 'src/__generated__/resolvers-types';
 import { FrontendUser } from 'src/api/user';
 import { convertDate, dateFormat, miniDateFormat } from 'src/hooks/use-datejs';
-import { calculateHoursBetweenDateStrings } from './time-calc';
+import { calculateCheckInOutHours } from './time-calc';
 import { getCellSumByColumnFormula, getColSumRangeFormula } from './excel-formulas';
 
 export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser) {
@@ -29,6 +29,9 @@ export function generatePayAndLeaveWorksheet(
   const oddRowColor = "FFD9E2F3";
   const evenRowColor = "FFB4C6E7";
 
+  // Remove existing table reference (This causes errors on excel if not removed)
+  worksheet.removeTable('Table_1');
+
   // add or remove rows from template
   const rowDiff = Math.abs(shifts.length - defaultNumberOfRows);
   if (shifts?.length > defaultNumberOfRows) {
@@ -40,13 +43,21 @@ export function generatePayAndLeaveWorksheet(
 
   let totalTravelTime = 0;
   let totalTime = 0;
+
+  // sort shifts alphabetically
+  shifts.sort((shiftA, shiftB) => {
+    const nameA = shiftA.user?.lastName || '';
+    const nameB = shiftB.user?.lastName || '';
+    return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
+  });
+
   shifts.forEach((shift, index) => {
     const rowIdx = headerRows + index + 1;
     const row = worksheet.getRow(rowIdx);
     // number
     row.getCell(1).value = index + 1;
     // Name
-    row.getCell(2).value = shift.user?.name || '';
+    row.getCell(2).value = shift.user ? `${shift.user?.lastName || ''}, ${shift.user?.firstName || ''}` : '';
     // Employee Number
     row.getCell(3).value = shift.user?.member?.pNumber || '';
     // Rank
@@ -58,34 +69,32 @@ export function generatePayAndLeaveWorksheet(
       ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
       : '';
 
-    // Calculate Overtime Hours Worked
-    let hoursWorked = 0;
+    // calculate hours worked and equipment time
+    const timeArg: Parameters<typeof calculateCheckInOutHours>[0] = {
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      timezone: user?.member?.org?.timezone || 'America/Los_Angeles',
+    };
     if (shift.shiftCheckInOut?.checkInTime && shift.shiftCheckInOut?.checkOutTime) {
-      hoursWorked = calculateHoursBetweenDateStrings(
-        shift.shiftCheckInOut.checkInTime,
-        shift.shiftCheckInOut.checkOutTime
-      );
-    } else {
-      hoursWorked = calculateHoursBetweenDateStrings(shift.startTime, shift.endTime);
+      timeArg.startTime = shift.shiftCheckInOut.checkInTime;
+      timeArg.endTime = shift.shiftCheckInOut.checkOutTime;
     }
-    // Overtime Hours Worked
-    row.getCell(7).value = hoursWorked;
-
-    // Travel Time & Equipment Time - Only change if equipment time is logged.
     const equipmentCheckInTime = shift.shiftCheckInOut?.equipmentDetails?.checkInTime;
     const equipmentCheckOutTime = shift.shiftCheckInOut?.equipmentDetails?.checkOutTime;
     if (equipmentCheckInTime && equipmentCheckOutTime) {
-      // Travel Time (Default is 1)
-      row.getCell(8).value = 0;
-
-      // Calculate Equipment Time
-      const equipmentHours = calculateHoursBetweenDateStrings(
-        equipmentCheckInTime,
-        equipmentCheckOutTime
-      );
-      // Equipment Time
-      row.getCell(9).value = equipmentHours;
+      timeArg.startEquipmentTime = equipmentCheckInTime;
+      timeArg.endEquipmentTime = equipmentCheckOutTime;
     }
+    const { hoursWorked, totalEquipmentTime } = calculateCheckInOutHours(timeArg)
+
+    // Overtime Hours Worked
+    row.getCell(7).value = hoursWorked;
+
+    // Travel Time (Default is 1)
+    row.getCell(8).value = totalEquipmentTime ? 0 : 1;
+
+    // Equipment Time
+    row.getCell(9).value = totalEquipmentTime;
 
     // NOTE: Not sure if I actually have to calculate the result of formulas as it works without, but docs recommend it.
     // Some reports say it is because if opened in protected view, it will not calculate and only show the result.
@@ -127,7 +136,8 @@ export function generatePayAndLeaveWorksheet(
           fill: {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { theme: 4 }
+            fgColor: { theme: 4 },
+            bgColor: { theme: 4 },
           }
         }
       },
@@ -191,7 +201,14 @@ export function generateContractLawWorksheet(
   const emptyRow = worksheet.getRow(rowIdx).values as ExcelJS.CellValue[];
   const headerRow = worksheet.getRow(rowIdx + 1).values as ExcelJS.CellValue[];
 
-  Object.entries(shiftsByRank).forEach(([rankId, shifts], idx) => {
+  // sort shift ranks alphabetically
+  const sortedShiftsByRankEntries = Object.entries(shiftsByRank).sort(([rankIdA, shiftsA], [rankIdB, shiftsB]) => {
+    const rankA = shiftsA[0]?.user?.member?.rank?.name || '';
+    const rankB = shiftsB[0]?.user?.member?.rank?.name || '';
+    return rankA.toLowerCase().localeCompare(rankB.toLowerCase());
+  });
+
+  sortedShiftsByRankEntries.forEach(([rankId, shifts], idx) => {
     // return if no shifts
     if (!shifts?.length) {
       return;
@@ -220,10 +237,17 @@ export function generateContractLawWorksheet(
       grandTotal: 0,
     };
 
+    // sort shifts alphabetically
+    shifts.sort((shiftA, shiftB) => {
+      const nameA = shiftA.user?.lastName || '';
+      const nameB = shiftB.user?.lastName || '';
+      return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
+    });
+
     shifts.forEach((shift, shiftIdx) => {
       const shiftRow = worksheet.getRow(rowIdx);
       // Name
-      shiftRow.getCell(1).value = shift.user?.name || '';
+      shiftRow.getCell(1).value = shift.user ? `${shift.user?.lastName || ''}, ${shift.user?.firstName || ''}` : '';
       // Employee Number
       shiftRow.getCell(2).value = shift.user?.member?.pNumber || '';
       // Rank
@@ -235,40 +259,38 @@ export function generateContractLawWorksheet(
         ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
         : '';
 
-      // Calculate Overtime Hours Worked
-      let hoursWorked = 0;
+      // calculate hours worked and equipment time
+      const timeArg: Parameters<typeof calculateCheckInOutHours>[0] = {
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        timezone: user?.member?.org?.timezone || 'America/Los_Angeles',
+      };
       if (shift.shiftCheckInOut?.checkInTime && shift.shiftCheckInOut?.checkOutTime) {
-        hoursWorked = calculateHoursBetweenDateStrings(
-          shift.shiftCheckInOut.checkInTime,
-          shift.shiftCheckInOut.checkOutTime
-        );
-      } else {
-        hoursWorked = calculateHoursBetweenDateStrings(shift.startTime, shift.endTime);
+        timeArg.startTime = shift.shiftCheckInOut.checkInTime;
+        timeArg.endTime = shift.shiftCheckInOut.checkOutTime;
       }
-      // Overtime Hours Worked
-      shiftRow.getCell(6).value = hoursWorked;
-
-      // Travel Time & Equipment Time - Only change if equipment time is logged.
       const equipmentCheckInTime = shift.shiftCheckInOut?.equipmentDetails?.checkInTime;
       const equipmentCheckOutTime = shift.shiftCheckInOut?.equipmentDetails?.checkOutTime;
       if (equipmentCheckInTime && equipmentCheckOutTime) {
-        // Travel Time (Default is 1)
-        shiftRow.getCell(7).value = 0;
-
-        // Calculate Equipment Time
-        const equipmentHours = calculateHoursBetweenDateStrings(
-          equipmentCheckInTime,
-          equipmentCheckOutTime
-        );
-        // Equipment Time
-        shiftRow.getCell(8).value = equipmentHours;
+        timeArg.startEquipmentTime = equipmentCheckInTime;
+        timeArg.endEquipmentTime = equipmentCheckOutTime;
       }
+      const { hoursWorked, totalEquipmentTime } = calculateCheckInOutHours(timeArg)
+
+      // Overtime Hours Worked
+      shiftRow.getCell(6).value = hoursWorked;
+
+      // Travel Time (Default is 1)
+      shiftRow.getCell(7).value = totalEquipmentTime ? 0 : 1;
+
+      // Equipment Time
+      shiftRow.getCell(8).value = totalEquipmentTime;
 
       // Total Overtime Hours
       shiftRow.getCell(10).value =
+        (shiftRow.getCell(6).value as number) +
         (shiftRow.getCell(7).value as number) +
-        (shiftRow.getCell(8).value as number) +
-        (shiftRow.getCell(9).value as number);
+        (shiftRow.getCell(8).value as number);
 
       // Add to per rank totals
       perRankTotals.overtime += shiftRow.getCell(6).value as number;
@@ -379,7 +401,13 @@ export function generateContractLawVehicleWorksheet(
   const emptyRow = worksheet.getRow(rowIdx).values as ExcelJS.CellValue[];
   const headerRow = worksheet.getRow(rowIdx + 1).values as ExcelJS.CellValue[];
 
-  Object.entries(shiftsByVehicle).forEach(([vehicleId, shifts], idx) => {
+  // sort shift ranks alphabetically
+  const sortedShiftsByVehicleEntries = Object.entries(shiftsByVehicle).sort(
+    ([categoryA, shiftsA], [categoryB, shiftsB]) =>
+      categoryA.toLowerCase().localeCompare(categoryB.toLowerCase())
+  );
+
+  sortedShiftsByVehicleEntries.forEach(([vehicleId, shifts], idx) => {
     // return if no shifts
     if (!shifts?.length) {
       return;
@@ -403,6 +431,13 @@ export function generateContractLawVehicleWorksheet(
 
     let perVehicleTotal = 0;
 
+    // sort shifts alphabetically
+    shifts.sort((shiftA, shiftB) => {
+      const nameA = shiftA.user?.lastName || '';
+      const nameB = shiftB.user?.lastName || '';
+      return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
+    });
+
     shifts.forEach((shift) => {
       const shiftRow = worksheet.getRow(rowIdx);
       // Last Name
@@ -421,7 +456,8 @@ export function generateContractLawVehicleWorksheet(
       // Model
       shiftRow.getCell(7).value = shift.docusignEvent?.signerDetails?.[0]?.data?.vehicleModel || '';
       // Category
-      shiftRow.getCell(8).value = shift.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
+      shiftRow.getCell(8).value =
+        shift.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
       // Start Miles
       shiftRow.getCell(9).value = parseInt(
         shift.docusignEvent?.signerDetails?.[0]?.data?.startingMilage || '0',
@@ -455,7 +491,8 @@ export function generateContractLawVehicleWorksheet(
     }
 
     // fill out per rank totals
-    const vehicleCategory = shifts[0].shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
+    const vehicleCategory =
+      shifts[0].shiftCheckInOut?.equipmentDetails?.vehicleCategory?.name || '';
     const rankTitleLabel = perVehicleTotalRow.getCell(10).value as string;
     // Rank Title Header
     perVehicleTotalRow.getCell(10).value = rankTitleLabel.replace('[category]', vehicleCategory);

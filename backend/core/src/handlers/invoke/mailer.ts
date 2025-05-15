@@ -2187,6 +2187,7 @@ const sendEmail = async (input: MailerEvent) => {
       const uniqShiftIds = uniq(shiftIds.map((s) => s.shiftId)) as string[];
       const uniqRanksIds = uniq(assignmentDetails.map((a) => a.rankIds).flat()) as ObjectId[];
 
+      const interestStartTime = convertDate(event.scheduledInterestList!, organization);
       const interestClosingTime = convertDate(event.scheduledCloseInterestList!, organization);
 
       const allUsers = await context.users.collection.find<IUser>({
@@ -2244,9 +2245,11 @@ const sendEmail = async (input: MailerEvent) => {
           if (!canSignUpForAShift) {
             continue;
           }
+          
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
             interestClosingTime,
+            interestStartTime,
           });
           await sendInAppNotification({
             context,

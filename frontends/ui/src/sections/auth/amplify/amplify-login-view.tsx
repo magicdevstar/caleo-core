@@ -84,7 +84,7 @@ export default function AmplifyLoginView() {
   const renderHead = (
     <Stack spacing={0} sx={{ mb: 5 }}>
       <Typography variant="h4">Sign in to CaleoPro</Typography>
-      {downMD && isLASD && (<Typography variant="subtitle1">{"Los Angeles County Sheriff's Department"}<br/>Emergency Operations Bureau</Typography>)}
+      {downMD && isLASD && (<Typography variant="subtitle1">{`Los Angeles County Sheriff's Department`}<br/>Emergency Operations Bureau</Typography>)}
     </Stack>
   );
 

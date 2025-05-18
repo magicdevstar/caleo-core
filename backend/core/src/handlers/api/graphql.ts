@@ -9,13 +9,23 @@ import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import typeDefs from '../../graphql/typedefs';
 import logger, { loggerMiddleware } from '../../utils/logger';
 import resolvers from '../../graphql/resolvers';
-import { Context, createContext } from '../../utils/createContext';
+import { Context, createContext, dbConnect } from '../../utils/createContext';
 import { userFromEvent } from '../../utils/userFromEvent';
+import { OperationModel } from '../../models/gqlOperations';
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   introspection: process.env.STAGE !== 'prod',
+  plugins: [
+    {
+      async requestDidStart(requestContext) {
+        const db = await dbConnect();
+        const gqlOperations = new OperationModel(db);
+        gqlOperations.save(requestContext.request.operationName);
+      },
+    },
+  ]
 });
 
 export const handler = startServerAndCreateLambdaHandler(

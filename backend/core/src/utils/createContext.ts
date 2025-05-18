@@ -44,6 +44,13 @@ import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
 
 let db: Db;
 
+export const dbConnect = async () => {
+  if (!db) {
+    db = await mongodb.db(process.env.MONGODB_NAME!);
+  }
+  return db;
+};
+
 export interface Context {
   shiftInterestRequests: ShiftInterestRequestModel;
   analytics: UserAnalyticsModel;
@@ -86,9 +93,7 @@ export interface Context {
 };
 
 export const createContext = async (): Promise<Context> => {
-  if (!db) {
-    db = await mongodb.db(process.env.MONGODB_NAME!);
-  }
+  await dbConnect();
 
   const document = new DocumentModel();
   const scheduler = new SchedulerModel();

@@ -8,7 +8,6 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { useTheme } from '@mui/material/styles';
 // hooks
 import { CurrentShiftType, useCurrentShifts } from 'src/hooks/use-current-shifts';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -46,7 +45,6 @@ enum ShiftViewType {
 }
 
 export default function OvertimeShifts() {
-  const theme = useTheme();
   const { user } = useAuthContext();
   const { labels: upcomingOvertimeLabels } = useUpcomingOvertimeLabels();
   const { labels: availableOvertimeLabels } = useAvailableOvertimeLabels();
@@ -121,7 +119,6 @@ export default function OvertimeShifts() {
     currentShifts,
     loading: currentShiftsLoading,
     shiftTotals,
-    visited,
   } = useCurrentShifts({
     type: currentTab,
     ...filters,
@@ -138,33 +135,12 @@ export default function OvertimeShifts() {
     [organizationData]
   );
 
-  const getShiftColor = useCallback((shift: Shift | ShiftBufferRequest) => {
-    if (shift.__typename === 'ShiftBufferRequest') {
-      return theme.palette.warning.main;
-    }
-    switch (currentTab) {
-      case CurrentShiftType.Assigned:
-        return theme.palette.success.main;
-      case CurrentShiftType.Available:
-        return theme.palette.info.main;
-      case CurrentShiftType.Upcoming: {
-        if ((shift as Shift)?.event?.status === EventStatus.ReadyForLottery) {
-          return theme.palette.success.dark;
-        }
-        return theme.palette.primary.main;
-      }
-      case CurrentShiftType.Secured:
-        default:
-        return theme.palette.grey[800];
-    }
-  }, [theme, currentTab]);
-
   // TODO: Handle routes that are routed to available and upcoming overtime. Also add query params to url for fast routing.
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       onResetPage();
       setCurrentTab(newValue as CurrentShiftType);
-      if (newValue === CurrentShiftType.Secured) {
+      if ([CurrentShiftType.Overview, CurrentShiftType.Secured].includes(newValue as CurrentShiftType)) {
         table.setOrder('desc');
       } else if (table.order === 'desc') {
         table.setOrder('asc');
@@ -203,59 +179,70 @@ export default function OvertimeShifts() {
     showDialogShift.onTrue();
   }, [showDialogShift]);
 
-  const currentShiftActions = useMemo(() => {
+  const currentShiftActions = useCallback((shiftItem: any) => {
+    const pastActions = [{
+      key: 'relinquish',
+      color: 'error',
+      disabled: (shift: any) => getButtonInfo(organizationData?.organization, shift).disabled,
+      onClick: (shift: any) => {
+        if (shift.__typename === 'ShiftBufferRequest') {
+          setEditShift(shift);
+        } else {
+          setEditShift(shift);
+        }
+        relinquishConfirm.onTrue();
+      },
+      getIcon: (shift: any) => getButtonInfo(organizationData?.organization, shift).icon,
+      getName: (shift: any) => getButtonInfo(organizationData?.organization, shift).title,
+    }];
+    const availableActions = [
+      {
+        key: 'signUp',
+        disabled: (shift: Shift) => false,
+        color: (shift: Shift) =>
+          shift.shiftInterestRequest?.id ? 'error' : 'info',
+        onClick: (shift: Shift) => {
+          setEditShift(shift);
+          if (shift.event.status === EventStatus.InterestList) {
+            interestConfirm.onTrue();
+          } else {
+            assignConfirm.onTrue();
+          }
+        },
+        getIcon: (shift: Shift) => {
+          if (shift.event.status === EventStatus.InterestList) {
+            if (shift.shiftInterestRequest?.id) {
+              return 'ic:round-cancel';
+            }
+            return 'ic:round-front-hand';
+          }
+          return 'mdi:clipboard-check';
+        },
+        getName: (shift: Shift) => {
+          if (shift.event.status === EventStatus.InterestList) {
+            return shift.shiftInterestRequest?.id ? 'Remove Interest' : 'Show Interest';
+          }
+          return 'Sign Up';
+        },
+      },
+    ];
     switch (currentTab) {
+      // for overview tab only
+      case CurrentShiftType.Overview: {
+        if (['Past', 'Assigned'].includes(shiftItem.prefixText)) {
+          return pastActions;
+        }
+        if (shiftItem.prefixText === 'Available') {
+          return availableActions;
+        }
+        return [];
+      }
+      // for single tabs
       case CurrentShiftType.Assigned:
       case CurrentShiftType.Secured:
-        return [
-          {
-            key: 'relinquish',
-            color: 'error',
-            disabled: (shift: any) => getButtonInfo(organizationData?.organization, shift).disabled,
-            onClick: (shift: any) => {
-              if (shift.__typename === 'ShiftBufferRequest') {
-                setEditShift(shift);
-              } else {
-                setEditShift(shift);
-              }
-              relinquishConfirm.onTrue();
-            },
-            getIcon: (shift: any) => getButtonInfo(organizationData?.organization, shift).icon,
-            getName: (shift: any) => getButtonInfo(organizationData?.organization, shift).title,
-          },
-        ];
+        return pastActions;
       case CurrentShiftType.Available:
-        return [
-          {
-            key: 'signUp',
-            disabled: (shift: Shift) => false,
-            color: (shift: Shift) =>
-              shift.shiftInterestRequest?.id ? 'error' : 'info',
-            onClick: (shift: Shift) => {
-              setEditShift(shift);
-              if (shift.event.status === EventStatus.InterestList) {
-                interestConfirm.onTrue();
-              } else {
-                assignConfirm.onTrue();
-              }
-            },
-            getIcon: (shift: Shift) => {
-              if (shift.event.status === EventStatus.InterestList) {
-                if (shift.shiftInterestRequest?.id) {
-                  return 'ic:round-cancel';
-                }
-                return 'ic:round-front-hand';
-              }
-              return 'mdi:clipboard-check';
-            },
-            getName: (shift: Shift) => {
-              if (shift.event.status === EventStatus.InterestList) {
-                return shift.shiftInterestRequest?.id ? 'Remove Interest' : 'Show Interest';
-              }
-              return 'Sign Up';
-            },
-          },
-        ];
+        return availableActions;
       case CurrentShiftType.Upcoming:
       default:
         return [];
@@ -268,14 +255,24 @@ export default function OvertimeShifts() {
     interestConfirm,
   ]);
 
-  const currentShiftLabels = useMemo(() => {
+  const currentShiftLabels = useCallback((shiftItem: any) => {
+    // for overview tab only
+    if (currentTab === CurrentShiftType.Overview) {
+      if (shiftItem.prefixText === 'Upcoming') {
+        return upcomingOvertimeLabels;
+      }
+      if (shiftItem.prefixText === 'Available') {
+        return availableOvertimeLabels;
+      }
+    }
+    // for single tabs
     if (currentTab === CurrentShiftType.Upcoming) {
       return upcomingOvertimeLabels;
     }
     if (currentTab === CurrentShiftType.Available) {
       return availableOvertimeLabels;
     }
-    return undefined;
+    return undefined as any;
   }, [
     currentTab,
     availableOvertimeLabels,
@@ -312,13 +309,17 @@ export default function OvertimeShifts() {
             })}
             shiftActions={currentShiftActions}
             shiftLabels={currentShiftLabels}
+            titlePrefix={currentTab === CurrentShiftType.Overview ? {
+              getPrefix: (shift) => shift.prefixText || '',
+              getColor: (shift) => shift.prefixColor || 'default',
+            }: undefined}
             loading={currentShiftsLoading}
           />
         );
       case ShiftViewType.Calendar:
         return (
           <ShiftCalendar
-            shifts={allCurrentShifts.map((shift) => ({...shift, color: getShiftColor(shift) }))}
+            shifts={allCurrentShifts}
             loading={currentShiftsLoading}
             timezone={user?.member?.org?.timezone}
             startDay={DayMap[user?.member?.org?.weekBegins?.toLowerCase() || 'sunday']}
@@ -342,7 +343,6 @@ export default function OvertimeShifts() {
     shiftTotals,
     user?.member?.org?.timezone,
     user?.member?.org?.weekBegins,
-    getShiftColor,
     handleCalendarShiftClick,
   ]);
 
@@ -366,17 +366,21 @@ export default function OvertimeShifts() {
             {Object.keys(CurrentShiftType).map((tab) => {
               let color: LabelColor = 'info';
               switch(tab.toUpperCase()) {
+                case CurrentShiftType.Overview:
+                  color = 'secondary';
+                  break;
                 case CurrentShiftType.Assigned:
-                  color = 'primary';
-                  break;
-                case CurrentShiftType.Secured:
-                  color = 'warning';
-                  break;
-                case CurrentShiftType.Upcoming:
                   color = 'success';
                   break;
-                default:
+                case CurrentShiftType.Upcoming:
+                  color = 'primary';
+                  break;
+                case CurrentShiftType.Available:
                   color = 'info';
+                  break;
+                case CurrentShiftType.Secured:
+                default:
+                  color = 'default';
                   break;
               }
               return (
@@ -386,13 +390,13 @@ export default function OvertimeShifts() {
                   value={tab.toUpperCase()}
                   label={tab === 'Secured' ? 'Past' : tab}
                   icon={
-                    visited[tab.toUpperCase() as CurrentShiftType] ?
-                      (<Label color={color}>{shiftTotals[tab.toUpperCase() as CurrentShiftType]}</Label>) :
-                      (<Label sx={{ width: 24 }}>-</Label>)
+                    <Label color={color}>
+                      {shiftTotals[tab.toUpperCase() as CurrentShiftType]}
+                    </Label>
                   }
                   sx={{ mr: '4px !important', px: 1 }}
                 />
-              )
+              );
             })}
           </Tabs>
           <ToggleButtonGroup

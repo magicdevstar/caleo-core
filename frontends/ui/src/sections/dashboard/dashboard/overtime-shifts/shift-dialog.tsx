@@ -5,12 +5,10 @@ import DialogContent from '@mui/material/DialogContent';
 import IconButton from '@mui/material/IconButton';
 import Stack from "@mui/material/Stack";
 import Typography from '@mui/material/Typography';
-import { SxProps } from '@mui/material/styles';
 // __generated__
 import { Shift, ShiftBufferRequest, ShiftLotteryRequest } from 'src/__generated__/resolvers-types';
 // components
-import { LabelColor, LabelVariant } from 'src/components/label';
-import ShiftItem from 'src/components/shifts/shift-item';
+import ShiftItem, { ShiftAction, ShiftLabel } from 'src/components/shifts/shift-item';
 import ShiftItemSkeleton from 'src/components/shifts/shift-item-skeleton';
 import Iconify from 'src/components/iconify';
 
@@ -18,22 +16,8 @@ type ShiftDialogProps = {
   open: boolean;
   onClose: VoidFunction;
   shift: Shift | ShiftBufferRequest | ShiftLotteryRequest | null;
-  shiftLabels?: {
-    key: string;
-    sx?: SxProps;
-    variant?: LabelVariant;
-    getHidden?: (shift: any) => boolean;
-    getColor?: (shift: any) => LabelColor;
-    getLabel: (shift: any) => string;
-  }[];
-  shiftActions: {
-    key: string;
-    color?: string | ((shift: any) => string);
-    disabled: (shift: any) => boolean;
-    onClick: (shift: any) => void;
-    getIcon: (shift: any) => string;
-    getName: (shift: any) => string;
-  }[];
+  shiftLabels?: ShiftLabel[] | ((shift: any) => ShiftLabel[]);
+  shiftActions: ShiftAction[] | ((shift: any) => ShiftAction[]);
 };
 
 export default function ShiftDialog({
@@ -68,8 +52,8 @@ export default function ShiftDialog({
           <ShiftItem
             index={0}
             shift={shift}
-            shiftLabels={shiftLabels}
-            shiftActions={shiftActions}
+            shiftLabels={Array.isArray(shiftLabels) ? shiftLabels : shiftLabels?.(shift)}
+            shiftActions={Array.isArray(shiftActions) ? shiftActions : shiftActions?.(shift)}
             collapsible={false}
             collapsed
             cursor="default"

@@ -5,7 +5,7 @@ import { SxProps } from "@mui/material";
 // types
 import { Shift, ShiftBufferRequest, ShiftLotteryRequest } from "src/__generated__/resolvers-types";
 // components
-import ShiftItem from "./shift-item";
+import ShiftItem, { ShiftAction, ShiftLabel } from "./shift-item";
 import ShiftItemSkeleton from "./shift-item-skeleton";
 import EmptyContent from "../empty-content";
 import { LabelColor, LabelVariant } from "../label";
@@ -45,22 +45,8 @@ export default function ShiftItems({
     getColor?: (shift: any) => LabelColor;
     getPrefix: (shift: any) => string;
   }
-  shiftLabels?: {
-    key: string;
-    sx?: SxProps;
-    variant?: LabelVariant;
-    getHidden?: (shift: any) => boolean;
-    getColor?: (shift: any) => LabelColor;
-    getLabel: (shift: any) => string;
-  }[]
-  shiftActions: {
-    key: string;
-    color?: string | ((shift: any) => string);
-    disabled: (shift: any) => boolean;
-    onClick: (shift: any) => void;
-    getIcon: (shift: any) => string;
-    getName: (shift: any) => string;
-  }[]
+  shiftLabels?: ShiftLabel[] | ((shift: any) => ShiftLabel[])
+  shiftActions: ShiftAction[] | ((shift: any) => ShiftAction[])
 }) {
   const renderSkeleton = (
     <>
@@ -86,8 +72,8 @@ export default function ShiftItems({
             compact={compact}
             onSelect={onSelect}
             titlePrefix={titlePrefix}
-            shiftLabels={shiftLabels}
-            shiftActions={shiftActions}
+            shiftLabels={Array.isArray(shiftLabels) ? shiftLabels : shiftLabels?.(shift)}
+            shiftActions={Array.isArray(shiftActions) ? shiftActions : shiftActions?.(shift)}
             shift={shift}
           />
         ))}

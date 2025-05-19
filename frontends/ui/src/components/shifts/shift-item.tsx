@@ -24,6 +24,24 @@ import { useAuthContext } from "src/auth/hooks";
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from "src/hooks/use-features";
 
+export type ShiftAction = {
+  key: string;
+  color?: string | ((shift: any) => string);
+  disabled: (shift: any) => boolean;
+  onClick: (shift: any) => void;
+  getIcon: (shift: any) => string;
+  getName: (shift: any) => string;
+};
+
+export type ShiftLabel = {
+  key: string;
+  sx?: SxProps;
+  variant?: LabelVariant;
+  getHidden?: (shift: any) => boolean;
+  getColor?: (shift: any) => LabelColor;
+  getLabel: (shift: any) => string;
+};
+
 const labelSx = {
   whiteSpace: 'break-spaces',
   lineHeight: '1rem',
@@ -62,22 +80,8 @@ export default function ShiftItem({
     getColor?: (shift: any) => LabelColor;
     getPrefix: (shift: any) => string;
   }
-  shiftLabels?: {
-    key: string;
-    sx?: SxProps;
-    variant?: LabelVariant;
-    getHidden?: (shift: any) => boolean;
-    getColor?: (shift: any) => LabelColor;
-    getLabel: (shift: any) => string;
-  }[];
-  shiftActions: {
-    key: string;
-    color?: string | ((shift: any) => string);
-    disabled: (shift: any) => boolean;
-    onClick: (shift: any) => void;
-    getIcon: (shift: any) => string;
-    getName: (shift: any) => string;
-  }[];
+  shiftLabels?: ShiftLabel[];
+  shiftActions: ShiftAction[];
   sx?: SxProps,
 }) {
   const labelComponent = useMemo(() => {

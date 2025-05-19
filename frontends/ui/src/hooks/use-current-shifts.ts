@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Dayjs } from 'dayjs';
+import { useTheme } from '@mui/material/styles';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // types
-import { Shift, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
+import { EventStatus, Shift, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
 
 export enum CurrentShiftType {
+  Overview = 'OVERVIEW',
   Assigned = 'ASSIGNED',
   Available = 'AVAILABLE',
   Upcoming = 'UPCOMING',
@@ -34,13 +36,9 @@ export function useCurrentShifts({
   range,
 }: CurrentShiftProps = {}) {
   const { user } = useAuthContext();
-  const [visited, setVisited] = useState({
-    [CurrentShiftType.Assigned]: true,
-    [CurrentShiftType.Secured]: false,
-    [CurrentShiftType.Available]: false,
-    [CurrentShiftType.Upcoming]: false,
-  });
+  const theme = useTheme();
   const [shiftTotals, setShiftTotals] = useState({
+    [CurrentShiftType.Overview]: 0,
     [CurrentShiftType.Assigned]: 0,
     [CurrentShiftType.Secured]: 0,
     [CurrentShiftType.Available]: 0,
@@ -61,7 +59,6 @@ export function useCurrentShifts({
     error: assignedShiftsError,
     refetch: refetchAssignedShifts,
   } = useQuery(GET_ALL_SHIFTS, {
-    skip: !visited[CurrentShiftType.Assigned],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -77,13 +74,13 @@ export function useCurrentShifts({
     error: pastAssignedShiftsError,
     refetch: refetchPastAssignedShifts,
   } = useQuery(GET_ALL_SHIFTS, {
-    skip: !visited[CurrentShiftType.Secured],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       input: {
         userId: user?.id,
-        endTime: currentTime
+        endTime: currentTime,
+        limit: 1000,
       },
     },
   });
@@ -94,7 +91,6 @@ export function useCurrentShifts({
     error: shiftBufferRequestsError,
     refetch: refetchShiftBufferRequests,
   } = useQuery(GET_SHIFT_BUFFER_REQUESTS, {
-    skip: !visited[CurrentShiftType.Assigned],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -111,7 +107,6 @@ export function useCurrentShifts({
     error: availableShiftsError,
     refetch: refetchAvailableShifts,
   } = useQuery(GET_AVAILABLE_SHIFTS, {
-    skip: !visited[CurrentShiftType.Available],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -124,7 +119,6 @@ export function useCurrentShifts({
     error: upcomingShiftsError,
     refetch: refetchUpcomingShifts,
   } = useQuery(GET_AVAILABLE_SHIFTS, {
-    skip: !visited[CurrentShiftType.Upcoming],
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
@@ -146,7 +140,10 @@ export function useCurrentShifts({
 
       const upcoming = upcomingShiftsData?.availableShifts?.total || 0;
 
+      const overview = assigned + secured + available + upcoming || 0;
+
       return {
+        [CurrentShiftType.Overview]: overview || c[CurrentShiftType.Overview],
         [CurrentShiftType.Assigned]: assigned || c[CurrentShiftType.Assigned],
         [CurrentShiftType.Secured]: secured || c[CurrentShiftType.Secured],
         [CurrentShiftType.Available]: available || c[CurrentShiftType.Available],
@@ -187,9 +184,15 @@ export function useCurrentShifts({
   );
 
   // Refresh data when we move tabs
-  useMemo(() => {
-    setVisited((c) => ({ ...c, [type]: true }));
+  useEffect(() => {
     switch (type) {
+      case CurrentShiftType.Overview:
+        refetchShiftBufferRequests();
+        refetchAssignedShifts();
+        refetchPastAssignedShifts();
+        refetchAvailableShifts();
+        refetchUpcomingShifts();
+        break;
       case CurrentShiftType.Assigned:
         refetchShiftBufferRequests();
         refetchAssignedShifts();
@@ -207,7 +210,6 @@ export function useCurrentShifts({
         break;
     }
   }, [
-    setVisited,
     refetchPastAssignedShifts,
     refetchAssignedShifts,
     refetchShiftBufferRequests,
@@ -218,6 +220,13 @@ export function useCurrentShifts({
 
   const refetchCurrentShifts = useCallback(() => {
     switch (type) {
+      case CurrentShiftType.Overview:
+        refetchShiftBufferRequests();
+        refetchAssignedShifts();
+        refetchPastAssignedShifts();
+        refetchAvailableShifts();
+        refetchUpcomingShifts();
+        break;
       case CurrentShiftType.Assigned:
         refetchShiftBufferRequests();
         refetchAssignedShifts();
@@ -244,29 +253,51 @@ export function useCurrentShifts({
   ]);
 
   const shiftList = useMemo(() => {
-    const assignedShifts = assignedShiftsData?.shifts?.items || [];
-    const pastAssignedShifts = pastAssignedShiftsData?.shifts?.items || [];
-    const shiftBufferRequests = shiftBufferRequestsData?.shiftBufferRequests?.items || [];
-    const availableShifts = availableShiftsData?.availableShifts?.items || [];
-    const upcomingShifts = upcomingShiftsData?.availableShifts?.items || [];
-
     if (currentShiftsLoading || currentShiftsError) {
       return [];
     }
 
+    const assignedShifts = (assignedShiftsData?.shifts?.items || []).map((shift: any) => ({
+      ...shift,
+      color: theme.palette.success.main,
+      prefixText: 'Assigned',
+      prefixColor: 'success',
+    }));
+    const pastAssignedShifts = (pastAssignedShiftsData?.shifts?.items || []).map((shift: any) => ({
+      ...shift,
+      color: theme.palette.grey[800],
+      prefixText: 'Past',
+      prefixColor: 'default',
+    }));
+    const shiftBufferRequests = (shiftBufferRequestsData?.shiftBufferRequests?.items || []).map((shift: any) => ({
+      ...shift,
+      color: theme.palette.warning.main,
+      prefixText: 'Assigned',
+      prefixColor: 'success',
+    }));
+    const availableShifts = (availableShiftsData?.availableShifts?.items || []).map((shift: any) => ({
+      ...shift,
+      color: theme.palette.info.main,
+      prefixText: 'Available',
+      prefixColor: 'info',
+    }));
+    const upcomingShifts = (upcomingShiftsData?.availableShifts?.items || []).map((shift: any) => ({
+      ...shift,
+      color: shift.event?.status === EventStatus.ReadyForLottery ? theme.palette.success.dark : theme.palette.primary.main,
+      prefixText: 'Upcoming',
+      prefixColor: 'primary',
+    }));
+
     const results = [
-      ...([CurrentShiftType.Assigned].includes(type)
+      ...([CurrentShiftType.Overview, CurrentShiftType.Assigned].includes(type)
         ? [...assignedShifts, ...shiftBufferRequests]
         : []),
-      ...([CurrentShiftType.Secured].includes(type) ? pastAssignedShifts : []),
-      ...([CurrentShiftType.Available].includes(type) ? availableShifts : []),
-      ...([CurrentShiftType.Upcoming].includes(type) ? upcomingShifts : []),
+      ...([CurrentShiftType.Overview, CurrentShiftType.Secured].includes(type) ? pastAssignedShifts : []),
+      ...([CurrentShiftType.Overview, CurrentShiftType.Available].includes(type) ? availableShifts : []),
+      ...([CurrentShiftType.Overview, CurrentShiftType.Upcoming].includes(type) ? upcomingShifts : []),
     ];
 
-    if (
-      [CurrentShiftType.Assigned, CurrentShiftType.Secured].includes(type) &&
-      orderBy === 'startTime'
-    ) {
+    if (orderBy === 'startTime') {
       results.sort((a: any, b: any) => {
         const aStart = new Date(a.startTime);
         const bStart = new Date(b.startTime);
@@ -310,6 +341,7 @@ export function useCurrentShifts({
     orderBy,
     skillIds,
     dateRange,
+    theme
   ]);
 
   // Paged Shifts
@@ -321,7 +353,6 @@ export function useCurrentShifts({
     shiftTotals, // length of all currently loaded shifts since filters are local
     loading: currentShiftsLoading,
     error: currentShiftsError,
-    visited,
     refetch: refetchCurrentShifts,
   };
 }

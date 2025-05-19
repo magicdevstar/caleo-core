@@ -41,7 +41,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Serverless deploy - ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
         if: ${{ !startsWith(github.event.head_commit.message, env.RELEASE_PREFIX) }}

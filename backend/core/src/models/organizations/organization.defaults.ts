@@ -28,137 +28,43 @@ export const customizations = {
   },
 };
 
-export const features = {
-  lottery: false,
-  venueContractDates: false,
-  eventCheckIn: false,
-  eventCheckOut: false,
-  officerCheckInOut: false,
-  interestLists: false,
-  monthlyMaxHours: false,
-  weeklyMaxShifts: false,
-  disabledTiers: false,
-  disabledTierUntil: false,
-  externalEventRequests: false,
-  sso: false,
-  equipment: false,
-  lasdEventFields: false,
-  profileTenor: false,
-  lasdUserFields: false,
-  autoEnroll: false,
-  docusign: false,
-  kiosk: false,
-  eventTemplates: false,
-  noShowReport: false,
-  rankHourlyRate: false,
-  callSign: false,
-  eventInvoice: false,
-  vehicleCategories: false,
-  rankGrouping: false,
-};
-
-export const flatFeatures = [
-  {
-    value: 'autoEnroll',
-    label: 'Auto Enroll On Login'
-  },
-  {
-    value: 'eventCheckIn',
-    label: 'Event Check In'
-  },
-  {
-    value: 'eventCheckOut',
-    label: 'Event Check Out'
-  },
-  {
-    value: 'officerCheckInOut',
-    label: 'Officer Check In/Out'
-  },
-  {
-    value: 'externalEventRequests',
-    label: 'External Event Requests'
-  },
-  {
-    value: 'interestLists',
-    label: 'Interest Lists'
-  },
-  {
-    value: 'lottery',
-    label: 'Lottery'
-  },
-  {
-    value: 'monthlyMaxHours',
-    label: 'Monthly Max Hours'
-  },
-  {
-    value: 'weeklyMaxShifts',
-    label: 'Weekly Max Shifts'
-  },
-  {
-    value: 'disabledTiers',
-    label: 'Disable tiers'
-  },
-  {
-    value: 'disabledTierUntil',
-    label: 'Disable tier until'
-  },
-  {
-    value: 'venueContractDates',
-    label: 'Venue Contract Dates'
-  },
-  {
-    value: 'sso',
-    label: 'SSO Login Support'
-  },
-  {
-    value: 'equipment',
-    label: 'Equipment Management and Assignment association',
-  },
-  {
-    value: 'lasdEventFields',
-    label: 'LASD Event Fields'
-  },
-  {
-    value: 'lasdUserFields',
-    label: 'LASD User Fields'
-  },
-  {
-    value: 'docusign',
-    label: 'Docusign Integration'
-  },
-  {
-    value: 'kiosk',
-    label: 'Kiosk'
-  },
-  {
-    value: 'eventTemplates',
-    label: 'Event Templates'
-  },
-  {
-    value: 'noShowReport',
-    label: 'No Show Report'
-  },
-  {
-    value: 'rankHourlyRate',
-    label: 'Rank with Hourly Rate',
-  },
-  {
-    value: 'callSign',
-    label: 'Call Sign',
-  },
-  {
-    value: 'eventInvoice',
-    label: 'Event Invoice',
-  },
-  {
-    value: 'vehicleCategories',
-    label: 'Vehicle Categories',
-  },
-  {
-    value: 'rankGrouping',
-    label: 'Rank Grouping',
-  },
+// Define features as a single source of truth
+const featureDefinitions = [
+  { value: 'autoEnroll', label: 'Auto Enroll On Login', defaultEnabled: false },
+  { value: 'eventCheckIn', label: 'Event Check In', defaultEnabled: false },
+  { value: 'eventCheckOut', label: 'Event Check Out', defaultEnabled: false },
+  { value: 'officerCheckInOut', label: 'Officer Check In/Out', defaultEnabled: false },
+  { value: 'externalEventRequests', label: 'External Event Requests', defaultEnabled: false },
+  { value: 'interestLists', label: 'Interest Lists', defaultEnabled: false },
+  { value: 'lottery', label: 'Lottery', defaultEnabled: false },
+  { value: 'monthlyMaxHours', label: 'Monthly Max Hours', defaultEnabled: false },
+  { value: 'weeklyMaxShifts', label: 'Weekly Max Shifts', defaultEnabled: false },
+  { value: 'disabledTiers', label: 'Disable tiers', defaultEnabled: false },
+  { value: 'disabledTierUntil', label: 'Disable tier until', defaultEnabled: false },
+  { value: 'venueContractDates', label: 'Venue Contract Dates', defaultEnabled: false },
+  { value: 'sso', label: 'SSO Login Support', defaultEnabled: false },
+  { value: 'equipment', label: 'Equipment Management and Assignment association', defaultEnabled: false },
+  { value: 'lasdEventFields', label: 'LASD Event Fields', defaultEnabled: false },
+  { value: 'lasdUserFields', label: 'LASD User Fields', defaultEnabled: false },
+  { value: 'docusign', label: 'Docusign Integration', defaultEnabled: false },
+  { value: 'kiosk', label: 'Kiosk', defaultEnabled: false },
+  { value: 'eventTemplates', label: 'Event Templates', defaultEnabled: false },
+  { value: 'noShowReport', label: 'No Show Report', defaultEnabled: false },
+  { value: 'rankHourlyRate', label: 'Rank with Hourly Rate', defaultEnabled: false },
+  { value: 'callSign', label: 'Call Sign', defaultEnabled: false },
+  { value: 'eventInvoice', label: 'Event Invoice', defaultEnabled: false },
+  { value: 'vehicleCategories', label: 'Vehicle Categories', defaultEnabled: false },
+  { value: 'rankGrouping', label: 'Rank Grouping', defaultEnabled: false },
 ];
+
+// Generate features object from featureDefinitions
+export const features = featureDefinitions.reduce((acc, feature) => {
+  acc[feature.value] = feature.defaultEnabled;
+  return acc;
+}, {} as Record<string, boolean>);
+
+// Generate flatFeatures array from featureDefinitions
+export const flatFeatures = featureDefinitions.map(({ value, label }) => ({ value, label }));
 
 const lottery = {
   enabled: false,

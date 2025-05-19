@@ -254,12 +254,15 @@ export class Docusign {
             throw new Error('User not found');
           }
           const event = await this.events.get(shift.eventId);
+          if (!event) {
+            throw new Error('Event not found');
+          }
           const unit = await this.units.get(user.member.unitId!);
           const rank = await this.ranks.get(user.member.rankId!);
-          const venue = await this.venues.get(event?.venueId!);
-          const supervisor = await this.users.get(event?.supervisorId!);
-          const lieutenant = await this.users.get(event?.lieutenantId!);
-          const assignment = await this.assignments.get(shift.assignmentId!);
+          const venue = await this.venues.get(event.venueId!);
+          const supervisor = await this.users.get(event.supervisorId!);
+          const lieutenant = await this.users.get(event.lieutenantId!);
+          const assignment = await this.assignments.get(shift.assignmentId);
           let requiresVehicleInformation = false;
 
           if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {
@@ -318,11 +321,14 @@ export class Docusign {
             throw new Error('User not found');
           }
         const event = await this.events.get(shift.eventId);
+        if (!event) {
+          throw new Error('Event not found');
+        }
         const unit = await this.units.get(user.member.unitId!);
         const rank = await this.ranks.get(user.member.rankId!);
-        const venue = await this.venues.get(event?.venueId!);
-        const supervisor = await this.users.get(event?.supervisorId!);
-        const lieutenant = await this.users.get(event?.lieutenantId!);
+        const venue = await this.venues.get(event.venueId!);
+        const supervisor = await this.users.get(event.supervisorId!);
+        const lieutenant = await this.users.get(event.lieutenantId!);
         const assignment = await this.assignments.get(shift.assignmentId!);
         let requiresVehicleInformation = false;
 
@@ -368,11 +374,9 @@ export class Docusign {
 
   async createInvoiceHTML({
     eventId,
-    user,
     organization,
   }: {
     eventId: ObjectId;
-    user: IUser;
     organization: IOrganization;
   }) {
     const event = await this.events.get(eventId);
@@ -409,7 +413,6 @@ export class Docusign {
       try {
         const invoiceHtml = await this.createInvoiceHTML({
           eventId,
-          user,
           organization,
         });
 

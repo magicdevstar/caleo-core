@@ -1,9 +1,8 @@
 import { Context } from "../../utils/createContext";
-import { Venue, VenueSearchInput } from "../../__generated__/resolvers-types";
+import { VenueSearchInput } from "../../__generated__/resolvers-types";
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { IIVenue, IVenueContract } from "../../models/venue";
-import { ObjectId } from "mongodb";
 
 export const venue = {
   Query: {
@@ -17,7 +16,7 @@ export const venue = {
       { input: { status, ...rest } }: { input: VenueSearchInput },
       { venues, user }: Context
     ): Promise<SearchResults<IIVenue>> => venues.search({
-      orgId: user?.member.orgId!,
+      orgId: user?.member.orgId,
       queryField: 'name',
       ...(status && { status: { $in: status } }),
       ...rest,
@@ -48,7 +47,7 @@ export const venue = {
 
       return venues.upsert({
         ...venue,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         modifiedById: user!._id!,
       });
     },

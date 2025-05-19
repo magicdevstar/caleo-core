@@ -37,7 +37,7 @@ export const Query = {
   ): Promise<IShift[] | null> => {
     const { items } = await shifts.search({
       shiftId,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       order: 'asc',
       orderBy: 'refNumber',
     });
@@ -60,7 +60,7 @@ export const Query = {
   ): Promise<SearchResults<IShift>> => {
     const convertedUser = users.convertToModel(user as any);
     return shifts.dynamicSearch({
-      orgId: new ObjectId(convertedUser?.member?.orgId!),
+      orgId: new ObjectId(convertedUser!.member.orgId),
       requestingUser: convertedUser!,
       ...input,
     });
@@ -79,7 +79,7 @@ export const Query = {
 
     return users.findCompatibleUsersForShift({
       id,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       filters,
     });
   }

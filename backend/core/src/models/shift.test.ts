@@ -1,6 +1,4 @@
 import {
-  afterEach,
-  beforeEach,
   describe,
   expect,
   jest,
@@ -35,11 +33,11 @@ describe('shift service', () => {
       expect(res.wednesday).toBe(null);
       expect(res.thursday).toBe(null);
       expect(res.friday).toBe(null);
-      expect(breakDownHours(res.saturday?.startTime!)).toEqual({
+      expect(breakDownHours(res.saturday!.startTime!)).toEqual({
         hours: 6,
         minutes: 0
       });
-      expect(breakDownHours(res.saturday?.endTime!)).toEqual({
+      expect(breakDownHours(res.saturday!.endTime!)).toEqual({
         hours: 8,
         minutes: 0
       });
@@ -58,11 +56,11 @@ describe('shift service', () => {
       expect(res.wednesday).toBe(null);
       expect(res.thursday).toBe(null);
       expect(res.friday).toBe(null);
-      expect(breakDownHours(res.saturday?.startTime!)).toEqual({
+      expect(breakDownHours(res.saturday!.startTime!)).toEqual({
         hours: 12,
         minutes: 0
       });
-      expect(breakDownHours(res.saturday?.endTime!)).toEqual({
+      expect(breakDownHours(res.saturday!.endTime!)).toEqual({
         hours: 19,
         minutes: 0
       });

@@ -1,4 +1,4 @@
-import { AnyBulkWriteOperation, Collection, Db, ObjectId, UpdateResult } from "mongodb";
+import { Collection, Db, ObjectId, UpdateResult } from "mongodb";
 import DataLoader from 'dataloader';
 import merge from 'lodash.merge';
 import { DocType } from "../__generated__/resolvers-types";
@@ -209,9 +209,7 @@ export class BaseModel<T> {
   }
 
   async replace<T extends UpdateModel>(item: T): Promise<T> {
-    const now = Date.now();
-
-    let updateDoc: T = item;
+    const updateDoc: T = item;
     const { id, ...upDoc } = updateDoc;
 
     logger.info('Replace document', { updateDoc: upDoc });
@@ -246,7 +244,7 @@ export class BaseModel<T> {
       rest.removedAt = { $exists: false };
     }
 
-    let textQuery: any = {};
+    const textQuery: any = {};
     if (query) {
       const fieldName = queryField || 'name';
       textQuery[fieldName] = {

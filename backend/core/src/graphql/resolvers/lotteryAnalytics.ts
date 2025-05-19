@@ -15,8 +15,8 @@ export const lotteryAnalytics = {
         user
       }: Context,
     ) => {
-      const uId = userId && userIsAdmin(user) ? userId : user?.id!;
-      const currentCounter = await lotteryCounter.get(new ObjectId(user?.member.orgId!));
+      const uId = userId && userIsAdmin(user) ? userId : user.id!;
+      const currentCounter = await lotteryCounter.get(new ObjectId(user.member.orgId!));
       return analytics.getUserLottoAnalytics({
         userId: uId,
         lotteryCounter: currentCounter.counter - 1,

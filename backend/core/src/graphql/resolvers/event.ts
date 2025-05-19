@@ -11,7 +11,7 @@ import {
 import { adminOnly } from "../../utils/access";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import logger from "../../utils/logger";
-import { format, setMilliseconds, addMinutes, setSeconds, isAfter, subHours } from "date-fns";
+import { format, addMinutes, isAfter } from "date-fns";
 import { ScheduleEvent, Timezone } from "../../models/scheduler";
 import { MailerEvents } from "../../types/mailer";
 import { IEvent, IUpsertEvent } from "../../models/event";
@@ -30,7 +30,7 @@ export const event = {
       { input: { range, endTime, createdById, status, referenceIds, venueIds, ...input } }: { input: EventSearchInput },
       { events, lotteryCounter, organization, user }: Context
     ): Promise<SearchResults<IEvent>> => {
-      let timeFilters: any = {};
+      const timeFilters: any = {};
       const $or: any[] = [];
 
       if (referenceIds) {
@@ -132,7 +132,7 @@ export const event = {
       }
 
       return await events.search({
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         // Do not show complete events in the overtime search :)
         ...timeFilters,
         ...($or.length > 0 ? { $or } : {}),
@@ -151,7 +151,6 @@ export const event = {
       adminOnly(user);
       const invoice = await docusign.createInvoiceHTML({
         eventId: new ObjectId(eventId),
-        user: user!,
         organization: organization!,
       })
       return invoice;
@@ -191,7 +190,7 @@ export const event = {
     ): Promise<EventAttachmentUpload> => {
       adminOnly(user);
       return events.getUploadUrl({
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
       });
     },
     removeEvent: async (
@@ -394,7 +393,7 @@ export const event = {
 
       let currentEvent: IEvent | undefined;
       if (event.id) {
-        let foundEvent = await events.get(event.id);
+        const foundEvent = await events.get(event.id);
         if (!foundEvent) {
           throw new GraphQLError('Could not find event');
         }
@@ -467,7 +466,7 @@ export const event = {
           }
         ),
         attachmentPaths: event?.attachmentPaths ? event?.attachmentPaths : event?.attachmentPaths || [],
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
         modifiedById: user!._id!,
         searchAttribute: `${event.referenceId} ${event.name}`,
         docType: DocType.Event,
@@ -486,7 +485,7 @@ export const event = {
       }
 
       if (currentEvent?.status === EventStatus.ReadyForLottery && inputEvent.status !== EventStatus.ReadyForLottery) {
-        await shiftLotteryRequests.removeByEventId(currentEvent?.id!, user!._id!);
+        await shiftLotteryRequests.removeByEventId(currentEvent.id!, user!._id!);
       } else if (
         (
           (currentEvent?.status !== EventStatus.FirstComeFirstServe && inputEvent.status === EventStatus.FirstComeFirstServe) ||
@@ -499,21 +498,21 @@ export const event = {
         if (isAfter(new Date(), addMinutes(scheduledFirstComeFirstServe!, -1))) {
           await scheduler.removeSchedule({
             event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
-            orgId: user?.member.orgId!,
+            orgId: user.member.orgId,
             customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent?.id}`,
             ignoreError: true,
           });
-          await shifts.notifyUsersOfEventAvailability(currentEvent?.id!, organization!);
+          await shifts.notifyUsersOfEventAvailability(currentEvent!.id!, organization!);
         } else {
           await scheduler.updateScheduledEvent({
             event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
-            orgId: user?.member.orgId!,
+            orgId: user.member.orgId!,
             eventTime: `at(${format(scheduledFirstComeFirstServe!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
             eventTimeZone: Timezone.UTC,
             customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent?.id}`,
             eventInput: JSON.stringify({
               action: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
-              orgId: user?.member.orgId!,
+              orgId: user.member.orgId!,
               eventId: currentEvent?.id,
             }),
           });
@@ -524,7 +523,7 @@ export const event = {
       if (inputEvent.status !== EventStatus.FirstComeFirstServe && currentEvent?.status === EventStatus.FirstComeFirstServe) {
         await scheduler.removeSchedule({
           event: ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE,
-          orgId: user?.member.orgId!,
+          orgId: user.member.orgId!,
           customEventName: `${ScheduleEvent.EVENT_FIRST_COME_FIRST_SERVE_GO_LIVE}-${currentEvent.id}`,
           ignoreError: true,
         });

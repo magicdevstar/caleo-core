@@ -6,7 +6,7 @@ export const Mutation = {
   removeRankGroup: async (
     _parent: unknown,
     { id }: { id: string },
-    { rankGroups, users, user }: Context
+    { rankGroups, user }: Context
   ): Promise<string> => {
     adminOnly(user);
 

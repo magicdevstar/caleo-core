@@ -9,7 +9,7 @@ export const Query = {
     { input }: { input: RankGroupSearchInput },
     { rankGroups, user }: Context
   ): Promise<SearchResults<IRankGroup>> => rankGroups.search({
-    orgId: user?.member.orgId!,
+    orgId: user.member.orgId,
     queryField: 'name',
     orderBy: 'name',
     order: 'asc',

@@ -4,10 +4,7 @@ import { IEventUpdates, NotificationType, ShiftNotificationAction } from "../typ
 import { IOrganization } from "../models/organizations/organization.entity";
 import { Action, MailerEvent, MailerEvents } from "../types/mailer";
 import { IUser } from "../types/common";
-import { IEvent } from "../models/event";
-import { IChangeData } from "../types/change.streams";
 import { ObjectId } from "mongodb";
-import { IAssignment } from "../models/assignment";
 
 const lambda = new LambdaClient({
   maxAttempts: 3,

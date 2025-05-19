@@ -4,7 +4,7 @@ import { IOrganization } from "../models/organizations/organization.entity";
 import { IRank } from "../models/rank";
 import { IShift } from "../models/shift";
 import { IUser } from "../types/common";
-import { add, addDays, differenceInHours, format } from "date-fns";
+import { addDays, differenceInHours, format } from "date-fns";
 
 const top = ({
   eventName,

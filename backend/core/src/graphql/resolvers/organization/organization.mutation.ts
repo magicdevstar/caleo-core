@@ -4,6 +4,7 @@ import { Context } from "../../../utils/createContext";
 import {
   UpsertOrganization,
   CreateOrganization,
+  OrganizationFeatures,
 } from "../../../__generated__/resolvers-types";
 import { adminOnly, isSuperAdmin, superAdminOnly } from "../../../utils/access";
 import {
@@ -45,7 +46,7 @@ export const Mutation = {
   organization: async (
     _parent: unknown,
     { organization: org }: { organization: UpsertOrganization },
-    { organizations, scheduler, users, lotteryCounter, user }: Context
+    { organizations, users, lotteryCounter, user }: Context
   ): Promise<IOrganization> => {
     adminOnly(user);
 
@@ -64,7 +65,7 @@ export const Mutation = {
         mergedOrg.settings = settings;
       }
       if (!mergedOrg.features) {
-        mergedOrg.features = features;
+        mergedOrg.features = features as unknown as OrganizationFeatures;
       }
     };
 

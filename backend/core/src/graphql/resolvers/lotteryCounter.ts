@@ -12,9 +12,9 @@ export const lotteryCounter = {
       { lotteryCounter, user }: Context,
     ) => {
       if (counter) {
-        return lotteryCounter.getByCounter(counter, user?.member.orgId!);
+        return lotteryCounter.getByCounter(counter, user.member.orgId);
       }
-      return lotteryCounter.get(user?.member.orgId!);
+      return lotteryCounter.get(user.member.orgId!);
     },
     lotteryCounters: (
       _parent: unknown,
@@ -22,7 +22,7 @@ export const lotteryCounter = {
       { lotteryCounter, user }: Context,
     ) => lotteryCounter.search({
       ...input,
-      orgId: new ObjectId(user?.member.orgId!),
+      orgId: new ObjectId(user.member.orgId!),
       includeRemoved: true,
     }),
   },

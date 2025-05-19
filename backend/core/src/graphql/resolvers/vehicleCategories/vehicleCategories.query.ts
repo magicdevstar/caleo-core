@@ -14,7 +14,7 @@ export const Query = {
     { input }: { input: VehicleCategoriesSearchInput },
     { vehicleCategories, user }: Context
   ): Promise<SearchResults<IVehicleCategory>> => vehicleCategories.search({
-    orgId: user?.member.orgId!,
+    orgId: user?.member.orgId,
     queryField: 'name',
     ...input,
   }),

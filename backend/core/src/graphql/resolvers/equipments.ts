@@ -26,7 +26,7 @@ export const equipment = {
       { input: { rankOnlyIds, ...input } }: { input: SkillSearchInput },
       { equipments, user }: Context
     ): Promise<SearchResults<IEquipment>> => equipments.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
       queryField: 'name',
       ...input,
       orderBy: input.orderBy || 'name',
@@ -43,7 +43,7 @@ export const equipment = {
       { input }: { input: MemberEquipmentSearchInput },
       { memberEquipments, user }: Context
     ): Promise<SearchResults<IMemberEquipment>> => memberEquipments.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
       ...input,
     })
   },
@@ -109,8 +109,8 @@ export const equipment = {
         ...(equipment.rankOnlyIds && {
           rankOnlyIds: equipment.rankOnlyIds.map((id) => new ObjectId(id!)),
         }),
-        orgId: user?.member.orgId!,
-        modifiedById: user?._id!,
+        orgId: user.member.orgId!,
+        modifiedById: user._id!,
       } as any);
     },
     userEquipment: async (
@@ -130,8 +130,8 @@ export const equipment = {
         ...userEquipment,
         ...(userEquipment.equipmentId && { equipmentId: new ObjectId(userEquipment.equipmentId) }),
         ...(userEquipment.userId && { userId: new ObjectId(userEquipment.userId) }),
-        orgId: user?.member.orgId!,
-        modifiedById: user?._id!,
+        orgId: user.member.orgId!,
+        modifiedById: user._id!,
       } as any, organization!);
     },
     userEquipmentAttachmentUploadUrl: async (
@@ -140,7 +140,7 @@ export const equipment = {
       { memberEquipments, user }: Context
     ): Promise<MemberEquipmentAttachmentUpload> => {
       return memberEquipments.getUploadUrl({
-        orgId: user?.member.orgId.toString()!,
+        orgId: user.member.orgId.toString()!,
       });
     }
   },

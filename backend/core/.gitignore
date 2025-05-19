@@ -9,6 +9,7 @@ __sls__/input/input.json
 
 # Generated types
 src/__generated__
+__generated__
 
 # Test files
 notification-test.js

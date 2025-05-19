@@ -1,7 +1,6 @@
 import { Db, ObjectId } from 'mongodb';
 import { BaseMongo } from './base.v2';
 import startOfDay from 'date-fns/startOfDay';
-import { create } from 'domain';
 
 export interface IOperation {
   _id?: ObjectId;

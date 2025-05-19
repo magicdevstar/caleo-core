@@ -416,7 +416,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     noShow: boolean,
     user: IUser,
   }) {
-    const res = await this.collection.updateOne({
+    await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
@@ -510,7 +510,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         .limit(1)
         .toArray();
       return res[0]?.refNumber || null;
-    } catch(error) {
+    } catch(error) { // eslint-disable-line @typescript-eslint/no-unused-vars
       logger.warn('Could not find highest shift ref number', { eventId });
       return null;
     }
@@ -1124,8 +1124,6 @@ export class ShiftModel extends BaseMongo<IShift> {
       order,
       orderBy,
       range,
-      query,
-      queryField,
       startTime,
       endTime,
       userId,
@@ -1155,7 +1153,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     if (refNumber) {
       try {
         (matchInput as any).refNumber = parseInt(refNumber, 10);
-      } catch(error) {
+      } catch(error) { // eslint-disable-line @typescript-eslint/no-unused-vars
         (matchInput as any).refNumber = -1;
       }
     }
@@ -1260,7 +1258,7 @@ export class ShiftModel extends BaseMongo<IShift> {
           },
       });
 
-      let assignmentMatch: any = {
+      const assignmentMatch: any = {
         $match: {},
       };
 
@@ -1334,7 +1332,7 @@ export class ShiftModel extends BaseMongo<IShift> {
       }
     ];
     const result = await this.collection.aggregate<{_id: string; slotCount: number; }>(pipeline).toArray();
-    return result.map(({ _id, slotCount }) => ({
+    return result.map(({ slotCount }) => ({
       id: new ObjectId(),
       slotCount,
     })) as IAssignmentShiftSlots[];

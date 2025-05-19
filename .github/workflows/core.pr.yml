@@ -53,6 +53,9 @@ jobs:
       - name: Generate Types
         run: yarn generate
 
+      - name: Run Lint
+        run: yarn lint
+
       - name: Run Unit tests
         run: yarn test:unit
 

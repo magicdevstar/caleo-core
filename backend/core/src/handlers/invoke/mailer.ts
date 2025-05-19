@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../../types/mailer";
-import { Context, createContext } from "../../utils/createContext";
+import { createContext, IServiceContext } from "../../utils/createContext";
 import { EventStatus, MemberStatus, ShiftStatus } from "../../__generated__/resolvers-types";
 import { InAppTemplates } from "../../types/inAppTemplates";
 import { IAssignment } from "../../models/assignment";
@@ -98,7 +98,7 @@ const sendInAppNotification = async ({
   orgId,
   meta,
 } : {
-  context: Context;
+  context: IServiceContext;
   title: string;
   templateName: string;
   body: string;
@@ -503,7 +503,7 @@ const sendEmail = async (input: MailerEvent) => {
                   });
                   inAppPromises.push(sendInAppNotification({
                     context,
-                    userId: admin?._id?.toString()!,
+                    userId: admin._id!.toString()!,
                     templateName: MailerEvents.AdminEventFullyStaffed,
                     orgId: organization.id,
                     title,
@@ -576,7 +576,7 @@ const sendEmail = async (input: MailerEvent) => {
                   });
                   inAppPromises.push(sendInAppNotification({
                     context,
-                    userId: admin?._id?.toString()!,
+                    userId: admin._id!.toString()!,
                     templateName: MailerEvents.AdminEventShiftsFilled,
                     orgId: organization.id,
                     title,
@@ -711,7 +711,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       let url = process.env.LOGIN_URL || '';
       if ((organization as IOrganization).features.sso) {
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');
@@ -890,7 +890,7 @@ const sendEmail = async (input: MailerEvent) => {
               });
               inAppPromises.push(sendInAppNotification({
                 context,
-                userId: admin?._id?.toString()!,
+                userId: admin._id!.toString()!,
                 templateName: MailerEvents.AdminEventFullyStaffed,
                 orgId: organization.id,
                 title,
@@ -965,7 +965,7 @@ const sendEmail = async (input: MailerEvent) => {
               });
               inAppPromises.push(sendInAppNotification({
                 context,
-                userId: admin?._id?.toString()!,
+                userId: admin._id!.toString()!,
                 templateName: MailerEvents.AdminEventShiftsFilled,
                 orgId: organization.id,
                 title,
@@ -1093,7 +1093,7 @@ const sendEmail = async (input: MailerEvent) => {
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: admin?._id?.toString()!,
+            userId: admin._id!.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1187,7 +1187,7 @@ const sendEmail = async (input: MailerEvent) => {
           });
           inAppPromises.push(sendInAppNotification({
             context,
-            userId: admin?._id?.toString()!,
+            userId: admin._id!.toString()!,
             templateName: input.template,
             orgId: organization.id,
             title,
@@ -1316,7 +1316,8 @@ const sendEmail = async (input: MailerEvent) => {
       }
     } else if (input.template === MailerEvents.OfficerShiftStartingNotification) {
       templateVersion = '2';
-      let { userId, shiftId } = input.data;
+      const shiftId = input.data.shiftId;
+      let { userId } = input.data;
       const shift = await context.shifts.get(shiftId);
       if (!shift || shift.userId !== userId) {
         if (!shift?.userId) {
@@ -1814,7 +1815,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       if ((organization as IOrganization).features.sso) {
         input.template = MailerEvents.OfficerUserAccountInvitationSSO;
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');
@@ -1940,11 +1941,11 @@ const sendEmail = async (input: MailerEvent) => {
         body,
       });
     } else if (input.template === MailerEvents.OfficerUserAccountReactivated) {
-      let {
+      const {
         user: inputUser,
-        organization,
         orgId,
       } = input.data;
+      let organization: IOrganization | null = input.data.organization as IOrganization;
       fromEmail = organization.fromEmail || fromEmail;
 
       const user = await context.users.get(inputUser.id);
@@ -1984,7 +1985,7 @@ const sendEmail = async (input: MailerEvent) => {
         body,
       });
     } else if (input.template === MailerEvents.OfficerShiftAutoCheckout) {
-      let {
+      const {
         shiftIds,
         organization,
       } = input.data;
@@ -2078,7 +2079,7 @@ const sendEmail = async (input: MailerEvent) => {
       }
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerShiftCheckInOutEdited) {
-      let {
+      const {
         originalShift,
         shift,
         organization,
@@ -2113,8 +2114,8 @@ const sendEmail = async (input: MailerEvent) => {
       let newInTime;
 
       if (originalShift.shiftCheckInOut && originalShift.shiftCheckInOut.checkOutTime !== shift.shiftCheckInOut?.checkOutTime) {
-        oldOutTime = convertDate(originalShift.shiftCheckInOut?.checkOutTime!, organization);
-        newOutTime = convertDate(shift.shiftCheckInOut?.checkOutTime!, organization);
+        oldOutTime = convertDate(originalShift.shiftCheckInOut!.checkOutTime!, organization);
+        newOutTime = convertDate(shift.shiftCheckInOut!.checkOutTime!, organization);
       }
 
       if (originalShift.shiftCheckInOut && originalShift.shiftCheckInOut.checkInTime !== shift.shiftCheckInOut?.checkInTime) {
@@ -2409,7 +2410,7 @@ const sendEmail = async (input: MailerEvent) => {
       let url = process.env.LOGIN_URL || '';
 
       if ((organization as IOrganization).features.sso) {
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');
@@ -2471,7 +2472,7 @@ const sendEmail = async (input: MailerEvent) => {
 
       Addresses = {
         ...Addresses,
-        [organization.contact?.email!]: {
+        [organization.contact!.email!]: {
           ChannelType: 'EMAIL',
           Substitutions: {
             "system.metro_name": [organization.name],
@@ -2521,7 +2522,7 @@ const sendEmail = async (input: MailerEvent) => {
       fromEmail = organization.fromEmail || fromEmail;
       let url = process.env.LOGIN_URL || '';
       if ((organization as IOrganization).features.sso) {
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');
@@ -2690,7 +2691,7 @@ const sendEmail = async (input: MailerEvent) => {
       fromEmail = organization.fromEmail || fromEmail;
       let url = process.env.LOGIN_URL || '';
       if ((organization as IOrganization).features.sso) {
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');
@@ -2813,7 +2814,7 @@ const sendEmail = async (input: MailerEvent) => {
       fromEmail = organization.fromEmail || fromEmail;
       let url = process.env.LOGIN_URL || '';
       if ((organization as IOrganization).features.sso) {
-        const domain = organization.sso?.uiSubDomains?.[0]!;
+        const domain = organization.sso?.uiSubDomains?.[0] || 'app';
         const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
         urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
         urlBuilder.searchParams.append('response_type', 'code');

@@ -10,7 +10,7 @@ import { IOrganization } from '../../../models/organizations/organization.entity
 
 const lambda = new LambdaClient();
 
-let organizationMap: Record<string, IOrganization> = {};
+const organizationMap: Record<string, IOrganization> = {};
 const memberStatusSync = async () => {
   const { users, organizations } = await createContext();
 

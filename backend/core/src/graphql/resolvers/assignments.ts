@@ -23,7 +23,7 @@ export const assignments = {
       skip,
       ...input,
       ...(input.eventId && { eventId: new ObjectId(input.eventId) }),
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
     })
   },
   Mutation: {
@@ -65,8 +65,8 @@ export const assignments = {
         eventId: assignment.eventId,
         removeId: id,
         removeType: EventRemoveEventType.assignment,
-        orgId: user?.member.orgId!,
-        modifiedById: user!._id!,
+        orgId: user.member.orgId,
+        modifiedById: user._id!,
       });
 
       return id;
@@ -83,7 +83,6 @@ export const assignments = {
         throw new GraphQLError("Event not found");
       }
 
-      let updatedAssignment: IAssignment;
       if (assignment.id) {
         const currentAssignment = await assignments.get(assignment.id);
         if (!currentAssignment) {
@@ -91,7 +90,7 @@ export const assignments = {
         }
       } 
 
-      updatedAssignment = await assignments.upsert({
+      const updatedAssignment = await assignments.upsert({
         ...assignment,
         ...(assignment.eventId && { eventId: new ObjectId(assignment.eventId) }),
         ...(assignment.requiredSkillIds && { requiredSkillIds: assignment.requiredSkillIds.map((id) => new ObjectId(id)) }),
@@ -103,8 +102,8 @@ export const assignments = {
             id: !shiftSlot?.id ? new ObjectId() : shiftSlot.id,
           })),
         } : {}),
-        orgId: new ObjectId(user?.member.orgId!),
-        modifiedById: new ObjectId(user!.id),
+        orgId: new ObjectId(user.member.orgId),
+        modifiedById: new ObjectId(user.id),
       });
 
       if (!assignment.id) {
@@ -130,8 +129,8 @@ export const assignments = {
                 [],
       ranks: (assignment: IAssignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []).map((id) => id.toString())),
       shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
-      availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnAssignment.load(item.id?.toString()!),
-      totalShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnAssignment.load(item.id?.toString()!),
+      availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnAssignment.load(item.id!.toString()!),
+      totalShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnAssignment.load(item.id!.toString()!),
     },
   },
 };

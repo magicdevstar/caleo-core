@@ -44,8 +44,8 @@ export const shiftLotteryRequests = {
       }: Context
     ): Promise<SearchResults<IShiftLotteryRequest>> => {
       let searchInput: any = {
-        orgId: user?.member.orgId!,
-        ...(user?._id && {userId: new ObjectId(user._id!)}),
+        orgId: user.member.orgId!,
+        ...(user._id && {userId: new ObjectId(user._id!)}),
         queryField: 'shiftGroupId',
         order: 'asc',
         orderBy: 'order',
@@ -86,10 +86,10 @@ export const shiftLotteryRequests = {
       adminOrOwnerOnly(foundRequest.userId.toString(), user);
 
       await shiftLotteryRequests.remove(id, {
-        modifiedById: user?._id!,
+        modifiedById: user._id!,
         status: ShiftLotteryRequestStatus.Removed
       });
-      await shiftLotteryRequests.reorderShifts(foundRequest.lotteryCounter, user?.id!, id);
+      await shiftLotteryRequests.reorderShifts(foundRequest.lotteryCounter, user.id!, id);
       return id;
     },
     shiftLotteryRequest: async (
@@ -118,8 +118,8 @@ export const shiftLotteryRequests = {
         assignmentId: new ObjectId(shift.assignmentId),
         lotteryCounter: counter,
         orgId: new ObjectId(shift.orgId),
-        userId: user?._id!,
-        modifiedById: user?._id!,
+        userId: user._id!,
+        modifiedById: user._id!,
         id: shiftLotteryRequest.id || undefined,
       };
 
@@ -167,8 +167,8 @@ export const shiftLotteryRequests = {
       const { canSignUpForShift } = await shifts.canSignUpForShift({
         user: lottoUser,
         shift: availableShift,
-        orgId: user?.member.orgId.toString()!,
-        shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
+        orgId: user.member.orgId.toString()!,
+        shiftBufferTime: organization.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
       });
 
       if (!canSignUpForShift) {
@@ -178,14 +178,14 @@ export const shiftLotteryRequests = {
       try {
         availableShift.status = ShiftStatus.Assigned;
         availableShift.userId = lottoUser._id!;
-        availableShift.modifiedById = user?._id!;
+        availableShift.modifiedById = user._id!;
         await shifts.update({
           ...availableShift,
           id: availableShift.id!,
         });
 
         foundRequest.status = ShiftLotteryRequestStatus.Approved;
-        foundRequest.modifiedById = user?._id!;
+        foundRequest.modifiedById = user._id!;
         await shiftLotteryRequests.update({
           ...foundRequest,
           id: foundRequest.id!,
@@ -205,7 +205,6 @@ export const shiftLotteryRequests = {
         shifts,
         users,
         user,
-        organization,
       }: Context
     ) => {
       adminOnly(user);
@@ -243,7 +242,7 @@ export const shiftLotteryRequests = {
           {
             $set: {
               status: ShiftStatus.Available,
-              modifiedById: user?.id!,
+              modifiedById: user.id!,
             },
             $unset: {
               userId: 1,
@@ -252,7 +251,7 @@ export const shiftLotteryRequests = {
         );
 
         foundRequest.status = ShiftLotteryRequestStatus.Rejected;
-        foundRequest.modifiedById = user?._id!;
+        foundRequest.modifiedById = user._id!;
         await shiftLotteryRequests.update({
           ...foundRequest,
           id: foundRequest.id!,

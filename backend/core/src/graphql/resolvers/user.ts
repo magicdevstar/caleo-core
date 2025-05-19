@@ -84,7 +84,7 @@ export const user = {
       ...(input.statuses ? {'member.status': { $in: input.statuses }} : {}),
       ...(input.tiers ? {'member.tier': { $in: input.tiers }} : {}),
       ...('admin' in input ? {'member.role': input.admin ? MemberRole.Admin : MemberRole.Member} : {}),
-      'member.orgId': user?.member.orgId!,
+      'member.orgId': user?.member.orgId,
     }),
     allUsers: async (
       _parent: unknown,
@@ -305,7 +305,6 @@ export const user = {
       let tierUpdates: any = {};
       if (user.member?.tier) {
         if (user.member.tierUntil) {
-          const targetTier = user.member.tier === MemberTier.Tier_2 ? MemberTier.Tier_1 : MemberTier.Tier_2;
           const tierReturnDate = new Date(user.member.tierUntil);
           tierUpdates = {
             tierUntil: tierReturnDate,
@@ -405,7 +404,7 @@ export const user = {
       { users, user }: Context
     ): Promise<ProfilePhotoAttachmentUpload> => {
       return users.getUploadUrl({
-        orgId: user?.member.orgId.toString()!,
+        orgId: user.member.orgId.toString()!,
       });
     },
     removeUser: async (
@@ -440,7 +439,7 @@ export const user = {
         const beginningOfWeek = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
         const endOfTheWeek = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
         return shifts.weekShiftsLoader.load({
-          id: parent._id?.toString()!,
+          id: parent._id!.toString()!,
           orgId: parent.member.orgId.toString(),
           beginningOfWeek,
           endOfWeek: endOfTheWeek,
@@ -451,12 +450,12 @@ export const user = {
           return null;
         }
 
-        const zonedStart = toZonedTime(parent.shiftStart, organization?.timezone!);
+        const zonedStart = toZonedTime(parent.shiftStart, organization!.timezone!);
         const beginningOfMonth = startOfMonth(zonedStart);
         const endOfTheMonth = endOfMonth(zonedStart);
 
         return shifts.shiftHoursLoader.load({
-          id: parent._id?.toString()!,
+          id: parent._id!.toString()!,
           orgId: parent.member.orgId.toString(),
           beginningOfMonth,
           endOfMonth: endOfTheMonth,
@@ -470,7 +469,7 @@ export const user = {
         const beginningOfWeek = addHours(startOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
         const endOfTheWeek = addHours(endOfWeek(new Date(parent.shiftStart), { weekStartsOn: 1 }), parent.timezoneOffset || 0);
         return shifts.shiftCountLoader.load({
-          id: parent._id?.toString()!,
+          id: parent._id!.toString()!,
           orgId: parent.member.orgId.toString(),
           beginningOfWeek,
           endOfWeek: endOfTheWeek,

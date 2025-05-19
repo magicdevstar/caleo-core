@@ -26,9 +26,9 @@ export const userFromEvent = async (
   }
 
   let user = await users.collection.findOne<IUser>({ cognitoId: sub, removedAt: { $exists: false } });
-  let originalUser = user || undefined;
+  const originalUser = user || undefined;
   if (user?.superAdmin && familyName && familyName.includes('t:')) {
-    const [_, userId] = familyName.split(':');
+    const userId = familyName.split(':')[1];
     user = await users.get(userId);
   }
 

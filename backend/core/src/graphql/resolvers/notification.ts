@@ -50,7 +50,7 @@ export const notification = {
         read,
         order,
         orderBy,
-        userId: user?._id!,
+        userId: user._id!,
       });
       return res;
     },
@@ -62,7 +62,7 @@ export const notification = {
       JSON.parse(JSON.stringify({
         limit,
         skip,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
         orderBy: 'updatedAt',
         $and: [
           {
@@ -121,7 +121,7 @@ export const notification = {
     ): Promise<string> => {
       adminOnly(user);
       await notifications.remove(id, {
-        modifiedById: user?.id!,
+        modifiedById: user.id!,
       });
       return id;
     },
@@ -140,8 +140,8 @@ export const notification = {
 
       return notifications.upsert({
         ...notification,
-        orgId: user?.member.orgId!.toString(),
-        modifiedById: user?.id!,
+        orgId: user.member.orgId!.toString(),
+        modifiedById: user.id!,
       } as any);
     },
     seenNotifications: async (
@@ -151,7 +151,7 @@ export const notification = {
     ): Promise<boolean> => {
       await memberNotifications.seen({
         notificationIds,
-        userId: user?.id!,
+        userId: user.id!,
       });
       return true;
     }
@@ -181,9 +181,9 @@ export const notification = {
       seen: (notification: Notification, _, { memberNotifications, user }: Context) =>
         memberNotifications.seenLoader.load({
           notificationId: notification.id,
-          userId: user?.id!,
+          userId: user.id!,
         }),
-      memberNotification: (_notification: Notification, _, { memberNotifications, user }: Context) => memberNotifications.userLoader.load(user?.id!),
+      memberNotification: (_notification: Notification, _, { memberNotifications, user }: Context) => memberNotifications.userLoader.load(user.id!),
     },
   },
 };

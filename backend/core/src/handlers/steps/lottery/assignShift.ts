@@ -31,7 +31,7 @@ const bucketAndShuffle = (requests: IStagedShiftLotteryRequest[]) => {
     return acc;
   }, {} as Record<string, IStagedShiftLotteryRequest[]>);
 
-  let shuffledReq: IStagedShiftLotteryRequest[] = [];
+  const shuffledReq: IStagedShiftLotteryRequest[] = [];
 
   Object.keys(bucket)
     .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))

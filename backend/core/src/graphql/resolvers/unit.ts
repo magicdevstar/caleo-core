@@ -17,7 +17,7 @@ export const unit = {
       { input }: { input: UnitSearchInput },
       { unit, user }: Context
     ): Promise<SearchResults<IUnit>> => unit.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       queryField: 'name',
       ...input,
     }),
@@ -59,7 +59,7 @@ export const unit = {
         ...(inputUnit.divisionIds && {
           divisionIds: inputUnit.divisionIds.map((id) => new ObjectId(id!)),
         }),
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         modifiedById: user!._id!,
       });
     },

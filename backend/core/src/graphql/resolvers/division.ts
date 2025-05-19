@@ -18,7 +18,7 @@ export const division = {
       { input }: { input: DivisionSearchInput },
       { division, user }: Context
     ): Promise<SearchResults<IDivision>> => division.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       queryField: 'name',
       ...input,
     }),
@@ -72,7 +72,7 @@ export const division = {
       }
       return division.upsert({
         ...inputDivision,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         modifiedById: user!._id!,
       });
     },

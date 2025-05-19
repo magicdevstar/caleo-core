@@ -1,5 +1,5 @@
 import { GraphQLError } from "graphql";
-import { MemberRole, User } from "../__generated__/resolvers-types";
+import { MemberRole } from "../__generated__/resolvers-types";
 import { IUser } from "../types/common";
 
 export const adminOnly = (user?: IUser) => {

@@ -1,7 +1,7 @@
 import { Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import uniq from 'lodash.uniq';
-import { Assignment, DocType, User } from '../__generated__/resolvers-types';
+import { Assignment, DocType } from '../__generated__/resolvers-types';
 import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';

@@ -1,6 +1,6 @@
 import { format, getDay, parseISO } from "date-fns";
 
-import { DayOfWeek, OrganizationFeatures, OrganizationSearchInput } from '../../__generated__/resolvers-types';
+import { DayOfWeek, OrganizationSearchInput } from '../../__generated__/resolvers-types';
 import { ScheduleEvent } from "../scheduler";
 import { utcToZonedTime } from 'date-fns-tz';
 import { dayMap } from '../../utils/dayMap';

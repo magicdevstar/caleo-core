@@ -38,7 +38,7 @@ export class DocumentModel {
 
       await s3.send(command);
       return true;
-    } catch (error) {
+    } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
       return false;
     }
   }

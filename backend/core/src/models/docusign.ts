@@ -434,7 +434,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
 
     let signingUrl;
     if (signNow) {
-      const domain = org.sso?.uiSubDomains?.[0]!;
+      const domain = org.sso?.uiSubDomains?.[0];
       const baseDomain = `https://${domain}.caleopro.com`;
       // const baseDomain = 'http://192.168.4.150:3000';
       const viewRequest = {

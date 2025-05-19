@@ -1,12 +1,11 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { ConstructorOptions } from '@aws-lambda-powertools/logger/lib/types';
+import { ConstructorOptions, LogLevel } from '@aws-lambda-powertools/logger/lib/types';
 
 const getLoggerConfig = ({
   serviceName,
-  stage
 }): ConstructorOptions => ({
   serviceName,
-  logLevel: process.env.LOG_LEVEL! as any,
+  logLevel: process.env.LOG_LEVEL! as unknown as LogLevel,
   sampleRateValue: parseFloat(process.env.LOG_SAMPLE_RATE!),
 });
 
@@ -17,7 +16,6 @@ export const persistentAttributes = [
 
 const logger = new Logger(getLoggerConfig({
   serviceName: 'caleo-core',
-  stage: process.env.STAGE,
 }));
 
 export const loggerMiddleware = async () => {

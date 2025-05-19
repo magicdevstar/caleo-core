@@ -18,7 +18,7 @@ export const rank = {
       { input }: { input: RankSearchInput },
       { ranks, user }: Context
     ): Promise<SearchResults<IRank>> => ranks.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
       queryField: 'name',
       ...input,
       orderBy: input.orderBy || 'name',
@@ -93,7 +93,7 @@ export const rank = {
         ...existingRank,
         ...rank,
         ...(rank.rankGroupId ? { rankGroupId: new ObjectId(rank.rankGroupId) } : { rankGroupId: null }),
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         modifiedById: user!._id!,
       });
 

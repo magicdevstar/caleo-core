@@ -31,7 +31,7 @@ export const Mutation = {
       }
       return vehicleCategories.upsert({
         ...inputVehicleCategory,
-        orgId: user?.member.orgId!,
+        orgId: user?.member.orgId,
         modifiedById: user!._id!,
       });
     },

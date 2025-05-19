@@ -133,7 +133,6 @@ export class BaseMongo<T> {
   }
 
   async remove(id: string | ObjectId, setValues?: any): Promise<void> {
-    const now = new Date();
     await this.collection.updateOne({
       _id: new ObjectId(id)
     }, {
@@ -209,7 +208,7 @@ export class BaseMongo<T> {
       rest.removedAt = { $exists: false };
     }
 
-    let textQuery: any = {};
+    const textQuery: any = {};
     if (query) {
       const fieldName = queryField || 'name';
       textQuery[fieldName] = {

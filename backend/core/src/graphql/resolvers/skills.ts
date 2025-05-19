@@ -1,7 +1,6 @@
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/createContext";
 import {
-  MemberSkill,
   SkillSearchInput,
   Skill,
   SkillStatus,
@@ -28,7 +27,7 @@ export const skill = {
       { input: { rankOnlyIds, ...input } }: { input: SkillSearchInput },
       { skills, user }: Context
     ): Promise<SearchResults<ISkill>> => skills.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       queryField: 'name',
       ...input,
       orderBy: input.orderBy || 'name',
@@ -45,7 +44,7 @@ export const skill = {
       { input }: { input: MemberSkillSearchInput },
       { memberSkills, user }: Context
     ): Promise<SearchResults<IMemberSkill>> => memberSkills.search({
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       ...input,
     })
   },
@@ -111,8 +110,8 @@ export const skill = {
         ...(skill.rankOnlyIds && {
           rankOnlyIds: skill.rankOnlyIds.map((id) => new ObjectId(id!)),
         }),
-        orgId: user?.member.orgId!,
-        modifiedById: user?._id!,
+        orgId: user.member.orgId,
+        modifiedById: user._id!,
       } as any);
     },
     userSkill: async (
@@ -132,8 +131,8 @@ export const skill = {
         ...userSkill,
         ...(userSkill.skillId && { skillId: new ObjectId(userSkill.skillId) }),
         ...(userSkill.userId && { userId: new ObjectId(userSkill.userId) }),
-        orgId: user?.member.orgId!,
-        modifiedById: user?._id!,
+        orgId: user.member.orgId,
+        modifiedById: user._id!,
       } as any, organization!);
     },
     userSkillAttachmentUploadUrl: async (
@@ -142,7 +141,7 @@ export const skill = {
       { memberSkills, user }: Context
     ): Promise<MemberSkillAttachmentUpload> => {
       return memberSkills.getUploadUrl({
-        orgId: user?.member.orgId.toString()!,
+        orgId: user.member.orgId.toString(),
       });
     }
   },

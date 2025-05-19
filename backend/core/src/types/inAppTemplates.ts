@@ -222,7 +222,6 @@ export const InAppTemplates = {
   }),
   [MailerEvents.OfficerInterestListOpening]: ({
     eventName,
-    interestClosingTime,
     interestStartTime,
   }) => ({
     title: `New Event: ${eventName}. Express interest now on Caleo!`,
@@ -231,7 +230,6 @@ export const InAppTemplates = {
   [MailerEvents.OfficerInterestListClosing]: ({
     eventName,
     interestClosingTime,
-    interestStartTime,
   }) => ({
     title: `Last chance to show your interest in working ${eventName} shifts!`,
     body: `You can express your interest in working shifts for ${eventName} until ${interestClosingTime.date} ${interestClosingTime.time}.`,

@@ -98,7 +98,7 @@ export const Mutation = {
     adminOrOwnerOnly(shift.userId?.toString() || '', user);
     let finalTime: Date | undefined;
     let finalAdminNote: string | undefined;
-    let checkInNote: string | undefined = note || undefined;
+    const checkInNote: string | undefined = note || undefined;
     if (userIsAdmin(user)) {
       finalTime = time ? new Date(time) : undefined;
       finalAdminNote = adminNotes || undefined;
@@ -136,10 +136,10 @@ export const Mutation = {
     if (!shift) {
       throw new GraphQLError("Shift not found");
     }
-    adminOrOwnerOnly(shift.userId?.toString()!, user);
+    adminOrOwnerOnly(shift.userId!.toString()!, user);
     let finalTime: Date | undefined;
     let finalAdminNote: string | undefined;
-    let checkOutNote: string | undefined = note || undefined;
+    const checkOutNote: string | undefined = note || undefined;
     if (userIsAdmin(user)) {
       finalTime = time ? new Date(time) : undefined;
       finalAdminNote = adminNotes || undefined;
@@ -215,7 +215,7 @@ export const Mutation = {
       eventId: shift.eventId,
       removeId: id,
       removeType: EventRemoveEventType.shift,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
       removeStart: shift.startTime,
       removeEnd: shift.endTime,
       modifiedById: user!._id!,
@@ -248,7 +248,7 @@ export const Mutation = {
 
     await shifts.removeMany({
       shiftId,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
     }, {
       status: ShiftStatus.Removed,
       modifiedById: user!._id,
@@ -267,7 +267,7 @@ export const Mutation = {
       eventId,
       removeId: shiftId,
       removeType: EventRemoveEventType.shifts,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
       modifiedById: user!._id!,
     });
 
@@ -306,10 +306,10 @@ export const Mutation = {
     const availability = shifts.createAvailability({
       startTime,
       endTime,
-    } as any, organization?.timezone!);
+    } as any, organization.timezone!);
 
     await shifts.updateByShiftGroupId(shiftId, {
-      modifiedById: user?._id!,
+      modifiedById: user._id!,
       ...((updates.endTime || updates.startTime) && { availability }),
       ...(updates.startTime && { startTime }),
       ...(updates.endTime && { endTime }),
@@ -320,14 +320,14 @@ export const Mutation = {
         eventId: new ObjectId(existingShifts[0].eventId),
         removeId: shiftId,
         removeType: EventRemoveEventType.shiftUpdate,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         modifiedById: user!._id!,
-        lasdEventFields: organization?.features.lasdEventFields,
-        timezone: organization?.timezone,
+        lasdEventFields: organization.features.lasdEventFields,
+        timezone: organization.timezone,
       });
       await changeStream.handleShift({
         shiftId,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId,
         endTime: {
           newValue: endTime,
           oldValue: existingShifts[0].endTime,
@@ -362,8 +362,11 @@ export const Mutation = {
   ): Promise<IShift[]> => {
     adminOnly(user);
 
-    const organization = await organizations.get(user?.member.orgId!);
-    const availability = shiftsModel.createAvailability(shifts[0] as any, organization?.timezone!);
+    const organization = await organizations.get(user.member.orgId!);
+    if (!organization) {
+      throw new GraphQLError("Organization not found");
+    }
+    const availability = shiftsModel.createAvailability(shifts[0] as any, organization.timezone!);
     const assignmentId = shifts[0].assignmentId;
     const eventId = shifts[0].eventId;
     const assignment = await assignments.get(assignmentId);
@@ -379,7 +382,7 @@ export const Mutation = {
     let highestRefNumber = await shiftsModel.highestRefNumber(shifts[0].eventId);
     const existingShifts = await shiftsModel.search({
       shiftId: shifts[0].shiftId,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId!,
     });
 
     const updatedShifts = shifts.map((shift, index) => {
@@ -388,11 +391,11 @@ export const Mutation = {
       let status = foundShift?.status || rest.status;
       let createdById = rest.createdById ? new ObjectId(rest.createdById) : undefined;
       if (!shift.id) {
-        createdById = user?._id!;
+        createdById = user._id!;
         status = ShiftStatus.Available;
       }
       if (!rest.createdById) {
-        createdById = user?._id!;
+        createdById = user._id!;
       }
       if (rest.locked) {
         status = ShiftStatus.Locked;
@@ -410,11 +413,11 @@ export const Mutation = {
         ...(rest.userId && { userId: new ObjectId(rest.userId) }),
         status,
         availability,
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
         startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0),
         endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0),
         createdById,
-        modifiedById: user?.id!,
+        modifiedById: user.id!,
         updatedAt: new Date(),
       };
     }) as any;
@@ -438,7 +441,7 @@ export const Mutation = {
       eventId: new ObjectId(eventId),
       removeId: shifts[0].shiftId,
       removeType: EventRemoveEventType.shiftUpdate,
-      orgId: user?.member.orgId!,
+      orgId: user.member.orgId,
       modifiedById: user!._id!,
       lasdEventFields: organization?.features.lasdEventFields,
       timezone: organization?.timezone,
@@ -499,7 +502,7 @@ export const Mutation = {
       const { canSignUpForShift, requiresShiftBuffer } = await shifts.canSignUpForShift({
         user: assignUser,
         shift,
-        orgId: user?.member.orgId.toString()!,
+        orgId: user.member.orgId.toString()!,
         shiftBufferTime: organization?.settings?.shiftBuffer.enabled ? organization?.settings?.shiftBuffer.minuteShiftBuffer : 0,
       });
       if (!canSignUpForShift && !requiresShiftBuffer) {
@@ -521,7 +524,7 @@ export const Mutation = {
 
     shift.userId = userId ? new ObjectId(userId) : null;
     shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
-    shift.modifiedById = user?._id!;
+    shift.modifiedById = user._id!;
 
     const removingShiftUser = !userId && existingUserId;
 
@@ -544,7 +547,7 @@ export const Mutation = {
         ...createShift,
         relinquishNote: note,
         status,
-        modifiedById: user?._id!,
+        modifiedById: user._id!,
         removedAt: new Date(),
         userId: new ObjectId(existingUserId),
       });
@@ -552,9 +555,9 @@ export const Mutation = {
       // Remove interest if user relinquished shift
       if (status === ShiftStatus.Relinquished) {
         await interestList.removeInterest({
-          userId: user?._id!,
+          userId: user._id!,
           shiftGroupId: shift.shiftId,
-          orgId: user?.member.orgId!,
+          orgId: user.member.orgId,
         });
       }
     }
@@ -581,9 +584,9 @@ export const Mutation = {
       // TODO: Maybe move shift buffer request to another shift slot if one is available
       await shiftBufferRequests.denyAllOpenShiftBufferRequests({
         shiftId: shift.id!,
-        modifiedById: user?._id!,
+        modifiedById: user._id!,
       });
-      notificationType = user?.member.role === MemberRole.Admin && userId !== user?.id ?
+      notificationType = user.member.role === MemberRole.Admin && userId !== user.id ?
         ShiftNotificationType.SHIFT_ADMIN_ASSIGNED :
         ShiftNotificationType.SHIFT_USER_ASSIGNED;
     }
@@ -624,12 +627,12 @@ export const Mutation = {
         $set: {
           'member.tier': tier,
           'member.tierUntil': tierUntil,
-          modifiedById: user?._id!,
+          modifiedById: user._id!,
         },
       });
     }
 
-    if (!!removingShiftUser) {
+    if (removingShiftUser) {
       await interestList.maybeTriggerNextAssignment({
         shift: updatedShift!,
         organization: organization!,

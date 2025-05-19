@@ -85,14 +85,16 @@ export interface Context {
   notificationService: NotificationService;
   changeStream: ChangeStreamService;
   rankGroups: RankGroupRepo;
-  organization?: IOrganization;
-  user?: IUser;
-  originalUser?: IUser;
-  lambdaEvent?: any;
-  lambdaContext?: any;
+  organization: IOrganization;
+  user: IUser;
+  originalUser: IUser;
+  lambdaEvent: any;
+  lambdaContext: any;
 };
 
-export const createContext = async (): Promise<Context> => {
+export interface IServiceContext extends Omit<Context, 'user' | 'originalUser' | 'organization' | 'lambdaEvent' | 'lambdaContext' > {}
+
+export const createContext = async (): Promise<IServiceContext> => {
   await dbConnect();
 
   const document = new DocumentModel();

@@ -9,7 +9,7 @@ import { ScheduleEvent, SchedulerModel, Timezone } from "../models/scheduler";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { IShift, ShiftModel } from "../models/shift";
 import logger from "../utils/logger";
-import { IStagedShiftInterestRequest, ShiftInterestRequestModel } from "../models/shiftInterestRequest";
+import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 import { toZonedTime } from "../utils/date.helpers";
 import startOfMonth from "date-fns/startOfMonth";
 import endOfMonth from "date-fns/endOfMonth";

@@ -180,7 +180,7 @@ export const shiftInterestRequests = {
             await shifts.create<any>({
               ...createShift,
               status: ShiftStatus.Unassigned,
-              modifiedById: user?._id!,
+              modifiedById: user._id!,
               removedAt: new Date(),
               userId: interestUser._id,
             });
@@ -202,11 +202,11 @@ export const shiftInterestRequests = {
         shiftGroupId: shiftInterestRequest.shiftGroupId,
         ...(shiftInterestRequest.status && {status: shiftInterestRequest.status}),
         ...(shiftInterestRequest.id ? {} : { status: ShiftInterestRequestStatus.Pending }),
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
         eventId: new ObjectId(shift.eventId),
         ...(assignedShiftId && { assignedShiftId }),
         assignmentId: new ObjectId(shift.assignmentId),
-        modifiedById: user?._id!,
+        modifiedById: user._id!,
         userId: new ObjectId(shiftInterestRequest.userId),
       }
       const res = await shiftInterestRequests.upsert(upsert);

@@ -14,14 +14,14 @@ export const fields = {
     user: (shift: IShift, _, { users }: Context) => shift.userId ? users.loader.load(shift.userId.toString()) : null,
     shiftInterestRequest: (shift: IShift, _, { shiftInterestRequests, user, organization }: Context) =>
       shiftInterestRequests.requestLoader.load({
-        userId: user?.id!,
-        orgId: organization?.id!,
+        userId: user.id!,
+        orgId: organization.id!,
         shiftGroupId: shift.shiftId,
       }),
     lotteryRequest: (shift: IShift, _, { shiftLotteryRequests, user, organization }: Context) =>
       shiftLotteryRequests.requestLoader.load({
-        userId: user?._id!.toString()!,
-        orgId: organization?._id!.toString()!,
+        userId: user._id!.toString()!,
+        orgId: organization._id!.toString()!,
         shiftGroupId: shift.shiftId,
       }),
     otherShiftSlots: (

@@ -10,7 +10,6 @@ import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { GraphQLError } from "graphql";
 import { IShiftBufferRequest } from "../../models/shiftBufferRequest";
 import { ObjectId } from "mongodb";
-import { IShift } from "../../models/shift";
 
 export const shiftBufferRequests = {
   Query: {
@@ -39,7 +38,7 @@ export const shiftBufferRequests = {
       }
 
       return shiftBufferRequests.search({
-        orgId: user?.member.orgId!,
+        orgId: user.member.orgId!,
         queryField: 'shiftId',
         ...searchInput,
       });
@@ -56,7 +55,7 @@ export const shiftBufferRequests = {
         throw new GraphQLError('Shift buffer request not found.');
       }
 
-      if (request.userId !== user?._id! && !userIsAdmin(user)) {
+      if (request.userId !== user._id! && !userIsAdmin(user)) {
         throw new GraphQLError('You do not have permission to remove this shift buffer request.');
       }
 
@@ -130,7 +129,7 @@ export const shiftBufferRequests = {
 
       const foundShiftBuffer: IShiftBufferRequest = await shiftBufferRequests.collection.findOne({
         shiftId: new ObjectId(shiftBufferRequest.shiftId),
-        userId: user?._id!,
+        userId: user._id!,
         status: ShiftBufferRequestStatus.Pending,
         removedAt: { $exists: false },
       }) as unknown as IShiftBufferRequest;

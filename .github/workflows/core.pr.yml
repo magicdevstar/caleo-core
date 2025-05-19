@@ -22,7 +22,7 @@ jobs:
     outputs:
       sls_stage: ${{ steps.set-stage.outputs.sls_stage }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set stage variable
         id: set-stage
         run: |
@@ -33,8 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: variables
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'yarn'
@@ -45,7 +45,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::955644676078:role/GithubActionsDeploymentRole
           aws-region: us-east-1

@@ -26,8 +26,8 @@ jobs:
     name: Deploy service
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'yarn'
@@ -35,7 +35,7 @@ jobs:
             **/yarn.lock
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ github.event.inputs.stage == 'prod' && '707495320920' || '955644676078' }}:role/GithubActionsDeploymentRole
           aws-region: us-east-1

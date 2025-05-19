@@ -133,6 +133,7 @@ custom:
     bundle: true
     minify: false
     sourcemap: true
+    concurrency: ${file(./sls.config.js):concurrency}
     packager: yarn
     external:
       - 'saslprep'

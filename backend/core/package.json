@@ -4,7 +4,7 @@
   "description": "Caleo graphql server",
   "main": "src/index.ts",
   "scripts": {
-    "deploy": "npm run generate && sls deploy",
+    "deploy": "npm run generate && sls deploy --verbose",
     "deploy:graphql": "npm run generate && sls deploy function -f graphql",
     "generate": "graphql-codegen --config codegen.yml",
     "gen": "npm run generate",

@@ -404,7 +404,7 @@ export const event = {
       } else {
         event.createdById = user!._id!;
         event.status = event.status === EventStatus.Template ? event.status : EventStatus.Draft;
-        event.referenceId = await eventReferenceNumber.get(organization!.id);
+        event.referenceId = await eventReferenceNumber.get(organization.id);
       }
 
       let scheduledFirstComeFirstServe: Date | undefined;

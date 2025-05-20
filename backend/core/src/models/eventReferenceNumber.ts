@@ -24,6 +24,6 @@ export class EventReferenceNumber {
       returnDocument: 'after',
     });
 
-    return (res?.value as any)?.referenceNumber;
+    return res?.referenceNumber;
   }
 }

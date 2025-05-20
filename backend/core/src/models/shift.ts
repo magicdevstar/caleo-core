@@ -1379,13 +1379,21 @@ export class ShiftModel extends BaseMongo<IShift> {
   findShiftsByEventIds({
     eventIds,
     includeAssigned,
+    includeLocked,
   }: {
     includeAssigned: boolean;
+    includeLocked: boolean;
     eventIds: ObjectId[];
   }) {
-    const statuses = [ShiftStatus.Available, ShiftStatus.Locked];
+    const statuses = [ShiftStatus.Available];
+
+    // Interest lists should show any shifts even if they are assigned
+    // or locked because we always wan to allow users to express interest
     if (includeAssigned) {
       statuses.push(ShiftStatus.Assigned);
+    }
+    if (includeLocked) {
+      statuses.push(ShiftStatus.Locked);
     }
 
     const pipeline = [
@@ -1394,6 +1402,7 @@ export class ShiftModel extends BaseMongo<IShift> {
           eventId: {
             $in: eventIds,
           },
+          locked: { $ne: true },
           status: {$in: statuses},
         },
       },

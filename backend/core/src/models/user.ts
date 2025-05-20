@@ -298,10 +298,12 @@ export class UserModel extends BaseMongo<IUser> {
     const interestListShifts = await this.shifts.findShiftsByEventIds({
       eventIds: interestListEventIds,
       includeAssigned: true,
+      includeLocked: true,
     });
     const otherShifts = await this.shifts.findShiftsByEventIds({
       eventIds: otherEventIds,
       includeAssigned: false,
+      includeLocked: false,
     });
     const shifts = [
       ...interestListShifts,

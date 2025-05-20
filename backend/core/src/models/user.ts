@@ -282,14 +282,6 @@ export class UserModel extends BaseMongo<IUser> {
       };
     }
 
-    const eventStatusMap = events.items.reduce((obj, event) => {
-      const eventId = event.id!;
-      return {
-        ...obj,
-        [eventId]: event.status,
-      }
-    }, {} as Record<string, EventStatus>);
-
     logger.info('Events', { events, query });
 
     const interestListEventIds = events.items.filter(({ status }) => status === EventStatus.InterestList).map(({ _id }) => _id!);

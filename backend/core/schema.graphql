@@ -1293,6 +1293,14 @@ type DocusignSignerDetailsData {
     pNumber: String!
     # Alias for tier names
     tiers: OrganizationCustomizationsTiers!
+    dateFormats: OrganizationDateFormats!
+  }
+
+  type OrganizationDateFormats {
+    dateTime: String!
+    date: String!
+    miniDate: String!
+    time: String!
   }
 
   type OrganizationCustomizationsTiers {

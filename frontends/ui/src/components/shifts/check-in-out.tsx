@@ -14,7 +14,7 @@ import { useFeatures } from "src/hooks/use-features";
 import { useBoolean } from "src/hooks/use-boolean";
 import { useCheckInOut } from "src/hooks/use-check-in-out";
 import { useAuthContext } from "src/auth/hooks";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 // Components
 import Iconify from "src/components/iconify";
 import CheckInOutConfirm from "./check-in-out-confirm";
@@ -33,6 +33,7 @@ export default function CheckInOut({
   allowView?: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const { dateTimeFormat } = useDateFormats();
   const { eventCheckIn } = useFeatures();
   const { user } = useAuthContext();
   const theme = useTheme();
@@ -66,6 +67,7 @@ export default function CheckInOut({
     };
   }), [
     user,
+    dateTimeFormat,
     eventCheckIn,
     currentShifts
   ]);

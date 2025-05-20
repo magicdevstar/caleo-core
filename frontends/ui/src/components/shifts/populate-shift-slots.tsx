@@ -20,7 +20,7 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import { UPSERT_SHIFTS } from 'src/api/shifts';
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
-import { convertDate, dateTimeFormat, getNow } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats, getNow } from 'src/hooks/use-datejs';
 import { GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
 
@@ -49,6 +49,7 @@ export default function PopulateShiftSlots({
   onSuccess
 }: PopulateShiftSlotsProps) {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const [dateRanges, setDateRanges] = useState<{[key: string]: [dayjs.Dayjs | null, dayjs.Dayjs | null]}>({}); 
   const [errors, setErrors] = useState<{[key: string]: string}>({});

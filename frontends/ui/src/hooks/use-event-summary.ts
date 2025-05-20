@@ -6,11 +6,12 @@ import { client } from "src/utils/apollo";
 import { GET_EVENT_FOR_SUMMARY } from "src/api/event";
 import { Assignment, Shift } from "src/__generated__/resolvers-types";
 import { useDownloadCsv } from "./use-download-csv";
-import { convertDate, dateFormat, dateTimeFormat } from "./use-datejs";
+import { convertDate, useDateFormats } from "./use-datejs";
 import { useFeatures } from "./use-features";
 import { usePNumberLabel } from "./use-pNumber-label";
 
 export const useEventSummary = () => {
+  const { dateTimeFormat, dateFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
   const [loading, setLoading] = useState(false);
   const { user } = useAuthContext();
@@ -117,6 +118,8 @@ export const useEventSummary = () => {
     }
   }, [
     user,
+    dateTimeFormat,
+    dateFormat,
     eventCheckIn,
     lasdEventFields,
     equipment,

@@ -23,7 +23,7 @@ import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
 import { GET_ALL_EVENTS } from 'src/api/event';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { useFeatures } from 'src/hooks/use-features';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
@@ -77,6 +77,7 @@ const eventsByDateSchema = Yup.object().shape({
 
 export default function EventsByDate() {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
   const { lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();

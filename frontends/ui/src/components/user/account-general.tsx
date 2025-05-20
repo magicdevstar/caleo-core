@@ -38,7 +38,7 @@ import RHFPhoneField from 'src/components/hook-form/rhf-phone-field';
 import { client } from 'src/utils/apollo';
 import { roleNames } from 'src/utils/mapped.enums';
 import { GET_LOTTERY_COUNTER } from 'src/api/event';
-import { convertDate, dateFormat, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
 import { useTiers } from 'src/hooks/use-tiers';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
@@ -122,6 +122,7 @@ export default function AccountGeneral({
   allDisabled?: boolean;
 }) {
   const { user: currentUser, reInitialize } = useAuthContext();
+  const { dateTimeFormat, dateFormat } = useDateFormats();
   const { disabledTiers, disabledTierUntil, lasdUserFields } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
@@ -141,7 +142,7 @@ export default function AccountGeneral({
       }
     }
     return res.join('\n');
-  }, [user]);
+  }, [user, dateFormat]);
 
   const [createUploadLink] = useMutation(CREATE_PROFILE_PHOTO_UPLOAD_URL);
   const [updateUser] = useMutation(UPDATE_USER);
@@ -172,7 +173,7 @@ export default function AccountGeneral({
       user,
     });
     return `Tier will expire on ${lotteryEnd.format(dateTimeFormat)}`;
-  }, [user, lotteryData]);
+  }, [user, dateTimeFormat, lotteryData]);
 
   const UpdateUserSchema = Yup.object().shape({
     firstName: Yup.string().required('First name is required'),

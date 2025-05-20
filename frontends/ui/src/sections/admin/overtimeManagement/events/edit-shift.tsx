@@ -49,7 +49,7 @@ import Iconify from 'src/components/iconify';
 import DropDownButton from 'src/components/dropdown-button/dropdown-button';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { AssignShiftModal } from './assign-shift';
 
@@ -81,6 +81,7 @@ export default function EditShift({
   shiftId,
 }: Props) {
   const router = useRouter();
+  const { dateTimeFormat } = useDateFormats();
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
   const { eventCheckIn, eventCheckOut, interestLists } = useFeatures();

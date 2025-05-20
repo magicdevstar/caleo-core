@@ -18,7 +18,7 @@ import { EventStatus, MemberRole, Shift } from 'src/__generated__/resolvers-type
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftItems from 'src/components/shifts/shift-items';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useWeeklyShifts } from 'src/hooks/use-weekly-shift-count';
 import { useResponsive } from 'src/hooks/use-responsive';
 import InterestDialog from 'src/sections/dashboard/dashboard/overtime-shifts/interest-dialog';
@@ -28,6 +28,7 @@ import { useAvailableOvertimeLabels } from 'src/hooks/use-available-overtime-lab
 
 export default function AvailableOvertimeView() {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const userId = user?.id;
   const { enqueueSnackbar } = useSnackbar();
   const [assignShift, { loading: assignLoading }] = useMutation(ASSIGN_SHIFT);

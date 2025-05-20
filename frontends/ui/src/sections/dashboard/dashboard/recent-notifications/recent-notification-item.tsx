@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 // utils
 import { fToNow } from 'src/utils/format-time';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 import { useRouter } from 'src/routes/hooks';
@@ -44,6 +44,7 @@ const StyledIconButton = styled(IconButton)({
 
 export default function RecentNotificationItem({ notification }: RecentNotificationItemProps) {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const router = useRouter();
   const { avatarUrl, title, body, createdAt, action, onClick } = notification;
 

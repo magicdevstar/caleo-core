@@ -19,7 +19,7 @@ import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
 import Label, { LabelColor, LabelVariant } from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from "src/hooks/use-features";
@@ -84,6 +84,7 @@ export default function ShiftItem({
   shiftActions: ShiftAction[];
   sx?: SxProps,
 }) {
+  const { dateTimeFormat } = useDateFormats();
   const labelComponent = useMemo(() => {
     if (inputShift.__typename === 'ShiftBufferRequest') {
       return (

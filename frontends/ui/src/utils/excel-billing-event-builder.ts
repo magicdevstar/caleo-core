@@ -1,11 +1,11 @@
 import ExcelJS from 'exceljs';
 import { Event, Shift } from 'src/__generated__/resolvers-types';
 import { FrontendUser } from 'src/api/user';
-import { convertDate, dateFormat, miniDateFormat } from 'src/hooks/use-datejs';
+import { convertDate } from 'src/hooks/use-datejs';
 import { calculateCheckInOutHours } from './time-calc';
 import { getCellSumByColumnFormula, getColSumRangeFormula } from './excel-formulas';
 
-export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser) {
+export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser, dateFormat: string) {
   const eventDate = event.startTime
     ? convertDate({ date: event.startTime, user }).format(dateFormat)
     : '';
@@ -21,7 +21,8 @@ export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, u
 export function generatePayAndLeaveWorksheet(
   shifts: Shift[],
   worksheet: ExcelJS.Worksheet,
-  user: FrontendUser
+  user: FrontendUser,
+  miniDateFormat: string
 ) {
   // initialize template props
   const headerRows = 2;
@@ -184,7 +185,8 @@ export function generatePayAndLeaveWorksheet(
 export function generateContractLawWorksheet(
   shiftsByRank: Record<string, Shift[]>,
   worksheet: ExcelJS.Worksheet,
-  user: FrontendUser
+  user: FrontendUser,
+  miniDateFormat: string
 ) {
   // initialize template totals and props
   const headerRows = 2;

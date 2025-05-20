@@ -5,10 +5,11 @@ import { EventStatus, Shift } from "src/__generated__/resolvers-types";
 import { LabelVariant } from "src/components/label";
 // hooks
 import { useLotteryCounterOptions } from "./use-lottery-counter-options";
-import { convertDate, dateTimeFormat } from "./use-datejs";
+import { convertDate, useDateFormats } from "./use-datejs";
 
 export const useUpcomingOvertimeLabels = () => {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
   });
@@ -93,6 +94,7 @@ export const useUpcomingOvertimeLabels = () => {
       },
     },
   ], [
+    dateTimeFormat,
     user,
     lotteryCounterOptions,
   ]);

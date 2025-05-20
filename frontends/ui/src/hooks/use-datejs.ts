@@ -8,10 +8,21 @@ import { Organization } from 'src/__generated__/resolvers-types';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const dateTimeFormat = 'ddd DD MMM YYYY HH:mm';
-export const dateFormat = 'ddd DD MMM YYYY';
-export const miniDateFormat = 'MM/DD/YYYY'
-export const timeFormat = 'HH:mm';
+const dateTimeFormat = 'ddd DD MMM YYYY HH:mm';
+const dateFormat = 'ddd DD MMM YYYY';
+const miniDateFormat = 'MM/DD/YYYY'
+const timeFormat = 'HH:mm';
+
+export const useDateFormats = () => {
+  const { user } = useAuthContext();
+
+  return {
+    dateTimeFormat: user?.member?.org?.customizations?.dateFormats?.dateTime || dateTimeFormat,
+    dateFormat: user?.member?.org?.customizations?.dateFormats?.date || dateFormat,
+    miniDateFormat: user?.member?.org?.customizations?.dateFormats?.miniDate || miniDateFormat,
+    timeFormat: user?.member?.org?.customizations?.dateFormats?.time || timeFormat,
+  };
+};
 
 export const getNow = ({
   organization,

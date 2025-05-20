@@ -18,7 +18,7 @@ import { FrontendUser } from 'src/api/user';
 import { client } from 'src/utils/apollo';
 // components
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 
 type SignUpDialogProps = {
   open: boolean;
@@ -33,6 +33,7 @@ export default function InterestDialog({
   editShift,
   user
 }: SignUpDialogProps) {
+  const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
 

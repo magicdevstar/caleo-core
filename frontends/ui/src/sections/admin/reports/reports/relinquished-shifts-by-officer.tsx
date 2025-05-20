@@ -22,7 +22,7 @@ import useDebounceText from 'src/hooks/use-debounce-text';
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import RHFDateRangePicker from 'src/components/hook-form/rhf-date-range';
 import { client } from 'src/utils/apollo';
-import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
@@ -36,6 +36,7 @@ const relinquishedShiftsByOfficerSchema = Yup.object().shape({
 
 export default function RelinquishedShiftsByOfficer() {
   const { user } = useAuthContext();
+  const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({

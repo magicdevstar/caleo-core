@@ -28,6 +28,7 @@ import {
   generatePayAndLeaveWorksheet,
   modifyReportHeader
 } from 'src/utils/excel-billing-event-builder';
+import { useDateFormats } from 'src/hooks/use-datejs';
 
 const eventBillingByEventSchema = Yup.object().shape({
   event: Yup.mixed<Event | string>()
@@ -38,6 +39,7 @@ const eventBillingByEventSchema = Yup.object().shape({
 
 export default function EventBillingByEvent() {
   const { user } = useAuthContext();
+  const { dateFormat, miniDateFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadExcel({ fileName: 'event-billing-by-event' });
 
@@ -152,24 +154,24 @@ export default function EventBillingByEvent() {
 
       // Pay and Leave Worksheet
       const payAndLeaveWorksheet = workbook.worksheets[0];
-      modifyReportHeader(event, payAndLeaveWorksheet, user);
-      generatePayAndLeaveWorksheet(shifts, payAndLeaveWorksheet, user);
+      modifyReportHeader(event, payAndLeaveWorksheet, user, dateFormat);
+      generatePayAndLeaveWorksheet(shifts, payAndLeaveWorksheet, user, miniDateFormat);
 
       // reports that were skipped due to empty shift groupings
       const skippedReports: string[] = [];
 
       // Contract Law Worksheet
       const contractLawWorksheet = workbook.worksheets[1];
-      modifyReportHeader(event, contractLawWorksheet, user);
+      modifyReportHeader(event, contractLawWorksheet, user, dateFormat);
       if (Object.keys(shiftsByRank).length > 0) {
-        generateContractLawWorksheet(shiftsByRank, contractLawWorksheet, user);
+        generateContractLawWorksheet(shiftsByRank, contractLawWorksheet, user, miniDateFormat);
       } else {
         skippedReports.push('Contract Law');
       }
 
       // Contract Law Worksheet (TODO: figure out which property to group shifts by)
       const contractLawVehicleWorksheet = workbook.worksheets[2];
-      modifyReportHeader(event, contractLawVehicleWorksheet, user);
+      modifyReportHeader(event, contractLawVehicleWorksheet, user, dateFormat);
       if (Object.keys(shiftsByVehicle).length > 0) {
         generateContractLawVehicleWorksheet(shiftsByVehicle, contractLawVehicleWorksheet);
       } else {

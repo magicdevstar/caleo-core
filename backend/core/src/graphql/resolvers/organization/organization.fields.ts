@@ -1,5 +1,7 @@
 import {
   CheckInOutSetting,
+  OrganizationCustomizations,
+  OrganizationDateFormats,
   OrganizationFeatures,
 } from "../../../__generated__/resolvers-types";
 import { commonResolvers } from "../../../utils/common.resolvers";
@@ -11,6 +13,15 @@ export const fields = {
     ...commonResolvers,
     flatFeatures: (parent: IOrganization) => JSON.stringify(parent.features),
     customizations: (parent: IOrganization) => parent.customizations || customizations,
+  },
+  OrganizationCustomizations: {
+    dateFormats: (parent: OrganizationCustomizations) => parent.dateFormats || customizations.dateFormats,
+  },
+  OrganizationDateFormats: {
+    dateTime: (parent: OrganizationDateFormats) => parent.dateTime || customizations.dateFormats.dateTime,
+    date: (parent: OrganizationDateFormats) => parent.date || customizations.dateFormats.date,
+    miniDate: (parent: OrganizationDateFormats) => parent.miniDate || customizations.dateFormats.miniDate,
+    time: (parent: OrganizationDateFormats) => parent.time || customizations.dateFormats.time,
   },
   OrganizationOvertimeSettings: {
     hoursPerMonth: (parent: any) => parent.hoursPerMonth || 100,

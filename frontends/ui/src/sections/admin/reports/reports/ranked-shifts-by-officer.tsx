@@ -27,7 +27,7 @@ import useDebounceText from 'src/hooks/use-debounce-text';
 // components
 import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import { client } from 'src/utils/apollo';
-import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { GET_LOTTERY_DATES } from 'src/api/lotteryCounter';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
@@ -43,6 +43,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
 });
 
 export default function RankedShiftsByOfficer() {
+  const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();

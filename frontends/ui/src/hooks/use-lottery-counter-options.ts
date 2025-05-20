@@ -7,7 +7,7 @@ import timezone from 'dayjs/plugin/timezone';
 import { LotteryCounter, Maybe, Organization } from "src/__generated__/resolvers-types";
 import { GET_LOTTERY_COUNTER } from "src/api/event";
 import { DayMap } from "src/types/day";
-import { dateTimeFormat } from "./use-datejs";
+import { useDateFormats } from "./use-datejs";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -29,6 +29,7 @@ export const useLotteryCounterOptions = ({
   dateLimit?: string;
   countValue?: Maybe<LotteryCounter>;
 }) => {
+  const { dateTimeFormat } = useDateFormats();
   const { data } = useQuery(GET_LOTTERY_COUNTER);
 
   const options: ILotteryCounterOption[] = useMemo(() => {
@@ -101,7 +102,7 @@ export const useLotteryCounterOptions = ({
       .filter(({ date }) => !limit || limit.isAfter(date));
 
     return uniqBy([...opts, ...list], 'counter');
-  }, [data, org, dateLimit, countValue]);
+  }, [data, dateTimeFormat, org, dateLimit, countValue]);
 
   return {
     options,

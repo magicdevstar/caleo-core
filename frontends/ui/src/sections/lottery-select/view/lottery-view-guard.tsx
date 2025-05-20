@@ -10,7 +10,7 @@ import { ACTIVE_LOTTERY } from 'src/api/organization';
 import Typography from '@mui/material/Typography';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
-import { convertDate, timeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 // components
 import { LoadingScreen } from 'src/components/loading-screen';
 import LotteryAnalytics from 'src/components/analytics/lottery-analytics';
@@ -24,6 +24,7 @@ dayjs.extend(timezone);
 
 export default function LotteryViewGuard() {
   const { user } = useAuthContext();
+  const { timeFormat } = useDateFormats();
   const { data, loading } = useQuery(ACTIVE_LOTTERY, {
     pollInterval: 5000,
   });

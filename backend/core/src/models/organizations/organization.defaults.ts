@@ -26,6 +26,12 @@ export const customizations = {
       enabled: false,
     },
   },
+  dateFormats: {
+    dateTime: 'ddd DD MMM YYYY HH:mm',
+    date: 'ddd DD MMM YYYY',
+    miniDate: 'MM/DD/YYYY',
+    time: 'HH:mm',
+  },
 };
 
 // Define features as a single source of truth

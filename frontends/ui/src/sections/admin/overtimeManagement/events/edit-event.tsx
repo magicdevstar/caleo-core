@@ -31,7 +31,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import useDebounceText from 'src/hooks/use-debounce-text';
 // routes
 import { paths } from 'src/routes/paths';
@@ -127,6 +127,7 @@ export default function EditEvent({
 }: Props) {
   const basePath = eventTemplateView ? paths.dashboard.admin.overtime.templates : paths.dashboard.admin.overtime
   const router = useRouter();
+  const { dateTimeFormat } = useDateFormats();
   const { user } = useAuthContext();
   const {
     venueContractDates,

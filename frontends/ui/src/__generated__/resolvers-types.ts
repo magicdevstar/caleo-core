@@ -1362,6 +1362,7 @@ export type OrganizationContact = {
 
 export type OrganizationCustomizations = {
   __typename?: 'OrganizationCustomizations';
+  dateFormats: OrganizationDateFormats;
   pNumber: Scalars['String']['output'];
   tiers: OrganizationCustomizationsTiers;
 };
@@ -1378,6 +1379,14 @@ export type OrganizationCustomizationsTiers = {
   TIER_2: OrganizationCustomizationsTier;
   TIER_3: OrganizationCustomizationsTier;
   TIER_4: OrganizationCustomizationsTier;
+};
+
+export type OrganizationDateFormats = {
+  __typename?: 'OrganizationDateFormats';
+  date: Scalars['String']['output'];
+  dateTime: Scalars['String']['output'];
+  miniDate: Scalars['String']['output'];
+  time: Scalars['String']['output'];
 };
 
 export type OrganizationFeatureOptions = {
@@ -2921,6 +2930,7 @@ export type ResolversTypes = ResolversObject<{
   OrganizationCustomizations: ResolverTypeWrapper<OrganizationCustomizations>;
   OrganizationCustomizationsTier: ResolverTypeWrapper<OrganizationCustomizationsTier>;
   OrganizationCustomizationsTiers: ResolverTypeWrapper<OrganizationCustomizationsTiers>;
+  OrganizationDateFormats: ResolverTypeWrapper<OrganizationDateFormats>;
   OrganizationFeatureOptions: ResolverTypeWrapper<OrganizationFeatureOptions>;
   OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
@@ -3117,6 +3127,7 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationCustomizations: OrganizationCustomizations;
   OrganizationCustomizationsTier: OrganizationCustomizationsTier;
   OrganizationCustomizationsTiers: OrganizationCustomizationsTiers;
+  OrganizationDateFormats: OrganizationDateFormats;
   OrganizationFeatureOptions: OrganizationFeatureOptions;
   OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
@@ -3863,6 +3874,7 @@ export type OrganizationContactResolvers<ContextType = any, ParentType extends R
 }>;
 
 export type OrganizationCustomizationsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationCustomizations'] = ResolversParentTypes['OrganizationCustomizations']> = ResolversObject<{
+  dateFormats?: Resolver<ResolversTypes['OrganizationDateFormats'], ParentType, ContextType>;
   pNumber?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   tiers?: Resolver<ResolversTypes['OrganizationCustomizationsTiers'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -3879,6 +3891,14 @@ export type OrganizationCustomizationsTiersResolvers<ContextType = any, ParentTy
   TIER_2?: Resolver<ResolversTypes['OrganizationCustomizationsTier'], ParentType, ContextType>;
   TIER_3?: Resolver<ResolversTypes['OrganizationCustomizationsTier'], ParentType, ContextType>;
   TIER_4?: Resolver<ResolversTypes['OrganizationCustomizationsTier'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OrganizationDateFormatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationDateFormats'] = ResolversParentTypes['OrganizationDateFormats']> = ResolversObject<{
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  dateTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  miniDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  time?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4490,6 +4510,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationCustomizations?: OrganizationCustomizationsResolvers<ContextType>;
   OrganizationCustomizationsTier?: OrganizationCustomizationsTierResolvers<ContextType>;
   OrganizationCustomizationsTiers?: OrganizationCustomizationsTiersResolvers<ContextType>;
+  OrganizationDateFormats?: OrganizationDateFormatsResolvers<ContextType>;
   OrganizationFeatureOptions?: OrganizationFeatureOptionsResolvers<ContextType>;
   OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;

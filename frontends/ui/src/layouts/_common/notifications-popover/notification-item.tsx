@@ -10,7 +10,7 @@ import Tooltip from '@mui/material/Tooltip';
 // utils
 import { fToNow } from 'src/utils/format-time';
 // components
-import { convertDate, dateTimeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useRouter } from 'src/routes/hooks';
 import { UseBooleanReturnType } from 'src/hooks/use-boolean';
 
@@ -39,6 +39,7 @@ type NotificationItemProps = {
 
 export default function NotificationItem({ notification }: NotificationItemProps) {
   const router = useRouter();
+  const { dateTimeFormat } = useDateFormats();
   const renderAvatar = (
     <ListItemAvatar>
       {notification.avatarUrl ? (

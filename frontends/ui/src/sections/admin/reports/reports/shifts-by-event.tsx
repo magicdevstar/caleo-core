@@ -21,7 +21,7 @@ import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import { GET_ALL_EVENTS_SLIM, GET_EVENT_FOR_REPORT } from 'src/api/event';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { client } from 'src/utils/apollo';
-import { convertDate, dateFormat, dateTimeFormat, timeFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
@@ -34,6 +34,7 @@ const eventsByShiftSchema = Yup.object().shape({
 
 export default function ShiftsByEvent() {
   const { user } = useAuthContext();
+  const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
   const { equipment, lasdEventFields } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();

@@ -21,13 +21,14 @@ import { GET_LOTTERY_COUNTER } from "src/api/event";
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { useBoolean } from "src/hooks/use-boolean";
 import Label from "src/components/label";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useSnackbar } from "src/components/snackbar";
 import Iconify from "src/components/iconify";
 
 export default function RankShifts() {
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const [updating, setUpdating] = useState<boolean>(false);
   const [shiftToBeRemoved, setShiftToBeRemoved] = useState<ShiftLotteryRequest | null>(null);

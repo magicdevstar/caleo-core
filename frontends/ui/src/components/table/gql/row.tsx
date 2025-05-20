@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import Divider from '@mui/material/Divider';
 // hooks
-import { dateFormat, timeFormat, useDateJS } from 'src/hooks/use-datejs';
+import { useDateFormats, useDateJS } from 'src/hooks/use-datejs';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -39,6 +39,7 @@ export const BooleanCell = ({value, width,}: {width?: number | string; value: bo
 );
 
 export const DateCell = ({value, width, href, onClick, clickable}: {width?: number | string; value: string; href?: string; onClick?: any; clickable?: boolean;}) => {
+  const { dateFormat, timeFormat } = useDateFormats();
   const { date } = useDateJS({
     date: value
   });

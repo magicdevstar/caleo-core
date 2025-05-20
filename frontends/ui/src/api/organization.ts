@@ -69,6 +69,12 @@ query ORGANIZATION {
           enabled
         }
       }
+      dateFormats {
+        dateTime
+        date
+        miniDate
+        time
+      }
     }
     settings {
       shiftsPerWeek

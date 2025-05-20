@@ -10,7 +10,7 @@ import Stack from "@mui/material/Stack";
 // hooks
 import { useWeeklyShifts } from "src/hooks/use-weekly-shift-count";
 import { useAuthContext } from "src/auth/hooks";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 // Types
 import { ShiftBufferRequest, ShiftBufferRequestStatus } from "src/__generated__/resolvers-types";
 // Components
@@ -36,6 +36,7 @@ export const ShiftBufferRequestConfirm = ({
   handleClose: (node: HTMLElement) => void;
 }) => {
   const theme = useTheme();
+  const { dateTimeFormat } = useDateFormats();
   const matches = useMediaQuery(theme.breakpoints.up('md'));
   const { user } = useAuthContext();
 
@@ -116,7 +117,7 @@ export const ShiftBufferRequestConfirm = ({
         }} variant="body1">Reason for request: {editRequest?.buffer?.note}</Typography>
       </Box>
     )
-  }, [editRequest, user, matches]);
+  }, [editRequest, dateTimeFormat, user, matches]);
 
   return (
     <ConfirmDialog

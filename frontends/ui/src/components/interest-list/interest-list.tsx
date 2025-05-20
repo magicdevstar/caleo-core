@@ -16,7 +16,7 @@ import { useDownloadCsv } from "src/hooks/use-download-csv";
 import GQLTable from "src/components/table/gql/table";
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { client } from "src/utils/apollo";
-import { convertDate, dateTimeFormat } from "src/hooks/use-datejs";
+import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { get, orderBy } from "lodash";
 import { useFeatures } from "src/hooks/use-features";
@@ -47,6 +47,7 @@ export function InterestList({
   open,
   interestList
 }: Props) {
+  const { dateTimeFormat } = useDateFormats();
   const { lasdUserFields } = useFeatures();
   const { user } = useAuthContext();
   const { tierNames } = useTiers();
@@ -91,6 +92,7 @@ export function InterestList({
     }
   }, [
     user,
+    dateTimeFormat,
     interestList,
     lasdUserFields,
     tierNames,

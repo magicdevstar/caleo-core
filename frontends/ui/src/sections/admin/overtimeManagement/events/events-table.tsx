@@ -20,7 +20,7 @@ import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GENERATE_DS_INVOICE, 
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
-import { convertDate, dateFormat } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
 import { useRouter } from 'src/routes/hooks';
@@ -31,6 +31,7 @@ import { paths } from 'src/routes/paths';
 export default function EventsTable() {
   const kioskConfirm = useBoolean<string>();
   const { enqueueSnackbar } = useSnackbar();
+  const { dateFormat } = useDateFormats();
   const { user } = useAuthContext();
   const router = useRouter();
   const {

@@ -407,10 +407,6 @@ export class UserModel extends BaseMongo<IUser> {
     const onlyAvailableShifts: IShift[] = [];
     const now = Date.now();
     for(const shift of filteredShifts) {
-      // Only show locked shifts for interest list events
-      if (shift.locked && eventStatusMap[shift.eventId.toString()] !== EventStatus.InterestList) {
-        continue;
-      }
       const foundRejectedInterest = await rejectedInterestRequests.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       const foundShiftBufferRequest = myShiftBuffers.find(({ shiftGroupId }) => shiftGroupId === shift.shiftId);
       if (foundShiftBufferRequest || foundRejectedInterest) {

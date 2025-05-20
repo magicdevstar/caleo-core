@@ -1402,7 +1402,6 @@ export class ShiftModel extends BaseMongo<IShift> {
           eventId: {
             $in: eventIds,
           },
-          locked: { $ne: true },
           status: {$in: statuses},
         },
       },

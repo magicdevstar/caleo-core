@@ -533,7 +533,7 @@ export const Mutation = {
       // Create removed shift
       const {id, _id, ...createShift} = shift;
       let status = ShiftStatus.Relinquished;
-      if (existingUserId !== user!.id && userIsAdmin(user)) {
+      if (existingUserId !== user.id && userIsAdmin(user)) {
         status = ShiftStatus.Unassigned;
       }
       if (
@@ -591,7 +591,7 @@ export const Mutation = {
         ShiftNotificationType.SHIFT_USER_ASSIGNED;
     }
     if (removingShiftUser) {
-      notificationType = user!.id !== existingUserId && userIsAdmin(user) ?
+      notificationType = user.id !== existingUserId && userIsAdmin(user) ?
         ShiftNotificationType.SHIFT_ADMIN_REMOVED :
         ShiftNotificationType.SHIFT_USER_REMOVED;
     }

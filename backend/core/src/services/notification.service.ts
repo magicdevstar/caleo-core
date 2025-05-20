@@ -85,7 +85,7 @@ export class NotificationService {
       case ShiftNotificationType.SHIFT_ADMIN_ASSIGNED:
         data.adminAssignedShift = true;
         break;
-      case ShiftNotificationType.SHIFT_USER_REMOVED:
+      case ShiftNotificationType.SHIFT_ADMIN_REMOVED:
         data = {
           shift,
           existingUserId,
@@ -94,7 +94,7 @@ export class NotificationService {
         };
         template = MailerEvents.OfficerRemovedFromShift;
         break;
-      case ShiftNotificationType.SHIFT_ADMIN_REMOVED:
+      case ShiftNotificationType.SHIFT_USER_REMOVED:
         data = {
           shift,
           existingUserId,

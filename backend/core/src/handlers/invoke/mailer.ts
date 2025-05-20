@@ -2189,7 +2189,7 @@ const sendEmail = async (input: MailerEvent) => {
       const uniqRanksIds = uniq(assignmentDetails.map((a) => a.rankIds).flat()) as ObjectId[];
 
       const interestStartTime = convertDate(event.scheduledInterestList!, organization);
-      const interestClosingTime = convertDate(event.scheduledCloseInterestList!, organization);
+      const interestClosingTime = convertDate(event.endTime!, organization);
 
       const allUsers = await context.users.collection.find<IUser>({
         'member.orgId': new ObjectId(organization.id),

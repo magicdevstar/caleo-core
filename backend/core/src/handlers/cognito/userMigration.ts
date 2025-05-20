@@ -1,6 +1,6 @@
 import middy from "@middy/core";
 import { jwtDecode } from "jwt-decode";
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { UserMigrationTriggerHandler } from "aws-lambda";
 import logger from "../../utils/logger";
 import { 

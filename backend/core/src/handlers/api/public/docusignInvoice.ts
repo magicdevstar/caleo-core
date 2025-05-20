@@ -1,5 +1,5 @@
 import middy from "@middy/core";
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { APIGatewayEvent } from "aws-lambda";
 import crypto from 'crypto';
 import logger from "../../../utils/logger";

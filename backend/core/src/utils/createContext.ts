@@ -87,7 +87,7 @@ export interface Context {
   rankGroups: RankGroupRepo;
   organization: IOrganization;
   user: IUser;
-  originalUser: IUser;
+  originalUser?: IUser;
   lambdaEvent: any;
   lambdaContext: any;
 };

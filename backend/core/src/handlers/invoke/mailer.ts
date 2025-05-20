@@ -3,9 +3,9 @@ import webPush from 'web-push';
 import { ObjectId } from "mongodb";
 import difference from 'lodash.difference';
 import uniq from 'lodash.uniq';
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { injectLambdaContext } from "@aws-lambda-powertools/logger/middleware";
 import { AddressConfiguration, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
 import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
@@ -25,7 +25,7 @@ import { IAssignmentUpdates, IEventUpdates, IShiftUpdates } from "../../types/no
 const pinpoint = new PinpointClient({});
 
 const convertDate = (unixDate: number | Date, organization: IOrganization) => {
-  const zonedDate = utcToZonedTime(new Date(unixDate), organization?.timezone || 'America/Los_Angeles' as any);
+  const zonedDate = toZonedTime(new Date(unixDate), organization?.timezone || 'America/Los_Angeles' as any);
   return {
     date: format(zonedDate, 'MM/dd/yyyy'),
     time: format(zonedDate, 'HH:mm'),

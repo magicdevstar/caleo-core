@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
 import middy from "@middy/core";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { PostConfirmationTriggerEvent } from "aws-lambda";
 import logger from "../../utils/logger";
-import { Context, createContext } from "../../utils/createContext";
+import { createContext, IServiceContext } from "../../utils/createContext";
 import { MemberRole, MemberStatus, MemberTier } from "../../__generated__/resolvers-types";
 import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { IUser } from "../../types/common";
@@ -21,7 +21,7 @@ const getCognitoId = (event: PostConfirmationTriggerEvent) => {
   return event.userName;
 }
 
-const getOrgId = async (event: PostConfirmationTriggerEvent, services: Context) => {
+const getOrgId = async (event: PostConfirmationTriggerEvent, services: IServiceContext) => {
   if (event?.request?.userAttributes?.identities?.length > 0) {
     const { providerName } = JSON.parse(event.request.userAttributes.identities)[0];
     const foundOrganization = await services.organizations.getBySSOAppName(providerName);

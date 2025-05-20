@@ -33,7 +33,7 @@ import {
 import { DocumentModel } from './document';
 import { IShiftBufferRequest, ShiftBufferRequestModel } from './shiftBufferRequest';
 import { LotteryCounterModel } from './lotteryCounter';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { dayMap } from '../utils/dayMap';
 import { IShiftInterestRequest, ShiftInterestRequestModel } from './shiftInterestRequest';
 import { IOrganization } from './organizations/organization.entity';
@@ -468,7 +468,7 @@ export class UserModel extends BaseMongo<IUser> {
       return false;
     }
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
-    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
+    const shiftStartTime = toZonedTime(new Date(shift.startTime), orgTimezone);
     const startOfShiftMonth = startOfMonth(shiftStartTime);
     const endOfShiftMonth = endOfMonth(shiftStartTime);
     const allShifts: IShift[] = await this.shifts.collection.find({
@@ -476,8 +476,8 @@ export class UserModel extends BaseMongo<IUser> {
       orgId: organization.id,
       status: ShiftStatus.Assigned,
       startTime: {
-        $gte: zonedTimeToUtc(startOfShiftMonth, orgTimezone).valueOf(),
-        $lte: zonedTimeToUtc(endOfShiftMonth, orgTimezone).valueOf(),
+        $gte: fromZonedTime(startOfShiftMonth, orgTimezone).valueOf(),
+        $lte: fromZonedTime(endOfShiftMonth, orgTimezone).valueOf(),
       }
     }).toArray() as any;
 
@@ -519,7 +519,7 @@ export class UserModel extends BaseMongo<IUser> {
     }
     const weekStartsOn: any = dayMap[organization.weekBegins!] - 1;
     const orgTimezone = organization.timezone || 'America/Los_Angeles' as any;
-    const shiftStartTime = utcToZonedTime(new Date(shift.startTime), orgTimezone);
+    const shiftStartTime = toZonedTime(new Date(shift.startTime), orgTimezone);
     const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });
     const endOfShiftWeek = endOfWeek(shiftStartTime, { weekStartsOn });
     const numOfShifts = await this.shifts.collection.countDocuments({
@@ -527,8 +527,8 @@ export class UserModel extends BaseMongo<IUser> {
       orgId: organization.id,
       status: ShiftStatus.Assigned,
       startTime: {
-        $gte: zonedTimeToUtc(startOfShiftWeek, orgTimezone).valueOf(),
-        $lte: zonedTimeToUtc(endOfShiftWeek, orgTimezone).valueOf(),
+        $gte: fromZonedTime(startOfShiftWeek, orgTimezone).valueOf(),
+        $lte: fromZonedTime(endOfShiftWeek, orgTimezone).valueOf(),
       }
     });
 

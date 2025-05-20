@@ -1,4 +1,4 @@
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 import { IEvent } from "../models/event";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { IRank } from "../models/rank";
@@ -271,8 +271,8 @@ export class InvoiceService {
 
       const rate = rank.hourlyRate || 0;
       const duration = differenceInHours(
-        utcToZonedTime(shift.endTime, organization.timezone),
-        utcToZonedTime(shift.startTime, organization.timezone)
+        toZonedTime(shift.endTime, organization.timezone),
+        toZonedTime(shift.startTime, organization.timezone)
       );
 
       return {
@@ -288,7 +288,7 @@ export class InvoiceService {
     });
     const total = invoiceItems.reduce((acc, item) => acc + item.total, 0);
 
-    const today = utcToZonedTime(new Date(), organization.timezone);
+    const today = toZonedTime(new Date(), organization.timezone);
     let html = top({
       eventName: event.name,
       todaysDate: format(today, 'MMM do yyyy'),

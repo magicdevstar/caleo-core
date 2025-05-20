@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb";
+import { Db, ObjectId, PullOperator } from "mongodb";
 import { BaseMongo } from "../base.v2";
 import { IRankGroup } from "./rankGroup.entity";
 import { DocType, UpsertRankGroup } from "../../__generated__/resolvers-types";
@@ -29,7 +29,7 @@ export class RankGroupRepo extends BaseMongo<IRankGroup> {
     }, {
       $pull: {
         rankIds: { $in: rankIds.map((rankId) => new ObjectId(rankId)) },
-      },
+      } as PullOperator<Document>,
       $set: {
         modifiedAt: new Date(),
         modifiedById: new ObjectId(user._id),

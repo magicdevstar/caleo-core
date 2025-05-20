@@ -1,4 +1,4 @@
-import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { DayOfWeek, DocType } from "../__generated__/resolvers-types";
 import { dayMap } from "../utils/dayMap";
 import { addWeeks, isAfter, setDay, setHours, setMinutes, getHours, getMinutes } from "date-fns";
@@ -83,15 +83,15 @@ export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
         throw new Error(`Organization ${orgId} not found`);
       }
     }
-    const zonedDate = utcToZonedTime(new Date(), org?.timezone || 'America/Los_Angeles' as any);
+    const zonedDate = toZonedTime(new Date(), org?.timezone || 'America/Los_Angeles' as any);
     const endDay = dayMap[org.settings?.lottery.close.dayOfWeek || DayOfWeek.Sunday] - 1;
     const startDay = dayMap[org.settings?.lottery.open.dayOfWeek || DayOfWeek.Sunday] - 1;
     
-    const zonedCloseTime = utcToZonedTime(org.settings?.lottery.close.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
+    const zonedCloseTime = toZonedTime(org.settings?.lottery.close.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
     const endHour = getHours(zonedCloseTime) || 0;
     const endMinutes = getMinutes(zonedCloseTime) || 0;
   
-    const zonedStartTime = utcToZonedTime(org.settings?.lottery.open.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
+    const zonedStartTime = toZonedTime(org.settings?.lottery.open.time || '1970-01-02T06:00:00.000Z', org?.timezone || 'America/Los_Angeles' as any);
     const startHour = getHours(zonedStartTime) || 0;
     const startMinutes = getMinutes(zonedStartTime) || 0;
 
@@ -116,8 +116,8 @@ export class LotteryCounterModel extends BaseMongo<ILotteryCounter> {
     }
     
     return {
-      start: zonedTimeToUtc(lottoStart, org?.timezone || 'America/Los_Angeles' as any),
-      end: zonedTimeToUtc(lottoEnd, org?.timezone || 'America/Los_Angeles' as any),
+      start: fromZonedTime(lottoStart, org?.timezone || 'America/Los_Angeles' as any),
+      end: fromZonedTime(lottoEnd, org?.timezone || 'America/Los_Angeles' as any),
     };
   }
 

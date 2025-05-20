@@ -5,7 +5,7 @@ import {
   setMilliseconds,
   setSeconds,
 } from "date-fns";
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 import { Context } from "../../../utils/createContext";
 import {
   MemberRole,
@@ -619,7 +619,7 @@ export const Mutation = {
     ) {
       const tier = organization?.settings?.userRelinquishShift?.afterShiftRemove?.tier;
       const days = organization?.settings?.userRelinquishShift?.afterShiftRemove?.days;
-      const zonedDate = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
+      const zonedDate = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
       const tierUntil =  addDays(zonedDate, days);
       await users.collection.updateOne({
         _id: new ObjectId(existingUserId),

@@ -1,5 +1,5 @@
-import { Db, ObjectId } from 'mongodb';
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+import { Db, ObjectId, PushOperator } from 'mongodb';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   DocType,
@@ -15,7 +15,7 @@ import { ShiftModel } from './shift';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { BaseMongo } from './base.v2';
 import { IOrganization } from './organizations/organization.entity';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { addMonths, isBefore } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { IUser } from '../types/common';
@@ -312,8 +312,8 @@ export class EventModel extends BaseMongo<IEvent> {
         (!event.ocn || event.ocn.length !== 10) &&
         event.lastDepartmentNotificationDate === undefined &&
         isBefore(
-          utcToZonedTime(new Date(startTime), timezone!),
-          addMonths(utcToZonedTime(new Date(), timezone!), 1)
+          toZonedTime(new Date(startTime), timezone!),
+          addMonths(toZonedTime(new Date(), timezone!), 1)
         )
       ) {
         // invoke mailer lambda
@@ -365,7 +365,7 @@ export class EventModel extends BaseMongo<IEvent> {
       },
       $push: {
         assignmentIds: {$each: assignmentIds},
-      },
+      } as PushOperator<Document>,
     });
   }
 

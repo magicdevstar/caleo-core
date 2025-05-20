@@ -1,4 +1,4 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import middy from '@middy/core';
 import { ChangeStreamCollection, IChangeStreamEvent } from '../../types/change.streams';
 import logger from '../../utils/logger';

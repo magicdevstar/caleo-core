@@ -29,7 +29,7 @@ export const docusignEvents = {
         event: IDocusignEvent,
         _: unknown,
         context: Context
-      ) => context.shifts.loader.load(event.shiftId.toString()),
+      ) => event.shiftId ? context.shifts.loader.load(event.shiftId.toString()) : null,
       documentUrl: (
         event: IDocusignEvent,
         _: unknown,

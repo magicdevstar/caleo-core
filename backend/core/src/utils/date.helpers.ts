@@ -1,4 +1,4 @@
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime as utcToZonedTime } from "date-fns-tz";
 import {
   setMilliseconds,
   setSeconds,
@@ -13,11 +13,6 @@ import logger from "./logger";
 
 export const truncateToMinute = (date: string | Date): Date => {
   return setMilliseconds(setSeconds(new Date(date), 0), 0);
-}
-
-export const toZonedTime = (date: string | Date, timezone: Timezone | string): Date => {
-  const zonedDate = utcToZonedTime(date, timezone);
-  return zonedDate;
 }
 
 export const docusignDates = ({

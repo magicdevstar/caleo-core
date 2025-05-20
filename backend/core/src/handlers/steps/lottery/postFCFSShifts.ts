@@ -1,5 +1,5 @@
 import middy from '@middy/core';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 import logger from '../../../utils/logger';

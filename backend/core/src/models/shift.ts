@@ -1,6 +1,6 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
@@ -694,8 +694,8 @@ export class ShiftModel extends BaseMongo<IShift> {
   }
 
   createAvailability(shift: IShift, timezone: string) {
-    const startTime = utcToZonedTime(shift.startTime, timezone);
-    const endTime = utcToZonedTime(shift.endTime, timezone);
+    const startTime = toZonedTime(shift.startTime, timezone);
+    const endTime = toZonedTime(shift.endTime, timezone);
   
     const startDay = getDay(startTime);
     const endDay = getDay(endTime);
@@ -1345,8 +1345,8 @@ export class ShiftModel extends BaseMongo<IShift> {
     shift: IShift;
     organization: IOrganization;
   }) {
-    const now = utcToZonedTime(new Date(), organization.timezone);
-    const startTime = utcToZonedTime(shift.startTime, organization.timezone);
+    const now = toZonedTime(new Date(), organization.timezone);
+    const startTime = toZonedTime(shift.startTime, organization.timezone);
 
     const allowedHoursBefore = organization.settings?.userRelinquishShift.numberOfHoursBeforeShift || 0;
 

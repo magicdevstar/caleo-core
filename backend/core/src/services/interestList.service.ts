@@ -1,6 +1,11 @@
 import { ObjectId } from "mongodb";
-import { utcToZonedTime } from "date-fns-tz";
-import { format, isAfter, isBefore, subHours } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { endOfMonth } from "date-fns/endOfMonth";
+import { format } from "date-fns/format";
+import { isAfter } from "date-fns/isAfter";
+import { isBefore } from "date-fns/isBefore";
+import { subHours } from "date-fns/subHours";
 import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 
 import { EventStatus } from "../__generated__/resolvers-types";
@@ -10,9 +15,6 @@ import { IOrganization } from "../models/organizations/organization.entity";
 import { IShift, ShiftModel } from "../models/shift";
 import logger from "../utils/logger";
 import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
-import { toZonedTime } from "../utils/date.helpers";
-import startOfMonth from "date-fns/startOfMonth";
-import endOfMonth from "date-fns/endOfMonth";
 import { IShiftHoursPerMonthInput } from "../types/common";
 
 const lambda = new LambdaClient();
@@ -59,9 +61,9 @@ export class InterestListService {
       return;
     }
 
-    const interestListClose = utcToZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
-    const now = utcToZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
-    const interestListCutoff = utcToZonedTime(new Date(event.interestListAutoAssignCutoff || now), organization?.timezone || 'America/Los_Angeles' as any);
+    const interestListClose = toZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
+    const now = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
+    const interestListCutoff = toZonedTime(new Date(event.interestListAutoAssignCutoff || now), organization?.timezone || 'America/Los_Angeles' as any);
     
     if (
       // Check if the interest list auto assignment has already happened

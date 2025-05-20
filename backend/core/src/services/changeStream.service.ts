@@ -1,4 +1,5 @@
-import startOfDay from "date-fns/startOfDay";
+import { startOfDay } from "date-fns/startOfDay";
+import { subDays } from "date-fns/subDays";
 import { EventModel } from "../models/event";
 import logger from "../utils/logger";
 import { EventStatus } from "../__generated__/resolvers-types";
@@ -7,7 +8,6 @@ import { IChangeData, IChangeStreamEvent } from "../types/change.streams";
 import { NotificationService } from "./notification.service";
 import { ChangesModel, ChangeType } from "../models/changes";
 import { ObjectId } from "mongodb";
-import subDays from "date-fns/subDays";
 import { IEventUpdates } from "../types/notifications";
 
 export class ChangeStreamService {

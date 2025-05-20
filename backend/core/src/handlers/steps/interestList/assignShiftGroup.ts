@@ -1,6 +1,6 @@
 import middy from '@middy/core';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { ObjectId } from 'mongodb';
 import difference from 'lodash.difference';
 

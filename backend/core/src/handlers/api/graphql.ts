@@ -41,13 +41,13 @@ export const handler = startServerAndCreateLambdaHandler(
         logger.setPersistentLogAttributes({
           apiGatewayRequestId: event.requestContext.requestId,
         });
-        const classContext = await createContext();
+        const classContext: Context = await createContext() as unknown as Context;
         const { user, originalUser } = await userFromEvent(event, classContext.users);
         classContext.user = user;
         classContext.originalUser = originalUser;
         classContext.lambdaEvent = event;
         classContext.lambdaContext = context;
-        classContext.organization = await classContext.organizations.get(user.member.orgId) || undefined;
+        classContext.organization = (await classContext.organizations.get(user.member.orgId))!;
         return classContext;
       } catch(error) {
         logger.error('Error creating context', {error});

@@ -2,7 +2,7 @@ import { format, getDay, parseISO } from "date-fns";
 
 import { DayOfWeek, OrganizationSearchInput } from '../../__generated__/resolvers-types';
 import { ScheduleEvent } from "../scheduler";
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { dayMap } from '../../utils/dayMap';
 import { SchedulerModel } from "../scheduler";
 import { OrganizationRepo } from "./organization.repository";
@@ -67,9 +67,9 @@ export class OrganizationService {
     if (!org?.features?.lottery) {
       return;
     }
-    const startTime = utcToZonedTime(new Date(org.settings?.lottery?.open?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
+    const startTime = toZonedTime(new Date(org.settings?.lottery?.open?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
     const startDay = org.settings?.lottery?.open?.dayOfWeek || DayOfWeek.Friday;
-    const endTime = utcToZonedTime(new Date(org.settings?.lottery?.close?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
+    const endTime = toZonedTime(new Date(org.settings?.lottery?.close?.time || 0), org?.timezone || 'America/Los_Angeles' as any);
     const endDay = org.settings?.lottery?.close?.dayOfWeek || DayOfWeek.Monday;
     // Upsert lottery start and end events
     await this.scheduler.updateScheduledEvent({
@@ -112,7 +112,7 @@ export class OrganizationService {
   activeLottery(org: IOrganization) {
     const { timezone, settings: { lottery: { open, close } } } = org as any;
   
-    const now = utcToZonedTime(new Date(), timezone);
+    const now = toZonedTime(new Date(), timezone);
     const currentDay = format(now, 'EEEE').toUpperCase();
     const currentTime = format(now, 'HH:mm:ss');
 
@@ -126,8 +126,8 @@ export class OrganizationService {
       return `${firstHalf}T${secondHalf}`;
     }
 
-    const openTimeStr = utcToZonedTime(new Date(open.time), timezone).toISOString();
-    const closeTimeStr = utcToZonedTime(new Date(close.time), timezone).toISOString();
+    const openTimeStr = toZonedTime(new Date(open.time), timezone).toISOString();
+    const closeTimeStr = toZonedTime(new Date(close.time), timezone).toISOString();
     const normalOpenTime = normalizeSettingTime(openTimeStr);
     const normalCloseTime = normalizeSettingTime(closeTimeStr);
     const openTime = format(parseISO(normalOpenTime), 'HH:mm:ss');

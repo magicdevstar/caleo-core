@@ -1,5 +1,5 @@
-import { Db, ObjectId } from 'mongodb';
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+import { Db, ObjectId, PullOperator, PushOperator } from 'mongodb';
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
   DocType,
@@ -78,8 +78,8 @@ export class MemberEquipmentModel extends BaseMongo<IMemberEquipment> {
           modifiedById: new ObjectId(item.modifiedById),
         },
         $push: {
-          'member.memberEquipmentIds': res._id,
-        }
+          'member.memberEquipmentIds': res._id!,
+        } as PushOperator<Document>
       });
     }
 
@@ -128,7 +128,7 @@ export class MemberEquipmentModel extends BaseMongo<IMemberEquipment> {
       },
       $pull: {
         'member.memberEquipmentIds': memberEquipment._id,
-      }
+      } as PullOperator<Document>
     });
 
     await super.remove(id, {

@@ -1,5 +1,5 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { ConstructorOptions, LogLevel } from '@aws-lambda-powertools/logger/lib/types';
+import { ConstructorOptions, LogLevel } from '@aws-lambda-powertools/logger/types';
 
 const getLoggerConfig = ({
   serviceName,

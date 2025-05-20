@@ -1,10 +1,10 @@
 
+import { randomUUID as uuid } from 'crypto';
 import middy from '@middy/core';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { v4 as uuid } from 'uuid';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 
 import logger from '../../utils/logger';
-import { Context, createContext } from '../../utils/createContext';
+import { createContext, IServiceContext } from '../../utils/createContext';
 import {
   BaseNotificationEvent,
   NotificationType,
@@ -16,7 +16,7 @@ import {
 } from '../../types/notifications';
 import { ScheduleEvent, SchedulerModel } from '../../models/scheduler';
 import { ObjectId } from 'mongodb';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { format, subHours, subDays, isAfter } from 'date-fns';
 import { ShiftReminderUnit } from '../../__generated__/resolvers-types';
 
@@ -55,9 +55,9 @@ const upsertShiftReminder = async ({
   if (unit === ShiftReminderUnit.Day) {
     modifiedDate = subDays(startDate, time);
   }
-  const zonedDate = utcToZonedTime(modifiedDate, tz);
+  const zonedDate = toZonedTime(modifiedDate, tz);
 
-  const now = utcToZonedTime(new Date(), tz);
+  const now = toZonedTime(new Date(), tz);
   if (isAfter(now, zonedDate)) {
     logger.info('Skipping reminder', { startTime, now, zonedDate });
     return;
@@ -79,7 +79,7 @@ const upsertNotification = async ({
   context: { scheduler, shifts, organizations },
   id,
 } : {
-  context: Context;
+  context: IServiceContext;
   id: string;
 }) => {
   const shift = await shifts.get(id);
@@ -141,7 +141,7 @@ const removeNotification = async ({
   context: { scheduler, shifts },
   id,
 }: {
-  context: Context;
+  context: IServiceContext;
   id: string;
 }) => {
   const shift = await shifts.get(id);
@@ -169,7 +169,7 @@ const upsertAll = async ({
   context,
   shiftId,
 }: {
-  context: Context;
+  context: IServiceContext;
   shiftId: string;
 }) => {
   const allShifts = await context.shifts.collection.find({
@@ -187,7 +187,7 @@ const removeAll = async ({
   context,
   shiftId,
 }: {
-  context: Context;
+  context: IServiceContext;
   shiftId: string;
 }) => {
   const allShifts = await context.shifts.collection.find({

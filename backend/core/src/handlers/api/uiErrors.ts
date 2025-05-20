@@ -1,6 +1,6 @@
 import middy from '@middy/core';
 import { WebClient } from '@slack/web-api';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import type { APIGatewayProxyEventV2WithLambdaAuthorizer } from 'aws-lambda';
 
 import logger from '../../utils/logger';

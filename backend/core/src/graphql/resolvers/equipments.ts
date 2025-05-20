@@ -10,7 +10,7 @@ import {
 } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
-import { ObjectId } from "mongodb";
+import { ObjectId, PullOperator } from "mongodb";
 import { IEquipment } from "../../models/equipment";
 import { IMemberEquipment } from "../../models/memberEquipment";
 
@@ -90,7 +90,7 @@ export const equipment = {
       }, {
         $pull: {
           memberSkillIds: new ObjectId(id),
-        },
+        } as PullOperator<Document>,
       });
 
       return id;

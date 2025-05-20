@@ -1,4 +1,4 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import middy from '@middy/core';
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";

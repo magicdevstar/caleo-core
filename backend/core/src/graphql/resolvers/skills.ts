@@ -11,7 +11,7 @@ import {
 } from "../../__generated__/resolvers-types";
 import { SearchResults, commonResolvers } from "../../utils/common.resolvers";
 import { adminOnly, adminOrOwnerOnly } from "../../utils/access";
-import { ObjectId } from "mongodb";
+import { ObjectId, PullOperator } from "mongodb";
 import { ISkill } from "../../models/skill";
 import { IMemberSkill } from "../../models/memberSkill";
 
@@ -91,7 +91,7 @@ export const skill = {
       }, {
         $pull: {
           memberSkillIds: new ObjectId(id),
-        },
+        } as PullOperator<Document>,
       });
 
       return id;

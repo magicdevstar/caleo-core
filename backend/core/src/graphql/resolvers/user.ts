@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
-import startOfMonth from "date-fns/startOfMonth";
-import endOfMonth from "date-fns/endOfMonth";
+import { toZonedTime } from "date-fns-tz";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { endOfMonth } from "date-fns/endOfMonth";
 import { ObjectId } from "mongodb";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import {
@@ -29,7 +30,6 @@ import { addHours, endOfWeek, format, startOfWeek } from "date-fns";
 import logger from "../../utils/logger";
 import { IMember, IUser, EnhancedUser } from "../../types/common";
 import { defaultUserAvailability } from "../../models/user";
-import { toZonedTime } from "../../utils/date.helpers";
 
 const lambda = new LambdaClient();
 const cognito = new CognitoIdentityProviderClient({});

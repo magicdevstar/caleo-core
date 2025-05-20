@@ -1,4 +1,4 @@
-import { Db, ObjectId } from 'mongodb';
+import { Db, ObjectId, PullOperator } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import uniq from 'lodash.uniq';
 import { Assignment, DocType } from '../__generated__/resolvers-types';
@@ -264,7 +264,7 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
         shiftIds: {
           $in: shiftIds,
         },
-      },
+      } as PullOperator<Document>,
       $set: {
         modifiedById,
       },

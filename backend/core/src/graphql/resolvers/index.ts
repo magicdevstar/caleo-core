@@ -8,8 +8,8 @@ import { skill } from './skills';
 import { equipment } from './equipments';
 import { user } from './user';
 import { venue } from './venue';
-import { event } from './event';
-import { assignments } from './assignments';
+import { eventsFields, eventsMutation, eventsQuery } from './events';
+import { assignmentsFields, assignmentsMutation, assignmentsQuery } from './assignments';
 import { shiftsQuery, shiftsFields, shiftsMutation } from './shifts';
 import { shiftBufferRequests } from './shiftBufferRequests';
 import { shiftLotteryRequests } from './shiftLotteryRequests';
@@ -31,8 +31,8 @@ export default {
     ...skill.Query,
     ...venue.Query,
     ...notification.Query,
-    ...event.Query,
-    ...assignments.Query,
+    ...eventsQuery,
+    ...assignmentsQuery,
     ...shiftsQuery,
     ...shiftBufferRequests.Query,
     ...shiftLotteryRequests.Query,
@@ -56,8 +56,8 @@ export default {
     ...skill.Mutation,
     ...venue.Mutation,
     ...notification.Mutation,
-    ...event.Mutation,
-    ...assignments.Mutation,
+    ...eventsMutation,
+    ...assignmentsMutation,
     ...shiftsMutation,
     ...shiftBufferRequests.Mutation,
     ...shiftLotteryRequests.Mutation,
@@ -79,8 +79,8 @@ export default {
   ...skill.fields,
   ...venue.fields,
   ...notification.fields,
-  ...event.fields,
-  ...assignments.fields,
+  ...eventsFields,
+  ...assignmentsFields,
   ...shiftsFields,
   ...shiftBufferRequests.fields,
   ...shiftLotteryRequests.fields,

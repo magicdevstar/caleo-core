@@ -888,16 +888,19 @@ export class ShiftModel extends BaseMongo<IShift> {
 
   async findOpenInterestListShiftsGroupedById({
     orgId,
+    eventId,
   }: {
     orgId: string;
+    eventId: string;
   }) {
     const orgIdObj = new ObjectId(orgId);
-
+    const _id = new ObjectId(eventId);
     const pipeline = [
       {
         $match: {
           status: EventStatus.InterestList,
           autoAssignInterestList: true,
+          _id,
           orgId: orgIdObj,
           removedAt: { $exists: false },
         },

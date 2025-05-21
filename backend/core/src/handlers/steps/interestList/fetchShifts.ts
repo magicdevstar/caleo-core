@@ -10,10 +10,11 @@ interface InputEvent {
   dryRun?: boolean;
 }
 
-const fetchShifts = async ({ orgId, dryRun }: InputEvent) => {
+const fetchShifts = async ({ orgId, eventId, dryRun }: InputEvent) => {
   const { shifts } = await createContext();
 
   const { items } = await shifts.findOpenInterestListShiftsGroupedById({
+    eventId,
     orgId,
   });
 

@@ -57,8 +57,8 @@ export interface IMember extends Omit<
   divisionId?: ObjectId;
   memberEquipmentIds: ObjectId[];
   
-  startDate: Date;
-  tierUntil: Date;
+  startDate?: Date;
+  tierUntil?: Date;
   tenor?: Date;
 }
 

@@ -13,7 +13,7 @@ import { Context, createContext, dbConnect } from '../../utils/createContext';
 import { userFromEvent } from '../../utils/userFromEvent';
 import { OperationModel } from '../../models/gqlOperations';
 
-const server = new ApolloServer({
+export const server = new ApolloServer<Context>({
   typeDefs,
   resolvers,
   introspection: process.env.STAGE !== 'prod',

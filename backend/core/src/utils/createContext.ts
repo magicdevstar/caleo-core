@@ -1,5 +1,4 @@
-import { Db } from "mongodb";
-import mongodb from './mongo';
+import { Db, MongoClient } from "mongodb";
 
 import { AssignmentModel } from "../models/assignment";
 import { EventModel } from "../models/event";
@@ -44,9 +43,12 @@ import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
 
 let db: Db;
 
-export const dbConnect = async () => {
+export const dbConnect = async (client?: MongoClient) => {
+  if (!client) {
+    client = new MongoClient(process.env.MONGODB_URI!);
+  }
   if (!db) {
-    db = await mongodb.db(process.env.MONGODB_NAME!);
+    db = await client.db(process.env.MONGODB_NAME!);
   }
   return db;
 };
@@ -94,8 +96,8 @@ export interface Context {
 
 export interface IServiceContext extends Omit<Context, 'user' | 'originalUser' | 'organization' | 'lambdaEvent' | 'lambdaContext' > {}
 
-export const createContext = async (): Promise<IServiceContext> => {
-  await dbConnect();
+export const createContext = async (client?: MongoClient): Promise<IServiceContext> => {
+  await dbConnect(client);
 
   const document = new DocumentModel();
   const scheduler = new SchedulerModel();

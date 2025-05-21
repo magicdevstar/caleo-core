@@ -58,20 +58,3 @@ jobs:
 
       - name: Run Unit tests
         run: yarn test:unit
-
-      # - name: Deploy PR Environment
-      #   run: yarn sls deploy --stage ${{ needs.variables.outputs.sls_stage }}
-
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY }}
-      #     aws-secret-access-key: ${{ secrets.DEV_AWS_ACCESS_SECRET_KEY }}
-      #     aws-region: us-east-1
-
-      # - name: Sleep for 10 seconds
-      #   run: sleep 10s
-      #   shell: bash
-
-      # - name: Run integration test suite
-      #   run: STAGE=${{ needs.variables.outputs.sls_stage }} yarn test:integration

@@ -39,7 +39,6 @@ export interface IAssignment extends Omit<
 > {
   _id?: ObjectId;
   id?: string;
-  userId: ObjectId;
   orgId: ObjectId;
   eventId: ObjectId;
   shiftIds: ObjectId[];
@@ -47,8 +46,7 @@ export interface IAssignment extends Omit<
   requiredEquipmentIds?: ObjectId[];
   rankIds: ObjectId[];
   modifiedById: ObjectId;
-  assignmentId: ObjectId;
-  shiftSlots: {
+  shiftSlots?: {
     id?: ObjectId;
     slotCount: number;
   }[];

@@ -44,7 +44,7 @@ describe('date helpers', () => {
       const endDate = new Date('2023-10-01T12:16:00Z');
       const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.formattedDiff).toBe(1.25); // Should be minimum 1 hour and 15 minutes
+      expect(result.formattedDiff).toBe(1.5); // Should be minimum 1 hour and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 

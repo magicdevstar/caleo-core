@@ -82,7 +82,7 @@ export class InterestListService {
             _id: shift.shiftId,
           }),
         }));
-      } catch (error) {
+      } catch (error: any) {
         logger.error(error);
       }
     }

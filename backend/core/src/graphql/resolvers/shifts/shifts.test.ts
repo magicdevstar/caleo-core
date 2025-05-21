@@ -10,9 +10,8 @@ import { addHours } from 'date-fns/addHours';
 import { testingService } from '../../../services/testing/testing.service';
 import { EventStatus, Shift, UpsertShift } from '../../../__generated__/resolvers-types';
 import { truncateToMinute } from '../../../utils/date.helpers';
-import { Action, MailerEvents } from '../../../types/mailer';
+import { MailerEvents } from '../../../types/mailer';
 import { NotificationType, ShiftNotificationAction } from '../../../types/notifications';
-import exp from 'constants';
 
 // Using it.only inside the describe block is more reliable than describe.only
 describe('Shifts', () => {

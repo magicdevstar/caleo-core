@@ -2,6 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient, ObjectId } from "mongodb";
 import { InvokeCommand } from '@aws-sdk/client-lambda';
 import { Context, createContext, IServiceContext } from "../../utils/createContext";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { mockLambdaClient } = require('../../../__mocks__/@aws-sdk/client-lambda');
 import {
   customizations,
@@ -20,7 +21,6 @@ import { CREATE_ASSIGNMENT } from "./gql/assignments";
 import { expect } from "@jest/globals";
 import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS } from "./gql/shifts";
 import { MailerEvents } from "../../types/mailer";
-import { ShiftNotificationAction } from "../../types/notifications";
 
 export interface ITestingDefaults {
   org: IOrganization;

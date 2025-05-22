@@ -59,21 +59,6 @@ resource "aws_route53_record" "subdomain" {
   records = each.value
 }
 
-import {
-  to = aws_route53_record.subdomain["dev"]
-  id = "Z04140351SPNE9TCKBJWA_dev.caleopro.com_NS"
-}
-
-import {
-  to = aws_route53_record.subdomain["lasd-dev"]
-  id = "Z04140351SPNE9TCKBJWA_lasd-dev.caleopro.com_NS"
-}
-
-import {
-  to = aws_route53_record.subdomain["azure"]
-  id = "Z04140351SPNE9TCKBJWA_azure.caleopro.com_NS"
-}
-
 module "domains" {
   for_each = local.hosted_zones
 
@@ -100,4 +85,37 @@ module "cognito" {
   sso_configurations = local.sso_configurations
   stage              = local.stage
   installHooks       = true
+}
+
+module "s3" {
+  source = "../../modules/s3"
+
+  bucket_name = "caleo-assets-dev"
+
+  files = [
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close/template.pdf"
+      data  = "${path.module}/../../common-files/shift-close/shift-close.pdf"
+      type  = "application/pdf"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close/tabs.json"
+      data  = "${path.module}/../../common-files/shift-close/tabs.json"
+      type  = "application/json"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close-reserve/template.pdf"
+      data  = "${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf"
+      type  = "application/pdf"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close-reserve/tabs.json"
+      data  = "${path.module}/../../common-files/shift-close-reserve/tabs.json"
+      type  = "application/json"
+    }
+  ]
 }

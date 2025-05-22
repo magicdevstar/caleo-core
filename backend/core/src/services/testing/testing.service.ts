@@ -1,4 +1,5 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
+import { v4 as uuid } from "uuid";
 import { MongoClient, ObjectId } from "mongodb";
 import { InvokeCommand } from '@aws-sdk/client-lambda';
 import { Context, createContext, IServiceContext } from "../../utils/createContext";
@@ -12,7 +13,7 @@ import {
 } from '../../models/organizations/organization.defaults';
 import { IRank } from "../../models/rank";
 import { IUser } from "../../types/common";
-import { Assignment, DocType, EventStatus, MemberRole, Shift, UpsertAssignment, UpsertShift } from "../../__generated__/resolvers-types";
+import { Assignment, Division, DocType, EventStatus, MemberRole, Shift, Unit, UpsertAssignment, UpsertShift } from "../../__generated__/resolvers-types";
 import { defaultUserAvailability } from "../../models/user";
 import { IOrganization } from "../../models/organizations/organization.entity";
 import { IEvent } from "../../models/event";
@@ -21,6 +22,8 @@ import { CREATE_ASSIGNMENT } from "./gql/assignments";
 import { expect } from "@jest/globals";
 import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS } from "./gql/shifts";
 import { MailerEvents } from "../../types/mailer";
+import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
+import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
 
 export interface ITestingDefaults {
   org: IOrganization;
@@ -374,6 +377,150 @@ export class TestingService {
       expect(shift.user).toBeDefined();
       expect(shift.user?.id).toEqual(userId);
       return shift;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
+  async createDivision() {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: UPSERT_DIVISION,
+        variables: {
+          input: {
+            name: uuid(),
+            active: true,
+          }
+        }
+      },
+      {
+          contextValue: this.requestContext,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      expect(data?.division).toBeDefined();
+
+      return data?.division as Division;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
+  async removeDivision(id: string) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: REMOVE_DIVISION,
+        variables: {
+          id,
+        }
+      },
+      {
+          contextValue: this.requestContext,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+  }
+
+  async getUnit(id: string) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: GET_UNIT,
+        variables: {
+          id,
+        },
+      }, {
+        contextValue: this.requestContext,
+      },
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      expect(data?.unit).toBeDefined();
+
+      return data?.unit as Unit;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
+  async createUnit({
+    divisionIds
+  }: {
+    divisionIds?: string[]
+  }) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: UPSERT_UNIT,
+        variables: {
+          input: {
+            name: uuid(),
+            divisionIds,
+            overtimeCode: uuid(),
+            active: true,
+          }
+        }
+      },
+      {
+          contextValue: this.requestContext,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      expect(data?.unit).toBeDefined();
+
+      return data?.unit as Unit;
     }
     throw new Error('Unexpected response kind');
   }

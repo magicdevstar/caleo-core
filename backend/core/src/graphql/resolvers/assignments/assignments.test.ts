@@ -9,7 +9,6 @@ import { testingService } from '../../../services/testing/testing.service';
 import { IEvent } from '../../../models/event';
 import { UpsertAssignment } from '../../../__generated__/resolvers-types';
 
-// Using it.only inside the describe block is more reliable than describe.only
 describe('Assignments', () => {
   let event: IEvent;
   

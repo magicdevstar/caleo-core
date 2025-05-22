@@ -28,7 +28,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias = "domain-account"
+  alias  = "domain-account"
   region = "us-west-2"
 
   assume_role {

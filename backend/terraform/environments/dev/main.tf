@@ -5,17 +5,17 @@ locals {
 
   sso_configurations = {
     "azure" = {
-      metadata_url      = "https://login.microsoftonline.com/bf3b4897-ea8a-41c9-adf2-15d15c6c91d1/federationmetadata/2007-06/federationmetadata.xml?appid=4a78ffa2-11ad-4edb-a437-74c980fad36c"
+      metadata_url = "https://login.microsoftonline.com/bf3b4897-ea8a-41c9-adf2-15d15c6c91d1/federationmetadata/2007-06/federationmetadata.xml?appid=4a78ffa2-11ad-4edb-a437-74c980fad36c"
       attribute_mapping = {
-        email           = "email"
-        family_name     = "surname"
-        given_name      = "givenname"
-        "custom:phony"  = "phone"
+        email          = "email"
+        family_name    = "surname"
+        given_name     = "givenname"
+        "custom:phony" = "phone"
       }
     }
     "lasd-dev" = {
-      metadata_url             = "https://login.microsoftonline.com/10912896-cd7e-496c-baf0-6a664593a177/federationmetadata/2007-06/federationmetadata.xml?appid=0977712d-b052-41ac-ba4d-6d5367b04e56"
-      attribute_mapping        = {
+      metadata_url = "https://login.microsoftonline.com/10912896-cd7e-496c-baf0-6a664593a177/federationmetadata/2007-06/federationmetadata.xml?appid=0977712d-b052-41ac-ba4d-6d5367b04e56"
+      attribute_mapping = {
         email                  = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
         family_name            = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
         given_name             = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
@@ -88,7 +88,7 @@ module "cognito" {
 }
 
 module "s3" {
-  source = "../../modules/s3"
+  source = "../../modules/public-s3"
 
   bucket_name = "caleo-assets-dev"
 
@@ -96,25 +96,25 @@ module "s3" {
     {
       orgId = "64cd5e262c436093a2b7e680"
       key   = "shift-close/template.pdf"
-      data  = "${path.module}/../../common-files/shift-close/shift-close.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close/shift-close.pdf")
       type  = "application/pdf"
     },
     {
       orgId = "64cd5e262c436093a2b7e680"
       key   = "shift-close/tabs.json"
-      data  = "${path.module}/../../common-files/shift-close/tabs.json"
+      data  = file("${path.module}/../../common-files/shift-close/tabs.json")
       type  = "application/json"
     },
     {
       orgId = "64cd5e262c436093a2b7e680"
       key   = "shift-close-reserve/template.pdf"
-      data  = "${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf")
       type  = "application/pdf"
     },
     {
       orgId = "64cd5e262c436093a2b7e680"
       key   = "shift-close-reserve/tabs.json"
-      data  = "${path.module}/../../common-files/shift-close-reserve/tabs.json"
+      data  = file("${path.module}/../../common-files/shift-close-reserve/tabs.json")
       type  = "application/json"
     }
   ]

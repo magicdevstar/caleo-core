@@ -24,12 +24,12 @@ resource "aws_s3_bucket_policy" "public_access" {
 }
 
 resource "aws_s3_object" "files" {
-  for_each = { for file in var.files : file.orgId + file.key => file }
+  for_each = { for file in var.files : format("%s/%s", file.orgId, file.key) => file }
 
-  bucket = aws_s3_bucket.bucket.bucket
-  key    = each.value.orgId + each.value.key
-  content = file(each.value.data)
-  acl    = "public-read"
+  bucket  = aws_s3_bucket.bucket.bucket
+  key     = each.key
+  content = each.value.data
+  acl     = "public-read"
 
   metadata = {
     type = each.value.type

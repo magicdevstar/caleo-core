@@ -29,7 +29,6 @@ resource "aws_s3_object" "files" {
   bucket  = aws_s3_bucket.bucket.bucket
   key     = each.key
   content = each.value.data
-  acl     = "public-read"
 
   metadata = {
     type = each.value.type

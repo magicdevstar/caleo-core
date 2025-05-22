@@ -56,3 +56,36 @@ module "cognito" {
   stage              = local.stage
   installHooks       = true
 }
+
+module "s3_public" {
+  source = "../../modules/public-s3"
+
+  bucket_name = "caleo-assets-dev"
+
+  files = [
+    {
+      orgId = "67c78e42035889550ba0baca"
+      key   = "shift-close/template.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close/shift-close.pdf")
+      type  = "application/pdf"
+    },
+    {
+      orgId = "67c78e42035889550ba0baca"
+      key   = "shift-close/tabs.json"
+      data  = filebase64("${path.module}/../../common-files/shift-close/tabs.json")
+      type  = "application/json"
+    },
+    {
+      orgId = "67c78e42035889550ba0baca"
+      key   = "shift-close-reserve/template.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf")
+      type  = "application/pdf"
+    },
+    {
+      orgId = "67c78e42035889550ba0baca"
+      key   = "shift-close-reserve/tabs.json"
+      data  = filebase64("${path.module}/../../common-files/shift-close-reserve/tabs.json")
+      type  = "application/json"
+    }
+  ]
+}

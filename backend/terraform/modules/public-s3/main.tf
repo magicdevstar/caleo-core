@@ -37,9 +37,9 @@ resource "aws_s3_bucket_policy" "public_access" {
 resource "aws_s3_object" "files" {
   for_each = { for file in var.files : format("%s/%s", file.orgId, file.key) => file }
 
-  bucket  = aws_s3_bucket.bucket.bucket
-  key     = each.key
-  content = each.value.data
+  bucket          = aws_s3_bucket.bucket.bucket
+  key             = each.key
+  content_base64  = each.value.data
 
   metadata = {
     type = each.value.type

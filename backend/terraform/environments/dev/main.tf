@@ -87,35 +87,35 @@ module "cognito" {
   installHooks       = true
 }
 
-# module "s3" {
-#   source = "../../modules/public-s3"
+module "s3_public" {
+  source = "../../modules/public-s3"
 
-#   bucket_name = "caleo-assets-dev"
+  bucket_name = "caleo-assets-dev"
 
-#   files = [
-#     {
-#       orgId = "64cd5e262c436093a2b7e680"
-#       key   = "shift-close/template.pdf"
-#       data  = filebase64("${path.module}/../../common-files/shift-close/shift-close.pdf")
-#       type  = "application/pdf"
-#     },
-#     {
-#       orgId = "64cd5e262c436093a2b7e680"
-#       key   = "shift-close/tabs.json"
-#       data  = file("${path.module}/../../common-files/shift-close/tabs.json")
-#       type  = "application/json"
-#     },
-#     {
-#       orgId = "64cd5e262c436093a2b7e680"
-#       key   = "shift-close-reserve/template.pdf"
-#       data  = filebase64("${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf")
-#       type  = "application/pdf"
-#     },
-#     {
-#       orgId = "64cd5e262c436093a2b7e680"
-#       key   = "shift-close-reserve/tabs.json"
-#       data  = file("${path.module}/../../common-files/shift-close-reserve/tabs.json")
-#       type  = "application/json"
-#     }
-#   ]
-# }
+  files = [
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close/template.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close/shift-close.pdf")
+      type  = "application/pdf"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close/tabs.json"
+      data  = filebase64("${path.module}/../../common-files/shift-close/tabs.json")
+      type  = "application/json"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close-reserve/template.pdf"
+      data  = filebase64("${path.module}/../../common-files/shift-close-reserve/shift-close-reserve.pdf")
+      type  = "application/pdf"
+    },
+    {
+      orgId = "64cd5e262c436093a2b7e680"
+      key   = "shift-close-reserve/tabs.json"
+      data  = filebase64("${path.module}/../../common-files/shift-close-reserve/tabs.json")
+      type  = "application/json"
+    }
+  ]
+}

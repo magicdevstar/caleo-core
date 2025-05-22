@@ -13,7 +13,8 @@
     "test": "TZ=UTC jest",
     "test:unit": "TZ=UTC jest",
     "test:assignments": "TZ=UTC jest --testPathPattern=assignments",
-    "test:shifts": "TZ=UTC jest --testPathPattern=shifts"
+    "test:shifts": "TZ=UTC jest --testPathPattern=shifts",
+    "test:interest": "TZ=UTC jest --testPathPattern=Interest"
   },
   "author": "danwakeem",
   "license": "MIT",

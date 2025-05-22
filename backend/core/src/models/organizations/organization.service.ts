@@ -21,6 +21,22 @@ export class OrganizationService {
     this.loader = organizationRepo.loader;
   }
 
+  setFeature({
+    _id,
+    feature,
+    value,
+  }: {
+    _id: ObjectId;
+    feature: string;
+    value: boolean;
+  }) {
+    return this.organizationRepo.collection.updateOne({ _id }, {
+      $set: {
+        [`features.${feature}`]: value,
+      }
+    });
+  }
+
   get(id: string | ObjectId): Promise<IOrganization | null> {
     return this.organizationRepo.get(id);
   }

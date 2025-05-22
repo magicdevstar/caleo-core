@@ -64,7 +64,7 @@ export class InterestListService {
     const interestListClose = toZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
     const now = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
     const interestListCutoff = toZonedTime(new Date(event.interestListAutoAssignCutoff || now), organization?.timezone || 'America/Los_Angeles' as any);
-    
+
     if (
       // Check if the interest list auto assignment has already happened
       isAfter(now, interestListClose) &&

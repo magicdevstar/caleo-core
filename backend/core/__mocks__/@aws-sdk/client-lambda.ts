@@ -4,7 +4,8 @@ import {
   LambdaClient, 
   InvokeCommand,
   InvokeCommandOutput,
-  InvokeCommandInput 
+  InvokeCommandInput,
+  InvocationType,
 } from '@aws-sdk/client-lambda';
 import { Uint8ArrayBlobAdapter } from '@smithy/util-stream';
 
@@ -42,6 +43,7 @@ module.exports = {
   // Original exports
   LambdaClient,
   InvokeCommand,
+  InvocationType,
   // Export our mock for direct use in tests
   mockLambdaClient: lambdaClientMock
 };

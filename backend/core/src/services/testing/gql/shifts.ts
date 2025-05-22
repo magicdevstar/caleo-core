@@ -1,5 +1,13 @@
 import gql from "graphql-tag";
 
+export const SHIFT_INTEREST_REQUEST = gql`
+  mutation ShiftInterestRequest($shiftInterestRequest: UpsertShiftInterestRequest) {
+    shiftInterestRequest(shiftInterestRequest: $shiftInterestRequest) {
+      id
+    }
+  }
+`;
+
 export const ASSIGN_SHIFT = gql`
   mutation AssignShift($id: String!, $userId: String, $note: String) {
     shiftAssign(id: $id, userId: $userId, note: $note) {

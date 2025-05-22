@@ -13,14 +13,14 @@ import {
 } from '../../models/organizations/organization.defaults';
 import { IRank } from "../../models/rank";
 import { IUser } from "../../types/common";
-import { Assignment, Division, DocType, EventStatus, MemberRole, Shift, Unit, UpsertAssignment, UpsertShift } from "../../__generated__/resolvers-types";
+import { Assignment, Division, DocType, EventStatus, MemberRole, Shift, ShiftInterestRequest, Unit, UpsertAssignment, UpsertShift } from "../../__generated__/resolvers-types";
 import { defaultUserAvailability } from "../../models/user";
 import { IOrganization } from "../../models/organizations/organization.entity";
 import { IEvent } from "../../models/event";
 import { server } from "../../handlers/api/graphql";
 import { CREATE_ASSIGNMENT } from "./gql/assignments";
 import { expect } from "@jest/globals";
-import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS } from "./gql/shifts";
+import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, SHIFT_INTEREST_REQUEST } from "./gql/shifts";
 import { MailerEvents } from "../../types/mailer";
 import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
 import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
@@ -93,6 +93,25 @@ export class TestingService {
     this.initialized = false;
   }
 
+  async setFeature({
+    orgId,
+    feature,
+    value,
+  } : {
+    orgId?: ObjectId,
+    feature: string,
+    value: boolean
+  }) {
+    if (!this.context || !this.testingDefault) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const { organizations } = this.context;
+    const _id = orgId || this.testingDefault.org._id!;
+
+    await organizations.setFeature({ _id, feature, value });
+  }
+
   async initializeOrgWithUser(): Promise<ITestingDefaults> {
     if (!this.context) {
       throw new Error('TestingService.context is not initialized');
@@ -150,6 +169,8 @@ export class TestingService {
     status = EventStatus.Draft,
     autoAssignInterestList,
     scheduledInterestList,
+    scheduledCloseInterestList,
+    interestListAutoAssignCutoff,
     scheduledFirstComeFirstServe,
   }: {
     orgId: ObjectId;
@@ -157,6 +178,8 @@ export class TestingService {
     status?: EventStatus;
     autoAssignInterestList?: boolean;
     scheduledInterestList?: Date;
+    scheduledCloseInterestList?: Date;
+    interestListAutoAssignCutoff?: Date;
     scheduledFirstComeFirstServe?: Date;
   }): Promise<IEvent> {
     if (!this.context) {
@@ -174,6 +197,8 @@ export class TestingService {
       orgId,
       autoAssignInterestList,
       scheduledInterestList,
+      scheduledCloseInterestList,
+      interestListAutoAssignCutoff,
       scheduledFirstComeFirstServe,
       docType: DocType.Event,
       createdAt: new Date(),
@@ -226,10 +251,14 @@ export class TestingService {
     eventStatus,
     autoAssignInterestList = false,
     scheduledInterestList,
+    scheduledCloseInterestList,
+    interestListAutoAssignCutoff,
   }: {
     eventStatus?: EventStatus;
     autoAssignInterestList?: boolean;
     scheduledInterestList?: Date;
+    scheduledCloseInterestList?: Date;
+    interestListAutoAssignCutoff?: Date;
   }) {
     if (!this.testingDefault) {
       throw new Error('TestingService.testingDefault is not initialized');
@@ -243,6 +272,8 @@ export class TestingService {
       orgId,
       userId,
       status: eventStatus,
+      scheduledCloseInterestList,
+      interestListAutoAssignCutoff,
       autoAssignInterestList,
       scheduledInterestList,
     });
@@ -264,6 +295,53 @@ export class TestingService {
       event,
       assignment,
     };
+  }
+
+  async submitInterestRequest({
+    shiftGroupId,
+    userId,
+  }: {
+    shiftGroupId: string;
+    userId: string;
+  }) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: SHIFT_INTEREST_REQUEST,
+        variables: {
+          shiftInterestRequest: {
+            shiftGroupId,
+            userId,
+          },
+        },
+      },
+      {
+          contextValue: testingService.requestContext!,
+      },
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+    
+    // Properly parse the body based on its kind - Apollo server can return 'single' or 'batch' responses
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      expect(data?.shiftInterestRequest).toBeDefined();
+
+      return data?.shiftInterestRequest as ShiftInterestRequest;
+    }
+    throw new Error('Unexpected response kind');
   }
 
   async upsertShifts(inputShifts: UpsertShift[]) {

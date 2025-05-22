@@ -60,7 +60,7 @@ module "cognito" {
 module "s3_public" {
   source = "../../modules/public-s3"
 
-  bucket_name = "caleo-assets-dev"
+  bucket_name = "caleo-assets-prod"
 
   files = [
     {

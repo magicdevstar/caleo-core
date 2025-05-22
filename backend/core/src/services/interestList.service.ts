@@ -16,6 +16,7 @@ import { IShift, ShiftModel } from "../models/shift";
 import logger from "../utils/logger";
 import { ShiftInterestRequestModel } from "../models/shiftInterestRequest";
 import { IShiftHoursPerMonthInput } from "../types/common";
+import { addSeconds } from "date-fns/addSeconds";
 
 const lambda = new LambdaClient();
 
@@ -61,9 +62,10 @@ export class InterestListService {
       return;
     }
 
+    const currentUTCTime = new Date();
+    const now = toZonedTime(currentUTCTime, organization?.timezone || 'America/Los_Angeles' as any);
     const interestListClose = toZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
-    const now = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any);
-    const interestListCutoff = toZonedTime(new Date(event.interestListAutoAssignCutoff || now), organization?.timezone || 'America/Los_Angeles' as any);
+    const interestListCutoff = toZonedTime(new Date(event.interestListAutoAssignCutoff || addSeconds(currentUTCTime, 1)), organization?.timezone || 'America/Los_Angeles' as any);
 
     if (
       // Check if the interest list auto assignment has already happened

@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useMutation, useQuery } from '@apollo/client';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
+import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -19,11 +20,8 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import Divider from '@mui/material/Divider';
 // components
 import { CREATE_PROFILE_PHOTO_UPLOAD_URL, FrontendUser, GET_USER, ME, UPDATE_USER } from 'src/api/user';
-import { GET_RANKS } from 'src/api/rank';
-import { GET_UNITS } from 'src/api/unit';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
-  RHFAutocomplete,
   RHFDatePicker,
   RHFSelect,
   RHFSwitch,
@@ -43,7 +41,8 @@ import { useFeatures } from 'src/hooks/use-features';
 import { useTiers } from 'src/hooks/use-tiers';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useAuthContext } from 'src/auth/hooks';
-import { TextField } from '@mui/material';
+import RHFRankSelect from '../ranks/rhf-rank-select';
+import RHFUnitSelect from '../unit/rhf-unit-select';
 
 // ----------------------------------------------------------------------
 
@@ -146,23 +145,6 @@ export default function AccountGeneral({
 
   const [createUploadLink] = useMutation(CREATE_PROFILE_PHOTO_UPLOAD_URL);
   const [updateUser] = useMutation(UPDATE_USER);
-  const { data } = useQuery(GET_RANKS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const { ranks: { items: ranks } } = data || { ranks: { items: [] } };
-
-  const { data: unitData } = useQuery(GET_UNITS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const units = unitData?.units?.items || [];
 
   const tierUntilHelpText = useMemo(() => {
     if (user?.member?.tier === MemberTier.Tier_1 || !user?.member?.tierResetOnNextLottery) {
@@ -442,29 +424,8 @@ export default function AccountGeneral({
               <RHFTextField disabled={!adminViewer || allDisabled} name="firstName" label="First Name" />
               <RHFTextField disabled={!adminViewer|| allDisabled} name="lastName" label="Last Name" />
 
-              <RHFAutocomplete
-                name="rank"
-                label="Rank"
-                disabled={(!adminViewer && !lasdUserFields) || allDisabled}
-                options={ranks}
-                getOptionLabel={(option: any) => (option as Rank).name}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                renderOption={(props, option) => {
-                  const rank = ranks.find(
-                    (r: Rank) => r.id === option.id,
-                  );
-
-                  if (!rank) {
-                    return null;
-                  }
-
-                  return (
-                    <li {...props} key={rank.id}>
-                      {rank.name}
-                    </li>
-                  );
-                }}
-              />
+              <RHFRankSelect name="rank" label="Rank" disabled={(!adminViewer && !lasdUserFields) || allDisabled} />
+              
               <RHFTextField disabled={!adminViewer || allDisabled} name="pNumber" label={pNumberLabel} />
 
               <RHFSelect
@@ -555,29 +516,7 @@ export default function AccountGeneral({
                   <>
                     <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Hire Date" />
 
-                    <RHFAutocomplete
-                      name="unit"
-                      label="Unit of Assignment"
-                      disabled={allDisabled}
-                      options={units}
-                      getOptionLabel={(option: any) => (option as Unit).name}
-                      isOptionEqualToValue={(option, value) => option.id === value.id}
-                      renderOption={(props, option) => {
-                        const unit = units.find(
-                          (u: Unit) => u.id === option.id,
-                        );
-
-                        if (!unit) {
-                          return null;
-                        }
-
-                        return (
-                          <li {...props} key={unit.id}>
-                            {unit.name}
-                          </li>
-                        );
-                      }}
-                    />
+                    <RHFUnitSelect name="unit" label="Unit of Assignment" disabled={allDisabled} />
 
                     <TextField
                       disabled

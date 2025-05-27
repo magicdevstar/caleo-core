@@ -5,7 +5,7 @@ import { useSnackbar } from 'notistack';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 // @mui
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -13,21 +13,20 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 // graphql
 import { ME, UPDATE_USER } from 'src/api/user';
-import { GET_RANKS } from 'src/api/rank';
-import { GET_UNITS } from 'src/api/unit';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 // types
 import { Division, Rank, Unit, User } from 'src/__generated__/resolvers-types';
 // components
 import FormProvider, {
-  RHFAutocomplete,
   RHFPhone,
 } from 'src/components/hook-form';
 import { MotionContainer, varBounce } from 'src/components/animate';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 import TextField from '@mui/material/TextField';
+import RHFRankSelect from 'src/components/ranks/rhf-rank-select';
+import RHFUnitSelect from 'src/components/unit/rhf-unit-select';
 
 // ----------------------------------------------------------------------
 
@@ -72,23 +71,6 @@ export default function LasdCompleteProfile({
     ],
     awaitRefetchQueries: true,
   });
-  const { data } = useQuery(GET_RANKS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const ranks = data?.ranks?.items || [];
-
-  const { data: unitData } = useQuery(GET_UNITS, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {},
-    },
-  });
-  const units = unitData?.units?.items || [];
 
   const UpdateUserSchema = Yup.object().shape({
     unit: Yup.object().nullable().required('Unit is required'),
@@ -173,51 +155,9 @@ export default function LasdCompleteProfile({
         </m.div>
         <m.div variants={bouncerIn}>
           <Stack spacing={3} sx={{ mt: 3}}>
-            <RHFAutocomplete
-              name="rank"
-              label="Rank"
-              options={ranks}
-              getOptionLabel={(option: any) => (option as Rank)?.name}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-              renderOption={(props, option) => {
-                const rank = ranks.find(
-                  (r: Rank) => r.id === option.id,
-                );
+            <RHFRankSelect name="rank" label="Rank" />
 
-                if (!rank) {
-                  return null;
-                }
-
-                return (
-                  <li {...props} key={rank.id}>
-                    {rank.name}
-                  </li>
-                );
-              }}
-            />
-
-            <RHFAutocomplete
-              name="unit"
-              label="Unit of Assignment"
-              options={units}
-              getOptionLabel={(option: any) => (option as Unit).name}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderOption={(props, option) => {
-                const unit = units.find(
-                  (u: Unit) => u.id === option.id,
-                );
-
-                if (!unit) {
-                  return null;
-                }
-
-                return (
-                  <li {...props} key={unit.id}>
-                    {unit.name}
-                  </li>
-                );
-              }}
-            />
+            <RHFUnitSelect name="unit" label="Unit of Assignment" />
 
             <TextField
               disabled

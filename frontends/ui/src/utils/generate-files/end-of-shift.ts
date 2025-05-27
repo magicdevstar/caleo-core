@@ -1,4 +1,4 @@
-import { Color, ColorTypes, layoutMultilineText, PDFDocument, PDFPageDrawTextOptions, rgb, RGB, StandardFonts, TextAlignment } from 'pdf-lib';
+import { Color, layoutMultilineText, PDFDocument, PDFPageDrawTextOptions, rgb, RGB, StandardFonts, TextAlignment } from 'pdf-lib';
 
 function convertColorToRgb(color: string) {
   // Default to black
@@ -109,7 +109,7 @@ export const generateFilledPDF = async ({
       const y = pageHeight - yPosition; // Convert from top-left to bottom-left origin
       
       // Get text properties
-      let fontSize: number | null = mergedOptions.fontSize;
+      let fontSize: number | null = mergedOptions.fontSize; // eslint-disable-line prefer-destructuring
       if (!fontSize && tab.fontSize) {
         fontSize = parseInt(tab.fontSize.replace('size', ''), 10);
       }
@@ -129,7 +129,7 @@ export const generateFilledPDF = async ({
       }
       
       // Process text color if available
-      let textColor: RGB | null = mergedOptions.textColor;
+      let textColor: RGB | null = mergedOptions.textColor; // eslint-disable-line prefer-destructuring
       if (!textColor && tab.fontColor) {
         // Convert color name or hex to RGB values
         textColor = convertColorToRgb(tab.fontColor);

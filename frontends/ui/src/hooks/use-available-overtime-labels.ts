@@ -19,6 +19,9 @@ export const useAvailableOvertimeLabels = () => {
         if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
           return 'success';
         }
+        if (shift?.event?.status === EventStatus.InterestList && shift.shiftInterestRequest?.id) {
+          return 'default';
+        }
         return 'primary';
       },
       getLabel: (shift: Shift) => {
@@ -26,6 +29,9 @@ export const useAvailableOvertimeLabels = () => {
           return 'First Come First Serve';
         }
         if (shift?.event?.status === EventStatus.InterestList) {
+          if (shift.shiftInterestRequest?.id) {
+            return 'Interest List (Requested)';
+          }
           return 'Interest List';
         }
         return '';

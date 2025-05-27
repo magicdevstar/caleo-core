@@ -655,6 +655,12 @@
     vehicleCategory: VehicleCategories
   }
 
+  type ShiftTabResponse {
+    orgId: String!
+    templateName: String!
+    data: String!
+  }
+
   type Shift {
     id: ID!
     shiftId: String!
@@ -1342,6 +1348,7 @@ type DocusignSignerDetailsData {
     eventInvoice: Boolean!
     vehicleCategories: Boolean!
     rankGrouping: Boolean!
+    endOfShiftPDF: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1524,6 +1531,7 @@ type DocusignSignerDetailsData {
     eventInvoice: Boolean
     vehicleCategories: Boolean
     rankGrouping: Boolean
+    endOfShiftPDF: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -2116,6 +2124,7 @@ type Query {
 
   availableShifts(input: AvailableShiftsSearchInput): ShiftSearchResult
   shift(id: String!): Shift
+  shiftTabs(id: String!): ShiftTabResponse
   groupedShifts(shiftId: String!): [Shift]
   shifts(input: ShiftSearchInput): ShiftSearchResult
   lotteryShifts: ShiftSearchResult

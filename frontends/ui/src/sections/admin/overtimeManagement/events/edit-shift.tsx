@@ -51,6 +51,7 @@ import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -84,7 +85,13 @@ export default function EditShift({
   const { dateTimeFormat } = useDateFormats();
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
-  const { eventCheckIn, eventCheckOut, interestLists } = useFeatures();
+  const {
+    eventCheckIn,
+    eventCheckOut,
+    interestLists,
+    endOfShiftPDF,
+  } = useFeatures();
+  const { downloadEndOfShiftPDF } = useEndOfShiftDownload();
   const [editShiftId, setEditShiftId] = useState<string | null>();
   const editCheckInOutModal = useBoolean();
   const deleteConfirm = useBoolean();
@@ -427,6 +434,12 @@ export default function EditShift({
         getDisabled: (row: Shift) => !row.shiftCheckInOut,
         getIcon: () => 'solar:stopwatch-bold-duotone',
         onClick: clickCheckInOut,
+      }] : []),
+      ...(endOfShiftPDF ? [{
+        getName: () => 'Download End of Shift PDF',
+        getDisabled: (row: Shift) => !row.shiftCheckInOut?.checkOutTime,
+        getIcon: () => 'ic:round-downloading',
+        onClick: (row: Shift) => downloadEndOfShiftPDF(row.id),
       }] : []),
     ].filter(Boolean) as any,
     columns: [

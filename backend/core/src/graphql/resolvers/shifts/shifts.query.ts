@@ -4,6 +4,7 @@ import {
   AvailableShiftsSearchInput,
   EventStatus,
   ShiftSearchInput,
+  ShiftTabResponse,
 } from "../../../__generated__/resolvers-types";
 import { adminOnly } from "../../../utils/access";
 import { SearchResults } from "../../../utils/common.resolvers";
@@ -11,6 +12,21 @@ import { IUserSearchResult } from "../../../types/common";
 import { IShift } from "../../../models/shift";
 
 export const Query = {
+  shiftTabs: async (
+    _parent: unknown,
+    { id }: { id: string },
+    { docusign, user, organization }: Context
+  ): Promise<ShiftTabResponse | null> => {
+    adminOnly(user);
+
+    const { tabs, templateName } = await docusign.getTabs({ shiftId: id, organization });
+
+    return {
+      orgId: user.member.orgId.toString(),
+      templateName: templateName || 'shift-close',
+      data: JSON.stringify(tabs),
+    };
+  },
   availableShifts: async (
     _parent: unknown,
     { input: { upcoming } }: {input: AvailableShiftsSearchInput},

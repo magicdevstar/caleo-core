@@ -105,6 +105,16 @@ export const CREATE_SHIFT_LOTTERY_REQUEST = gql`
   }
 `;
 
+export const GET_SHIFT_TABS = gql`
+  query GetShiftTabs($id: String!) {
+    shiftTabs(id: $id) {
+      orgId
+      templateName
+      data
+    }
+  }
+`;
+
 export const GET_AVAILABLE_SHIFTS = gql`
   query GetAvailableShifts($input: AvailableShiftsSearchInput!) {
     availableShifts(input: $input) {

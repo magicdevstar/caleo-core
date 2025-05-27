@@ -52,6 +52,7 @@ const userDetailProperties = `
         eventInvoice
         vehicleCategories
         rankGrouping
+        endOfShiftPDF
       }
       customizations {
         pNumber

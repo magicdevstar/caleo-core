@@ -61,6 +61,7 @@ const featureDefinitions = [
   { value: 'eventInvoice', label: 'Event Invoice', defaultEnabled: false },
   { value: 'vehicleCategories', label: 'Vehicle Categories', defaultEnabled: false },
   { value: 'rankGrouping', label: 'Rank Grouping', defaultEnabled: false },
+  { value: 'endOfShiftPDF', label: 'End of Shift PDF (Warning! Template upload required.)', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

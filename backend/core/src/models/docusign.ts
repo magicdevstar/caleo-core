@@ -1,3 +1,4 @@
+import https from 'https';
 import ds, { EnvelopeDefinition, TemplateRole, Document as DSDocument, Signer, SignHere, Tabs, Recipients, Text } from 'docusign-esign';
 import { Db, ObjectId } from "mongodb";
 import { format } from 'date-fns';
@@ -307,6 +308,110 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     logger.info('Updated docusign tabs', {
       res
     });
+  }
+  
+  async generateTabs({
+    org,
+    shift,
+    event,
+    venue,
+    user,
+    userRank,
+    unit,
+    supervisor,
+    lieutenant,
+  }: {
+    org: IOrganization;
+    shift: IShift;
+    user: IUser;
+    venue: IIVenue;
+    userRank: IRank;
+    unit: IUnit;
+    supervisor: IUser;
+    lieutenant: IUser;
+    event: IEvent;
+  }) {
+    // Download the tabs
+    const url = `https://caleo-assets-${process.env.STAGE}.s3.us-west-2.amazonaws.com/${org.id}/shift-close/tabs.json`;
+    const tabConfig: ds.Text[] = await (() => new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            resolve(jsonData);
+          } catch (error: unknown) {
+            reject(new Error('Error parsing JSON: ' + (error as Error).message));
+          }
+        });
+      }).on('error', (err: Error) => {
+        reject(new Error('Error downloading file: ' + err.message));
+      });
+    }))();
+
+    const {
+      startTime,
+      endTime,
+      formattedDiff,
+      totalEquipmentTime,
+    }  = docusignDates({
+      startTime: shift.shiftCheckInOut!.checkInTime!,
+      endTime: shift.shiftCheckInOut!.checkOutTime!,
+      startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
+      endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
+      timezone: org.timezone as any,
+    });
+
+    const lastLineExplainer =
+      totalEquipmentTime ?
+      `Employee received a total of ${totalEquipmentTime} hours of equipment time.` :
+      'Employee received a total of 1 hour of travel time.';
+
+    const res: Record<string, any> = {};
+    for(const tab of tabConfig) {
+      if (tab.tabLabel === 'shiftDate') {
+        res[tab.tabLabel] = format(startTime, 'MM/dd/yyyy');
+      } else if (tab.tabLabel === 'officerName') {
+        res[tab.tabLabel] = `${user.lastName}, ${user.firstName}`;
+      } else if (tab.tabLabel === 'officerRank') {
+        res[tab.tabLabel] = userRank.name;
+      } else if (tab.tabLabel === 'officerUnitOfAssignment') {
+        res[tab.tabLabel] = unit.overtimeCode || '-';
+      } else if (tab.tabLabel === 'outsideOrgCode') {
+        res[tab.tabLabel] = event.outsideOrgCode || '15778';
+      } else if (tab.tabLabel === 'officerEmployeeNumber') {
+        res[tab.tabLabel] = user.member.pNumber;
+      } else if (tab.tabLabel === 'shiftHours') {
+        res[tab.tabLabel] = formattedDiff;
+      } else if (tab.tabLabel === 'checkinTime') {
+        res[tab.tabLabel] = format(startTime, 'HHmm');
+      } else if (tab.tabLabel === 'checkoutTime') {
+        res[tab.tabLabel] = format(endTime, 'HHmm');
+      } else if (tab.tabLabel === 'ocn') {
+        res[tab.tabLabel] = event.ocn;
+      } else if (tab.tabLabel === 'incidentCommanderName') {
+        res[tab.tabLabel] = supervisor.name;
+      } else if (tab.tabLabel === 'incidentCommanderEmployeeNumber') {
+        res[tab.tabLabel] = supervisor.member.pNumber;
+      } else if (tab.tabLabel === 'lieutenantEmployeeNumber') {
+        res[tab.tabLabel] = lieutenant.member.pNumber;
+      } else if (tab.tabLabel === 'orgId') {
+        res[tab.tabLabel] = org._id!.toString();
+      } else if (tab.tabLabel === 'shiftId') {
+        res[tab.tabLabel] = shift._id!.toString();
+      } else if (tab.tabLabel === 'overtimeReasonCode') {
+        res[tab.tabLabel] = event.overtimeReasonCode || '301';
+      } else if (tab.tabLabel === 'budgetActivityCode') {
+        res[tab.tabLabel] = event.budgetActivityCode || 'DN6S';
+      } else if (tab.tabLabel === 'automaticDetails') {
+        res[tab.tabLabel] = `Worked ${event.name} @ ${venue.address || 'ADDRESS'} ${venue.city || 'CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`;
+      }
+    }
+
+    return res;
   }
 
   async createLASDShiftEnvelope({

@@ -233,6 +233,54 @@ export class Docusign {
     return this.docusign.updateAllDSOrgKeys();
   }
 
+  async getTabs({
+    shiftId,
+    organization,
+  }: {
+    shiftId: string;
+    organization: IOrganization;
+  }) {
+    if (organization.features.endOfShiftPDF) {
+      const shift = await this.shifts.get(shiftId);
+      if (!shift) {
+        throw new Error('Shift not found');
+      }
+
+      const user = await this.users.get(shift.userId!);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const event = await this.events.get(shift.eventId);
+      if (!event) {
+        throw new Error('Event not found');
+      }
+      const unit = await this.units.get(user.member.unitId!);
+      const rank = await this.ranks.get(user.member.rankId!);
+      const venue = await this.venues.get(event.venueId!);
+      const supervisor = await this.users.get(event.supervisorId!);
+      const lieutenant = await this.users.get(event.lieutenantId!);
+
+      const tabs = await this.docusign.generateTabs({
+        org: organization,
+        shift,
+        user,
+        venue: venue!,
+        userRank: rank!,
+        unit: unit!,
+        event: event!,
+        lieutenant: lieutenant!,
+        supervisor: supervisor!,
+      });
+
+      return {
+        tabs,
+        templateName: rank?.name.toLowerCase().includes('deputy, reserve') ? 'shift-close-reserve' : 'shift-close',
+      };
+    }
+
+    return {};
+  }
+
   async resubmitEndOfShiftEnvelope({
     shift,
     organization,

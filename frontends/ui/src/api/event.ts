@@ -64,6 +64,29 @@ export const GET_ALL_EVENTS_SLIM = gql`
   }
 `;
 
+export const GET_ALL_EVENT_SHIFTS = gql`
+  query GetEventShifts($id: String!) {
+    event(id: $id) {
+      id
+      assignments {
+        id
+        name
+        shifts {
+          id
+          user {
+            firstName
+            lastName
+          }
+          shiftCheckInOut {
+            checkInTime
+            checkOutTime
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const GET_ALL_EVENTS = gql`
   query GetAllEvents($input: EventSearchInput!) {
     events(input: $input) {

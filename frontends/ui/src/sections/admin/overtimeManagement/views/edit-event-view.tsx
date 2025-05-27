@@ -26,13 +26,15 @@ import { useFeatures } from 'src/hooks/use-features';
 import { useOvertimeSlips } from 'src/hooks/use-overtime-slips';
 import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
+import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
 import EditEvent from '../events/edit-event';
 
 // ----------------------------------------------------------------------
 
 export default function VenueDetail() {
   const { enqueueSnackbar } = useSnackbar();
-  const { kiosk, lasdEventFields, eventInvoice } = useFeatures();
+  const { downloadAllEventShiftsPDF } = useEndOfShiftDownload();
+  const { kiosk, lasdEventFields, eventInvoice, endOfShiftPDF } = useFeatures();
   const kioskConfirm = useBoolean<string>();
   const settings = useSettingsContext();
   const params = useParams();
@@ -125,7 +127,7 @@ export default function VenueDetail() {
     >Download summary</LoadingButton>
   );
 
-  if ((kiosk || eventInvoice) && !hideActionButtons) {
+  if ((kiosk || eventInvoice || endOfShiftPDF) && !hideActionButtons) {
     actionButtons = (
       <>
         <IconButton
@@ -267,6 +269,19 @@ export default function VenueDetail() {
                   <ListItemText>Check in kiosk</ListItemText>
                 </MenuItem>
               </>
+            )
+          }
+          {
+            endOfShiftPDF && (
+              <MenuItem disabled={!data?.event?.id} onClick={() => {
+                downloadAllEventShiftsPDF(data?.event?.id, data?.event?.name);
+                menuClose();
+              }}>
+                <ListItemIcon>
+                  <Iconify icon="ic:round-downloading" />
+                </ListItemIcon>
+                <ListItemText>Download all end of shift PDFs</ListItemText>
+              </MenuItem>
             )
           }
         </Menu>

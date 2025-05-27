@@ -190,8 +190,8 @@ export const generateFilledPDF = async ({
   });
   
   // Open PDF in new tab
+  const pdfBytes = await pdfDoc.save();
   if (openTab) {
-    const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const urlBlob = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -203,4 +203,5 @@ export const generateFilledPDF = async ({
     document.body.removeChild(a);
     URL.revokeObjectURL(urlBlob);
   }
+  return pdfBytes;
 };

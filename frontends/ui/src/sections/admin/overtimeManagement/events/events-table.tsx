@@ -25,6 +25,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
+import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
 
 // ----------------------------------------------------------------------
 
@@ -41,7 +42,9 @@ export default function EventsTable() {
     kiosk,
     eventTemplates,
     eventInvoice,
+    endOfShiftPDF,
   } = useFeatures();
+  const { downloadAllEventShiftsPDF } = useEndOfShiftDownload();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
   const [notifyOfEvent] = useMutation(NOTIFY_OF_EVENT);
@@ -251,6 +254,15 @@ export default function EventsTable() {
             router.push(
               paths.kiosk.dashboard.replace(':eventId', row.id)
             );
+          },
+        },
+      ] : []),
+      ...(endOfShiftPDF ? [
+        {
+          getName: () => 'Download all end of shift PDFs',
+          getIcon: () => 'ic:round-downloading',
+          onClick: (row: Event) => {
+            downloadAllEventShiftsPDF(row.id, row.name)
           },
         },
       ] : []),

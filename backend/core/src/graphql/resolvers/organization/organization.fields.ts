@@ -79,6 +79,7 @@ export const fields = {
     eventInvoice: (parent: OrganizationFeatures) => !!parent.eventInvoice,
     vehicleCategories: (parent: OrganizationFeatures) => !!parent.vehicleCategories,
     rankGrouping: (parent: OrganizationFeatures) => !!parent.rankGrouping,
+    endOfShiftPDF: (parent: OrganizationFeatures) => !!parent.endOfShiftPDF,
   },
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),

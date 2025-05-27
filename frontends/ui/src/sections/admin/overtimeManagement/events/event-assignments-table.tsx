@@ -77,10 +77,11 @@ export default function EventAssignmentsTable({
     deleteConfirm.onFalse();
   }, [removeAssignment, setRemoveAssignmentId, removeAssignmentId, deleteConfirm]);
 
-  const handleOpenShiftSlotsDialog = useCallback((assignment: Assignment) => {
+  const handleOpenShiftSlotsDialog = useCallback(async (assignment: Assignment) => {
+    await onSaveEvent(false);
     setSelectedAssignment(assignment);
     shiftSlotsDialog.onTrue();
-  }, [shiftSlotsDialog]);
+  }, [shiftSlotsDialog, onSaveEvent]);
 
   const handleCloseShiftSlotsDialog = useCallback(() => {
     shiftSlotsDialog.onFalse();

@@ -20,7 +20,7 @@ import { CLONE_EVENT_BY_ID, CREATE_TEMPLATE_FROM_EVENT_ID, GENERATE_DS_INVOICE, 
 import { GET_USERS_SLIM } from 'src/api/user';
 import { useEventSummary } from 'src/hooks/use-event-summary';
 import { GET_VENUES_SLIM } from 'src/api/venues';
-import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
+import { convertDate, getNow, useDateFormats } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
 import { useRouter } from 'src/routes/hooks';
@@ -332,6 +332,71 @@ export default function EventsTable() {
         label: 'Venue Contract Exp',
         width: 210,
         renderValue: (expirationDate: any) => expirationDate ? convertDate({ date: expirationDate, user }).format(dateFormat) : 'N/A',
+        columnType: 'string',
+        noSort: true,
+      }) as any,
+      (interestLists && {
+        id: 'autoAssignInterestList',
+        label: 'Auto Hire',
+        width: 210,
+        renderValue: (
+          autoHireEnabled: boolean,
+          index: number,
+          row: Event
+        ) => {
+          if (!autoHireEnabled || row.status !== EventStatus.InterestList) {
+            return 'N/A';
+          }
+
+          let status = 'Scheduled';
+
+          const now = getNow({ organization: user?.member?.org! });
+          const autoHireStart = convertDate({
+            date: row.scheduledCloseInterestList || now.toDate(),
+            user,
+          });
+          const autoHireEnd = convertDate({
+            date: row.interestListAutoAssignCutoff || new Date(),
+            user,
+          });
+
+          if (now.isAfter(autoHireStart) && now.isBefore(autoHireEnd)) {
+            status = 'In Progress';
+          }
+
+          if (now.isAfter(autoHireEnd)) {
+            status = 'Closed';
+          }
+
+          return status;
+        },
+        getLabelColor: (event: Event) => {
+          if (!event.autoAssignInterestList || event.status !== EventStatus.InterestList) {
+            return 'default';
+          }
+
+          let status = 'default';
+
+          const now = getNow({ organization: user?.member?.org! });
+          const autoHireStart = convertDate({
+            date: event.scheduledCloseInterestList || now.toDate(),
+            user,
+          });
+          const autoHireEnd = convertDate({
+            date: event.interestListAutoAssignCutoff || new Date(),
+            user,
+          });
+
+          if (now.isAfter(autoHireStart) && now.isBefore(autoHireEnd)) {
+            status = 'success';
+          }
+
+          if (now.isAfter(autoHireEnd)) {
+            status = 'error';
+          }
+
+          return status;
+        },
         columnType: 'string',
         noSort: true,
       }) as any,

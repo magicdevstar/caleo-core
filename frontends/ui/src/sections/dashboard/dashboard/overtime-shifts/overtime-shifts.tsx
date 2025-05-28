@@ -15,6 +15,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useUpcomingOvertimeLabels } from 'src/hooks/use-upcoming-overtime-labels';
 import { useAvailableOvertimeLabels } from 'src/hooks/use-available-overtime-labels';
+import { useLocalStorage } from 'src/hooks/use-local-storage';
 // types
 import Label, { LabelColor } from 'src/components/label';
 import { EventStatus, Shift, ShiftBufferRequest } from 'src/__generated__/resolvers-types';
@@ -51,7 +52,7 @@ export default function OvertimeShifts() {
   const mdDown = useResponsive('down', 'md');
   const smDown = useResponsive('down', 'sm');
   const [currentTab, setCurrentTab] = useState<CurrentShiftType>(CurrentShiftType.Assigned);
-  const [shiftView, setShiftView] = useState<ShiftViewType>(ShiftViewType.List);
+  const [shiftView, setShiftView] = useLocalStorage<ShiftViewType>('caleo-shift-view', ShiftViewType.List);
   const { onResetPage, ...table } = useTable({
     defaultOrderBy: 'startTime',
     defaultOrder: 'asc',
@@ -156,7 +157,7 @@ export default function OvertimeShifts() {
         setShiftView(newValue);
       }
     },
-    [onResetPage]
+    [onResetPage, setShiftView]
   );
 
   const handleUIFilters = useCallback(

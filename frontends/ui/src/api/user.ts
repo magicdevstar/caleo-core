@@ -53,6 +53,7 @@ const userDetailProperties = `
         vehicleCategories
         rankGrouping
         endOfShiftPDF
+        docusignCheckout
       }
       customizations {
         pNumber

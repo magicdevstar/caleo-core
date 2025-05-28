@@ -288,7 +288,7 @@ export class Docusign {
     shift: IShift | null;
     organization: IOrganization;
   }) {
-    if (organization.docusign && organization.docusign.templateId && shift) {
+    if (organization.features.docusignCheckout && organization.docusign && organization.docusign.templateId && shift) {
       try {
         const docusignEvent = await this.docusignEvent.findByShiftId(shift._id!);
         if (docusignEvent) {
@@ -362,7 +362,7 @@ export class Docusign {
     organization: IOrganization;
     signNow: boolean;
   }) {
-    if (organization.docusign && organization.docusign.templateId) {
+    if (organization.features.docusignCheckout && organization.docusign && organization.docusign.templateId) {
       try {
         const user = await this.users.get(shift.userId!);
           if (!user) {

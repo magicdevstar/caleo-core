@@ -1349,6 +1349,7 @@ type DocusignSignerDetailsData {
     vehicleCategories: Boolean!
     rankGrouping: Boolean!
     endOfShiftPDF: Boolean!
+    docusignCheckout: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1532,6 +1533,7 @@ type DocusignSignerDetailsData {
     vehicleCategories: Boolean
     rankGrouping: Boolean
     endOfShiftPDF: Boolean
+    docusignCheckout: Boolean
   }
 
   input UpsertInterestListSetting {

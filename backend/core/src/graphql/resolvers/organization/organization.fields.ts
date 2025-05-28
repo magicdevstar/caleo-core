@@ -80,6 +80,7 @@ export const fields = {
     vehicleCategories: (parent: OrganizationFeatures) => !!parent.vehicleCategories,
     rankGrouping: (parent: OrganizationFeatures) => !!parent.rankGrouping,
     endOfShiftPDF: (parent: OrganizationFeatures) => !!parent.endOfShiftPDF,
+    docusignCheckout: (parent: OrganizationFeatures) => !!parent.docusignCheckout,
   },
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),

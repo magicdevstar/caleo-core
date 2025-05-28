@@ -1402,6 +1402,7 @@ export type OrganizationFeatures = {
   disabledTierUntil: Scalars['Boolean']['output'];
   disabledTiers: Scalars['Boolean']['output'];
   docusign: Scalars['Boolean']['output'];
+  docusignCheckout: Scalars['Boolean']['output'];
   endOfShiftPDF: Scalars['Boolean']['output'];
   equipment: Scalars['Boolean']['output'];
   eventCheckIn: Scalars['Boolean']['output'];
@@ -2465,6 +2466,7 @@ export type UpsertOrganizationFeatures = {
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   docusign?: InputMaybe<Scalars['Boolean']['input']>;
+  docusignCheckout?: InputMaybe<Scalars['Boolean']['input']>;
   endOfShiftPDF?: InputMaybe<Scalars['Boolean']['input']>;
   equipment?: InputMaybe<Scalars['Boolean']['input']>;
   eventCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3931,6 +3933,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   disabledTierUntil?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTiers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   docusign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  docusignCheckout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   endOfShiftPDF?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   equipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventCheckIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

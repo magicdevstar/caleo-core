@@ -13,7 +13,7 @@ export type CalendarShift = (Shift | ShiftBufferRequest | ShiftLotteryRequest) &
 export type ICalendarEvent = {
   id: string;
   color: string;
-  title: string;
+  title: string | any;
   allDay?: boolean;
   description?: string;
   end: ICalendarDate;

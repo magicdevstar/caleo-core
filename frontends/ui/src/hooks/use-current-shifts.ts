@@ -7,6 +7,7 @@ import { useAuthContext } from 'src/auth/hooks';
 // types
 import { EventStatus, Shift, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
+import { useAvailableOvertimeLabels } from './use-available-overtime-labels';
 
 export enum CurrentShiftType {
   Overview = 'OVERVIEW',
@@ -36,6 +37,7 @@ export function useCurrentShifts({
   range,
 }: CurrentShiftProps = {}) {
   const { user } = useAuthContext();
+  const { labels } = useAvailableOvertimeLabels();
   const theme = useTheme();
   const [shiftTotals, setShiftTotals] = useState({
     [CurrentShiftType.Overview]: 0,
@@ -277,9 +279,9 @@ export function useCurrentShifts({
     }));
     const availableShifts = (availableShiftsData?.availableShifts?.items || []).map((shift: any) => ({
       ...shift,
-      color: theme.palette.info.main,
-      prefixText: 'Available',
-      prefixColor: 'info',
+      color: labels[0].getHex(shift),
+      prefixText: labels[0].getLabel(shift),
+      prefixColor: labels[0].getColor(shift),
     }));
     const upcomingShifts = (upcomingShiftsData?.availableShifts?.items || []).map((shift: any) => ({
       ...shift,
@@ -329,6 +331,7 @@ export function useCurrentShifts({
     }
     return results;
   }, [
+    labels,
     assignedShiftsData,
     pastAssignedShiftsData,
     shiftBufferRequestsData,

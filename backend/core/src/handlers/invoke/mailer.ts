@@ -1156,6 +1156,17 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Event not found', { input, event });
         return;
       }
+
+      // Ignore if the scratched if the current time is before interestListAutoAssignCutoff
+      const zonedNow = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any).getTime();
+      const autoAssignEndDate = toZonedTime(
+        event.interestListAutoAssignCutoff || new Date(),
+        organization?.timezone || 'America/Los_Angeles' as any
+      ).getTime();
+      if (event.status === EventStatus.InterestList && event.autoAssignInterestList && zonedNow <= autoAssignEndDate) {
+        return;
+      }
+
       const assignment = await context.assignments.get(shift.assignmentId);
       if (!assignment) {
         logger.error('Assignment not found', { input, assignment });

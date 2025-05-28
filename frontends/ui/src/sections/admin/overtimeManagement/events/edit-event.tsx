@@ -395,6 +395,49 @@ export default function EditEvent({
     setValue('attachments', [] as any[]);
   }, [setValue]);
 
+  const currentFormValues = getValues();
+
+  const autoHireEndTime = useMemo(() => {
+    if (currentFormValues?.interestListAutoAssignCutoff) {
+      return dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff));
+    }
+
+    const proposedEndTime = dayjs(
+      currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
+    ).subtract(
+      user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
+      'days'
+    );
+
+    if (dayjs(Date.now()).isAfter(proposedEndTime)) {
+      return dayjs(new Date(currentEvent?.startTime || Date.now())).add(24, 'hours');
+    }
+
+    return proposedEndTime;
+  }, [
+    currentEvent,
+    currentFormValues?.interestListAutoAssignCutoff,
+    user.member.org?.settings?.interestList?.defaultAutoHireCutoff
+  ]);
+
+  const autoHireStartTime = useMemo(() => {
+    if (currentFormValues?.scheduledCloseInterestList) {
+      return dayjs(new Date(currentFormValues?.scheduledCloseInterestList));
+    }
+
+    const proposedStartTime = dayjs(autoHireEndTime).subtract(24, 'hours');
+
+    if (dayjs(Date.now()).isAfter(proposedStartTime)) {
+      return dayjs(Date.now());
+    }
+
+    return proposedStartTime;
+  },
+  [
+    currentFormValues?.scheduledCloseInterestList,
+    autoHireEndTime
+  ]);
+
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
     try {
       let imageUploadUrls = [];
@@ -435,7 +478,7 @@ export default function EditEvent({
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             scheduledInterestList: formData?.scheduledInterestList,
             scheduledCloseInterestList: formData?.scheduledCloseInterestList,
-            interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff,
+            interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff || autoHireEndTime.toISOString(),
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
             callSign: formData?.callSign,
@@ -488,54 +531,11 @@ export default function EditEvent({
       console.error(error);
       return '';
     }
-  }, [upsertEvent, enqueueSnackbar, router, currentEvent, basePath]);
+  }, [upsertEvent, enqueueSnackbar, autoHireEndTime, router, currentEvent, basePath]);
 
   const onSubmit = handleSubmit(async (formData: any) => {
     await formSubmit(formData);
   });
-
-  const currentFormValues = getValues();
-
-  const autoHireEndTime = useMemo(() => {
-    if (currentFormValues?.interestListAutoAssignCutoff) {
-      return dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff));
-    }
-
-    const proposedEndTime = dayjs(
-      currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-    ).subtract(
-      user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
-      'days'
-    );
-
-    if (dayjs(Date.now()).isAfter(proposedEndTime)) {
-      return dayjs(new Date(currentEvent?.startTime || Date.now())).add(24, 'hours');
-    }
-
-    return proposedEndTime;
-  }, [
-    currentEvent,
-    currentFormValues?.interestListAutoAssignCutoff,
-    user.member.org?.settings?.interestList?.defaultAutoHireCutoff
-  ]);
-
-  const autoHireStartTime = useMemo(() => {
-    if (currentFormValues?.scheduledCloseInterestList) {
-      return dayjs(new Date(currentFormValues?.scheduledCloseInterestList));
-    }
-
-    const proposedStartTime = dayjs(autoHireEndTime).subtract(24, 'hours');
-
-    if (dayjs(Date.now()).isAfter(proposedStartTime)) {
-      return dayjs(Date.now());
-    }
-
-    return proposedStartTime;
-  },
-  [
-    currentFormValues?.scheduledCloseInterestList,
-    autoHireEndTime
-  ]);
 
   const renderDetails = (
     <>

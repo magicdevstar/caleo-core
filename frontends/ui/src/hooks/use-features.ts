@@ -7,5 +7,5 @@ export interface IOrganizationFeatures extends OrganizationFeatures {
 export const useFeatures = (): IOrganizationFeatures => {
   const { user } = useAuthContext();
 
-  return user?.member?.org?.features!;
+  return user?.member?.org?.features! || {};
 }

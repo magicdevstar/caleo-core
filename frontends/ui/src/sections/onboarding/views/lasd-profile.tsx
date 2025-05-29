@@ -53,8 +53,7 @@ export default function LasdCompleteProfile({
       !ignoreUserHook &&
       !isEmpty(user.member.rank) &&
       !isEmpty(user.member.unit) &&
-      !isEmpty(user.member.division) &&
-      !isEmpty(user.member.contactInfo?.primaryPhone?.number)
+      !isEmpty(user.member.division)
     ) {
       router.replace(paths.dashboard.root);
     }
@@ -76,7 +75,7 @@ export default function LasdCompleteProfile({
     unit: Yup.object().nullable().required('Unit is required'),
     division: Yup.object().nullable(),
     rank: Yup.object().required('Rank is required'),
-    primaryPhone: Yup.string().required('Primary phone is required'),
+    primaryPhone: Yup.string(),
   });
 
   const defaultValues = useMemo(() => ({
@@ -119,8 +118,8 @@ export default function LasdCompleteProfile({
                   receiveEmails: user.member?.contactInfo?.primaryEmail?.receiveEmails || true,
                 },
                 primaryPhone: {
-                  number: d.primaryPhone,
-                  receiveTexts: user.member.contactInfo?.primaryPhone?.receiveTexts || false,
+                  number: d.primaryPhone.trim() === '1' ? '' : d.primaryPhone.trim(),
+                  receiveTexts: true,
                 },
               }
             }

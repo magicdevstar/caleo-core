@@ -31,9 +31,11 @@ const updateSSOUser = async (event: PostAuthenticationTriggerEvent) => {
         cognitoId: attributes.sub,
       }, {
         $set: {
-          ...(attributes['custom:phony'] && {
-            'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
-          }),
+          // LASD decided to make the phone number editable via Caleo rather than pulled into
+          // Cognito via SSO so we will remove this for now.
+          // ...(attributes['custom:phony'] && {
+          //   'member.contactInfo.primaryPhone.number': phoneNumberParser(attributes['custom:phony']),
+          // }),
           ...(attributes['custom:p_number'] && {
             'member.pNumber': attributes['custom:p_number'],
           }),

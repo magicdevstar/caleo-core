@@ -43,7 +43,10 @@ const registerUser = async (event: PostConfirmationTriggerEvent) => {
     const orgId = await getOrgId(event, services);
 
     const hireDate = parseHireDate(event.request.userAttributes['custom:employee_date'])
-    const primaryPhone = phoneNumberParser(event.request.userAttributes['custom:phony']);
+    // LASD decided to make the phone number editable via Caleo rather than pulled into
+    // Cognito via SSO so we will remove this for now.
+    // const primaryPhone = phoneNumberParser(event.request.userAttributes['custom:phony']);
+    const primaryPhone = '';
 
     const userDetails = {
       firstName: event.request.userAttributes.given_name,

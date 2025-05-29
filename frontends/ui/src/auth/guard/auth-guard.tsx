@@ -54,8 +54,7 @@ export default function AuthGuard({ children }: Props) {
       (
         isEmpty(user.member.rank) ||
         isEmpty(user.member.unit) ||
-        isEmpty(user.member.division) ||
-        isEmpty(user.member.contactInfo?.primaryPhone?.number)
+        isEmpty(user.member.division)
       )
     ) {
       router.replace(paths.lasdCompleteProfile);

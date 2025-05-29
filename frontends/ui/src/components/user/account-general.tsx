@@ -313,7 +313,7 @@ export default function AccountGeneral({
                   receiveEmails: d.primaryEmailReceive,
                 },
                 primaryPhone: {
-                  number: d.primaryPhone,
+                  number: d.primaryPhone.trim() === '1' ? '' : d.primaryPhone.trim(),
                   receiveTexts: d.primaryPhoneReceive,
                 },
                 ...(d.secondaryEmail && {
@@ -322,9 +322,9 @@ export default function AccountGeneral({
                     receiveEmails: !!d.secondaryEmailReceive,
                   }
                 }),
-                ...(d.secondaryPhone && {
+                ...(d.secondaryPhone && d.secondaryPhone.trim() !== '1' && {
                   secondaryPhone: {
-                    number: d.secondaryPhone,
+                    number: d.secondaryPhone.trim() === '1' ? '' : d.secondaryPhone.trim(),
                     receiveTexts: !!d.secondaryPhoneReceive,
                   }
                 }),

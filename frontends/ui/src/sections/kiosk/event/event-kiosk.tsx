@@ -65,8 +65,7 @@ export default function EventKiosk({
         (
           isEmpty(user.member.rank) ||
           isEmpty(user.member.unit) ||
-          isEmpty(user.member.division) ||
-          isEmpty(user.member.contactInfo?.primaryPhone?.number)
+          isEmpty(user.member.division)
         )
       ) {
         onboarding.onTrue({

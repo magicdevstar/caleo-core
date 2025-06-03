@@ -1399,6 +1399,7 @@ export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
   autoEnroll: Scalars['Boolean']['output'];
   callSign: Scalars['Boolean']['output'];
+  customizableShiftId: Scalars['Boolean']['output'];
   disabledTierUntil: Scalars['Boolean']['output'];
   disabledTiers: Scalars['Boolean']['output'];
   docusign: Scalars['Boolean']['output'];
@@ -1844,6 +1845,7 @@ export type Shift = {
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
+  customId: Scalars['String']['output'];
   docType: DocType;
   docusignEvent?: Maybe<DocusignEvent>;
   endTime: Scalars['String']['output'];
@@ -1881,6 +1883,7 @@ export type ShiftAdminCheckInOutEvent = {
   /** @deprecated Use equipmentDetails instead! */
   checkOutEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkOutTime?: InputMaybe<Scalars['String']['input']>;
+  customShiftId?: InputMaybe<Scalars['String']['input']>;
   equipmentDetails?: InputMaybe<ShiftCheckInOutEquipmentEvent>;
   id: Scalars['String']['input'];
   noShow?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2463,6 +2466,7 @@ export type UpsertOrganizationCustomizationsTiers = {
 export type UpsertOrganizationFeatures = {
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['Boolean']['input']>;
+  customizableShiftId?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   docusign?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2526,6 +2530,7 @@ export type UpsertRankGroup = {
 export type UpsertShift = {
   assignmentId: Scalars['String']['input'];
   createdById?: InputMaybe<Scalars['String']['input']>;
+  customId?: InputMaybe<Scalars['String']['input']>;
   endTime: Scalars['String']['input'];
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
@@ -3930,6 +3935,7 @@ export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType ex
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
   autoEnroll?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   callSign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  customizableShiftId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTierUntil?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disabledTiers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   docusign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4104,6 +4110,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  customId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

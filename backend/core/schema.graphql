@@ -665,6 +665,8 @@
     id: ID!
     shiftId: String!
     refNumber: Int!
+    # This field is used for sorting and it set by the admins
+    customId: String!
     startTime: String!
     endTime: String!
     status: ShiftStatus!
@@ -733,6 +735,7 @@
     equipmentDetails: ShiftCheckInOutEquipmentEvent
     adminNotes: String
     noShow: Boolean
+    customShiftId: String
   }
 
   input CheckInOutCoordinates {
@@ -830,6 +833,7 @@
     id: String
     shiftId: String!
     refNumber: Int
+    customId: String
     startTime: String!
     endTime: String!
     status: ShiftStatus
@@ -1350,6 +1354,7 @@ type DocusignSignerDetailsData {
     rankGrouping: Boolean!
     endOfShiftPDF: Boolean!
     docusignCheckout: Boolean!
+    customizableShiftId: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1534,6 +1539,7 @@ type DocusignSignerDetailsData {
     rankGrouping: Boolean
     endOfShiftPDF: Boolean
     docusignCheckout: Boolean
+    customizableShiftId: Boolean
   }
 
   input UpsertInterestListSetting {

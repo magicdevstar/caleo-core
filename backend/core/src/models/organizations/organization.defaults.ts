@@ -63,6 +63,7 @@ const featureDefinitions = [
   { value: 'rankGrouping', label: 'Rank Grouping', defaultEnabled: false },
   { value: 'endOfShiftPDF', label: 'End of Shift PDF (Warning! Template upload required.)', defaultEnabled: false },
   { value: 'docusignCheckout', label: 'Docusign Checkout (Required docusign template ids)', defaultEnabled: false },
+  { value: 'customizableShiftId', label: 'Customizable Shift id', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

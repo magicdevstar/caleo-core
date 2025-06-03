@@ -33,6 +33,7 @@ export const Mutation = {
         adminNotes,
         equipmentDetails,
         noShow,
+        customShiftId,
       }
     }: {
       input: ShiftAdminCheckInOutEvent
@@ -61,6 +62,7 @@ export const Mutation = {
       adminNotes,
       user: user!,
       noShow: !!noShow,
+      customShiftId,
     });
 
     await docusign.resubmitEndOfShiftEnvelope({
@@ -404,6 +406,7 @@ export const Mutation = {
       }
       if (!shift.refNumber) {
         rest.refNumber = typeof highestRefNumber === 'number' ? ++highestRefNumber : (index + 1);
+        rest.customId = `${rest.refNumber}`;
       }
       return {
         ...rest,

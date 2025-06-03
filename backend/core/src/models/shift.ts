@@ -405,6 +405,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     adminNotes,
     noShow,
     user,
+    customShiftId,
   } : {
     id: string,
     checkInTime?: string | null,
@@ -415,6 +416,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     checkOutEquipmentTime?: string | null,
     noShow: boolean,
     user: IUser,
+    customShiftId?: string | null,
   }) {
     await this.collection.updateOne({
       _id: new ObjectId(id),
@@ -423,6 +425,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         modifiedById: user._id!,
         updatedAt: new Date(),
         'shiftCheckInOut.noShow': noShow,
+        ...(customShiftId ? { customId: customShiftId } : {}),
         ...(vehicleCategoryId && { 'shiftCheckInOut.equipmentDetails.vehicleCategoryId': vehicleCategoryId }),
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),
         ...(checkOutTime ? { 'shiftCheckInOut.checkOutTime': new Date(checkOutTime) } : {}),

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import orderBy from 'lodash/orderBy';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -52,6 +53,7 @@ import { InterestList } from 'src/components/interest-list/interest-list';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
+import { EditShiftIdModel } from 'src/components/shifts/edit-shift-id-modal';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -90,6 +92,7 @@ export default function EditShift({
     eventCheckOut,
     interestLists,
     endOfShiftPDF,
+    customizableShiftId,
   } = useFeatures();
   const { downloadEndOfShiftPDF } = useEndOfShiftDownload();
   const [editShiftId, setEditShiftId] = useState<string | null>();
@@ -101,6 +104,7 @@ export default function EditShift({
   const assignConfirm = useBoolean();
   const lockConfirm = useBoolean();
   const showInterestList = useBoolean();
+  const editCustomId = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
   const [shiftsToCreate, setShiftsToCreate] = useState<number>(1);
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
@@ -223,6 +227,10 @@ export default function EditShift({
     } else {
       assignConfirm.onTrue();
     }
+  };
+
+  const openCustomIdEditor = (row: Shift) => {
+    editCustomId.onTrue(row);
   };
 
   const lockClick = (row: Shift) => {
@@ -403,9 +411,9 @@ export default function EditShift({
     search: {
       data: currentShifts || [],
       query: GET_ALL_SHIFTS,
-      processResult: (data: any) => ({
+      processResult: (data: any, options) => ({
         total: data.length,
-        items: data,
+        items: orderBy<any>(data, [options?.orderBy], [options?.order || 'asc' as any]),
       }),
     },
     rowActions: [
@@ -456,13 +464,21 @@ export default function EditShift({
         onClick: lockClick,
         width: '10%',
       },
-      {
-        id: 'refNumber',
-        label: 'Slot Ref',
-        columnType: 'string',
-        renderValue: (value: string) => `# ${value}`,
-        width: '10%',
-      },
+      ...(customizableShiftId ? [{
+          id: 'customId',
+          label: 'ID',
+          columnType: 'string',
+          clickable: () => true,
+          onClick: openCustomIdEditor,
+          width: '10%',
+        }] : [{
+          id: 'refNumber',
+          label: 'Slot Ref',
+          columnType: 'string',
+          renderValue: (value: string) => `# ${value}`,
+          width: '10%',
+        }]
+      ),
       {
         id: 'user.name',
         width: '25%',
@@ -744,6 +760,8 @@ export default function EditShift({
         }
       />
 
+      <EditShiftIdModel controller={editCustomId} />
+
       <ConfirmDialog
         open={lockConfirm.value}
         onClose={lockConfirm.onFalse}
@@ -756,6 +774,7 @@ export default function EditShift({
                 input: [
                   {
                     id: lockShift?.id,
+                    customId: lockShift?.customId,
                     refNumber: lockShift?.refNumber,
                     startTime: lockShift?.startTime,
                     endTime: lockShift?.endTime,

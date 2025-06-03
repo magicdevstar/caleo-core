@@ -5,6 +5,7 @@ import { IShift, IShiftCheckInOut, IShiftCheckInOutEquipment } from "../../../mo
 export const fields = {
   Shift: {
     ...commonResolvers,
+    customId: (item: IShift) => item.customId ? item.customId : `${item.refNumber}`,
     createdBy: (shift: IShift, _, { users }: Context) => shift.createdById ? users.loader.load(shift.createdById.toString()) : null,
     org: (shift: IShift, _, { organizations }: Context) => organizations.loader.load(shift.orgId.toString()),
     event: (shift: IShift, _, { events }: Context) => events.loader.load(shift.eventId.toString()),

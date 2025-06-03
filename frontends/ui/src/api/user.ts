@@ -54,6 +54,7 @@ const userDetailProperties = `
         rankGrouping
         endOfShiftPDF
         docusignCheckout
+        customizableShiftId
       }
       customizations {
         pNumber

@@ -15,12 +15,19 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { formattedStatus, getShiftStatus } from 'src/utils/shiftStatus';
+import { EditShiftIdModel } from 'src/components/shifts/edit-shift-id-modal';
 
 export default function DynamicShiftFilter() {
   const { pNumberLabel } = usePNumberLabel();
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, customizableShiftId } = useFeatures();
   const editCheckInOutModal = useBoolean();
+  const editCustomId = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
+
+  const openCustomIdEditor = (row: Shift) => {
+    editCustomId.onTrue(row);
+  };
+
   const shiftHasBeenRemoved = (shift: Shift) =>
     shift.event?.removedAt ||
     shift.assignment?.removedAt ||
@@ -50,7 +57,14 @@ export default function DynamicShiftFilter() {
     },
     rowActions: [],
     columns: [
-      {
+      ...(customizableShiftId ? [{
+        id: 'customId',
+        label: 'ID',
+        columnType: 'string',
+        clickable: () => true,
+        onClick: openCustomIdEditor,
+        width: 150,
+      }] : [{
         id: 'refNumber',
         label: 'Shift Ref #',
         columnType: 'string',
@@ -62,7 +76,7 @@ export default function DynamicShiftFilter() {
                 .replace(':eventId', row.event?.id || '')
                 .replace(':assignmentId', row.assignment?.id || '')
                 .replace(':shiftId', row.shiftId || ''),
-      },
+      }]),
       {
         id: 'startTime',
         label: 'Start',
@@ -382,6 +396,7 @@ export default function DynamicShiftFilter() {
           }, 200);
         }}
       />
+      <EditShiftIdModel controller={editCustomId} />
     </>
   )
 }

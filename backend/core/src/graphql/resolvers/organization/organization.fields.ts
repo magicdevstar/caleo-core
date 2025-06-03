@@ -81,6 +81,7 @@ export const fields = {
     rankGrouping: (parent: OrganizationFeatures) => !!parent.rankGrouping,
     endOfShiftPDF: (parent: OrganizationFeatures) => !!parent.endOfShiftPDF,
     docusignCheckout: (parent: OrganizationFeatures) => !!parent.docusignCheckout,
+    customizableShiftId: (parent: OrganizationFeatures) => !!parent.customizableShiftId,
   },
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),

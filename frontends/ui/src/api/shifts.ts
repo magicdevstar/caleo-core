@@ -123,6 +123,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         shiftId
         startTime
         endTime
+        customId
         refNumber
         event {
           id
@@ -171,6 +172,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         }
         otherShiftSlots {
           id
+          customId
           refNumber
           user {
             id
@@ -331,6 +333,7 @@ export const GET_ALL_SHIFTS = gql`
         startTime
         endTime
         status
+        customId
         refNumber
         shiftCheckInOut {
           checkInTime
@@ -387,6 +390,7 @@ export const GET_ALL_SHIFTS = gql`
         }
         otherShiftSlots {
           id
+          customId
           refNumber
           user {
             id
@@ -411,6 +415,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         startTime
         endTime
         status
+        customId
         refNumber
         shiftCheckInOut {
           checkInTime
@@ -549,6 +554,7 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
         status
         removedAt
         relinquishNote
+        customId
         refNumber
         shiftCheckInOut {
           checkInTime
@@ -606,6 +612,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
       items {
         id
         shiftId
+        customId
         refNumber
         startTime
         endTime
@@ -714,7 +721,9 @@ export const GET_GROUPED_SHIFTS = gql`
   query GetGroupedShift($shiftId: String!) {
     groupedShifts(shiftId: $shiftId) {
       id
+      customId
       refNumber
+      customId
       shiftId
       startTime
       endTime
@@ -802,6 +811,7 @@ query GetShiftDetails($id: String!) {
     id
     startTime
     endTime
+    customId
     refNumber
     event {
       id
@@ -840,6 +850,7 @@ query GetShiftDetails($id: String!) {
     }
     otherShiftSlots {
       id
+      customId
       refNumber
       user {
         id
@@ -926,6 +937,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
           }
           otherShiftSlots {
             id
+            customId
             refNumber
             user {
               id

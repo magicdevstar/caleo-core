@@ -94,7 +94,6 @@ export const GET_ALL_EVENTS = gql`
         id
         referenceId
         name
-        callSign
         startTime
         endTime
         ocn
@@ -167,7 +166,6 @@ query GetEvent($id: String!) {
     id
     referenceId
     name
-    callSign
     startTime
     endTime
     ocn
@@ -184,6 +182,7 @@ query GetEvent($id: String!) {
     assignments {
       id
       name
+      callSign
       requiredEquipment {
         id
         name
@@ -256,7 +255,6 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       id
       referenceId
       name
-      callSign
       startTime
       endTime
       ocn
@@ -272,6 +270,7 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       assignments {
         id
         name
+        callSign
         requiredEquipment {
           id
           name
@@ -337,7 +336,6 @@ export const GET_EVENT = gql`
       id
       referenceId
       name
-      callSign
       attachments
       status
       venueId

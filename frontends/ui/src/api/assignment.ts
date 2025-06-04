@@ -12,6 +12,7 @@ export const GET_ALL_ASSIGNMENT = gql`
       items {
         id
         name
+        callSign
         description
         eventId
         bwNeeded
@@ -49,6 +50,7 @@ export const GET_ASSIGNMENT = gql`
     assignment(id: $id) {
       id
       name
+      callSign
       description
       notifyWhenFullyStaffed
       reportingLocation

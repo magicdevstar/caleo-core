@@ -14,12 +14,10 @@ import Accordion, { accordionClasses } from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 // Components
-import { ConfirmDialog } from "src/components/custom-dialog";
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
 import MapMarkersPopups from 'src/components/map/map-marker-popups';
-import FormProvider, {
+import {
   RHFDateTimePicker, RHFSwitch, RHFTextField,
 } from 'src/components/hook-form';
 import { useFeatures } from 'src/hooks/use-features';
@@ -223,7 +221,7 @@ export const EditCheckInOut = ({
       maxWidth='md'
       content={(
         <>
-          <RHFTextField name="customId" label="Shift Id" fullWidth sx={{ mt: 1, mb: 2 }} />
+          {customizableShiftId && (<RHFTextField name="customId" label="Shift Id" fullWidth sx={{ mt: 1, mb: 2 }} />)}
 
           <Box sx={{
             width: '100%',

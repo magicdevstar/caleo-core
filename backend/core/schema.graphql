@@ -402,7 +402,7 @@
     docusignEnvelopeStatus: String
 
     # For the St Pete Demo. This might move to a different place once we get feedback
-    callSign: String
+    callSign: String @deprecated(reason: "Use the assignments callSign instead!")
 
     # When interest list will be available for officers
     scheduledInterestList: String
@@ -470,6 +470,7 @@
     description: String
     eventId: String!
     orgId: String!
+    callSign: String
     notifyWhenFullyStaffed: Boolean
     reportingLocation: String
     docType: DocType!
@@ -751,7 +752,7 @@
   input UpsertEvent {
     id: String
     name: String!
-    callSign: String
+    callSign: String @deprecated(reason: "Use the assignments callSign instead!")
     attachmentPaths: [String]
     status: EventStatus
     lotteryNumber: Int
@@ -812,6 +813,7 @@
   input UpsertAssignment {
     id: String
     name: String!
+    callSign: String
     description: String
     eventId: String!
     notifyWhenFullyStaffed: Boolean
@@ -1539,7 +1541,6 @@ type DocusignSignerDetailsData {
     rankGrouping: Boolean
     endOfShiftPDF: Boolean
     docusignCheckout: Boolean
-    customizableShiftId: Boolean
   }
 
   input UpsertInterestListSetting {

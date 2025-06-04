@@ -352,7 +352,7 @@ export default function ShiftItem({
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Call Sign</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <Label variant="soft" color='default' sx={labelSx}>
-                {shift.event.callSign || '-'}
+                {shift.assignment.callSign || '-'}
               </Label>
             </Box>
           </Stack>

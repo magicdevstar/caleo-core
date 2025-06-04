@@ -350,7 +350,6 @@ export const GET_ALL_SHIFTS = gql`
           name
           attachments
           notes
-          callSign
           venue {
             id
             name
@@ -370,6 +369,7 @@ export const GET_ALL_SHIFTS = gql`
         assignment {
           id
           name
+          callSign
           bwNeeded
           description
           reportingLocation

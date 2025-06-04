@@ -54,7 +54,8 @@ export default function EditAssignment({
   const basePath = assignmentTemplateView ? paths.dashboard.admin.overtime.templates : paths.dashboard.admin.overtime;
   const {
     equipment: equipmentFeature,
-    lasdEventFields
+    lasdEventFields,
+    callSign,
   } = useFeatures();
   const router = useRouter();
 
@@ -105,6 +106,7 @@ export default function EditAssignment({
   const NewAssignmentSchema = Yup.object().shape({
     id: Yup.string(),
     name: Yup.string().required('Name is required'),
+    callSign: Yup.string().nullable(),
     description: Yup.string(),
     eventId: Yup.string(),
     reportingLocation: Yup.string(),
@@ -125,6 +127,7 @@ export default function EditAssignment({
     () => ({
       id: currentAssignment?.id,
       name: currentAssignment?.name || '',
+      callSign: currentAssignment?.callSign,
       description: currentAssignment?.description || '',
       eventId,
       reportingLocation: currentAssignment?.reportingLocation || '',
@@ -173,6 +176,7 @@ export default function EditAssignment({
             id: formData?.id,
             name: formData?.name,
             description: formData?.description,
+            callSign: formData?.callSign,
             ...(formData?.reportingLocation?.trim() !== '' && !!formData?.reportingLocation && { reportingLocation: formData?.reportingLocation }),
             reportingLocation: formData?.reportingLocation,
             eventId,
@@ -230,6 +234,14 @@ export default function EditAssignment({
 
           <Stack spacing={3} sx={{ p: 3 }}>
             <RHFTextField disabled={allDisabled} name="name" label="Name" />
+
+            {callSign && (
+              <RHFTextField
+                disabled={allDisabled}
+                name="callSign"
+                label="Call Sign"
+              />
+            )}
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>

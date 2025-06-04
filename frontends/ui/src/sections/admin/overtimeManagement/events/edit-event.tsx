@@ -90,7 +90,6 @@ const NewEventSchema = Yup.object().shape({
   attachments: Yup.array(),
   notifyWhenFullyStaffed: Yup.boolean(),
   lotteryNumber: Yup.number().nullable(),
-  callSign: Yup.string().nullable(),
   venueId: Yup.mixed<Venue | string>()
     .nullable()
     .transform((value: Venue) => value?.id)
@@ -135,7 +134,6 @@ export default function EditEvent({
     lottery,
     externalEventRequests,
     lasdEventFields,
-    callSign,
   } = useFeatures();
   const [userSearch, setUserSearch] = useState('');
   const [queryText, setQueryText] = useState('');
@@ -293,7 +291,6 @@ export default function EditEvent({
       budgetActivityCode: currentEvent?.budgetActivityCode,
       supervisor: currentEvent?.supervisor || null,
       lieutenant: currentEvent?.lieutenant || null,
-      callSign: currentEvent?.callSign,
     }),
     [
       currentEvent,
@@ -481,7 +478,6 @@ export default function EditEvent({
             interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff || autoHireEndTime.toISOString(),
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
-            callSign: formData?.callSign,
             attachmentPaths: [
               ...existingAttachments,
               ...imageUploadUrls,
@@ -712,16 +708,6 @@ export default function EditEvent({
                 </Box>
               </Box>
             )}
-
-            {
-              callSign && (
-                <RHFTextField
-                  name="callSign"
-                  label="Call sign"
-                  disabled={allDisabled}
-                />
-              )
-            }
 
             {
               currentEvent && !eventTemplateView &&

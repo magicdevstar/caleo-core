@@ -45,6 +45,7 @@ export type Assignment = {
   __typename?: 'Assignment';
   availableShifts?: Maybe<Scalars['Int']['output']>;
   bwNeeded: Scalars['Boolean']['output'];
+  callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   docType: DocType;
@@ -387,6 +388,7 @@ export type Event = {
   autoAssignInterestList?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use the assignments callSign instead! */
   callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
@@ -2309,6 +2311,7 @@ export type UpsertAfterShiftRemove = {
 
 export type UpsertAssignment = {
   bwNeeded?: InputMaybe<Scalars['Boolean']['input']>;
+  callSign?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
@@ -2354,6 +2357,7 @@ export type UpsertEvent = {
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use the assignments callSign instead! */
   callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
@@ -2466,7 +2470,6 @@ export type UpsertOrganizationCustomizationsTiers = {
 export type UpsertOrganizationFeatures = {
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['Boolean']['input']>;
-  customizableShiftId?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   docusign?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3264,6 +3267,7 @@ export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends Reso
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;

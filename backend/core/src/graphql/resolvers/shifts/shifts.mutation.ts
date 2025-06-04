@@ -65,17 +65,18 @@ export const Mutation = {
       customShiftId,
     });
 
-    await docusign.resubmitEndOfShiftEnvelope({
-      shift: response,
-      organization: organization!,
-    });
-
-    await notificationService.shiftCheckInOutNotification({
-      organization: organization!,
-      shift: response!,
-      template: MailerEvents.OfficerShiftCheckInOutEdited,
-      originalShift: shift,
-    });
+    if (checkInTime || checkOutTime) {
+      await docusign.resubmitEndOfShiftEnvelope({
+        shift: response,
+        organization: organization!,
+      });
+      await notificationService.shiftCheckInOutNotification({
+        organization: organization!,
+        shift: response!,
+        template: MailerEvents.OfficerShiftCheckInOutEdited,
+        originalShift: shift,
+      });
+    }
 
     return response!;
   },

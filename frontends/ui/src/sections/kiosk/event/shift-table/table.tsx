@@ -27,14 +27,14 @@ export default function ShiftTable({
   loading: boolean;
   data: Shift[] | undefined;
 }) {
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, customizableShiftId } = useFeatures();
   const shiftData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
   const unassignedData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Available), [data]);
   const totalUnassigned = unassignedData.length;
   const total = shiftData.length;
   const { pNumberLabel } = usePNumberLabel();
   const TABLE_HEAD = [
-    { id: 'refNumber', label: 'Slot Ref #' },
+    customizableShiftId ? { id: 'customId', label: 'Shift Id' } : { id: 'refNumber', label: 'Slot Ref #' },
     { id: 'user.name', label: 'Name' },
     { id: 'user.member.rank.name', label: 'Rank' },
     { id: 'user.member.pNumber', label: pNumberLabel },

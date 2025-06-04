@@ -28,14 +28,46 @@ export default function ConfirmDialogWithForm({
   ...other
 }: ConfirmDialogWithFormProps) {
   return (
-    <Dialog fullWidth maxWidth={maxWidth} open={open} onClose={onClose} {...other}>
+    <Dialog 
+      fullWidth 
+      maxWidth={maxWidth} 
+      open={open} 
+      onClose={onClose} 
+      sx={{
+        '& .MuiDialog-paper': {
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      }}
+      {...other}
+    >
       <FormProvider methods={methods} onSubmit={handleSubmit}>
         {title && <DialogTitle sx={{ pb: 2 }}>{title}</DialogTitle>}
 
-        {content && <DialogContent sx={{ typography: 'body2' }}> {content} </DialogContent>}
+        {content && (
+          <DialogContent 
+            sx={{ 
+              typography: 'body2',
+              overflow: 'auto',
+              flex: '1 1 auto',
+              mb: 2,
+            }}
+          > 
+            {content} 
+          </DialogContent>
+        )}
 
         {action && (
-          <DialogActions>
+          <DialogActions 
+            sx={{
+              position: 'sticky',
+              bottom: 0,
+              bgcolor: 'background.paper',
+              py: 2,
+              zIndex: 1,
+              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+            }}
+          >
             {action}
 
             {hasCancel && <Button variant="outlined" color="inherit" onClick={onClose}>

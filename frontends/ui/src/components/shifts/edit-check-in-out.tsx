@@ -31,6 +31,7 @@ import { convertDate } from 'src/hooks/use-datejs';
 import { EDIT_CHECK_IN_OUT, GET_GROUPED_SHIFTS } from 'src/api/shifts';
 import Iconify from '../iconify';
 import { RHFVehicleCategoriesSelect } from '../hook-form/rhf-vehicle-categories-select';
+import ConfirmDialogWithForm from '../custom-dialog/confirm-dialog-with-form';
 
 const StyledMapContainer = styled('div')(({ theme }) => ({
   zIndex: 0,
@@ -70,7 +71,12 @@ export const EditCheckInOut = ({
   handleClose: () => void;
   closeOnSave?: boolean;
 }) => {
-  const { eventCheckIn, eventCheckOut, vehicleCategories } = useFeatures();
+  const {
+    eventCheckIn,
+    eventCheckOut,
+    vehicleCategories,
+    customizableShiftId,
+  } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
 
@@ -78,6 +84,7 @@ export const EditCheckInOut = ({
 
   const EditCheckInCheckOut = Yup.object().shape({
     id: Yup.string().required(),
+    customId: Yup.string().nullable(),
     checkInTime: Yup.date().nullable(),
     checkOutTime: Yup.date().nullable(),
     checkInEquipmentTime: Yup.date().nullable(),
@@ -92,6 +99,7 @@ export const EditCheckInOut = ({
   const defaultValues = useMemo(
     () => ({
       id: shift?.id,
+      customId: shift?.customId,
       checkInNote: shift?.shiftCheckInOut?.checkInNote,
       checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
       adminNotes: shift?.shiftCheckInOut?.adminNotes,
@@ -128,7 +136,7 @@ export const EditCheckInOut = ({
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting, isDirty, touchedFields },
   } = methods;
 
   useEffect(() => {
@@ -141,14 +149,16 @@ export const EditCheckInOut = ({
     try {
       const payload: any = {
         id: formData.id,
+        customShiftId: formData.customId,
         adminNotes: formData.adminNotes,
         noShow: formData.noShow,
       }
-      if (formData.checkInTime) {
+      
+      if (touchedFields.checkInTime && formData.checkInTime) {
         payload.checkInTime = formData.checkInTime.toISOString();
       }
 
-      if (formData.checkOutTime) {
+      if (touchedFields.checkOutTime && formData.checkOutTime) {
         payload.checkOutTime = formData.checkOutTime.toISOString();
       }
 
@@ -173,7 +183,7 @@ export const EditCheckInOut = ({
         },
       })
 
-      enqueueSnackbar('Check in/out updated successfully', { variant: 'success', autoHideDuration: 4000 });
+      enqueueSnackbar('Shift details updated successfully', { variant: 'success', autoHideDuration: 4000 });
       await client.refetchQueries({
         include: [GET_GROUPED_SHIFTS],
       });
@@ -184,24 +194,37 @@ export const EditCheckInOut = ({
         handleClose();
       }
     } catch(error) {
-      enqueueSnackbar('Failed to update check in/out', { variant: 'error', autoHideDuration: 4000 });
+      enqueueSnackbar('Failed to update shift details', { variant: 'error', autoHideDuration: 4000 });
     }
   });
 
   return (
-    <ConfirmDialog
-      action={null}
+    <ConfirmDialogWithForm
+      methods={methods}
+      handleSubmit={onSubmit}
+      action={
+        <LoadingButton
+          type="submit"
+          disabled={!isDirty}
+          loading={isSubmitting}
+          variant="contained"
+          color="primary"
+        >
+          Save
+        </LoadingButton>
+      }
       TransitionProps={{
         // wait for animation to end on closing
         onExited: handleClose,
       }}
       open={editCheckInOutModal.value}
-      hasCancel={false}
       onClose={handleClose}
-      title="Shift Check In/Out"
+      title="Shift Details"
       maxWidth='md'
       content={(
-        <FormProvider methods={methods} onSubmit={onSubmit}>
+        <>
+          <RHFTextField name="customId" label="Shift Id" fullWidth sx={{ mt: 1, mb: 2 }} />
+
           <Box sx={{
             width: '100%',
             display: 'flex',
@@ -210,8 +233,8 @@ export const EditCheckInOut = ({
             gap: '10px',
             mt: 1
           }}>
-            {eventCheckIn && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInTime" label="Check In" />}
-            {eventCheckOut && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutTime" label="Check Out" />}
+            {eventCheckIn && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkInTime" label="Check In" />}
+            {eventCheckOut && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkOutTime" label="Check Out" />}
           </Box>
 
           {
@@ -224,8 +247,8 @@ export const EditCheckInOut = ({
                 gap: '10px',
                 mt: 3,
               }}>
-                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkInEquipmentTime" label="Equipment Check In Time" />
-                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} sx={{ maxWidth: '300px' }} name="checkOutEquipmentTime" label="Equipment Check Out Time" />
+                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkInEquipmentTime" label="Equipment Check In Time" />
+                <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkOutEquipmentTime" label="Equipment Check Out Time" />
               </Box>
             )
           }
@@ -300,23 +323,7 @@ export const EditCheckInOut = ({
               </StyledMapContainer>
             )
           }
-
-          <Stack direction="row" spacing={2} sx={{ mt: 2, mb: 3, float: 'right' }}>
-            <Button
-              onClick={handleClose}
-              variant='outlined'
-            >Close</Button>
-            <LoadingButton
-              type="submit"
-              disabled={!isDirty}
-              loading={isSubmitting}
-              variant="contained"
-              color="primary"
-            >
-              Save
-            </LoadingButton>
-          </Stack>
-        </FormProvider>
+        </>
       )}
     />
   )

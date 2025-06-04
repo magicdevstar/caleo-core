@@ -11,6 +11,7 @@ import { Shift } from 'src/__generated__/resolvers-types';
 import { BooleanCell, DateCell, StringCell } from 'src/components/table/gql/row';
 import { docusignStatusColor } from 'src/utils/docusign';
 import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
+import { useFeatures } from 'src/hooks/use-features';
 
 // ----------------------------------------------------------------------
 
@@ -21,13 +22,14 @@ type Props = {
 export default function Row({
   row,
 }: Props) {
+  const { customizableShiftId } = useFeatures();
   const confirm = useBoolean();
   const parsed = parsePhoneNumber(row.user?.member?.contactInfo?.primaryPhone?.number || '', 'US');
 
   return (
     <>
       <TableRow hover>
-        <StringCell value={`${row.refNumber}`} />
+        <StringCell value={customizableShiftId ? `${row.customId}` : `${row.refNumber}`} />
         <StringCell value={row.user?.name || '-'} />
         <StringCell labelColor={row.user?.member?.rank?.name ? 'primary' : 'default'} value={row.user?.member?.rank?.name || '-'} />
         <StringCell value={row.user?.member?.pNumber || '-'} />
@@ -45,7 +47,7 @@ export default function Row({
             }}
             startIcon={<Iconify icon="solar:pen-bold" />}
           >
-            Edit Check in/out
+            Edit Details
           </Button>
         </TableCell>
       </TableRow>

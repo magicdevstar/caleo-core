@@ -3,7 +3,6 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { PostAuthenticationTriggerEvent } from "aws-lambda";
 import logger from "../../utils/logger";
 import { createContext } from "../../utils/createContext";
-import { phoneNumberParser } from "../../utils/phone";
 import { parseHireDate } from "../../utils/hireDate";
 
 interface IUserAttributes {

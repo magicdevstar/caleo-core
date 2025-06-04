@@ -10,7 +10,6 @@ import { Action, MailerEvent, MailerEvents } from "../../types/mailer";
 import { IUser } from "../../types/common";
 import { defaultUserAvailability } from "../../models/user";
 import { parseHireDate } from "../../utils/hireDate";
-import { phoneNumberParser } from "../../utils/phone";
 
 const lambda = new LambdaClient();
 

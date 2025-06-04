@@ -1541,6 +1541,7 @@ type DocusignSignerDetailsData {
     rankGrouping: Boolean
     endOfShiftPDF: Boolean
     docusignCheckout: Boolean
+    customizableShiftId: Boolean
   }
 
   input UpsertInterestListSetting {

@@ -2470,6 +2470,7 @@ export type UpsertOrganizationCustomizationsTiers = {
 export type UpsertOrganizationFeatures = {
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['Boolean']['input']>;
+  customizableShiftId?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTierUntil?: InputMaybe<Scalars['Boolean']['input']>;
   disabledTiers?: InputMaybe<Scalars['Boolean']['input']>;
   docusign?: InputMaybe<Scalars['Boolean']['input']>;

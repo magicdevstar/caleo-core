@@ -25,6 +25,7 @@ import { client } from 'src/utils/apollo';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
+import { useFeatures } from 'src/hooks/use-features';
 
 const noShowShiftsByOfficerSchema = Yup.object().shape({
   officer: Yup.mixed<User | string>()
@@ -37,6 +38,7 @@ const noShowShiftsByOfficerSchema = Yup.object().shape({
 export default function NoShowByOfficer() {
   const { user } = useAuthContext();
   const { dateFormat, timeFormat } = useDateFormats();
+  const { customizableShiftId } = useFeatures();
   const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
@@ -130,6 +132,7 @@ export default function NoShowByOfficer() {
         'Event Name': shift?.event?.name || '',
         'Venue Name': shift.event?.venue?.name || '',
         'Assignment Name': shift.assignment?.name,
+        ...(customizableShiftId && { 'Shift Id': shift.customId }),
         'Shift Start Date': shift.startTime
           ? convertDate({ date: shift.startTime, user }).format(dateFormat)
           : '',

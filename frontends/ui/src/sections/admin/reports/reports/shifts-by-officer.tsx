@@ -27,6 +27,7 @@ import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { formattedStatus } from 'src/utils/shiftStatus';
+import { useFeatures } from 'src/hooks/use-features';
 
 const shiftsByOfficerSchema = Yup.object().shape({
   dateRange: Yup.array()
@@ -47,6 +48,7 @@ const shiftsByOfficerSchema = Yup.object().shape({
 
 export default function ShiftsByOfficer() {
   const { user } = useAuthContext();
+  const { customizableShiftId } = useFeatures();
   const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
@@ -150,6 +152,7 @@ export default function ShiftsByOfficer() {
           ? convertDate({ date: shift.event.endTime, user }).format(dateTimeFormat)
           : '',
         'Assignment Name': shift.assignment?.name,
+        ...(customizableShiftId && { 'Shift Id': shift.customId }),
         'Shift Start Date': shift.startTime
           ? convertDate({ date: shift.startTime, user }).format(dateFormat)
           : '',

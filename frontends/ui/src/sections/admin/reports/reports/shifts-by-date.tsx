@@ -49,7 +49,7 @@ export default function ShiftsByDate() {
   const { user } = useAuthContext();
   const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const { pNumberLabel } = usePNumberLabel();
-  const { equipment, lasdEventFields } = useFeatures();
+  const { equipment, lasdEventFields, customizableShiftId } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
     fileName: 'shifts-by-date',
@@ -139,6 +139,7 @@ export default function ShiftsByDate() {
           ? convertDate({ date: shift.event.endTime, user }).format(dateTimeFormat)
           : '',
         'Assignment Name': shift.assignment?.name,
+        ...(customizableShiftId && { 'Shift ID': shift.customId }),
         'Shift Start Date': shift.startTime
           ? convertDate({ date: shift.startTime, user }).format(dateFormat)
           : '',

@@ -193,6 +193,7 @@ query GetEvent($id: String!) {
         startTime
         endTime
         status
+        customId
         refNumber
         docusignEvent {
           id
@@ -286,6 +287,7 @@ export const GET_EVENT_FOR_SUMMARY = gql`
         }
         shifts {
           id
+          customId
           startTime
           endTime
           status

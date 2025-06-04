@@ -20,6 +20,7 @@ import FormProvider, { RHFAutocomplete } from 'src/components/hook-form';
 import { GET_ALL_EVENTS_SLIM, GET_EVENT_FOR_REPORT } from 'src/api/event';
 import { useDownloadCsv } from 'src/hooks/use-download-csv';
 import { client } from 'src/utils/apollo';
+import { useFeatures } from 'src/hooks/use-features';
 
 const overtimeSlipDataByEventSchema = Yup.object().shape({
   event: Yup.mixed<Event | string>()
@@ -30,6 +31,7 @@ const overtimeSlipDataByEventSchema = Yup.object().shape({
 
 export default function OvertimeSlipDataByEvent() {
   const { enqueueSnackbar } = useSnackbar();
+  const { customizableShiftId } = useFeatures();
   const { download } = useDownloadCsv({
     fileName: 'overtime-slip-data-by-event',
     ext: 'csv',
@@ -117,6 +119,7 @@ export default function OvertimeSlipDataByEvent() {
         return {
         'Deputy Name': shift.user?.name || '',
         'Event': shift.event?.name || '',
+        ...(customizableShiftId && { 'Shift ID': shift.customId }),
         'Shift': shift.assignment?.name || '',
         'Overtime Slip signed by Deputy': deputySign?.status?.toLowerCase() === 'completed' ? 'Y' : 'N',
         'Overtime Slip signed by Lieutenant': lieutenantSign?.status?.toLowerCase() === 'completed' ? 'Y' : 'N',

@@ -117,3 +117,17 @@ export const CREATE_SHIFTS = gql`
     }
   }
 `;
+
+export const GET_SHIFT_DETAILS = gql`
+query GetShiftDetails($id: String!) {
+  shift(id: $id) {
+    id
+    startTime
+    endTime
+    customId
+    refNumber
+    locked
+    status
+  }
+}
+`;

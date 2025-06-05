@@ -8,7 +8,7 @@ import {
 import { randomUUID as uuid } from 'crypto';
 import { addHours } from 'date-fns/addHours';
 import { testingService } from '../../../services/testing/testing.service';
-import { EventStatus, Shift, UpsertShift } from '../../../__generated__/resolvers-types';
+import { EventStatus, Shift, ShiftStatus, UpsertShift } from '../../../__generated__/resolvers-types';
 import { truncateToMinute } from '../../../utils/date.helpers';
 import { MailerEvents } from '../../../types/mailer';
 import { NotificationType, ShiftNotificationAction } from '../../../types/notifications';
@@ -134,6 +134,75 @@ describe('Shifts', () => {
     // Should not see in available shifts list
     const shiftWithAssignment = onlyShifts(await testingService.findAvailableShifts());
     expect(shiftWithAssignment.length).toEqual(0);
+  });
+
+  it('should maintain locked status after unassignments', async () => {
+    if (!testingService.testingDefault) {
+      throw new Error('testingDefault not initialized');
+    }
+    
+    // Create shifts on assignment
+    const {
+      event,
+      assignment,
+    } = await testingService.initEventWithAssignment({
+      eventStatus: EventStatus.FirstComeFirstServe,
+    });
+
+    const groupId = uuid();
+    const startTime = truncateToMinute(addHours(new Date(), 100)).toISOString();
+    const endTime = truncateToMinute(addHours(new Date(), 104)).toISOString();
+    const inputShifts: UpsertShift[] = new Array(1).fill({
+      shiftId: groupId,
+      refNumber: 1,
+      startTime,
+      endTime,
+      // Should show shifts even if one is locked
+      locked: true, 
+      eventId: event.id!,
+      assignmentId: assignment.id!,
+    });
+
+    const shifts = await testingService.upsertShifts(inputShifts);
+
+    for(const shift of shifts) {
+      // Validate the shift details
+      expect(shift.id).toBeDefined();
+      expect(shift.startTime).toEqual(inputShifts[0].startTime);
+      expect(shift.endTime).toEqual(inputShifts[0].endTime);
+      expect(shift.shiftId).toEqual(inputShifts[0].shiftId);
+
+      // Validate the event details
+      expect(shift.event).toBeDefined();
+      expect(shift.event.id).toEqual(event.id);
+      expect(shift.event.assignmentIds).toContain(assignment.id);
+
+      // Validate the assignment details
+      expect(shift.assignment).toBeDefined();
+      expect(shift.assignment.id).toEqual(assignment.id);
+      expect(shift.assignment.shiftIds).toContain(shift.id);
+    }
+
+    // Assign the shift to a user
+    await testingService.assignShiftToUser(
+      shifts[0].id,
+      testingService.testingDefault.user.id!
+    );
+
+    // Validate the shift
+    const shiftAfterAssign = await testingService.getSpecificShift(shifts[0].id);
+    expect(shiftAfterAssign.locked).toBe(true);
+    expect(shiftAfterAssign.status).toBe(ShiftStatus.Assigned);
+
+    // Unassign the shift
+    await testingService.assignShiftToUser(
+      shifts[0].id,
+    );
+
+    // Validate the shift
+    const shift = await testingService.getSpecificShift(shifts[0].id);
+    expect(shift.locked).toBe(true);
+    expect(shift.status).toBe(ShiftStatus.Locked);
   });
 
   it('should validate interest list shifts', async () => {

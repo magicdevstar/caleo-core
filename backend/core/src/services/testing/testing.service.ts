@@ -20,7 +20,7 @@ import { IEvent } from "../../models/event";
 import { server } from "../../handlers/api/graphql";
 import { CREATE_ASSIGNMENT } from "./gql/assignments";
 import { expect } from "@jest/globals";
-import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, SHIFT_INTEREST_REQUEST } from "./gql/shifts";
+import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_DETAILS, SHIFT_INTEREST_REQUEST } from "./gql/shifts";
 import { MailerEvents } from "../../types/mailer";
 import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
 import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
@@ -417,7 +417,7 @@ export class TestingService {
     throw new Error('Unexpected response kind');
   }
 
-  async assignShiftToUser(id: string, userId: string) {
+  async assignShiftToUser(id: string, userId?: string) {
     if (!this.requestContext) {
       throw new Error('TestingService.context is not initialized');
     }
@@ -452,9 +452,46 @@ export class TestingService {
 
       const shift = data?.shiftAssign as Shift;
 
-      expect(shift.user).toBeDefined();
-      expect(shift.user?.id).toEqual(userId);
+      if (userId) {
+        expect(shift.user).toBeDefined();
+        expect(shift.user?.id).toEqual(userId);
+      }
+
       return shift;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
+  async getSpecificShift(id: string) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const viewRes = await server.executeOperation({
+      query: GET_SHIFT_DETAILS,
+      variables: { id },
+    }, {
+      contextValue: this.requestContext,
+    });
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(viewRes.body.kind).toEqual('single');
+    
+    // Properly parse the body based on its kind - Apollo server can return 'single' or 'batch' responses
+    if (viewRes.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = viewRes.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      expect(data?.shift).toBeDefined();
+      expect(data?.shift as Shift).toBeDefined();
+
+      return data?.shift as Shift;
     }
     throw new Error('Unexpected response kind');
   }

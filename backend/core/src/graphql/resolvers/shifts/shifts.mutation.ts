@@ -402,7 +402,7 @@ export const Mutation = {
       }
       if (rest.locked) {
         status = ShiftStatus.Locked;
-      } else if (!rest.locked && rest.status === ShiftStatus.Locked) {
+      } else if (!rest.locked && foundShift?.status === ShiftStatus.Locked) {
         status = foundShift && foundShift.userId ? ShiftStatus.Assigned : ShiftStatus.Available;
       }
       if (!shift.refNumber) {
@@ -485,7 +485,7 @@ export const Mutation = {
 
     const shift = await shifts.get(id);
     const existingUserId = shift?.userId ? `${shift?.userId}` : null;
-    if (!shift) {
+    if (!shift || (shift?.locked && !userIsAdmin(user))) {
       throw new GraphQLError("Shift not found");
     }
 
@@ -527,7 +527,7 @@ export const Mutation = {
     }
 
     shift.userId = userId ? new ObjectId(userId) : null;
-    shift.status = userId ? ShiftStatus.Assigned : ShiftStatus.Available;
+    const finalStatus = userId ? ShiftStatus.Assigned : shift.locked ? ShiftStatus.Locked : ShiftStatus.Available;
     shift.modifiedById = user._id!;
 
     const removingShiftUser = !userId && existingUserId;
@@ -568,7 +568,7 @@ export const Mutation = {
 
     const shiftUpdate = {
       ...(userId && { userId: new ObjectId(userId) }),
-      status: userId ? ShiftStatus.Assigned : ShiftStatus.Available,
+      status: finalStatus,
       modifiedById: user!._id!,
     };
     await shifts.collection.updateOne({

@@ -26,6 +26,7 @@ import { useFeatures } from 'src/hooks/use-features';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
+import { useIncidentLinks } from 'src/hooks/use-incident-link';
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ export default function EventsTable() {
     eventInvoice,
     endOfShiftPDF,
   } = useFeatures();
+  const { copyLinkById } = useIncidentLinks();
   const { downloadAllEventShiftsPDF } = useEndOfShiftDownload();
   const navigate = useNavigate();
   const { generateEventDownload } = useEventSummary();
@@ -132,10 +134,19 @@ export default function EventsTable() {
           navigate(`/dashboard/admin/overtime/events/${row.id}`);
         },
       },
+      {
+        getName: () => 'Copy Incident Link',
+        getIcon: () => 'mdi:content-copy',
+        getHidden: (row: Event) => row.status !== EventStatus.Incident,
+        onClick: (row: Event) => {
+          copyLinkById(row.id);
+        },
+      },
       ...(eventTemplates ? [
         {
           getName: () => 'Clone Event',
           getIcon: () => 'solar:magic-stick-3-bold',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           onClick: async (row: Event) => {
             try {
               enqueueSnackbar('Creating event...', { variant: 'info', autoHideDuration: 2000 });
@@ -153,6 +164,7 @@ export default function EventsTable() {
         {
           getName: () => 'Convert to template',
           getIcon: () => 'solar:copy-bold-duotone',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           onClick: async (row: Event) => {
             try {
               enqueueSnackbar('Creating event template...', { variant: 'info', autoHideDuration: 2000 });
@@ -173,6 +185,7 @@ export default function EventsTable() {
         {
           getName: () => 'Invoice Preview',
           getIcon: () => 'mdi:invoice-text-edit',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           getDisabled: (row: Event) => [
             EventStatus.Draft,
             EventStatus.Removed,
@@ -191,6 +204,7 @@ export default function EventsTable() {
         {
           getName: () => 'Generate Invoice',
           getIcon: () => 'mdi:invoice-text-send',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           getDisabled: (row: Event) => [
             EventStatus.Draft,
             EventStatus.Removed,
@@ -209,6 +223,7 @@ export default function EventsTable() {
         {
           getName: () => 'Download Invoice',
           getIcon: () => 'mdi:download',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           getDisabled: (row: Event) => [
             EventStatus.Draft,
             EventStatus.Removed,
@@ -227,6 +242,7 @@ export default function EventsTable() {
         {
           getName: () => 'Check in kiosk',
           getIcon: () => 'material-symbols:moved-location',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           getDisabled: (row: Event) => [
             EventStatus.Complete,
             EventStatus.Draft,
@@ -242,6 +258,7 @@ export default function EventsTable() {
         {
           getName: () => 'Dashboard',
           getIcon: () => 'ic:baseline-dashboard',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           getDisabled: (row: Event) => [
             EventStatus.Complete,
             EventStatus.Draft,
@@ -261,6 +278,7 @@ export default function EventsTable() {
         {
           getName: () => 'Download all end of shift PDFs',
           getIcon: () => 'ic:round-downloading',
+          getHidden: (row: Event) => row.status === EventStatus.Incident,
           onClick: (row: Event) => {
             downloadAllEventShiftsPDF(row.id, row.name)
           },
@@ -269,6 +287,7 @@ export default function EventsTable() {
       {
         getName: () => 'Summary',
         getIcon: () => 'solar:file-download-bold',
+        getHidden: (row: Event) => row.status === EventStatus.Incident,
         onClick: (row: Event) => {
           generateEventDownload(row.id);
         },
@@ -276,6 +295,9 @@ export default function EventsTable() {
       {
         getName: () => 'Notify',
         getHidden: (row: Event) => {
+          if (row.status === EventStatus.Incident) {
+            return true;
+          }
           let isScheduledInFuture = false;
           if (row.scheduledFirstComeFirstServe) {
             isScheduledInFuture = convertDate({ date: row.scheduledFirstComeFirstServe, user }).isAfter(new Date());
@@ -325,6 +347,7 @@ export default function EventsTable() {
         label: 'Venue',
         width: 210,
         columnType: 'string',
+        renderValue: (venueName: string) => venueName || 'N/A',
         noSort: true,
       },
       (venueContractDates && {
@@ -411,6 +434,8 @@ export default function EventsTable() {
               return 'Draft';
             case EventStatus.ReadyForLottery:
               return 'Lottery';
+            case EventStatus.Incident:
+              return 'Incident';
             case EventStatus.FirstComeFirstServe:
               return 'First Come First Serve';
             case EventStatus.InterestList:
@@ -432,6 +457,7 @@ export default function EventsTable() {
             case EventStatus.FirstComeFirstServe:
             case EventStatus.InterestList:
             case EventStatus.Requested:
+            case EventStatus.Incident:
               return 'primary';
             case EventStatus.Removed:
               return 'error';
@@ -449,6 +475,11 @@ export default function EventsTable() {
         width: 120,
         columnType: 'string',
         noSort: true,
+        renderValue: (
+          totalShifts: number,
+          _index: number,
+          row: Event
+        ) => row.status === EventStatus.Incident ? 'N/A' : totalShifts,
       },
       {
         id: 'availableShifts',
@@ -456,6 +487,11 @@ export default function EventsTable() {
         width: 120,
         columnType: 'string',
         noSort: true,
+        renderValue: (
+          availableShifts: number,
+          _index: number,
+          row: Event
+        ) => row.status === EventStatus.Incident ? 'N/A' : availableShifts,
       },
       { id: '', width: 88, columnType: 'action', label: '' },
     ].filter(Boolean),

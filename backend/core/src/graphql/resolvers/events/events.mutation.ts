@@ -277,7 +277,10 @@ export const Mutation = {
       event.referenceId = currentEvent.referenceId;
     } else {
       event.createdById = user!._id!;
-      event.status = event.status === EventStatus.Template ? event.status : EventStatus.Draft;
+      event.status = [
+        EventStatus.Template,
+        EventStatus.Incident,
+      ].includes(event.status || EventStatus.Draft) ? event.status : EventStatus.Draft;
       event.referenceId = await eventReferenceNumber.get(organization.id);
     }
 
@@ -344,6 +347,10 @@ export const Mutation = {
       modifiedById: user!._id!,
       searchAttribute: `${event.referenceId} ${event.name}`,
       docType: DocType.Event,
+      ...([EventStatus.Incident].includes(event.status || EventStatus.Draft) && {
+        startTime: event.startTime ? new Date(event.startTime) : undefined,
+        endTime: event.endTime ? new Date(event.endTime) : undefined,
+      })
     } as unknown as IEvent;
 
     if (typeof inputEvent.lotteryNumber === 'number' && inputEvent.status !== EventStatus.ReadyForLottery) {

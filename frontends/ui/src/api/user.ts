@@ -55,6 +55,7 @@ const userDetailProperties = `
         endOfShiftPDF
         docusignCheckout
         customizableShiftId
+        incidentEvents
       }
       customizations {
         pNumber

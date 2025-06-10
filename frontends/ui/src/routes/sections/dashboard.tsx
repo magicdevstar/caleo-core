@@ -40,6 +40,7 @@ const AssignmentsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/
 const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
 const EditEventAssignment = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
 const EditEventAssignmentShift = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
+const IncidentForm = lazyWithRetry(() => import('src/pages/dashboard/incidents/incident-form'));
 
 // ----------------------------------------------------------------------
 
@@ -61,6 +62,7 @@ export const dashboardRoutes = [
       { path: 'available/overtime', element: <AvailableOvertime /> },
       { path: 'upcoming/overtime', element: <UpcomingOvertime /> },
       { path: 'rank/overtime', element: <RankOvertime /> },
+      { path: 'incident/:id/form', element: <IncidentForm /> },
       { path: 'user', element: <MyProfile /> },
       {
         path: 'admin',

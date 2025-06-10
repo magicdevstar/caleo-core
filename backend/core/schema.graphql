@@ -373,6 +373,9 @@
     COMPLETE
     # Event is a template that can be used to scaffold a new event
     TEMPLATE
+    # If incidents are enabled on the org then this event type will be available
+    # an incident event will never have assignments and shifts assigned to it
+    INCIDENT
 
     # Computed statuses
     # Event that will appear in the next lottery run
@@ -420,7 +423,7 @@
     notifyWhenFullyStaffed: Boolean
     requestDetails: EventRequestDetails
     docType: DocType!
-    venueId: String!
+    venueId: String
     assignmentIds: [String]
     createdById: String
     createdAt: String!
@@ -765,7 +768,7 @@
     notifyOnFirstComeFirstServe: Boolean
     requestDetails: InputEventRequestDetails
     notes: String
-    venueId: String!
+    venueId: String
     notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
     createdById: String
@@ -777,6 +780,11 @@
     budgetActivityCode: String
     supervisorId: String
     lieutenantId: String
+
+    # Incident only field! This will only be accepted when the event status is INCIDENT
+    startTime: String
+    # Incident only field! This will only be accepted when the event status is INCIDENT
+    endTime: String
   }
 
   input InputEventRequestDetails {
@@ -1357,6 +1365,7 @@ type DocusignSignerDetailsData {
     endOfShiftPDF: Boolean!
     docusignCheckout: Boolean!
     customizableShiftId: Boolean!
+    incidentEvents: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1542,6 +1551,7 @@ type DocusignSignerDetailsData {
     endOfShiftPDF: Boolean
     docusignCheckout: Boolean
     customizableShiftId: Boolean
+    incidentEvents: Boolean
   }
 
   input UpsertInterestListSetting {

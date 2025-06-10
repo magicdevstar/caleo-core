@@ -6,7 +6,7 @@ import {
 } from "../../../__generated__/resolvers-types";
 import { commonResolvers } from "../../../utils/common.resolvers";
 import { IOrganization } from "../../../models/organizations/organization.entity";
-import { customizations } from "../../../models/organizations/organization.defaults";
+import { customizations, featureDefinitions } from "../../../models/organizations/organization.defaults";
 
 export const fields = {
   Organization: {
@@ -52,37 +52,10 @@ export const fields = {
     // to qualified users.
     defaultNotificationTime: (parent: any) => parent.defaultNotificationTime || 24,
   },
-  OrganizationFeatures: {
-    lottery: (parent: OrganizationFeatures) => !!parent?.lottery,
-    venueContractDates: (parent: OrganizationFeatures) => !!parent.venueContractDates,
-    eventCheckIn: (parent: OrganizationFeatures) => !!parent.eventCheckIn,
-    eventCheckOut: (parent: OrganizationFeatures) => !!parent.eventCheckOut,
-    officerCheckInOut: (parent: OrganizationFeatures) => !!parent.officerCheckInOut,
-    interestLists: (parent: OrganizationFeatures) => !!parent.interestLists,
-    monthlyMaxHours: (parent: OrganizationFeatures) => !!parent.monthlyMaxHours,
-    weeklyMaxShifts: (parent: OrganizationFeatures) => !!parent.weeklyMaxShifts,
-    disabledTiers: (parent: OrganizationFeatures) => !!parent.disabledTiers,
-    disabledTierUntil: (parent: OrganizationFeatures) => !!parent.disabledTierUntil,
-    externalEventRequests: (parent: OrganizationFeatures) => !!parent.externalEventRequests,
-    sso: (parent: OrganizationFeatures) => !!parent.sso,
-    equipment: (parent: OrganizationFeatures) => !!parent.equipment,
-    lasdEventFields: (parent: OrganizationFeatures) => !!parent.lasdEventFields,
-    profileTenor: (parent: OrganizationFeatures) => !!parent.profileTenor,
-    lasdUserFields: (parent: OrganizationFeatures) => !!parent.lasdUserFields,
-    autoEnroll: (parent: OrganizationFeatures) => !!parent.autoEnroll,
-    docusign: (parent: OrganizationFeatures) => !!parent.docusign,
-    kiosk: (parent: OrganizationFeatures) => !!parent.kiosk,
-    eventTemplates: (parent: OrganizationFeatures) => !!parent.eventTemplates,
-    noShowReport: (parent: OrganizationFeatures) => !!parent.noShowReport,
-    rankHourlyRate: (parent: OrganizationFeatures) => !!parent.rankHourlyRate,
-    callSign: (parent: OrganizationFeatures) => !!parent.callSign,
-    eventInvoice: (parent: OrganizationFeatures) => !!parent.eventInvoice,
-    vehicleCategories: (parent: OrganizationFeatures) => !!parent.vehicleCategories,
-    rankGrouping: (parent: OrganizationFeatures) => !!parent.rankGrouping,
-    endOfShiftPDF: (parent: OrganizationFeatures) => !!parent.endOfShiftPDF,
-    docusignCheckout: (parent: OrganizationFeatures) => !!parent.docusignCheckout,
-    customizableShiftId: (parent: OrganizationFeatures) => !!parent.customizableShiftId,
-  },
+  OrganizationFeatures: featureDefinitions.reduce((acc, { value: key }) => ({
+    ...acc,
+    [key]: (parent: OrganizationFeatures) => !!parent[key],
+  }), {}),
   LotteryDate: {
     time: (parent: any) => new Date(parent.time).toISOString(),
   }

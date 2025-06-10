@@ -430,7 +430,7 @@ export type Event = {
   totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
   venue?: Maybe<Venue>;
-  venueId: Scalars['String']['output'];
+  venueId?: Maybe<Scalars['String']['output']>;
 };
 
 export type EventAttachmentUpload = {
@@ -481,6 +481,7 @@ export enum EventStatus {
   Complete = 'COMPLETE',
   Draft = 'DRAFT',
   FirstComeFirstServe = 'FIRST_COME_FIRST_SERVE',
+  Incident = 'INCIDENT',
   InterestList = 'INTEREST_LIST',
   PreFirstComeFirstServe = 'PRE_FIRST_COME_FIRST_SERVE',
   PreLottery = 'PRE_LOTTERY',
@@ -1413,6 +1414,7 @@ export type OrganizationFeatures = {
   eventInvoice: Scalars['Boolean']['output'];
   eventTemplates: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
+  incidentEvents: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
   kiosk: Scalars['Boolean']['output'];
   lasdEventFields: Scalars['Boolean']['output'];
@@ -2360,6 +2362,7 @@ export type UpsertEvent = {
   /** @deprecated Use the assignments callSign instead! */
   callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
+  endTime?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
@@ -2376,9 +2379,10 @@ export type UpsertEvent = {
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
+  startTime?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
   supervisorId?: InputMaybe<Scalars['String']['input']>;
-  venueId: Scalars['String']['input'];
+  venueId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertInterestListSetting = {
@@ -2482,6 +2486,7 @@ export type UpsertOrganizationFeatures = {
   eventInvoice?: InputMaybe<Scalars['Boolean']['input']>;
   eventTemplates?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
+  incidentEvents?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
   kiosk?: InputMaybe<Scalars['Boolean']['input']>;
   lasdEventFields?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3517,7 +3522,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType>;
-  venueId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  venueId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3952,6 +3957,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   eventInvoice?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventTemplates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  incidentEvents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   kiosk?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lasdEventFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

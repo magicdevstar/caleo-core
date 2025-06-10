@@ -35,7 +35,7 @@ export const customizations = {
 };
 
 // Define features as a single source of truth
-const featureDefinitions = [
+export const featureDefinitions = [
   { value: 'autoEnroll', label: 'Auto Enroll On Login', defaultEnabled: false },
   { value: 'eventCheckIn', label: 'Event Check In', defaultEnabled: false },
   { value: 'eventCheckOut', label: 'Event Check Out', defaultEnabled: false },
@@ -64,6 +64,7 @@ const featureDefinitions = [
   { value: 'endOfShiftPDF', label: 'End of Shift PDF (Warning! Template upload required.)', defaultEnabled: false },
   { value: 'docusignCheckout', label: 'Docusign Checkout (Required docusign template ids)', defaultEnabled: false },
   { value: 'customizableShiftId', label: 'Customizable Shift id', defaultEnabled: false },
+  { value: 'incidentEvents', label: 'Enable incident events', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

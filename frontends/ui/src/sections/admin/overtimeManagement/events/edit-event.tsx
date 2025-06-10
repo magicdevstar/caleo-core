@@ -57,6 +57,7 @@ import FormProvider, {
   RHFUpload,
   RHFSwitch,
   RHFAutocomplete,
+  RHFDateTimePicker,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
@@ -78,6 +79,7 @@ const eventStatusNames = {
   [EventStatus.Draft]: 'Draft',
   [EventStatus.ReadyForLottery]: 'Lottery',
   [EventStatus.InterestList]: 'Interest List',
+  [EventStatus.Incident]: 'Incident',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
   [EventStatus.Requested]: 'Requested',
 }
@@ -90,10 +92,11 @@ const NewEventSchema = Yup.object().shape({
   attachments: Yup.array(),
   notifyWhenFullyStaffed: Yup.boolean(),
   lotteryNumber: Yup.number().nullable(),
+  startTime: Yup.date().optional(),
+  endTime: Yup.date().optional(),
   venueId: Yup.mixed<Venue | string>()
     .nullable()
-    .transform((value: Venue) => value?.id)
-    .test('venue-required', 'Venue is Required', (value) => !!value),
+    .transform((value: Venue) => value?.id),
   scheduledFirstComeFirstServe: Yup.string(),
   scheduledInterestList: Yup.string(),
   autoAssignInterestList: Yup.boolean().nullable(),
@@ -134,6 +137,7 @@ export default function EditEvent({
     lottery,
     externalEventRequests,
     lasdEventFields,
+    incidentEvents,
   } = useFeatures();
   const [userSearch, setUserSearch] = useState('');
   const [queryText, setQueryText] = useState('');
@@ -152,6 +156,9 @@ export default function EditEvent({
     ) {
       statuses.push(EventStatus.ReadyForLottery);
     }
+    if (incidentEvents) {
+      statuses.push(EventStatus.Incident);
+    }
     if (interestLists) {
       statuses.push(EventStatus.InterestList);
     }
@@ -164,7 +171,7 @@ export default function EditEvent({
       EventStatus.Complete,
       EventStatus.Removed,
     ];
-  }, [user, lottery, interestLists, externalEventRequests]);
+  }, [user, lottery, incidentEvents, interestLists, externalEventRequests]);
 
   const { options: lotteryCounterOptions } = useLotteryCounterOptions({
     org: user.member.org!,
@@ -189,9 +196,20 @@ export default function EditEvent({
     currentEvent?.status
   ]);
 
-  const disabledStatus = useMemo(() =>
-    currentEvent?.assignments?.some?.((assignment) => (assignment?.shiftSlots?.length || 0) > 0),
-  [currentEvent?.assignments]);
+  const disabledStatus = useMemo(() => {
+    let message = 'Cannot change posting type before all shifts have been assigned a time';
+    let disabled = currentEvent?.assignments?.some?.((assignment) => (assignment?.shiftSlots?.length || 0) > 0);
+
+    if (currentEvent?.status === EventStatus.Incident) {
+      disabled = true;
+      message = 'Cannot change posting type of incident events';
+    }
+
+    return {
+      disabled,
+      message
+    }
+  }, [currentEvent?.assignments, currentEvent?.status]);
 
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
 
@@ -291,6 +309,8 @@ export default function EditEvent({
       budgetActivityCode: currentEvent?.budgetActivityCode,
       supervisor: currentEvent?.supervisor || null,
       lieutenant: currentEvent?.lieutenant || null,
+      startTime: currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date(),
+      endTime: currentEvent?.endTime ? new Date(currentEvent.endTime) : undefined,
     }),
     [
       currentEvent,
@@ -394,6 +414,8 @@ export default function EditEvent({
 
   const currentFormValues = getValues();
 
+  const isIncident = useMemo(() => currentFormValues.status === EventStatus.Incident, [currentFormValues.status]);
+
   const autoHireEndTime = useMemo(() => {
     if (currentFormValues?.interestListAutoAssignCutoff) {
       return dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff));
@@ -478,6 +500,8 @@ export default function EditEvent({
             interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff || autoHireEndTime.toISOString(),
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
+            startTime: formData?.startTime ? formData?.startTime.toISOString() : null,
+            endTime: formData?.endTime ? formData?.endTime.toISOString() : null,
             attachmentPaths: [
               ...existingAttachments,
               ...imageUploadUrls,
@@ -585,106 +609,112 @@ export default function EditEvent({
                     disabled={allDisabled}
                   />
                 </Stack>
-                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                  <RHFAutocomplete
-                    name="supervisor"
-                    label='Lieutenant'
-                    sx={{ width: '100%' }}
-                    placeholder="Lieutenant"
-                    disabled={allDisabled}
-                    loading={loadingUser}
-                    textFieldChange={(event) => {
-                      setUserSearch((event as any).target.value);
-                    }}
-                    helperText="Incident commander that oversees the event and will be included on all shift documents"
-                    options={users}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    getOptionLabel={(u: any) => u?.name}
-                    renderOption={(props, option, { selected }) => (
-                      <li {...props} key={option?.id}>
-                        <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                        {option?.name}
-                      </li>
-                    )}
-                    renderTags={(selected, getTagProps) =>
-                      selected.map((option, index) => (
-                        <Chip
-                          {...getTagProps({ index })}
-                          key={option?.id}
-                          label={option?.name}
-                          size="small"
-                          color="info"
-                          variant="soft"
-                        />
-                      ))
+                {
+                  !isIncident && (
+                    <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                      <RHFAutocomplete
+                        name="supervisor"
+                        label='Lieutenant'
+                        sx={{ width: '100%' }}
+                        placeholder="Lieutenant"
+                        disabled={allDisabled}
+                        loading={loadingUser}
+                        textFieldChange={(event) => {
+                          setUserSearch((event as any).target.value);
+                        }}
+                        helperText="Incident commander that oversees the event and will be included on all shift documents"
+                        options={users}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        getOptionLabel={(u: any) => u?.name}
+                        renderOption={(props, option, { selected }) => (
+                          <li {...props} key={option?.id}>
+                            <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                            {option?.name}
+                          </li>
+                        )}
+                        renderTags={(selected, getTagProps) =>
+                          selected.map((option, index) => (
+                            <Chip
+                              {...getTagProps({ index })}
+                              key={option?.id}
+                              label={option?.name}
+                              size="small"
+                              color="info"
+                              variant="soft"
+                            />
+                          ))
 
-                    }
-                  />
-                  <RHFAutocomplete
-                    name="lieutenant"
-                    label='Signing Supervisor'
-                    placeholder="Signing Supervisor"
-                    disabled={allDisabled}
-                    loading={loadingUser}
-                    sx={{ width: '100%' }}
-                    textFieldChange={(event) => {
-                      setUserSearch((event as any).target.value);
-                    }}
-                    helperText="Supervisor that will sign off all shift confirmation documents."
-                    options={users}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    getOptionLabel={(u: any) => u?.name}
-                    renderOption={(props, option, { selected }) => (
-                      <li {...props} key={option?.id}>
-                        <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                        {option?.name}
-                      </li>
-                    )}
-                    renderTags={(selected, getTagProps) =>
-                      selected.map((option, index) => (
-                        <Chip
-                          {...getTagProps({ index })}
-                          key={option?.id}
-                          label={option?.name}
-                          size="small"
-                          color="info"
-                          variant="soft"
-                        />
-                      ))
-                    }
-                  />
-                </Stack>
+                        }
+                      />
+                      <RHFAutocomplete
+                        name="lieutenant"
+                        label='Signing Supervisor'
+                        placeholder="Signing Supervisor"
+                        disabled={allDisabled}
+                        loading={loadingUser}
+                        sx={{ width: '100%' }}
+                        textFieldChange={(event) => {
+                          setUserSearch((event as any).target.value);
+                        }}
+                        helperText="Supervisor that will sign off all shift confirmation documents."
+                        options={users}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        getOptionLabel={(u: any) => u?.name}
+                        renderOption={(props, option, { selected }) => (
+                          <li {...props} key={option?.id}>
+                            <Checkbox style={{ marginRight: 8 }} checked={selected} />
+                            {option?.name}
+                          </li>
+                        )}
+                        renderTags={(selected, getTagProps) =>
+                          selected.map((option, index) => (
+                            <Chip
+                              {...getTagProps({ index })}
+                              key={option?.id}
+                              label={option?.name}
+                              size="small"
+                              color="info"
+                              variant="soft"
+                            />
+                          ))
+                        }
+                      />
+                    </Stack>
+                  )
+                }
               </Stack>
             )}
 
-            <RHFAutocomplete
-              openOnFocus
-              name="venueId"
-              label="Venue Name *"
-              disabled={allDisabled}
-              options={venues}
-              filterOptions={(x: any) => x}
-              loading={venuesLoading}
-              helperText={currentEvent?.requestDetails?.estimatedAttendees ? `Estimated attendees: ${currentEvent?.requestDetails?.estimatedAttendees}` : ''}
-              loadingText={
-                <>
-                  Loading...
-                  <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
-                </>
-              }
-              getOptionLabel={(option) => (option as Venue).name}
-              isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
-              onInputChange={(event, newInputValue) => {
-                if (event) {
-                  setVenueSearchText(newInputValue);
+            {!isIncident && (
+              <RHFAutocomplete
+                openOnFocus
+                name="venueId"
+                label="Venue Name *"
+                disabled={allDisabled}
+                options={venues}
+                filterOptions={(x: any) => x}
+                loading={venuesLoading}
+                helperText={currentEvent?.requestDetails?.estimatedAttendees ? `Estimated attendees: ${currentEvent?.requestDetails?.estimatedAttendees}` : ''}
+                loadingText={
+                  <>
+                    Loading...
+                    <CircularProgress color="inherit" size={14} sx={{ ml: 1.5 }} />
+                  </>
                 }
-              }}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  {option.name}
-                </li>
-              )}
-            />
+                getOptionLabel={(option) => (option as Venue).name}
+                isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+                onInputChange={(event, newInputValue) => {
+                  if (event) {
+                    setVenueSearchText(newInputValue);
+                  }
+                }}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.name}
+                  </li>
+                )}
+              />
+            )}
 
             {selectedVenue && (
               <Box sx={{ mb: 1 }}>
@@ -709,6 +739,43 @@ export default function EditEvent({
               </Box>
             )}
 
+            {incidentEvents && !currentEvent && (
+              <>
+                <RHFSelect
+                  fullWidth
+                  name="status"
+                  required
+                  label="Posting type"
+                  disabled={allDisabled || isComplete}
+                  InputLabelProps={{ shrink: true }}
+                  PaperPropsSx={{ textTransform: 'capitalize' }}
+                >
+                  <MenuItem value={EventStatus.Draft}>Pre Planned</MenuItem>
+                  <MenuItem value={EventStatus.Incident}>{eventStatusNames[EventStatus.Incident]}</MenuItem>
+                </RHFSelect>
+
+                { currentFormValues && isIncident && (
+                  <Stack direction="row" spacing={1.5}>
+                    <RHFDateTimePicker
+                      timezone={user.member.org?.timezone}
+                      ampm={false}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      name="startTime"
+                      label="Start Time"
+                    />
+                    <RHFDateTimePicker
+                      timezone={user.member.org?.timezone}
+                      minDate={currentFormValues?.startTime ? dayjs(new Date(currentFormValues?.startTime)) : dayjs(new Date())}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      ampm={false}
+                      name="endTime"
+                      label="End Time"
+                    />
+                  </Stack>
+                )}
+              </>
+            )}
+
             {
               currentEvent && !eventTemplateView &&
               <>
@@ -717,13 +784,13 @@ export default function EditEvent({
                     fullWidth
                     name="status"
                     label="Posting type"
-                    disabled={allDisabled || isComplete || disabledStatus}
-                    helperText={disabledStatus ? 'Cannot change status before all shifts have been assigned a time' : ''}
+                    disabled={allDisabled || isComplete || disabledStatus.disabled}
+                    helperText={disabledStatus.disabled ? disabledStatus.message : ''}
                     InputLabelProps={{ shrink: true }}
                     PaperPropsSx={{ textTransform: 'capitalize' }}
                   >
                     {eventStatuses.map((option) => (
-                      <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed].includes(option)} key={option} value={option}>
+                      <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed, EventStatus.Incident].includes(option)} key={option} value={option}>
                         {(eventStatusNames as any)[option]}
                       </MenuItem>
                     ))}
@@ -875,47 +942,46 @@ export default function EditEvent({
 
                 <Stack>
                   <Stack direction="row" spacing={1.5}>
-                    <DateTimePicker
+                    <RHFDateTimePicker
+                      name="startTime"
                       label="Start time"
                       timezone={user.member.org?.timezone}
                       ampm={false}
                       timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                      value={currentEvent?.startTime ? dayjs(new Date(currentEvent.startTime)) : null}
-                      disabled
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
+                      disabled={!isIncident}
+                      textFieldProps={{
+                        fullWidth: true,
                           margin: 'normal',
                           ...(currentEvent.requestDetails?.startTime ? {
                             helperText: `Suggested start time: ${convertDate({ date: currentEvent.requestDetails?.startTime, user }).format(dateTimeFormat)}`
                           } : {}),
-                        },
                       }}
                     />
-                    <DateTimePicker
-                      label="End time"
-                      ampm={false}
-                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+
+                    <RHFDateTimePicker
+                      name="endTime"
+                      label="End Time"
                       timezone={user.member.org?.timezone}
-                      value={currentEvent?.endTime ? dayjs(new Date(currentEvent.endTime)) : null}
-                      disabled
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
+                      ampm={false}
+                      disabled={!isIncident}
+                      timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                      textFieldProps={{
+                        fullWidth: true,
                           margin: 'normal',
                           ...(currentEvent.requestDetails?.endTime ? {
                             helperText: `Suggested end time: ${convertDate({ date: currentEvent.requestDetails?.endTime, user }).format(dateTimeFormat)}`
                           } : {}),
-                        },
                       }}
                     />
                   </Stack>
-                  <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
+                  { !isIncident && (
+                    <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
+                  )}
                 </Stack>
               </>
             }
 
-            { !eventTemplateView && (<RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />) }
+            { !eventTemplateView && !isIncident && (<RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />) }
           </Stack>
 
           <Divider sx={{ borderStyle: 'dashed' }} />
@@ -1050,7 +1116,7 @@ export default function EditEvent({
       <Grid container spacing={3}>
         {renderDetails}
 
-        {renderAssignments}
+        {!isIncident && renderAssignments}
 
         {renderActions}
 

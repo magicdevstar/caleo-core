@@ -12,7 +12,12 @@ const markEventsAsComplete = async () => {
 
   const res = await events.collection.updateMany({
     endTime: { $lte: new Date() },
-    status: { $in: [EventStatus.Draft, EventStatus.FirstComeFirstServe] }
+    status: {
+      $in: [
+        EventStatus.Draft,
+        EventStatus.FirstComeFirstServe,
+      ],
+    }
   }, {
     $set: {
       status: EventStatus.Complete,

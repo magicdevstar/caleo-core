@@ -188,11 +188,13 @@ export class ChangeStreamService {
     for (const change of yesterdaysChanges) {
       switch(change.type) {
         case ChangeType.EVENT:
-          await this.notifications.eventChange({
-            eventId: change.entityId as ObjectId,
-            orgId: change.orgId,
-            updates: change.changes as IEventUpdates,
-          });
+          // These notifications were confusing people so we are disabling them for now
+          //
+          // await this.notifications.eventChange({
+          //   eventId: change.entityId as ObjectId,
+          //   orgId: change.orgId,
+          //   updates: change.changes as IEventUpdates,
+          // });
           break;
         case ChangeType.ASSIGNMENT:
           await this.notifications.assignmentChange({

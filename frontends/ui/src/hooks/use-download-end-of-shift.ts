@@ -47,7 +47,7 @@ export const useEndOfShiftDownload = () => {
       const rawShifts = res.data.event?.assignments?.flatMap?.((assignment: Assignment) =>
         assignment.shifts?.map((shift) => ({ ...shift, assignment: { name: assignment.name } }))
       ) || [];
-      const shifts = rawShifts.filter((shift: any) => shift.shiftCheckInOut?.checkInTime && shift.shiftCheckInOut?.checkOutTime);
+      const shifts = rawShifts.filter((shift: Shift) => shift.user);
       if (shifts.length === 0) {
         enqueueSnackbar("No shifts available for end of shift form.", { variant: "warning", autoHideDuration: 5000 });
         return;

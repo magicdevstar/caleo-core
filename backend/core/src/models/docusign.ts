@@ -210,7 +210,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.dateTabs![0].tabId,
               tabLabel: "shiftDate",
-              value: format(startTime, 'MM/dd/yyyy')
+              value: format(startTime!, 'MM/dd/yyyy')
             }
           ],
           textTabs: [
@@ -247,12 +247,12 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkinTime')?.tabId,
               tabLabel: "checkinTime",
-              value: format(startTime, 'HHmm')
+              value: format(startTime!, 'HHmm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'checkoutTime')?.tabId,
               tabLabel: "checkoutTime",
-              value: format(endTime, 'HHmm')
+              value: format(endTime!, 'HHmm')
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'ocn')?.tabId,
@@ -358,10 +358,10 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       formattedDiff,
       totalEquipmentTime,
     }  = docusignDates({
-      startTime: shift.shiftCheckInOut!.checkInTime!,
-      endTime: shift.shiftCheckInOut!.checkOutTime!,
-      startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
-      endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
+      startTime: shift.shiftCheckInOut?.checkInTime,
+      endTime: shift.shiftCheckInOut?.checkOutTime,
+      startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
+      endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,
       timezone: org.timezone as any,
     });
 
@@ -373,13 +373,13 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     const res: Record<string, any> = {};
     for(const tab of tabConfig) {
       if (tab.tabLabel === 'shiftDate') {
-        res[tab.tabLabel] = format(startTime, 'MM/dd/yyyy');
+        res[tab.tabLabel] = startTime ? format(startTime, 'MM/dd/yyyy') : '';
       } else if (tab.tabLabel === 'officerName') {
         res[tab.tabLabel] = `${user.lastName}, ${user.firstName}`;
       } else if (tab.tabLabel === 'officerRank') {
         res[tab.tabLabel] = userRank.name;
       } else if (tab.tabLabel === 'officerUnitOfAssignment') {
-        res[tab.tabLabel] = unit.overtimeCode || '-';
+        res[tab.tabLabel] = unit?.overtimeCode || '';
       } else if (tab.tabLabel === 'outsideOrgCode') {
         res[tab.tabLabel] = event.outsideOrgCode || '15778';
       } else if (tab.tabLabel === 'officerEmployeeNumber') {
@@ -387,9 +387,9 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'shiftHours') {
         res[tab.tabLabel] = formattedDiff;
       } else if (tab.tabLabel === 'checkinTime') {
-        res[tab.tabLabel] = format(startTime, 'HHmm');
+        res[tab.tabLabel] = startTime ? format(startTime, 'HHmm') : '';
       } else if (tab.tabLabel === 'checkoutTime') {
-        res[tab.tabLabel] = format(endTime, 'HHmm');
+        res[tab.tabLabel] = endTime ? format(endTime, 'HHmm') : '';
       } else if (tab.tabLabel === 'ocn') {
         res[tab.tabLabel] = event.ocn;
       } else if (tab.tabLabel === 'incidentCommanderName') {

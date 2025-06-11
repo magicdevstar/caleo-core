@@ -22,12 +22,20 @@ export const docusignDates = ({
   startEquipmentTime,
   endEquipmentTime,
 } : {
-  startTime: Date;
-  endTime: Date;
+  startTime?: Date;
+  endTime?: Date;
   timezone: Timezone;
   startEquipmentTime?: Date;
   endEquipmentTime?: Date;
 }) => {
+  if (!startTime || !endTime) {
+    return {
+      startTime: null,
+      endTime: null,
+      formattedDiff: 0,
+      totalEquipmentTime: 0,
+    };
+  }
   logger.info('Dousign Dates', {
     input: {
       startTime,

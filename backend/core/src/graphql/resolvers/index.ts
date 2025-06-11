@@ -25,6 +25,7 @@ import { shiftInterestRequestsQuery, shiftInterestRequestsMutation, shiftInteres
 import { unitQuery, unitMutation, unitFields } from './unit';
 import { queryDivision, mutationDivision, divisionFields } from './division';
 import { queryDocusignEvents, mutationDocusignEvents, docusignEventsFields } from './docusignEvents';
+import { queryOutsideUsers, mutationOutsideUsers, fieldsOutsideUsers } from './outsideUsers';
 
 export default {
   Query: {
@@ -51,6 +52,7 @@ export default {
     ...queryDocusignEvents,
     ...vehicleCategoriesQuery,
     ...rankGroupQuery,
+    ...queryOutsideUsers,
   },
   Mutation: {
     ...healthMutation,
@@ -76,6 +78,7 @@ export default {
     ...vehicleCategoriesMutation,
     ...rankGroupMutation,
     ...mutationDocusignEvents,
+    ...mutationOutsideUsers,
   },
   ...healthFields,
   ...organizationFields,
@@ -100,4 +103,5 @@ export default {
   ...docusignEventsFields,
   ...vehicleCategoriesFields,
   ...rankGroupFields,
+  ...fieldsOutsideUsers,
 };

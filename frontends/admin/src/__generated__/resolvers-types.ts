@@ -176,6 +176,11 @@ export type CreateOrganization = {
   zip?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateOutsideUser = {
+  email: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+};
+
 export type CreateShiftBufferRequest = {
   note?: InputMaybe<Scalars['String']['input']>;
   shiftBufferShiftId: Scalars['String']['input'];
@@ -244,6 +249,7 @@ export enum DocType {
   MemberSkill = 'MEMBER_SKILL',
   Notification = 'NOTIFICATION',
   Organization = 'ORGANIZATION',
+  OutsideUser = 'OUTSIDE_USER',
   Rank = 'RANK',
   RankGroup = 'RANK_GROUP',
   Shift = 'SHIFT',
@@ -838,6 +844,7 @@ export type Mutation = {
   notifyUsersOfEvent?: Maybe<Scalars['Boolean']['output']>;
   notifyUsersOfShift?: Maybe<Scalars['Boolean']['output']>;
   organization?: Maybe<Organization>;
+  outsideUsers: Array<OutsideUser>;
   partialShiftUpdate?: Maybe<Scalars['String']['output']>;
   profilePhotoUploadUrl?: Maybe<ProfilePhotoAttachmentUpload>;
   rank?: Maybe<Rank>;
@@ -852,6 +859,7 @@ export type Mutation = {
   removeEvent: Scalars['ID']['output'];
   removeInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   removeNotification: Scalars['ID']['output'];
+  removeOutsideUser: Scalars['ID']['output'];
   removeRank: Scalars['ID']['output'];
   removeRankGroup: Scalars['ID']['output'];
   removeRanksFromGroup?: Maybe<Scalars['Boolean']['output']>;
@@ -1007,6 +1015,11 @@ export type MutationOrganizationArgs = {
 };
 
 
+export type MutationOutsideUsersArgs = {
+  users: Array<CreateOutsideUser>;
+};
+
+
 export type MutationPartialShiftUpdateArgs = {
   shiftId: Scalars['String']['input'];
   updates: ShiftUpdates;
@@ -1074,6 +1087,11 @@ export type MutationRemoveInAppNotificationsArgs = {
 
 
 export type MutationRemoveNotificationArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveOutsideUserArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -1423,6 +1441,7 @@ export type OrganizationFeatures = {
   monthlyMaxHours: Scalars['Boolean']['output'];
   noShowReport: Scalars['Boolean']['output'];
   officerCheckInOut: Scalars['Boolean']['output'];
+  outsideUserList: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
   rankGrouping: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
@@ -1465,6 +1484,26 @@ export type OrganizationSearchInput = {
 export type OrganizationSearchResult = {
   __typename?: 'OrganizationSearchResult';
   items?: Maybe<Array<Maybe<Organization>>>;
+  total: Scalars['Int']['output'];
+};
+
+export type OutsideUser = {
+  __typename?: 'OutsideUser';
+  createdAt: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org: Organization;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type OutsideUserSearchResult = {
+  __typename?: 'OutsideUserSearchResult';
+  items?: Maybe<Array<OutsideUser>>;
   total: Scalars['Int']['output'];
 };
 
@@ -1511,6 +1550,7 @@ export type Query = {
   organizationById?: Maybe<Organization>;
   organizationFeatures?: Maybe<Array<Maybe<OrganizationFeatureOptions>>>;
   organizations?: Maybe<OrganizationSearchResult>;
+  outsideUsers?: Maybe<OutsideUserSearchResult>;
   rank?: Maybe<Rank>;
   rankGroups?: Maybe<RankGroupSearchResult>;
   ranks?: Maybe<RankSearchResult>;
@@ -1648,6 +1688,11 @@ export type QueryOrganizationByIdArgs = {
 
 export type QueryOrganizationsArgs = {
   input?: InputMaybe<OrganizationSearchInput>;
+};
+
+
+export type QueryOutsideUsersArgs = {
+  input?: InputMaybe<SearchInput>;
 };
 
 
@@ -2495,6 +2540,7 @@ export type UpsertOrganizationFeatures = {
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   officerCheckInOut?: InputMaybe<Scalars['Boolean']['input']>;
+  outsideUserList?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankGrouping?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2884,6 +2930,7 @@ export type ResolversTypes = ResolversObject<{
   CheckInOutSetting: ResolverTypeWrapper<CheckInOutSetting>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
   CreateOrganization: CreateOrganization;
+  CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: ResolverTypeWrapper<DayAvailability>;
   DayOfWeek: DayOfWeek;
@@ -2968,6 +3015,8 @@ export type ResolversTypes = ResolversObject<{
   OrganizationSSOSettings: ResolverTypeWrapper<OrganizationSsoSettings>;
   OrganizationSearchInput: OrganizationSearchInput;
   OrganizationSearchResult: ResolverTypeWrapper<OrganizationSearchResult>;
+  OutsideUser: ResolverTypeWrapper<OutsideUser>;
+  OutsideUserSearchResult: ResolverTypeWrapper<OutsideUserSearchResult>;
   Phone: ResolverTypeWrapper<Phone>;
   ProfilePhotoAttachmentUpload: ResolverTypeWrapper<ProfilePhotoAttachmentUpload>;
   Query: ResolverTypeWrapper<{}>;
@@ -3091,6 +3140,7 @@ export type ResolversParentTypes = ResolversObject<{
   CheckInOutSetting: CheckInOutSetting;
   ContactInfo: ContactInfo;
   CreateOrganization: CreateOrganization;
+  CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
   DayAvailability: DayAvailability;
   Division: Division;
@@ -3166,6 +3216,8 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationSSOSettings: OrganizationSsoSettings;
   OrganizationSearchInput: OrganizationSearchInput;
   OrganizationSearchResult: OrganizationSearchResult;
+  OutsideUser: OutsideUser;
+  OutsideUserSearchResult: OutsideUserSearchResult;
   Phone: Phone;
   ProfilePhotoAttachmentUpload: ProfilePhotoAttachmentUpload;
   Query: {};
@@ -3794,6 +3846,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   notifyUsersOfEvent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfEventArgs, 'eventId'>>;
   notifyUsersOfShift?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationNotifyUsersOfShiftArgs, 'shiftId'>>;
   organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationOrganizationArgs, 'organization'>>;
+  outsideUsers?: Resolver<Array<ResolversTypes['OutsideUser']>, ParentType, ContextType, RequireFields<MutationOutsideUsersArgs, 'users'>>;
   partialShiftUpdate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationPartialShiftUpdateArgs, 'shiftId' | 'updates'>>;
   profilePhotoUploadUrl?: Resolver<Maybe<ResolversTypes['ProfilePhotoAttachmentUpload']>, ParentType, ContextType>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<MutationRankArgs, 'rank'>>;
@@ -3808,6 +3861,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
   removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
+  removeOutsideUser?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveOutsideUserArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
   removeRankGroup?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankGroupArgs, 'id'>>;
   removeRanksFromGroup?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveRanksFromGroupArgs, 'rankGroupId' | 'rankIds'>>;
@@ -3966,6 +4020,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   officerCheckInOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  outsideUserList?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankGrouping?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3998,6 +4053,26 @@ export type OrganizationSsoSettingsResolvers<ContextType = any, ParentType exten
 
 export type OrganizationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationSearchResult'] = ResolversParentTypes['OrganizationSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Organization']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OutsideUserResolvers<ContextType = any, ParentType extends ResolversParentTypes['OutsideUser'] = ResolversParentTypes['OutsideUser']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OutsideUserSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['OutsideUserSearchResult'] = ResolversParentTypes['OutsideUserSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<ResolversTypes['OutsideUser']>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -4044,6 +4119,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   organizationById?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<QueryOrganizationByIdArgs, 'orgId'>>;
   organizationFeatures?: Resolver<Maybe<Array<Maybe<ResolversTypes['OrganizationFeatureOptions']>>>, ParentType, ContextType>;
   organizations?: Resolver<Maybe<ResolversTypes['OrganizationSearchResult']>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
+  outsideUsers?: Resolver<Maybe<ResolversTypes['OutsideUserSearchResult']>, ParentType, ContextType, Partial<QueryOutsideUsersArgs>>;
   rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType, RequireFields<QueryRankArgs, 'id'>>;
   rankGroups?: Resolver<Maybe<ResolversTypes['RankGroupSearchResult']>, ParentType, ContextType, Partial<QueryRankGroupsArgs>>;
   ranks?: Resolver<Maybe<ResolversTypes['RankSearchResult']>, ParentType, ContextType, Partial<QueryRanksArgs>>;
@@ -4563,6 +4639,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;
   OrganizationSSOSettings?: OrganizationSsoSettingsResolvers<ContextType>;
   OrganizationSearchResult?: OrganizationSearchResultResolvers<ContextType>;
+  OutsideUser?: OutsideUserResolvers<ContextType>;
+  OutsideUserSearchResult?: OutsideUserSearchResultResolvers<ContextType>;
   Phone?: PhoneResolvers<ContextType>;
   ProfilePhotoAttachmentUpload?: ProfilePhotoAttachmentUploadResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

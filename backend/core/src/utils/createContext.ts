@@ -40,6 +40,8 @@ import { NotificationService } from "../services/notification.service";
 import { ChangeStreamService } from "../services/changeStream.service";
 import { ChangesModel } from "../models/changes";
 import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
+import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
+import { OutsideUserRepo } from "../models/outsideUsers/outsideUser.repository";
 
 let db: Db;
 
@@ -87,6 +89,7 @@ export interface Context {
   notificationService: NotificationService;
   changeStream: ChangeStreamService;
   rankGroups: RankGroupRepo;
+  outsideUsers: OutsideUserService;
   organization: IOrganization;
   user: IUser;
   originalUser?: IUser;
@@ -177,6 +180,9 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     changesModel,
   );
 
+  const outsideUserRepo = new OutsideUserRepo(db);
+  const outsideUsers = new OutsideUserService(outsideUserRepo);
+
   return {
     organizations,
     eventReferenceNumber,
@@ -211,5 +217,6 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     notificationService,
     changeStream,
     rankGroups,
+    outsideUsers,
   };
 };

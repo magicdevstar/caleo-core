@@ -41,6 +41,7 @@ const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtime
 const EditEventAssignment = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editAssignment'));
 const EditEventAssignmentShift = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
 const IncidentForm = lazyWithRetry(() => import('src/pages/dashboard/incidents/incident-form'));
+const OutsideUsers = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/outsideUsers'));
 
 // ----------------------------------------------------------------------
 
@@ -119,6 +120,7 @@ export const dashboardRoutes = [
               { path: 'department', element: <DepartmentSettings /> },
               { path: 'notifications', element: <AdminNotifications /> },
               { path: 'notifications/:id', element: <EditNotification /> },
+              { path: 'outside-users', element: <OutsideUsers /> },
             ]
           }
         ],

@@ -56,6 +56,7 @@ const userDetailProperties = `
         docusignCheckout
         customizableShiftId
         incidentEvents
+        outsideUserList
       }
       customizations {
         pNumber

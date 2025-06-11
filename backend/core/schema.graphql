@@ -27,6 +27,7 @@
     DS_TOKEN
     DS_EVENTS
     RANK_GROUP
+    OUTSIDE_USER
   }
   enum DayOfWeek {
     SUNDAY
@@ -1366,6 +1367,7 @@ type DocusignSignerDetailsData {
     docusignCheckout: Boolean!
     customizableShiftId: Boolean!
     incidentEvents: Boolean!
+    outsideUserList: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1446,6 +1448,25 @@ type DocusignSignerDetailsData {
     ## This will be a full ISO string but we will only
     ## use the hour and minute portion of the ISO
     time: String!
+  }
+
+  type OutsideUser {
+    id: ID!
+    orgId: String!
+    email: String!
+    name: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization!
+    modifiedBy: User
+  }
+
+  input CreateOutsideUser {
+    email: String!
+    name: String!
   }
 
   input UpsertOrganizationContact {
@@ -1552,6 +1573,7 @@ type DocusignSignerDetailsData {
     docusignCheckout: Boolean
     customizableShiftId: Boolean
     incidentEvents: Boolean
+    outsideUserList: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1704,6 +1726,11 @@ type DocusignSignerDetailsData {
     query: String
     orderBy: String
     order: String
+  }
+
+  type OutsideUserSearchResult {
+    items: [OutsideUser!]
+    total: Int!
   }
 
   input DocusignEventSearchInput {
@@ -2107,6 +2134,8 @@ type Query {
   organizationFeatures: [OrganizationFeatureOptions]
   activeLottery: Boolean
 
+  outsideUsers(input: SearchInput): OutsideUserSearchResult
+
   allUsers(input: AllUsersSearchInput): UserSearchResult
   users(input: UserSearchInput): UserSearchResult
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
@@ -2178,6 +2207,8 @@ type Mutation {
   adminEditPassword(input: InputAdminResetPassword!): Boolean
   browserNotificationSubscription(input: InputBrowserNotificationSubscription!): BrowserNotificationSetting
   removeBrowserNotificationSubscription(endpoint: String): Boolean
+  outsideUsers(users: [CreateOutsideUser!]!): [OutsideUser!]!
+  removeOutsideUser(id: String!): ID!
 
   # Super admin function only
   impersonateUser(userId: String!): Boolean

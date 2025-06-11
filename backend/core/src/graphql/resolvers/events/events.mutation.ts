@@ -248,6 +248,8 @@ export const Mutation = {
         scheduledFirstComeFirstServe: scheduledFCFS,
         scheduledInterestList: scheduledInterest,
         scheduledCloseInterestList: scheduledCloseInterest,
+        startTime,
+        endTime,
         ...event
       }
     }: { event: IUpsertEvent },
@@ -348,8 +350,8 @@ export const Mutation = {
       searchAttribute: `${event.referenceId} ${event.name}`,
       docType: DocType.Event,
       ...([EventStatus.Incident].includes(event.status || EventStatus.Draft) && {
-        startTime: event.startTime ? new Date(event.startTime) : undefined,
-        endTime: event.endTime ? new Date(event.endTime) : undefined,
+        startTime: startTime ? new Date(startTime) : undefined,
+        endTime: endTime ? new Date(endTime) : undefined,
       })
     } as unknown as IEvent;
 

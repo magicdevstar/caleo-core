@@ -1,5 +1,44 @@
 import { Collection, ObjectId } from "mongodb";
 
+export const fixEventDates = async (collection: Collection) => {
+  try {
+    let batchUpdates: any[] = [];
+
+    const sendBatchUpdates = async (force = false) => {
+      if (batchUpdates.length >= 10000 || (force && batchUpdates.length > 0)) {
+        const res = await collection.bulkWrite(batchUpdates);
+        console.log('Bulk matched count: ', res.matchedCount);
+        batchUpdates = [];
+      }
+    };
+
+    for await (const doc of collection.find()) {
+      const updatePlz = typeof doc.startTime === 'string' || typeof doc.endTime === 'string';
+
+      if (updatePlz) {
+        batchUpdates.push({
+          updateOne: {
+            filter: { _id: doc._id },
+            update: {
+              $set: {
+                startTime: new Date(doc.startTime),
+                endTime: new Date(doc.endTime)
+              }
+            }
+          }
+        })
+      }
+      // await sendBatchUpdates();
+    }
+
+    // console.log('first item', batchUpdates[0].updateOne.filter._id, batchUpdates[0].updateOne.update.$set);
+    // console.log('Batch updates length: ', batchUpdates.length);
+    await sendBatchUpdates(true);
+  } catch(error) {
+    console.error('Failed to migrate events: ', error);
+  }
+}
+
 export const events = async (collection: Collection) => {
   try {
     let batchUpdates: any[] = [];

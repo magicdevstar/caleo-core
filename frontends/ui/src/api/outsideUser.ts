@@ -12,6 +12,7 @@ export const GET_OUTSIDE_USERS = gql`
       items {
         id
         name
+        pNumber
         email
       }
       total

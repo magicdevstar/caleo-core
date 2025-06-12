@@ -3,7 +3,7 @@ import { useSnackbar } from 'notistack';
 // @mui
 import Button from '@mui/material/Button';
 // @apollo/client
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // components
@@ -13,6 +13,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { OutsideUser } from 'src/__generated__/resolvers-types';
 import { GET_OUTSIDE_USERS, REMOVE_OUTSIDE_USER } from 'src/api/outsideUser';
 import { TableConfig } from 'src/components/table/table-config';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import UpsertOutsideUserDialogue from './upsert-outside-user-dialogue';
 //
 // import UpsertRankDialogue from './upsert-outside-user-dialogue';
@@ -20,6 +21,7 @@ import UpsertOutsideUserDialogue from './upsert-outside-user-dialogue';
 // ----------------------------------------------------------------------
 
 export default function OutsideUserTable() {
+  const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const [remove] = useMutation(REMOVE_OUTSIDE_USER, {
     refetchQueries: [GET_OUTSIDE_USERS],
@@ -60,6 +62,7 @@ export default function OutsideUserTable() {
     rowActions: [],
     columns: [
       { id: 'name', label: 'Name', columnType: 'string' },
+      { id: 'pNumber', label: pNumberLabel, columnType: 'string' },
       { id: 'email', label: 'Email', columnType: 'string' },
       {
         id: '',

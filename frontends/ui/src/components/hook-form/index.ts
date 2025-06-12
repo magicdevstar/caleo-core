@@ -11,6 +11,7 @@ export { default as RHFRadioGroup } from './rhf-radio-group';
 export { default as RHFAutocomplete } from './rhf-autocomplete';
 export { default as RHFDatePicker } from './rhf-date-picker';
 export { default as RHFDateTimePicker } from './rhf-date-time-picker';
+export { default as RHFTimePicker } from './rhf-time-picker';
 export { default as RHFDateRangePicker } from './rhf-date-range';
 export { default as RHFPhone } from './rhf-phone-field';
 export { default as RHFAssignmentShiftSlots } from './rhf-assignment-shift-slots';

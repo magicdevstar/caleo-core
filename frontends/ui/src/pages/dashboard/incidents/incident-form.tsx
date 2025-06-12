@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import IncidentFormView from 'src/sections/dashboard/views/incident-form-view';
 // sections
 
 
@@ -11,7 +12,7 @@ export default function Page() {
         <title> Caleo: Incident Form</title>
       </Helmet>
 
-      <div>Form will be here</div>
+      <IncidentFormView />
     </>
   );
 }

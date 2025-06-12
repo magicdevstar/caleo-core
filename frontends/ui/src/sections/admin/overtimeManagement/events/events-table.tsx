@@ -44,6 +44,7 @@ export default function EventsTable() {
     eventTemplates,
     eventInvoice,
     endOfShiftPDF,
+    incidentEvents,
   } = useFeatures();
   const { copyLinkById } = useIncidentLinks();
   const { downloadAllEventShiftsPDF } = useEndOfShiftDownload();
@@ -555,6 +556,12 @@ export default function EventsTable() {
               label: 'First Come First Serve',
               value: EventStatus.FirstComeFirstServe,
             },
+            ...(incidentEvents ? [
+              {
+                label: 'Incident',
+                value: EventStatus.Incident,
+              }
+            ] : []),
             {
               label: 'Pre Lottery',
               value: EventStatus.PreLottery,

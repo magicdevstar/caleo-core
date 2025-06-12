@@ -377,13 +377,13 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'officerName') {
         res[tab.tabLabel] = `${user.lastName}, ${user.firstName}`;
       } else if (tab.tabLabel === 'officerRank') {
-        res[tab.tabLabel] = userRank.name;
+        res[tab.tabLabel] = userRank?.name || '';
       } else if (tab.tabLabel === 'officerUnitOfAssignment') {
         res[tab.tabLabel] = unit?.overtimeCode || '';
       } else if (tab.tabLabel === 'outsideOrgCode') {
         res[tab.tabLabel] = event.outsideOrgCode || '15778';
       } else if (tab.tabLabel === 'officerEmployeeNumber') {
-        res[tab.tabLabel] = user.member.pNumber;
+        res[tab.tabLabel] = user?.member?.pNumber || '';
       } else if (tab.tabLabel === 'shiftHours') {
         res[tab.tabLabel] = formattedDiff;
       } else if (tab.tabLabel === 'checkinTime') {
@@ -393,11 +393,11 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'ocn') {
         res[tab.tabLabel] = event.ocn;
       } else if (tab.tabLabel === 'incidentCommanderName') {
-        res[tab.tabLabel] = supervisor.name;
+        res[tab.tabLabel] = supervisor?.name || '';
       } else if (tab.tabLabel === 'incidentCommanderEmployeeNumber') {
-        res[tab.tabLabel] = supervisor.member.pNumber;
+        res[tab.tabLabel] = supervisor?.member?.pNumber || '';
       } else if (tab.tabLabel === 'lieutenantEmployeeNumber') {
-        res[tab.tabLabel] = lieutenant.member.pNumber;
+        res[tab.tabLabel] = lieutenant?.member?.pNumber || '';
       } else if (tab.tabLabel === 'orgId') {
         res[tab.tabLabel] = org._id!.toString();
       } else if (tab.tabLabel === 'shiftId') {
@@ -407,7 +407,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'budgetActivityCode') {
         res[tab.tabLabel] = event.budgetActivityCode || 'DN6S';
       } else if (tab.tabLabel === 'automaticDetails') {
-        res[tab.tabLabel] = `Worked ${event.name} @ ${venue.address || 'ADDRESS'} ${venue.city || 'CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`;
+        res[tab.tabLabel] = `Worked ${event.name} @ ${venue.address || 'UNKNOWN VENUE'} ${venue.city || 'UNKNOWN CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`;
       }
     }
 

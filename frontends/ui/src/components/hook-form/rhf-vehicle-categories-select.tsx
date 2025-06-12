@@ -12,7 +12,7 @@ interface Props {
   sx?: SxProps<Theme>;
 }
 
-export const RHFVehicleCategoriesSelect= ({
+export const RHFVehicleCategoriesSelect = ({
   name,
   label,
   helperText,

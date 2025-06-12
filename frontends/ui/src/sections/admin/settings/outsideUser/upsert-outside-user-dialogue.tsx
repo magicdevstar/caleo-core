@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -26,7 +27,7 @@ import { CustomFile } from 'src/components/upload/types';
 // Types
 import { OutsideUser } from 'src/__generated__/resolvers-types';
 import { CREATE_OUTSIDE_USERS, GET_OUTSIDE_USERS } from 'src/api/outsideUser';
-import { useSnackbar } from 'notistack';
+import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 
 interface InputProps {
   user?: OutsideUser | null;
@@ -36,6 +37,7 @@ interface InputProps {
 type UserFormItem = {
   name: string;
   email: string;
+  pNumber: string;
 };
 
 // Validation schema using yup
@@ -44,6 +46,7 @@ const schema = yup.object().shape({
     yup.object().shape({
       name: yup.string().trim().required('Name is required'),
       email: yup.string().trim().email('Invalid email format').required('Email is required'),
+      pNumber: yup.string().trim().required('required'),
     })
   ),
 });
@@ -52,6 +55,7 @@ export default function UpsertOutsideUserDialogue({
   user,
   controller,
 }: InputProps) {
+  const { pNumberLabel } = usePNumberLabel();
   const { enqueueSnackbar } = useSnackbar();
   const [csvError, setCsvError] = useState<string | null>(null);
   
@@ -65,8 +69,8 @@ export default function UpsertOutsideUserDialogue({
   const methods = useForm({
     defaultValues: {
       users: user 
-        ? [{ name: user.name || '', email: user.email || '' }] 
-        : [{ name: '', email: '' }],
+        ? [{ name: user.name || '', email: user.email || '', pNumber: user.pNumber || '' }] 
+        : [{ name: '', email: '', pNumber: '' }],
     },
     resolver: yupResolver(schema),
   });
@@ -81,9 +85,9 @@ export default function UpsertOutsideUserDialogue({
 
   useEffect(() => {
     if (user) {
-      setValue('users', [{ name: user.name, email: user.email }]);
+      setValue('users', [{ name: user.name, email: user.email, pNumber: user.pNumber }]);
     } else {
-      reset({ users: [{ name: '', email: '' }] });
+      reset({ users: [{ name: '', email: '', pNumber: '' }] });
     }
   }, [user, reset, setValue]);
 
@@ -93,26 +97,27 @@ export default function UpsertOutsideUserDialogue({
         variables: {
           users: user
             ? [{ id: user.id, ...data.users[0] }] // If editing, only use first entry
-            : data.users.map(({ name, email }) => ({
+            : data.users.map(({ name, email, pNumber }) => ({
                 name: name.trim(),
                 email: email.trim(),
+                pNumber: pNumber.trim(),
               })),
         },
       });
       controller.onFalse();
-      reset({ users: [{ name: '', email: '' }] });
+      reset({ users: [{ name: '', email: '', pNumber: '' }] });
     } catch (e) {
       console.error(e);
     }
   };
 
   const handleClose = useCallback(() => {
-    reset({ users: [{ name: '', email: '' }] });
+    reset({ users: [{ name: '', email: '', pNumber: '' }] });
     controller.onFalse();
   }, [reset, controller]);
 
   const addUser = () => {
-    append({ name: '', email: '' });
+    append({ name: '', email: '', pNumber: '' });
   };
 
   const handleCsvFileUpload = (file: CustomFile | null) => {
@@ -138,17 +143,17 @@ export default function UpsertOutsideUserDialogue({
       const startIndex = hasHeaders ? 1 : 0;
       
       return rows.slice(startIndex).map(row => {
-        const [name, email] = row.split(',').map(cell => cell.trim());
+        const [name, email, pNumber] = row.split(',').map(cell => cell.trim());
         
-        if (!name || !email) {
-          throw new Error('Each row must contain both name and email separated by comma');
+        if (!name || !email || !pNumber) {
+          throw new Error(`Each row must contain name, email, and ${pNumberLabel} separated by comma`);
         }
         
-        return { name, email };
+        return { name, email, pNumber };
       });
     } catch (error) {
       console.error('Error parsing CSV:', error);
-      setCsvError('Error parsing CSV. Please ensure each row has a name and email separated by comma.');
+      setCsvError(`Error parsing CSV. Please ensure each row has a name, email, and ${pNumberLabel} separated by comma.`);
       return [];
     }
   };
@@ -232,16 +237,21 @@ export default function UpsertOutsideUserDialogue({
               <Stack direction="row" spacing={1} alignItems="flex-start">
                 <Box flexGrow={1}>
                   <Stack spacing={2}>
-                    <RHFTextField 
-                      name={`users.${index}.name`} 
-                      label="Name" 
-                      type="text" 
-                      autoFocus={index === 0} 
+                    <RHFTextField
+                      name={`users.${index}.name`}
+                      label="Name"
+                      type="text"
+                      autoFocus={index === 0}
+                    />
+                    <RHFTextField
+                      name={`users.${index}.email`}
+                      label="Email"
+                      type="text"
                     />
                     <RHFTextField 
-                      name={`users.${index}.email`} 
-                      label="Email" 
-                      type="text" 
+                      name={`users.${index}.pNumber`}
+                      label={pNumberLabel}
+                      type="text"
                     />
                   </Stack>
                 </Box>

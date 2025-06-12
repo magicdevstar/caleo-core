@@ -179,6 +179,7 @@ export type CreateOrganization = {
 export type CreateOutsideUser = {
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
+  pNumber: Scalars['String']['input'];
 };
 
 export type CreateShiftBufferRequest = {
@@ -1497,6 +1498,7 @@ export type OutsideUser = {
   name: Scalars['String']['output'];
   org: Organization;
   orgId: Scalars['String']['output'];
+  pNumber: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
 };
@@ -4066,6 +4068,7 @@ export type OutsideUserResolvers<ContextType = any, ParentType extends Resolvers
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pNumber?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

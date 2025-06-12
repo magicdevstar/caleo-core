@@ -55,8 +55,8 @@ export default function Incidents({ title, subheader, ...other }: Props) {
     const eventList = data?.events?.items || [];
     return eventList.map((event: Event) => ({
       id: event.id,
-      title: event.name,
-      body: 'Click to sign FEMA form',
+      title: `${event.name}${event.ocn ? `: ${event.ocn}` : ''}`,
+      body: event.notes ? event.notes : 'Click to sign FEMA form',
       createdAt: event.createdAt as any,
       action: {
         path: getHref(event.id),

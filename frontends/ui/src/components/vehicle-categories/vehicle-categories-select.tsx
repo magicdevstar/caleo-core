@@ -1,9 +1,13 @@
 import React from "react";
 import { useQuery } from "@apollo/client";
 import { Theme, SxProps } from '@mui/material/styles';
-import Autocomplete from "@mui/material/Autocomplete";
-import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import FormHelperText from "@mui/material/FormHelperText";
 import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 import { GET_VEHICLE_CATEGORIES } from "../../api/vehicleCategories";
 
 export interface VehicleCategoriesSelectProps {
@@ -19,7 +23,7 @@ export interface VehicleCategoriesSelectProps {
 }
 
 const VehicleCategoriesSelect: React.FC<VehicleCategoriesSelectProps> = ({
-  value,
+  value = "",
   onChange,
   label = "Vehicle Category",
   helperText,
@@ -31,34 +35,41 @@ const VehicleCategoriesSelect: React.FC<VehicleCategoriesSelectProps> = ({
     variables: { input: { skip: 0, limit: 10000 } },
   });
 
+  const labelId = `vehicle-categories-select-label-${React.useId()}`;
+  const categories = data?.vehicleCategories?.items || [];
+
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    onChange(event.target.value as string);
+  };
+
   return (
-    <div>
-      <Autocomplete
-        options={data?.vehicleCategories?.items || []}
-        getOptionLabel={(option: any) => option.name}
-        value={data?.vehicleCategories?.items.find((cat: any) => cat.id === value) || null}
-        onChange={(event, newValue) => onChange(newValue?.id || "")}
-        loading={loading}
-        sx={sx}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={label}
-            error={!!error}
-            helperText={error ? "Error loading categories" : helperText}
-            InputProps={{
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {loading ? <CircularProgress size={20} /> : null}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
-            }}
-          />
-        )}
-      />
-    </div>
+    <FormControl fullWidth error={!!error} sx={sx}>
+      <InputLabel id={labelId}>{label}</InputLabel>
+      <Select
+        labelId={labelId}
+        value={value}
+        label={label}
+        onChange={handleChange as any}
+        disabled={loading}
+        endAdornment={loading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', pr: 2 }}>
+            <CircularProgress color="inherit" size={20} />
+          </Box>
+        ) : null}
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
+        {categories.map((category: any) => (
+          <MenuItem key={category.id} value={category.id}>
+            {category.name}
+          </MenuItem>
+        ))}
+      </Select>
+      {(error || helperText) && (
+        <FormHelperText>{error ? "Error loading categories" : helperText}</FormHelperText>
+      )}
+    </FormControl>
   );
 };
 

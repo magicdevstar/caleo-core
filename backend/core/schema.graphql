@@ -1455,6 +1455,7 @@ type DocusignSignerDetailsData {
     orgId: String!
     email: String!
     name: String!
+    pNumber: String!
     createdAt: String!
     updatedAt: String!
     removedAt: String
@@ -1466,6 +1467,7 @@ type DocusignSignerDetailsData {
 
   input CreateOutsideUser {
     email: String!
+    pNumber: String!
     name: String!
   }
 

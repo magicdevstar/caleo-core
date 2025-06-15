@@ -75,7 +75,6 @@ export default function OutsideUserTable() {
             variant="contained"
             color="error"
             onClick={() => {
-              console.log(row);
               deleteConfirm.onTrue(row);
             }}
           >
@@ -98,7 +97,6 @@ export default function OutsideUserTable() {
   const handleDeleteRow = useCallback(
     async () => {
       try {
-        console.log('Deleting outside user:', deleteConfirm);
         await remove({
           variables: {
             id: deleteConfirm.attribute?.id,

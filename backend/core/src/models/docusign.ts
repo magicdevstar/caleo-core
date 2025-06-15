@@ -18,6 +18,7 @@ import { IIVenue } from './venue';
 import { docusignDates } from '../utils/date.helpers';
 import { OrganizationRepo } from './organizations/organization.repository';
 import { IOrganization } from './organizations/organization.entity';
+import { IAssignment } from './assignment';
 
 const client = new ds.ApiClient();
 client.setOAuthBasePath(
@@ -314,6 +315,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org,
     shift,
     event,
+    assignment,
     venue,
     user,
     userRank,
@@ -330,6 +332,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor: IUser;
     lieutenant: IUser;
     event: IEvent;
+    assignment: IAssignment;
   }) {
     // Download the tabs
     const url = `https://caleo-assets-${process.env.STAGE}.s3.us-west-2.amazonaws.com/${org.id}/shift-close/tabs.json`;
@@ -408,6 +411,10 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         res[tab.tabLabel] = event.budgetActivityCode || 'DN6S';
       } else if (tab.tabLabel === 'automaticDetails') {
         res[tab.tabLabel] = `Worked ${event.name} @ ${venue.address || 'UNKNOWN VENUE'} ${venue.city || 'UNKNOWN CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`;
+      } else if (tab.tabLabel === 'callSignLabel') {
+        res[tab.tabLabel] = 'Call Sign: ';
+      } else if (tab.tabLabel === 'callSign') {
+        res[tab.tabLabel] = assignment.callSign || 'N/A';
       }
     }
 

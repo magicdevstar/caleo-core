@@ -86,12 +86,13 @@ export const generateFilledPDF = async ({
   
   // Draw text at positions defined in tabs.json
   tabsData.forEach(tab => {
-    if (tab.tabType === 'prefilltab' && tab.tabLabel in data) {
+    if (tab.tabLabel in data) {
       // Get the field data
       const fieldValue = data[tab.tabLabel] || '';
       
       // Skip empty fields
       if (!fieldValue && !mergedOptions.debug) {
+        console.warn(`Skipping empty field: ${tab.tabLabel}`);
         return;
       }
       
@@ -190,8 +191,8 @@ export const generateFilledPDF = async ({
   });
   
   // Open PDF in new tab
-  const pdfBytes = await pdfDoc.save();
   if (openTab) {
+    const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const urlBlob = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -203,5 +204,5 @@ export const generateFilledPDF = async ({
     document.body.removeChild(a);
     URL.revokeObjectURL(urlBlob);
   }
-  return pdfBytes;
+  return pdfDoc;
 };

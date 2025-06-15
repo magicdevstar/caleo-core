@@ -254,6 +254,7 @@ export class Docusign {
       if (!event) {
         throw new Error('Event not found');
       }
+      const assignment = await this.assignments.get(shift.assignmentId);
       const unit = await this.units.get(user.member.unitId!);
       const rank = await this.ranks.get(user.member.rankId!);
       const venue = await this.venues.get(event.venueId!);
@@ -264,6 +265,7 @@ export class Docusign {
         org: organization,
         shift,
         user,
+        assignment: assignment!,
         venue: venue!,
         userRank: rank!,
         unit: unit!,

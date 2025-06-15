@@ -61,12 +61,17 @@ export const useEndOfShiftDownload = () => {
       }
 
       const mergedPdf = await PDFDocument.create();
+      const pages: {pdf: PDFDocument, name: string}[] = [];
       await Promise.allSettled(shifts.map(async (shift: Shift, index: number) => {
         const pdf = await downloadEndOfShiftPDF(shift.id, false);
         if (pdf) {
-          const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-          copiedPages.forEach((page) => mergedPdf.addPage(page));
+          pages.push({ pdf, name: `${shift.user?.lastName}, ${shift.user?.firstName}` });
         }
+      }));
+      pages.sort((a, b) => a.name.localeCompare(b.name));
+      await Promise.all(pages.map(async ({ pdf }) => {
+        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        copiedPages.forEach((page) => mergedPdf.addPage(page));
       }));
       const mergedPdfFile = await mergedPdf.save();
 

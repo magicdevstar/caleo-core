@@ -92,7 +92,6 @@ export const generateFilledPDF = async ({
       
       // Skip empty fields
       if (!fieldValue && !mergedOptions.debug) {
-        console.warn(`Skipping empty field: ${tab.tabLabel}`);
         return;
       }
       

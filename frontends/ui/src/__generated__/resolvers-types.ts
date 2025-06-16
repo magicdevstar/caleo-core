@@ -657,6 +657,7 @@ export type IncidentForm = {
   removedAt?: Maybe<Scalars['String']['output']>;
   reviewer: Scalars['String']['output'];
   shiftDetails: ShiftDetails;
+  status?: Maybe<IncidentFormStatus>;
   step?: Maybe<Scalars['Int']['output']>;
   timekeeping: Timekeeping;
   updatedAt: Scalars['String']['output'];
@@ -667,6 +668,7 @@ export type IncidentForm = {
 
 export type IncidentFormResponse = {
   __typename?: 'IncidentFormResponse';
+  incidentForm: IncidentForm;
   signingUrl?: Maybe<Scalars['String']['output']>;
 };
 
@@ -684,6 +686,11 @@ export type IncidentFormSearchResult = {
   items?: Maybe<Array<IncidentForm>>;
   total: Scalars['Int']['output'];
 };
+
+export enum IncidentFormStatus {
+  Draft = 'DRAFT',
+  Submitted = 'SUBMITTED'
+}
 
 export type InputAdminResetPassword = {
   password: Scalars['String']['input'];
@@ -3194,6 +3201,7 @@ export type ResolversTypes = ResolversObject<{
   IncidentFormResponse: ResolverTypeWrapper<IncidentFormResponse>;
   IncidentFormSearchInput: IncidentFormSearchInput;
   IncidentFormSearchResult: ResolverTypeWrapper<IncidentFormSearchResult>;
+  IncidentFormStatus: IncidentFormStatus;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
@@ -3947,6 +3955,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reviewer?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   shiftDetails?: Resolver<ResolversTypes['ShiftDetails'], ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['IncidentFormStatus']>, ParentType, ContextType>;
   step?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   timekeeping?: Resolver<ResolversTypes['Timekeeping'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3957,6 +3966,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
 }>;
 
 export type IncidentFormResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['IncidentFormResponse'] = ResolversParentTypes['IncidentFormResponse']> = ResolversObject<{
+  incidentForm?: Resolver<ResolversTypes['IncidentForm'], ParentType, ContextType>;
   signingUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

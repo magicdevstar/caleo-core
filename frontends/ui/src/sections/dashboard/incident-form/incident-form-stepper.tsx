@@ -40,7 +40,7 @@ import VehicleInformationStep from './vehicle-information-step';
 import AssignmentSummaryStep from './assignment-summary-step';
 import ActivityLogStep from './activity-log-step';
 import SelectReviewerStep from './select-reviewer-step';
-import InProgressSubmissions from './in-progress-submissions';
+import Submissions from './submissions';
 
 // ----------------------------------------------------------------------
 
@@ -431,7 +431,7 @@ export default function IncidentFormStepper({
           </Box>
         )}
         
-        <InProgressSubmissions eventId={event.id} onSelectSubmission={handleSelectSubmission} />
+        <Submissions eventId={event.id} onSelectSubmission={handleSelectSubmission} />
         
         <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
           {STEPS.map((label, index) => {

@@ -24,10 +24,11 @@ export const Mutation = {
         user,
         org: organization,
       });
-      return {
-        signingUrl: res?.signingUrl
-      };
+      return res;
     } catch(error) {
+      if (error.message === 'An incident form already exists for this event and date') {
+        throw new GraphQLError(error.message);
+      }
       logger.error('Error in incidentForm mutation:', { error });
       throw new GraphQLError('Failed to save incident form');
     }

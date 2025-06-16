@@ -11,6 +11,5 @@ export const Query = {
   ): Promise<SearchResults<IIncidentForm>> => incidentSubmissionModel.search({
     ...input,
     userId: user?._id,
-    envelopeId: { $exists: false },
   }),
 };

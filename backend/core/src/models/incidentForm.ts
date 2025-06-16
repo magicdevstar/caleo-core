@@ -56,4 +56,12 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
       { $set: { envelopeId, updatedAt: new Date() } },
     );
   }
+
+  findExistingByEventId(userId: ObjectId, eventId: ObjectId, submissionDate: Date) {
+    return this.collection.findOne({
+      userId,
+      eventId,
+      'operationalPeriod.date': submissionDate,
+    });
+  }
 };

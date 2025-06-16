@@ -12,7 +12,7 @@ import { UserModel } from "../models/user";
 import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
-import { DocusignEventSearchInput, DocusignEventUserRole } from "../__generated__/resolvers-types";
+import { DocusignEventSearchInput, DocusignEventUserRole, IncidentFormResponse } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -507,9 +507,13 @@ export class Docusign {
     incidentForm: InputIncidentForm;
     org: IOrganization;
     user: IUser;
-  }) {
+  }): Promise<IncidentFormResponse> {
     const savedForm = await this.incidentSubmission.upsert(incidentForm);
     if (!saveOnly) {
+      // const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
+      // if (existing && existing.id !== savedForm.id) {
+      //   throw new Error('An incident form already exists for this event and date');
+      // }
       const event = await this.events.get(incidentForm.eventId);
       if (!event) {
         throw new Error('Event not found');
@@ -557,7 +561,16 @@ export class Docusign {
       // Save to mongo
       this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId);
   
-      return res;
+      return {
+        ...res,
+        incidentForm: {
+          ...savedForm,
+          envelopeId: res.envelopeId,
+        } as any,
+      };
+    }
+    return {
+      incidentForm: savedForm as any,
     }
   }
 };

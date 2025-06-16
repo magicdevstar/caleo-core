@@ -1789,6 +1789,11 @@ type DocusignSignerDetailsData {
     entries: [ActivityLogEntry] # Minimum 1, Maximum 25
   }
 
+  enum IncidentFormStatus {
+    DRAFT
+    SUBMITTED
+  }
+
   type IncidentForm {
     id: ID!
     operationalPeriod: OperationalPeriod!
@@ -1800,6 +1805,7 @@ type DocusignSignerDetailsData {
     activityLog: ActivityLog!
 
     step: Int
+    status: IncidentFormStatus
 
     envelopeId: String
     eventId: ObjectId!
@@ -1818,6 +1824,7 @@ type DocusignSignerDetailsData {
 
   type IncidentFormResponse {
     signingUrl: String
+    incidentForm: IncidentForm!
   }
 
   input IOperationalPeriod {

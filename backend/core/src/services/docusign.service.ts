@@ -12,7 +12,8 @@ import { UserModel } from "../models/user";
 import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
-import { DocusignEventSearchInput, DocusignEventUserRole, IncidentFormResponse } from "../__generated__/resolvers-types";
+import { IIncidentForm as IncidentForm } from '../models/incidentForm';
+import { DocusignEventSearchInput, DocusignEventUserRole, IIncidentForm, IncidentFormResponse } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -86,36 +87,64 @@ export class Docusign {
     return this.docusignEvent.loadByEventId.load(id);
   }
 
+  async loadByUserAndEventId(userId: ObjectId, eventId: ObjectId) {
+    return this.docusignEvent.loadByUserAndEventId.load({ userId, eventId });
+  }
+
   async saveEvent({
+    incident,
     shiftId,
     status,
     envelopeId,
     signers,
   }: {
-    shiftId: string;
+    incident?: IncidentForm;
+    shiftId?: string;
+    eventId?: string;
     status: string;
     envelopeId: string;
     signers: Signer[]
   }) {
-    const shift = await this.shifts.get(shiftId, { removed: true });
-    if (!shift) {
-      throw new Error('Shift not found');
+    let orgId: ObjectId;
+    let eventId: ObjectId;
+    let userId: ObjectId;
+    let otherDetails: any = {};
+
+    if (incident) {
+      eventId = incident.eventId;
+      orgId = incident.orgId;
+      userId = incident.userId;
+    } else if (shiftId) {
+      const shift = await this.shifts.get(shiftId, { removed: true });
+      if (!shift) {
+        throw new Error('Shift not found');
+      }
+      const event = await this.events.get(shift.eventId);
+      if (!event) {
+        throw new Error('Event not found');
+      }
+
+      orgId = shift.orgId;
+      eventId = shift.eventId;
+      userId = shift.userId!;
+      otherDetails = {
+        assignmentId: shift.assignmentId,
+        ...(event.lieutenantId && { lieutenantId: event.lieutenantId }),
+        ...(event.supervisorId && { supervisorId: event.supervisorId }),
+        shiftId: shift._id!,
+      }
+    } else {
+      throw new Error('Either incident or shiftId must be provided');
     }
-    const event = await this.events.get(shift.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+
 
     // Save to collection
     await this.docusignEvent.upsertEvent({
       envelopeId,
-      orgId: shift.orgId,
-      eventId: shift.eventId,
-      assignmentId: shift.assignmentId,
-      ...(event.lieutenantId && { lieutenantId: event.lieutenantId }),
-      ...(event.supervisorId && { supervisorId: event.supervisorId }),
-      shiftId: shift._id!,
-      userId: shift.userId!,
+      orgId,
+      eventId,
+      ...otherDetails,
+      userId,
       status,
       signerDetails: signers.map((signer) => {
         const fields = {};
@@ -150,13 +179,13 @@ export class Docusign {
     // Save document to s3
     const document = await this.docusign.getDocument({
       envelopeId,
-      orgId: shift.orgId.toString(),
+      orgId: orgId.toHexString(),
     });
     await this.document.save({
       data: Buffer.from(document, 'binary'),
       Key: this.docusignEvent.buildDocumentPath({
         envelopeId,
-        orgId: shift.orgId.toString(),
+        orgId: orgId.toHexString(),
       }),
     });
   }

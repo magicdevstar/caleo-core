@@ -870,7 +870,7 @@
 type DocusignEvent {
   id: ID!
   envelopeId: String!
-  eventId: String!
+  eventId: String
   assignmentId: String
   shiftId: String
   userId: String!
@@ -1820,6 +1820,8 @@ type DocusignSignerDetailsData {
     user: User!
     modifiedBy: User!
     org: Organization!
+
+    docusignEvent: DocusignEvent
   }
 
   type IncidentFormResponse {

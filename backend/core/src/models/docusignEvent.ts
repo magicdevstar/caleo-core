@@ -58,6 +58,17 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     return keys.map((key) => res.find((item) => item.eventId.toString() === key));
   });
 
+  public loadByUserAndEventId = new DataLoader(async (keys: readonly { userId: ObjectId, eventId: ObjectId }[]) => {
+    const userIds = keys.map((key) => key.userId);
+    const eventIds = keys.map((key) => key.eventId);
+    const res = await this.collection.find<IDocusignEvent>({
+      userId: { $in: userIds },
+      eventId: { $in: eventIds },
+      status: { $nin: ['voided', 'declined'] },
+    }).toArray();
+    return keys.map((key) => res.find((item) => item.userId.toString() === key.userId.toString() && item.eventId.toString() === key.eventId.toString()));
+  });
+
   documentBasePath: string = 'docusign';
   constructor(db: Db) {
     super(db, DocType.DsEvents, 'dsEvents');

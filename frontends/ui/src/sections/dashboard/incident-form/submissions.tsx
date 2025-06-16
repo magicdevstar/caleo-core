@@ -42,7 +42,7 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(null);
 
-  const [duplicateSubmission, { loading: duplicateLoading }] = useMutation(UPSERT_INCIDENT_SUBMISSION, {
+  const [duplicateSubmission] = useMutation(UPSERT_INCIDENT_SUBMISSION, {
       refetchQueries: [
         {
           query: GET_INCIDENT_SUBMISSIONS,

@@ -64,4 +64,10 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
       'operationalPeriod.date': submissionDate,
     });
   }
+
+  findByEnvelopeId(envelopeId: string) {
+    return this.collection.findOne<IIncidentForm>({
+      envelopeId,
+    }).then((doc) => doc ? { ...doc, id: doc._id!.toHexString() } : null);
+  }
 };

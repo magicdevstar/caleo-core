@@ -5,18 +5,75 @@ import crypto from 'crypto';
 import logger from "../../../utils/logger";
 import { createContext } from "../../../utils/createContext";
 import { DocusignEvent } from "../../../types/docusign";
+import { IOrganization } from "../../../models/organizations/organization.entity";
 
 const findAttributeValue = (key: string) => (webhookData: DocusignEvent) => {
-  const textCustomFields = webhookData.data.envelopeSummary.customFields.textCustomFields;
+  const textCustomFields = webhookData.data?.envelopeSummary?.customFields?.textCustomFields;
   return textCustomFields?.find((field) => field.name === key)?.value;
 };
+
+const verify = (event: APIGatewayEvent, org: IOrganization) => {
+  const hmac = org.docusign.hmac;
+  
+  // Get the signature from headers
+  const signature = event.headers['x-docusign-signature-1'];
+  if (!signature) {
+    throw new Error('Missing DocuSign signature');
+  }
+
+  // Verify HMAC
+  const computedSignature = crypto
+    .createHmac('sha256', hmac)
+    .update(event.body || '')
+    .digest('base64');
+
+  return signature === computedSignature;
+}
+
+const buildUnverifiedResponse = () => {
+  logger.error('Invalid DocuSign signature');
+  return {
+    statusCode: 401,
+    body: JSON.stringify({
+      message: 'Invalid signature',
+    }),
+  };
+}
 
 const findOrgId = findAttributeValue('orgId');
 const findShiftId = findAttributeValue('shiftId');
 
 export const docusignEvent = async (event: APIGatewayEvent) => {
   try {
+    const services = await createContext();
     const webhookData = JSON.parse(event.body || '{}') as DocusignEvent;
+
+    const incident = await services.incidentSubmissionModel.findByEnvelopeId(webhookData.data.envelopeId);
+    if (incident) {
+      const org = await services.organizations.get(incident.orgId);
+      if (!org || !org.docusign.hmac) {
+        throw new Error('Organization not found');
+      }
+      const verified = verify(event, org);
+      if (!verified) {
+        return buildUnverifiedResponse();
+      }
+
+      await services.docusign.saveEvent({
+        incident,
+        status: webhookData.data.envelopeSummary.status,
+        envelopeId: webhookData.data.envelopeId,
+        signers: webhookData.data.envelopeSummary.recipients.signers,
+      });
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: 'Webhook received successfully',
+        }),
+      };
+    }
+
     const orgId = findOrgId(webhookData);
     const shiftId = findShiftId(webhookData);
 
@@ -27,33 +84,14 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
       throw new Error('Organization ID not found in webhook data');
     }
 
-    const services = await createContext();
     const org = await services.organizations.get(orgId);
     if (!org || !org.docusign.hmac) {
       throw new Error('Organization not found');
     }
-    const hmac = org.docusign.hmac;
-    
-    // Get the signature from headers
-    const signature = event.headers['x-docusign-signature-1'];
-    if (!signature) {
-      throw new Error('Missing DocuSign signature');
-    }
 
-    // Verify HMAC
-    const computedSignature = crypto
-      .createHmac('sha256', hmac)
-      .update(event.body || '')
-      .digest('base64');
-
-    if (signature !== computedSignature) {
-      logger.error('Invalid DocuSign signature');
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          message: 'Invalid signature',
-        }),
-      };
+    const verified = verify(event, org);
+    if (!verified) {
+      return buildUnverifiedResponse();
     }
 
     logger.info('Webhook details', { shiftId, orgId });

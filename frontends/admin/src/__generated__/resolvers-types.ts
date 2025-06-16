@@ -297,7 +297,7 @@ export type DocusignEvent = {
   docType: DocType;
   documentUrl?: Maybe<Scalars['String']['output']>;
   envelopeId: Scalars['String']['output'];
-  eventId: Scalars['String']['output'];
+  eventId?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   lieutenantId?: Maybe<Scalars['String']['output']>;
   orgId: Scalars['String']['output'];
@@ -645,6 +645,7 @@ export type IncidentForm = {
   activityLog: ActivityLog;
   assignmentSummary: AssignmentSummary;
   createdAt: Scalars['String']['output'];
+  docusignEvent?: Maybe<DocusignEvent>;
   envelopeId?: Maybe<Scalars['String']['output']>;
   event: Event;
   eventId: Scalars['ObjectId']['output'];
@@ -3743,7 +3744,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   envelopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3943,6 +3944,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   activityLog?: Resolver<ResolversTypes['ActivityLog'], ParentType, ContextType>;
   assignmentSummary?: Resolver<ResolversTypes['AssignmentSummary'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   envelopeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;

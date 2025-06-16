@@ -257,8 +257,12 @@ export default function IncidentFormStepper({
       }
     } catch (error) {
       console.error(error);
+      let message = 'Failed to submit incident form';
+      if (error.message === 'An incident form already exists for this event and date') {
+        message = 'A submission already exists for this date. Please review the operational period before continuing.';
+      }
       enqueueSnackbar(
-        'Failed to submit incident form', 
+        message, 
         { variant: 'error', autoHideDuration: 3000 }
       );
     }

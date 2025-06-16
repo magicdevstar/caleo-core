@@ -510,10 +510,10 @@ export class Docusign {
   }): Promise<IncidentFormResponse> {
     const savedForm = await this.incidentSubmission.upsert(incidentForm);
     if (!saveOnly) {
-      // const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
-      // if (existing && existing.id !== savedForm.id) {
-      //   throw new Error('An incident form already exists for this event and date');
-      // }
+      const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
+      if (existing && existing._id.toHexString() !== savedForm.id) {
+        throw new Error('An incident form already exists for this event and date');
+      }
       const event = await this.events.get(incidentForm.eventId);
       if (!event) {
         throw new Error('Event not found');

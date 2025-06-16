@@ -36,8 +36,8 @@ export const requestToPDFForm = ({
     return {
       eventName: event.name,
       eventName2: event.name,
-      today: format(toZonedTime(event.startTime!, org.timezone), 'MM/dd/yyyy'),
-      today2: format(toZonedTime(event.startTime!, org.timezone), 'MM/dd/yyyy'),
+      today: format(toZonedTime(incidentForm.operationalPeriod.date, org.timezone), 'MM/dd/yyyy'),
+      today2: format(toZonedTime(incidentForm.operationalPeriod.date, org.timezone), 'MM/dd/yyyy'),
       officerName: user.name,
       officerName2: user.name,
       officerName3: user.name,

@@ -13,7 +13,7 @@ import {
 } from '../../models/organizations/organization.defaults';
 import { IRank } from "../../models/rank";
 import { IUser } from "../../types/common";
-import { Assignment, Division, DocType, EventStatus, MemberRole, Shift, ShiftInterestRequest, Unit, UpsertAssignment, UpsertShift } from "../../__generated__/resolvers-types";
+import { Assignment, Division, DocType, EventStatus, MemberRole, Shift, ShiftInterestRequest, Unit, UpsertAssignment, UpsertShift, IIncidentForm } from "../../__generated__/resolvers-types";
 import { defaultUserAvailability } from "../../models/user";
 import { IOrganization } from "../../models/organizations/organization.entity";
 import { IEvent } from "../../models/event";
@@ -24,6 +24,7 @@ import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_DETAILS, S
 import { MailerEvents } from "../../types/mailer";
 import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
 import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
+import { CREATE_INCIDENT_SUBMISSION } from "./gql/incidentForm";
 
 export interface ITestingDefaults {
   org: IOrganization;
@@ -161,6 +162,40 @@ export class TestingService {
       user,
       rank,
     };
+  }
+
+  async submitIncidentForm(input: IIncidentForm) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.requestContext is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: CREATE_INCIDENT_SUBMISSION,
+        variables: {
+          input: input,
+        }
+      },
+      {
+          contextValue: this.requestContext,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { data, errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+      
+      // Verify the data has the expected structure
+      expect(data).toBeDefined();
+      return (data as any).incidentForm as string;
+    }
+    throw new Error('Unexpected response kind');
   }
 
   async initEvent({

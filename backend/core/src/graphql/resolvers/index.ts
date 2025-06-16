@@ -26,6 +26,8 @@ import { unitQuery, unitMutation, unitFields } from './unit';
 import { queryDivision, mutationDivision, divisionFields } from './division';
 import { queryDocusignEvents, mutationDocusignEvents, docusignEventsFields } from './docusignEvents';
 import { queryOutsideUsers, mutationOutsideUsers, fieldsOutsideUsers } from './outsideUsers';
+import { QueryIncidentForm, MutationIncidentForm, fieldsIncidentForm } from './incidentForm';
+import { DateScalar, DateTimeScalar, ObjectIdScalar } from './scalars/scalars';
 
 export default {
   Query: {
@@ -53,6 +55,7 @@ export default {
     ...vehicleCategoriesQuery,
     ...rankGroupQuery,
     ...queryOutsideUsers,
+    ...QueryIncidentForm,
   },
   Mutation: {
     ...healthMutation,
@@ -79,6 +82,7 @@ export default {
     ...rankGroupMutation,
     ...mutationDocusignEvents,
     ...mutationOutsideUsers,
+    ...MutationIncidentForm,
   },
   ...healthFields,
   ...organizationFields,
@@ -104,4 +108,8 @@ export default {
   ...vehicleCategoriesFields,
   ...rankGroupFields,
   ...fieldsOutsideUsers,
+  ...fieldsIncidentForm,
+  Date: DateScalar,
+  DateTime: DateTimeScalar,
+  ObjectId: ObjectIdScalar,
 };

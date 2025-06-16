@@ -17,6 +17,10 @@ export class OutsideUserService {
     this.loader = outsideUserRepo.loader;
   }
 
+  get(id: string) {
+    return this.outsideUserRepo.get(id);
+  }
+
   search(searchInput?: any) {
     return this.outsideUserRepo.search(searchInput);
   }

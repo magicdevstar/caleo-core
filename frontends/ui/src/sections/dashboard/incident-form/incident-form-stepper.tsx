@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import omitDeep from 'omit-deep';
+import { useMutation } from '@apollo/client';
+import { useSnackbar } from 'notistack';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -9,18 +12,20 @@ import Step from '@mui/material/Step';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Stepper from '@mui/material/Stepper';
-import StepLabel from '@mui/material/StepLabel';
+import StepButton from '@mui/material/StepButton';
 import Typography from '@mui/material/Typography';
 import StepContent from '@mui/material/StepContent';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 // icons
 // import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // types
 import { Event } from 'src/__generated__/resolvers-types';
+import { UPSERT_INCIDENT_SUBMISSION, GET_INCIDENT_SUBMISSIONS } from 'src/api/incidentForm';
 
 // components
 import FormProvider from 'src/components/hook-form';
@@ -35,6 +40,7 @@ import VehicleInformationStep from './vehicle-information-step';
 import AssignmentSummaryStep from './assignment-summary-step';
 import ActivityLogStep from './activity-log-step';
 import SelectReviewerStep from './select-reviewer-step';
+import InProgressSubmissions from './in-progress-submissions';
 
 // ----------------------------------------------------------------------
 
@@ -43,6 +49,7 @@ const STEPS = ['Operational Period', 'Timekeeping', 'Shift Details', 'Vehicle In
 // ----------------------------------------------------------------------
 
 const IncidentFormSchema = Yup.object().shape({
+  id: Yup.string().nullable(),
   operationalPeriod: Yup.object().shape({
     date: Yup.date().required('Date is required'),
   }),
@@ -204,7 +211,19 @@ const defaultValues: IncidentFormSchemaType = {
 export default function IncidentFormStepper({
   event
 }: { event: Event }) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [submitIncidentForm, { loading }] = useMutation(UPSERT_INCIDENT_SUBMISSION, {
+    refetchQueries: [
+      {
+        query: GET_INCIDENT_SUBMISSIONS,
+        variables: { input: { eventId: event.id } },
+      },
+    ],
+  });
   const [activeStep, setActiveStep] = useState(0);
+  const [validationState, setValidationState] = useState<boolean[]>(
+    Array(STEPS.length).fill(undefined)
+  );
 
   const methods = useForm<IncidentFormSchemaType>({
     resolver: yupResolver(IncidentFormSchema),
@@ -219,20 +238,40 @@ export default function IncidentFormStepper({
 
   const onSubmit = async (data: IncidentFormSchemaType) => {
     try {
-      console.log('DATA', data);
-      // Submit form data to your API
+      const res = await submitIncidentForm({
+        variables: {
+          input: omitDeep({
+            ...data,
+            step: activeStep,
+            eventId: event.id,
+          }, ['__typename']),
+          saveOnly: false,
+        },
+      });
+      enqueueSnackbar(
+        'Incident form submitted successfully',
+        { variant: 'success', autoHideDuration: 3000 }
+      );
+      if (res.data?.incidentForm?.signingUrl) {
+        window.location.href = res.data.incidentForm.signingUrl;
+      }
     } catch (error) {
       console.error(error);
+      enqueueSnackbar(
+        'Failed to submit incident form', 
+        { variant: 'error', autoHideDuration: 3000 }
+      );
     }
   };
 
-  const handleNext = async () => {
+  // Function to check if a specific step is valid
+  const validateStep = async (step: number): Promise<boolean> => {
     let stepFields: any[] = [];
     
-    if (activeStep === 0) {
+    if (step === 0) {
       // Validate operational period fields
       stepFields = ['operationalPeriod.date'];
-    } else if (activeStep === 1) {
+    } else if (step === 1) {
       // Validate timekeeping fields based on RDO selection
       const rdoValue = getValues('timekeeping.rdo');
       stepFields = ['timekeeping.rdo', 'timekeeping.timeIn', 'timekeeping.timeOut'];
@@ -242,10 +281,10 @@ export default function IncidentFormStepper({
       } else if (rdoValue === 'no') {
         stepFields.push('timekeeping.straightHours');
       }
-    } else if (activeStep === 2) {
+    } else if (step === 2) {
       // Shift details are all optional, so we can proceed without validation
-      // But we could validate formats if needed in the future
-    } else if (activeStep === 3) {
+      return true;
+    } else if (step === 3) {
       // Validate vehicle information fields
       stepFields = ['vehicleInformation.hasVehicle'];
       
@@ -261,7 +300,7 @@ export default function IncidentFormStepper({
           'vehicleInformation.endingMileage'
         );
       }
-    } else if (activeStep === 4) {
+    } else if (step === 4) {
       // Validate assignment summary fields
       stepFields = [
         'assignmentSummary.callSign',
@@ -269,15 +308,35 @@ export default function IncidentFormStepper({
         'assignmentSummary.supervisor',
         'assignmentSummary.missionAssignments'
       ];
-    } else if (activeStep === 5) {
+    } else if (step === 5) {
       // Activity log validation is handled by the schema (array min/max validation)
       stepFields = ['activityLog.entries'];
-    } else if (activeStep === 6) {
+    } else if (step === 6) {
       // Validate reviewer selection
       stepFields = ['reviewer'];
     }
     
-    const isStepValid = await trigger(stepFields);
+    return trigger(stepFields);
+  };
+
+  // Check all steps up to the current one when changing steps
+  const updateValidationState = async (newStep: number) => {
+    const newValidationState = [...validationState];
+    
+    for (let i = 0; i < newStep; i += 1) {
+      newValidationState[i] = await validateStep(i); // eslint-disable-line no-await-in-loop
+    }
+    
+    setValidationState(newValidationState);
+  };
+
+  const handleNext = async () => {
+    const isStepValid = await validateStep(activeStep);
+    
+    // Update validation state for the current step
+    const newValidationState = [...validationState];
+    newValidationState[activeStep] = isStepValid;
+    setValidationState(newValidationState);
     
     if (isStepValid) {
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -288,8 +347,42 @@ export default function IncidentFormStepper({
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const handleStepClick = (clickedStep: number) => {
+    setActiveStep(clickedStep);
+    // When clicking on a step, validate the current step
+    updateValidationState(clickedStep);
+  };
+
   const handleReset = () => {
     setActiveStep(0);
+    setValidationState(Array(STEPS.length).fill(undefined));
+  };
+
+  // Handle selecting an in-progress submission
+  const handleSelectSubmission = (submission: any) => {
+    // Reset form with the submission data
+    methods.reset({
+      id: submission.id,
+      operationalPeriod: submission.operationalPeriod,
+      reviewer: submission.reviewer,
+      timekeeping: submission.timekeeping,
+      shiftDetails: submission.shiftDetails,
+      vehicleInformation: submission.vehicleInformation,
+      assignmentSummary: submission.assignmentSummary,
+      activityLog: submission.activityLog,
+    });
+
+    // Resume step
+    setActiveStep(submission.step);
+    
+    // Set validation state based on submission data
+    updateValidationState(submission.step);
+    
+    // Show notification
+    enqueueSnackbar('Previous submission loaded', { 
+      variant: 'success', 
+      autoHideDuration: 3000 
+    });
   };
 
   const renderStepContent = (step: number) => {
@@ -338,33 +431,54 @@ export default function IncidentFormStepper({
           </Box>
         )}
         
-        <Stepper activeStep={activeStep} orientation="vertical">
-          {STEPS.map((label, index) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-              <StepContent>
-                <Box sx={{ mt: 3, mb: 2 }}>
-                  {renderStepContent(index)}
-                </Box>
-                
-                <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-                  <Button
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                  >
-                    Back
-                  </Button>
+        <InProgressSubmissions eventId={event.id} onSelectSubmission={handleSelectSubmission} />
+        
+        <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
+          {STEPS.map((label, index) => {
+            const isInvalid = activeStep > index && validationState[index] === false;
+            
+            return (
+              <Step key={label} completed={index < activeStep}>
+                <StepButton 
+                  onClick={() => handleStepClick(index)}
+                  icon={
+                    isInvalid ? (
+                      <Iconify 
+                        icon="mingcute:close-line" 
+                        color="error.main"
+                        width={24}
+                        height={24}
+                      />
+                    ) : index + 1
+                  }
+                >
+                  {label}
+                </StepButton>
+                <StepContent>
+                  <Box sx={{ mt: 3, mb: 2 }}>
+                    {renderStepContent(index)}
+                  </Box>
                   
-                  <Button
-                    variant="contained"
-                    onClick={activeStep === STEPS.length - 1 ? handleSubmit(onSubmit) : handleNext}
-                  >
-                    {activeStep === STEPS.length - 1 ? 'Finish' : 'Continue'}
-                  </Button>
-                </Box>
-              </StepContent>
-            </Step>
-          ))}
+                  <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                    <Button
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                    >
+                      Back
+                    </Button>
+                    
+                    <LoadingButton
+                      loading={loading}
+                      variant="contained"
+                      onClick={activeStep === STEPS.length - 1 ? handleSubmit(onSubmit) : handleNext}
+                    >
+                      {activeStep === STEPS.length - 1 ? 'Finish' : 'Continue'}
+                    </LoadingButton>
+                  </Box>
+                </StepContent>
+              </Step>
+            );
+          })}
         </Stepper>
         
         {activeStep === STEPS.length && (
@@ -375,6 +489,56 @@ export default function IncidentFormStepper({
             </Button>
           </Paper>
         )}
+        
+        <Box 
+          sx={{ 
+            mt: 3, 
+            pt: 2, 
+            display: 'flex', 
+            justifyContent: 'flex-end',
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            position: 'sticky',
+            bottom: 0,
+            bgcolor: 'background.paper',
+            zIndex: 1
+          }}
+        >
+          <LoadingButton
+            variant="outlined"
+            onClick={() => {
+              const data = getValues();
+              submitIncidentForm({
+                variables: {
+                  input: omitDeep({
+                    ...data,
+                    step: activeStep,
+                    eventId: event.id,
+                  }, ['__typename']),
+                  saveOnly: true,
+                },
+              })
+                .then(() => {
+                  enqueueSnackbar('Form saved successfully', { 
+                    variant: 'success', 
+                    autoHideDuration: 3000 
+                  });
+                })
+                .catch((error) => {
+                  console.error(error);
+                  enqueueSnackbar('Failed to save form', { 
+                    variant: 'error', 
+                    autoHideDuration: 3000 
+                  });
+                });
+            }}
+            loading={loading}
+            disabled={validationState[0] !== true} // Disabled if Step 1 is not complete
+            startIcon={<Iconify icon="mdi:content-save-outline" />}
+          >
+            Save Progress
+          </LoadingButton>
+        </Box>
       </Paper>
     </FormProvider>
   );

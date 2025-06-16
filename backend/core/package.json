@@ -14,7 +14,8 @@
     "test:unit": "TZ=UTC jest",
     "test:assignments": "TZ=UTC jest --testPathPattern=assignments",
     "test:shifts": "TZ=UTC jest --testPathPattern=shifts",
-    "test:interest": "TZ=UTC jest --testPathPattern=Interest"
+    "test:interest": "TZ=UTC jest --testPathPattern=Interest",
+    "test:incident": "TZ=UTC jest --testPathPattern=Incident"
   },
   "author": "danwakeem",
   "license": "MIT",
@@ -47,6 +48,7 @@
     "lodash.uniq": "^4.5.0",
     "lodash.uniqby": "^4.7.0",
     "mongodb": "^6.16.0",
+    "pdf-lib": "^1.17.1",
     "saslprep": "^1.0.3",
     "web-push": "^3.6.7"
   },

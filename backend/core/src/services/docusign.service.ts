@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { DocumentModel } from "../models/document";
 import { DocusignModel } from "../models/docusign";
 import { DocusignEventModel, IDocusignEvent } from "../models/docusignEvent";
@@ -16,6 +17,12 @@ import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
 import { InvoiceService } from "./invoice.service";
+import { IncidentSubmissionModel, InputIncidentForm } from "../models/incidentForm";
+import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
+import { requestToPDFForm } from "../models/incidentForm/lasd";
+import { IIncidentInput, IIncidentResponse } from "../types/incidentForm";
+
+const lambda = new LambdaClient({});
 
 export class Docusign {
   constructor(
@@ -31,6 +38,8 @@ export class Docusign {
     private assignments: AssignmentModel,
     private equipments: EquipmentModel,
     private invoiceService: InvoiceService,
+    private outsideUsers: OutsideUserService,
+    private incidentSubmission: IncidentSubmissionModel
   ) {}
 
   async findEventsByUserId({
@@ -485,6 +494,70 @@ export class Docusign {
           organization,
         });
       }
+    }
+  }
+
+  async submitIncidentForm({
+    saveOnly,
+    incidentForm,
+    org,
+    user,
+  }: {
+    saveOnly: boolean;
+    incidentForm: InputIncidentForm;
+    org: IOrganization;
+    user: IUser;
+  }) {
+    const savedForm = await this.incidentSubmission.upsert(incidentForm);
+    if (!saveOnly) {
+      const event = await this.events.get(incidentForm.eventId);
+      if (!event) {
+        throw new Error('Event not found');
+      }
+      const reviewer = await this.outsideUsers.get(incidentForm.reviewer)
+      if (!reviewer) {
+        throw new Error('Reviewer user not found');
+      }
+  
+      const rank = await this.ranks.get(user.member.rankId!);
+      if (!rank) {
+        throw new Error('User rank not found');
+      }
+  
+      const unit = await this.units.get(user.member.unitId!);
+      if (!unit) {
+        throw new Error('User unit not found');
+      }
+  
+      const incidentFormDetails = requestToPDFForm({
+        incidentForm,
+        reviewer,
+        event,
+        user,
+        org,
+        rank,
+        unit,
+      });
+  
+      // Submit to docusign
+      const input: IIncidentInput = {
+        org,
+        user,
+        reviewer,
+        totalActivities: incidentForm.activityLog.entries!.length,
+        incidentFormDetails
+      };
+      const lambdaResponse = await lambda.send(new InvokeCommand({
+        FunctionName: process.env.GENERATE_INCIDENT_FORM_LAMBDA!,
+        InvocationType: 'RequestResponse',
+        Payload: Buffer.from(JSON.stringify(input)),
+      }));
+      const res: IIncidentResponse = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload!));
+  
+      // Save to mongo
+      this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId);
+  
+      return res;
     }
   }
 };

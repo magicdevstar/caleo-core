@@ -92,6 +92,7 @@ provider:
     COGNITO_CLIENT_ID: ${param:uiClientId}
     NODE_OPTIONS: --enable-source-maps
     DOCUSIGN_BASE: ${param:docusignBase}
+    GENERATE_INCIDENT_FORM_LAMBDA: ${self:service}-${sls:stage}-generateIncidentForm
   iam:
     role:
       statements:
@@ -217,6 +218,14 @@ functions:
   userMigration:
     handler: src/handlers/cognito/userMigration.handler
     timeout: 30
+
+  # PDF Utils
+  generateIncidentForm:
+    handler: src/handlers/invoke/generateIncidentForm.handler
+    timeout: 120
+    package:
+      patterns:
+        - assets/ActivityLog.pdf
 
   # Scheduled Tasks
   scheduledEvents:  

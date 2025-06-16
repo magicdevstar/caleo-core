@@ -42,6 +42,7 @@ import { ChangesModel } from "../models/changes";
 import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
 import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { OutsideUserRepo } from "../models/outsideUsers/outsideUser.repository";
+import { IncidentSubmissionModel } from "../models/incidentForm";
 
 let db: Db;
 
@@ -56,11 +57,13 @@ export const dbConnect = async (client?: MongoClient) => {
 };
 
 export interface Context {
+  db: Db;
   shiftInterestRequests: ShiftInterestRequestModel;
   analytics: UserAnalyticsModel;
   inAppNotifications: InAppNotificationModel;
   lotteryState: LotteryStateModel;
   docusign: Docusign;
+  docusignModel: DocusignModel;
   siteLock: SiteLockModel;
   browserNotificationSubscriptions: BrowserNotificationSubscription;
   eventReferenceNumber: EventReferenceNumber;
@@ -88,6 +91,7 @@ export interface Context {
   vehicleCategories: VehicleCategoriesModel;
   notificationService: NotificationService;
   changeStream: ChangeStreamService;
+  incidentSubmissionModel: IncidentSubmissionModel;
   rankGroups: RankGroupRepo;
   outsideUsers: OutsideUserService;
   organization: IOrganization;
@@ -145,6 +149,9 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
   const analytics = new UserAnalyticsModel(db);
   const docusignModel = new DocusignModel(db, orgRepo);
   const docusignEventModel = new DocusignEventModel(db);
+  const incidentSubmissionModel = new IncidentSubmissionModel(db);
+  const outsideUserRepo = new OutsideUserRepo(db);
+  const outsideUsers = new OutsideUserService(outsideUserRepo);
   const docusign = new Docusign(
     users,
     venues,
@@ -158,6 +165,8 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     assignments,
     equipments,
     invoiceService,
+    outsideUsers,
+    incidentSubmissionModel,
   );
   const interestList = new InterestListService(
     shifts,
@@ -180,10 +189,8 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     changesModel,
   );
 
-  const outsideUserRepo = new OutsideUserRepo(db);
-  const outsideUsers = new OutsideUserService(outsideUserRepo);
-
   return {
+    db,
     organizations,
     eventReferenceNumber,
     users,
@@ -218,5 +225,7 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     changeStream,
     rankGroups,
     outsideUsers,
+    docusignModel,
+    incidentSubmissionModel,
   };
 };

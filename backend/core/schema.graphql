@@ -28,6 +28,7 @@
     DS_EVENTS
     RANK_GROUP
     OUTSIDE_USER
+    INCIDENT_FORM
   }
   enum DayOfWeek {
     SUNDAY
@@ -43,6 +44,10 @@
     LIEUTENANT
     OFFICER
   }
+
+  scalar Date
+  scalar DateTime
+  scalar ObjectId
 ###### END Common ######
 
 ###### START Site Lock ######
@@ -1721,6 +1726,177 @@ type DocusignSignerDetailsData {
   }
 ###### END Notifications ######
 
+###### START Incident Submission ######
+  type OperationalPeriod {
+    date: Date! # required
+  }
+
+  type Timekeeping {
+    rdo: String # "yes" or "no"
+    overtimeHours: Float # required when rdo is "yes"
+    straightHours: Float # required when rdo is "no"
+    timeIn: DateTime # required
+    timeOut: DateTime # required
+  }
+
+  type ShiftDetails {
+    enrouteToIncident: DateTime
+    staging1097: DateTime
+    staging1098: DateTime
+    arrivalAtUOA: DateTime
+    time18Hour: DateTime
+  }
+
+  type VehicleInformation {
+    hasVehicle: String # "yes" or "no"
+    vehicleCategory: String # required when hasVehicle is "yes"
+    vehicleMake: String # required when hasVehicle is "yes"
+    vehicleModel: String # required when hasVehicle is "yes"
+    vehicleNumber: String # required when hasVehicle is "yes"
+    startingMileage: Float # required when hasVehicle is "yes"
+    endingMileage: Float # required when hasVehicle is "yes"
+  }
+
+  type MissionAssignments {
+    escort: Boolean
+    evacuations: Boolean
+    hardClosure: Boolean
+    incidentManagementTeam: Boolean
+    logistics: Boolean
+    rrf: Boolean
+    rovingSecurity: Boolean
+    searchAndRescue: Boolean
+    softClosure: Boolean
+    welfareCheck: Boolean
+    other: Boolean
+    # At least one of these must be true
+  }
+
+  type AssignmentSummary {
+    callSign: String
+    squad: String
+    supervisor: String
+    missionAssignments: MissionAssignments
+  }
+
+  type ActivityLogEntry {
+    time: DateTime
+    missionNumber: String
+    notes: String
+  }
+
+  type ActivityLog {
+    entries: [ActivityLogEntry] # Minimum 1, Maximum 25
+  }
+
+  type IncidentForm {
+    id: ID!
+    operationalPeriod: OperationalPeriod!
+    reviewer: String!
+    timekeeping: Timekeeping!
+    shiftDetails: ShiftDetails!
+    vehicleInformation: VehicleInformation!
+    assignmentSummary: AssignmentSummary!
+    activityLog: ActivityLog!
+
+    step: Int
+
+    envelopeId: String
+    eventId: ObjectId!
+    userId: ObjectId!
+    orgId: ObjectId!
+    modifiedById: ObjectId!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+
+    event: Event!
+    user: User!
+    modifiedBy: User!
+    org: Organization!
+  }
+
+  type IncidentFormResponse {
+    signingUrl: String
+  }
+
+  input IOperationalPeriod {
+    date: Date! # required
+  }
+
+  input ITimekeeping {
+    rdo: String # "yes" or "no"
+    overtimeHours: Float # required when rdo is "yes"
+    straightHours: Float # required when rdo is "no"
+    timeIn: DateTime # required
+    timeOut: DateTime # required
+  }
+
+  input IShiftDetails {
+    enrouteToIncident: DateTime
+    staging1097: DateTime
+    staging1098: DateTime
+    arrivalAtUOA: DateTime
+    time18Hour: DateTime
+  }
+
+  input IVehicleInformation {
+    hasVehicle: String # "yes" or "no"
+    vehicleCategory: String # required when hasVehicle is "yes"
+    vehicleMake: String # required when hasVehicle is "yes"
+    vehicleModel: String # required when hasVehicle is "yes"
+    vehicleNumber: String # required when hasVehicle is "yes"
+    startingMileage: Float # required when hasVehicle is "yes"
+    endingMileage: Float # required when hasVehicle is "yes"
+  }
+
+  input IMissionAssignments {
+    escort: Boolean
+    evacuations: Boolean
+    hardClosure: Boolean
+    incidentManagementTeam: Boolean
+    logistics: Boolean
+    rrf: Boolean
+    rovingSecurity: Boolean
+    searchAndRescue: Boolean
+    softClosure: Boolean
+    welfareCheck: Boolean
+    other: Boolean
+    # At least one of these must be true
+  }
+
+  input IAssignmentSummary {
+    callSign: String
+    squad: String
+    supervisor: String
+    missionAssignments: IMissionAssignments
+  }
+
+  input IActivityLogEntry {
+    time: DateTime
+    missionNumber: String
+    notes: String
+  }
+
+  input IActivityLog {
+    entries: [IActivityLogEntry] # Minimum 1, Maximum 25
+  }
+
+  input IIncidentForm {
+    id: ID
+    operationalPeriod: IOperationalPeriod!
+    reviewer: String!
+    timekeeping: ITimekeeping!
+    shiftDetails: IShiftDetails!
+    vehicleInformation: IVehicleInformation!
+    assignmentSummary: IAssignmentSummary!
+    activityLog: IActivityLog!
+
+    step: Int
+    eventId: ObjectId!
+  }
+###### END Incident Submission ######
+
 ###### START Pagination ######
   input SearchInput {
     limit: Int
@@ -1728,6 +1904,20 @@ type DocusignSignerDetailsData {
     query: String
     orderBy: String
     order: String
+  }
+
+  input IncidentFormSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
+    eventId: ObjectId!
+  }
+
+  type IncidentFormSearchResult {
+    items: [IncidentForm!]
+    total: Int!
   }
 
   type OutsideUserSearchResult {
@@ -2170,6 +2360,8 @@ type Query {
   event(id: String!): Event
   events(input: EventSearchInput): EventSearchResult
 
+  incidentForms(input: IncidentFormSearchInput): IncidentFormSearchResult
+
   assignment(id: String!): Assignment
   assignments(input: AssignmentSearchInput): AssignmentSearchResult
 
@@ -2257,6 +2449,10 @@ type Mutation {
   eventAttachmentUploadUrl: EventAttachmentUpload
   removeEvent(id: String!): ID!
   notifyUsersOfEvent(eventId: String!): Boolean
+  
+  # Returns signingUrl
+  incidentForm(input: IIncidentForm!, saveOnly: Boolean): IncidentFormResponse!
+  removeIncidentForm(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment
   removeAssignment(id: String!): ID!

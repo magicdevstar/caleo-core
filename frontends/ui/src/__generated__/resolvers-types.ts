@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -14,6 +14,21 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
+  DateTime: { input: any; output: any; }
+  ObjectId: { input: any; output: any; }
+};
+
+export type ActivityLog = {
+  __typename?: 'ActivityLog';
+  entries?: Maybe<Array<Maybe<ActivityLogEntry>>>;
+};
+
+export type ActivityLogEntry = {
+  __typename?: 'ActivityLogEntry';
+  missionNumber?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  time?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type AfterShiftRemove = {
@@ -92,6 +107,14 @@ export type AssignmentShiftSlot = {
   __typename?: 'AssignmentShiftSlot';
   id?: Maybe<Scalars['String']['output']>;
   slotCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type AssignmentSummary = {
+  __typename?: 'AssignmentSummary';
+  callSign?: Maybe<Scalars['String']['output']>;
+  missionAssignments?: Maybe<MissionAssignments>;
+  squad?: Maybe<Scalars['String']['output']>;
+  supervisor?: Maybe<Scalars['String']['output']>;
 };
 
 export type AvailabilityTime = {
@@ -243,6 +266,7 @@ export enum DocType {
   DsToken = 'DS_TOKEN',
   Equipment = 'EQUIPMENT',
   Event = 'EVENT',
+  IncidentForm = 'INCIDENT_FORM',
   InAppNotification = 'IN_APP_NOTIFICATION',
   LotteryCounter = 'LOTTERY_COUNTER',
   LotteryState = 'LOTTERY_STATE',
@@ -498,6 +522,80 @@ export enum EventStatus {
   Template = 'TEMPLATE'
 }
 
+export type IActivityLog = {
+  entries?: InputMaybe<Array<InputMaybe<IActivityLogEntry>>>;
+};
+
+export type IActivityLogEntry = {
+  missionNumber?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  time?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type IAssignmentSummary = {
+  callSign?: InputMaybe<Scalars['String']['input']>;
+  missionAssignments?: InputMaybe<IMissionAssignments>;
+  squad?: InputMaybe<Scalars['String']['input']>;
+  supervisor?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type IIncidentForm = {
+  activityLog: IActivityLog;
+  assignmentSummary: IAssignmentSummary;
+  eventId: Scalars['ObjectId']['input'];
+  id?: InputMaybe<Scalars['ID']['input']>;
+  operationalPeriod: IOperationalPeriod;
+  reviewer: Scalars['String']['input'];
+  shiftDetails: IShiftDetails;
+  step?: InputMaybe<Scalars['Int']['input']>;
+  timekeeping: ITimekeeping;
+  vehicleInformation: IVehicleInformation;
+};
+
+export type IMissionAssignments = {
+  escort?: InputMaybe<Scalars['Boolean']['input']>;
+  evacuations?: InputMaybe<Scalars['Boolean']['input']>;
+  hardClosure?: InputMaybe<Scalars['Boolean']['input']>;
+  incidentManagementTeam?: InputMaybe<Scalars['Boolean']['input']>;
+  logistics?: InputMaybe<Scalars['Boolean']['input']>;
+  other?: InputMaybe<Scalars['Boolean']['input']>;
+  rovingSecurity?: InputMaybe<Scalars['Boolean']['input']>;
+  rrf?: InputMaybe<Scalars['Boolean']['input']>;
+  searchAndRescue?: InputMaybe<Scalars['Boolean']['input']>;
+  softClosure?: InputMaybe<Scalars['Boolean']['input']>;
+  welfareCheck?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type IOperationalPeriod = {
+  date: Scalars['Date']['input'];
+};
+
+export type IShiftDetails = {
+  arrivalAtUOA?: InputMaybe<Scalars['DateTime']['input']>;
+  enrouteToIncident?: InputMaybe<Scalars['DateTime']['input']>;
+  staging1097?: InputMaybe<Scalars['DateTime']['input']>;
+  staging1098?: InputMaybe<Scalars['DateTime']['input']>;
+  time18Hour?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type ITimekeeping = {
+  overtimeHours?: InputMaybe<Scalars['Float']['input']>;
+  rdo?: InputMaybe<Scalars['String']['input']>;
+  straightHours?: InputMaybe<Scalars['Float']['input']>;
+  timeIn?: InputMaybe<Scalars['DateTime']['input']>;
+  timeOut?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type IVehicleInformation = {
+  endingMileage?: InputMaybe<Scalars['Float']['input']>;
+  hasVehicle?: InputMaybe<Scalars['String']['input']>;
+  startingMileage?: InputMaybe<Scalars['Float']['input']>;
+  vehicleCategory?: InputMaybe<Scalars['String']['input']>;
+  vehicleMake?: InputMaybe<Scalars['String']['input']>;
+  vehicleModel?: InputMaybe<Scalars['String']['input']>;
+  vehicleNumber?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type InAppNotificationMeta = {
   __typename?: 'InAppNotificationMeta';
   assignmentId?: Maybe<Scalars['String']['output']>;
@@ -540,6 +638,51 @@ export type InAppNotifications = {
   updatedAt: Scalars['String']['output'];
   user: User;
   userId: Scalars['String']['output'];
+};
+
+export type IncidentForm = {
+  __typename?: 'IncidentForm';
+  activityLog: ActivityLog;
+  assignmentSummary: AssignmentSummary;
+  createdAt: Scalars['String']['output'];
+  envelopeId?: Maybe<Scalars['String']['output']>;
+  event: Event;
+  eventId: Scalars['ObjectId']['output'];
+  id: Scalars['ID']['output'];
+  modifiedBy: User;
+  modifiedById: Scalars['ObjectId']['output'];
+  operationalPeriod: OperationalPeriod;
+  org: Organization;
+  orgId: Scalars['ObjectId']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  reviewer: Scalars['String']['output'];
+  shiftDetails: ShiftDetails;
+  step?: Maybe<Scalars['Int']['output']>;
+  timekeeping: Timekeeping;
+  updatedAt: Scalars['String']['output'];
+  user: User;
+  userId: Scalars['ObjectId']['output'];
+  vehicleInformation: VehicleInformation;
+};
+
+export type IncidentFormResponse = {
+  __typename?: 'IncidentFormResponse';
+  signingUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type IncidentFormSearchInput = {
+  eventId: Scalars['ObjectId']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type IncidentFormSearchResult = {
+  __typename?: 'IncidentFormSearchResult';
+  items?: Maybe<Array<IncidentForm>>;
+  total: Scalars['Int']['output'];
 };
 
 export type InputAdminResetPassword = {
@@ -819,6 +962,21 @@ export enum MemberTier {
   Tier_4 = 'TIER_4'
 }
 
+export type MissionAssignments = {
+  __typename?: 'MissionAssignments';
+  escort?: Maybe<Scalars['Boolean']['output']>;
+  evacuations?: Maybe<Scalars['Boolean']['output']>;
+  hardClosure?: Maybe<Scalars['Boolean']['output']>;
+  incidentManagementTeam?: Maybe<Scalars['Boolean']['output']>;
+  logistics?: Maybe<Scalars['Boolean']['output']>;
+  other?: Maybe<Scalars['Boolean']['output']>;
+  rovingSecurity?: Maybe<Scalars['Boolean']['output']>;
+  rrf?: Maybe<Scalars['Boolean']['output']>;
+  searchAndRescue?: Maybe<Scalars['Boolean']['output']>;
+  softClosure?: Maybe<Scalars['Boolean']['output']>;
+  welfareCheck?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   addRanksToGroup?: Maybe<Scalars['Boolean']['output']>;
@@ -839,6 +997,7 @@ export type Mutation = {
   generateDSInvoice?: Maybe<EventInvoiceResponse>;
   generateInvoice?: Maybe<Scalars['String']['output']>;
   impersonateUser?: Maybe<Scalars['Boolean']['output']>;
+  incidentForm: IncidentFormResponse;
   inviteUser?: Maybe<User>;
   newUser?: Maybe<User>;
   notification?: Maybe<Notification>;
@@ -859,6 +1018,7 @@ export type Mutation = {
   removeEquipment: Scalars['ID']['output'];
   removeEvent: Scalars['ID']['output'];
   removeInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
+  removeIncidentForm: Scalars['ID']['output'];
   removeNotification: Scalars['ID']['output'];
   removeOutsideUser: Scalars['ID']['output'];
   removeRank: Scalars['ID']['output'];
@@ -986,6 +1146,12 @@ export type MutationImpersonateUserArgs = {
 };
 
 
+export type MutationIncidentFormArgs = {
+  input: IIncidentForm;
+  saveOnly?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
 export type MutationInviteUserArgs = {
   user: InviteUser;
 };
@@ -1084,6 +1250,11 @@ export type MutationRemoveEventArgs = {
 export type MutationRemoveInAppNotificationsArgs = {
   ids?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   removeAll?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type MutationRemoveIncidentFormArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1349,6 +1520,11 @@ export type NotificationSearchResult = {
   total: Scalars['Int']['output'];
 };
 
+export type OperationalPeriod = {
+  __typename?: 'OperationalPeriod';
+  date: Scalars['Date']['output'];
+};
+
 export type Organization = {
   __typename?: 'Organization';
   address?: Maybe<Scalars['String']['output']>;
@@ -1539,6 +1715,7 @@ export type Query = {
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
   inAppNotifications?: Maybe<InAppNotificationSearchResult>;
+  incidentForms?: Maybe<IncidentFormSearchResult>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryCounters?: Maybe<LotteryCounterSearchResult>;
   lotteryShifts?: Maybe<ShiftSearchResult>;
@@ -1645,6 +1822,11 @@ export type QueryGroupedShiftsArgs = {
 
 export type QueryInAppNotificationsArgs = {
   input?: InputMaybe<InAppNotificationSearchInput>;
+};
+
+
+export type QueryIncidentFormsArgs = {
+  input?: InputMaybe<IncidentFormSearchInput>;
 };
 
 
@@ -2077,6 +2259,15 @@ export type ShiftDayTime = {
   startTime: Scalars['String']['output'];
 };
 
+export type ShiftDetails = {
+  __typename?: 'ShiftDetails';
+  arrivalAtUOA?: Maybe<Scalars['DateTime']['output']>;
+  enrouteToIncident?: Maybe<Scalars['DateTime']['output']>;
+  staging1097?: Maybe<Scalars['DateTime']['output']>;
+  staging1098?: Maybe<Scalars['DateTime']['output']>;
+  time18Hour?: Maybe<Scalars['DateTime']['output']>;
+};
+
 export type ShiftInterestRequest = {
   __typename?: 'ShiftInterestRequest';
   assignedShift?: Maybe<Shift>;
@@ -2310,6 +2501,15 @@ export enum SkillStatus {
   Denied = 'DENIED',
   Pending = 'PENDING'
 }
+
+export type Timekeeping = {
+  __typename?: 'Timekeeping';
+  overtimeHours?: Maybe<Scalars['Float']['output']>;
+  rdo?: Maybe<Scalars['String']['output']>;
+  straightHours?: Maybe<Scalars['Float']['output']>;
+  timeIn?: Maybe<Scalars['DateTime']['output']>;
+  timeOut?: Maybe<Scalars['DateTime']['output']>;
+};
 
 export type Unit = {
   __typename?: 'Unit';
@@ -2784,6 +2984,17 @@ export type VehicleCategoriesSearchResult = {
   total: Scalars['Int']['output'];
 };
 
+export type VehicleInformation = {
+  __typename?: 'VehicleInformation';
+  endingMileage?: Maybe<Scalars['Float']['output']>;
+  hasVehicle?: Maybe<Scalars['String']['output']>;
+  startingMileage?: Maybe<Scalars['Float']['output']>;
+  vehicleCategory?: Maybe<Scalars['String']['output']>;
+  vehicleMake?: Maybe<Scalars['String']['output']>;
+  vehicleModel?: Maybe<Scalars['String']['output']>;
+  vehicleNumber?: Maybe<Scalars['String']['output']>;
+};
+
 export type Venue = {
   __typename?: 'Venue';
   address?: Maybe<Scalars['String']['output']>;
@@ -2916,12 +3127,15 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
+  ActivityLog: ResolverTypeWrapper<ActivityLog>;
+  ActivityLogEntry: ResolverTypeWrapper<ActivityLogEntry>;
   AfterShiftRemove: ResolverTypeWrapper<AfterShiftRemove>;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: ResolverTypeWrapper<Assignment>;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: ResolverTypeWrapper<AssignmentSearchResult>;
   AssignmentShiftSlot: ResolverTypeWrapper<AssignmentShiftSlot>;
+  AssignmentSummary: ResolverTypeWrapper<AssignmentSummary>;
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
@@ -2934,6 +3148,8 @@ export type ResolversTypes = ResolversObject<{
   CreateOrganization: CreateOrganization;
   CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
+  Date: ResolverTypeWrapper<Scalars['Date']['output']>;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   DayAvailability: ResolverTypeWrapper<DayAvailability>;
   DayOfWeek: DayOfWeek;
   Division: ResolverTypeWrapper<Division>;
@@ -2960,11 +3176,24 @@ export type ResolversTypes = ResolversObject<{
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  IActivityLog: IActivityLog;
+  IActivityLogEntry: IActivityLogEntry;
+  IAssignmentSummary: IAssignmentSummary;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  IIncidentForm: IIncidentForm;
+  IMissionAssignments: IMissionAssignments;
+  IOperationalPeriod: IOperationalPeriod;
+  IShiftDetails: IShiftDetails;
+  ITimekeeping: ITimekeeping;
+  IVehicleInformation: IVehicleInformation;
   InAppNotificationMeta: ResolverTypeWrapper<InAppNotificationMeta>;
   InAppNotificationSearchInput: InAppNotificationSearchInput;
   InAppNotificationSearchResult: ResolverTypeWrapper<InAppNotificationSearchResult>;
   InAppNotifications: ResolverTypeWrapper<InAppNotifications>;
+  IncidentForm: ResolverTypeWrapper<IncidentForm>;
+  IncidentFormResponse: ResolverTypeWrapper<IncidentFormResponse>;
+  IncidentFormSearchInput: IncidentFormSearchInput;
+  IncidentFormSearchResult: ResolverTypeWrapper<IncidentFormSearchResult>;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
@@ -2995,6 +3224,7 @@ export type ResolversTypes = ResolversObject<{
   MemberSkillSearchResult: ResolverTypeWrapper<MemberSkillSearchResult>;
   MemberStatus: MemberStatus;
   MemberTier: MemberTier;
+  MissionAssignments: ResolverTypeWrapper<MissionAssignments>;
   Mutation: ResolverTypeWrapper<{}>;
   NewContactInfo: NewContactInfo;
   NewEmail: NewEmail;
@@ -3005,6 +3235,8 @@ export type ResolversTypes = ResolversObject<{
   NotificationFrequency: NotificationFrequency;
   NotificationSearchInput: NotificationSearchInput;
   NotificationSearchResult: ResolverTypeWrapper<NotificationSearchResult>;
+  ObjectId: ResolverTypeWrapper<Scalars['ObjectId']['output']>;
+  OperationalPeriod: ResolverTypeWrapper<OperationalPeriod>;
   Organization: ResolverTypeWrapper<Organization>;
   OrganizationContact: ResolverTypeWrapper<OrganizationContact>;
   OrganizationCustomizations: ResolverTypeWrapper<OrganizationCustomizations>;
@@ -3046,6 +3278,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ResolverTypeWrapper<ShiftCheckOutResponse>;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
+  ShiftDetails: ResolverTypeWrapper<ShiftDetails>;
   ShiftInterestRequest: ResolverTypeWrapper<ShiftInterestRequest>;
   ShiftInterestRequestStatus: ShiftInterestRequestStatus;
   ShiftInterestRequestsSearchInput: ShiftInterestRequestsSearchInput;
@@ -3068,6 +3301,7 @@ export type ResolversTypes = ResolversObject<{
   SkillSearchResult: ResolverTypeWrapper<SkillSearchResult>;
   SkillStatus: SkillStatus;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Timekeeping: ResolverTypeWrapper<Timekeeping>;
   Unit: ResolverTypeWrapper<Unit>;
   UnitSearchInput: UnitSearchInput;
   UnitSearchResult: ResolverTypeWrapper<UnitSearchResult>;
@@ -3116,6 +3350,7 @@ export type ResolversTypes = ResolversObject<{
   VehicleCategories: ResolverTypeWrapper<VehicleCategories>;
   VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
   VehicleCategoriesSearchResult: ResolverTypeWrapper<VehicleCategoriesSearchResult>;
+  VehicleInformation: ResolverTypeWrapper<VehicleInformation>;
   Venue: ResolverTypeWrapper<Venue>;
   VenueContact: ResolverTypeWrapper<VenueContact>;
   VenueContract: ResolverTypeWrapper<VenueContract>;
@@ -3126,12 +3361,15 @@ export type ResolversTypes = ResolversObject<{
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
+  ActivityLog: ActivityLog;
+  ActivityLogEntry: ActivityLogEntry;
   AfterShiftRemove: AfterShiftRemove;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: Assignment;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: AssignmentSearchResult;
   AssignmentShiftSlot: AssignmentShiftSlot;
+  AssignmentSummary: AssignmentSummary;
   AvailabilityTime: AvailabilityTime;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: Scalars['Boolean']['output'];
@@ -3144,6 +3382,8 @@ export type ResolversParentTypes = ResolversObject<{
   CreateOrganization: CreateOrganization;
   CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
+  Date: Scalars['Date']['output'];
+  DateTime: Scalars['DateTime']['output'];
   DayAvailability: DayAvailability;
   Division: Division;
   DivisionSearchInput: DivisionSearchInput;
@@ -3165,11 +3405,24 @@ export type ResolversParentTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   Float: Scalars['Float']['output'];
+  IActivityLog: IActivityLog;
+  IActivityLogEntry: IActivityLogEntry;
+  IAssignmentSummary: IAssignmentSummary;
   ID: Scalars['ID']['output'];
+  IIncidentForm: IIncidentForm;
+  IMissionAssignments: IMissionAssignments;
+  IOperationalPeriod: IOperationalPeriod;
+  IShiftDetails: IShiftDetails;
+  ITimekeeping: ITimekeeping;
+  IVehicleInformation: IVehicleInformation;
   InAppNotificationMeta: InAppNotificationMeta;
   InAppNotificationSearchInput: InAppNotificationSearchInput;
   InAppNotificationSearchResult: InAppNotificationSearchResult;
   InAppNotifications: InAppNotifications;
+  IncidentForm: IncidentForm;
+  IncidentFormResponse: IncidentFormResponse;
+  IncidentFormSearchInput: IncidentFormSearchInput;
+  IncidentFormSearchResult: IncidentFormSearchResult;
   InputAdminResetPassword: InputAdminResetPassword;
   InputAvailabilityTime: InputAvailabilityTime;
   InputBrowserNotificationKeys: InputBrowserNotificationKeys;
@@ -3197,6 +3450,7 @@ export type ResolversParentTypes = ResolversObject<{
   MemberSkillAttachmentUpload: MemberSkillAttachmentUpload;
   MemberSkillSearchInput: MemberSkillSearchInput;
   MemberSkillSearchResult: MemberSkillSearchResult;
+  MissionAssignments: MissionAssignments;
   Mutation: {};
   NewContactInfo: NewContactInfo;
   NewEmail: NewEmail;
@@ -3206,6 +3460,8 @@ export type ResolversParentTypes = ResolversObject<{
   Notification: Notification;
   NotificationSearchInput: NotificationSearchInput;
   NotificationSearchResult: NotificationSearchResult;
+  ObjectId: Scalars['ObjectId']['output'];
+  OperationalPeriod: OperationalPeriod;
   Organization: Organization;
   OrganizationContact: OrganizationContact;
   OrganizationCustomizations: OrganizationCustomizations;
@@ -3246,6 +3502,7 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ShiftCheckOutResponse;
   ShiftDayTime: ShiftDayTime;
+  ShiftDetails: ShiftDetails;
   ShiftInterestRequest: ShiftInterestRequest;
   ShiftInterestRequestsSearchInput: ShiftInterestRequestsSearchInput;
   ShiftInterestRequestsSearchResult: ShiftInterestRequestsSearchResult;
@@ -3263,6 +3520,7 @@ export type ResolversParentTypes = ResolversObject<{
   SkillSearchInput: SkillSearchInput;
   SkillSearchResult: SkillSearchResult;
   String: Scalars['String']['output'];
+  Timekeeping: Timekeeping;
   Unit: Unit;
   UnitSearchInput: UnitSearchInput;
   UnitSearchResult: UnitSearchResult;
@@ -3311,11 +3569,24 @@ export type ResolversParentTypes = ResolversObject<{
   VehicleCategories: VehicleCategories;
   VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
   VehicleCategoriesSearchResult: VehicleCategoriesSearchResult;
+  VehicleInformation: VehicleInformation;
   Venue: Venue;
   VenueContact: VenueContact;
   VenueContract: VenueContract;
   VenueSearchInput: VenueSearchInput;
   VenueSearchResult: VenueSearchResult;
+}>;
+
+export type ActivityLogResolvers<ContextType = any, ParentType extends ResolversParentTypes['ActivityLog'] = ResolversParentTypes['ActivityLog']> = ResolversObject<{
+  entries?: Resolver<Maybe<Array<Maybe<ResolversTypes['ActivityLogEntry']>>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ActivityLogEntryResolvers<ContextType = any, ParentType extends ResolversParentTypes['ActivityLogEntry'] = ResolversParentTypes['ActivityLogEntry']> = ResolversObject<{
+  missionNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  time?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends ResolversParentTypes['AfterShiftRemove'] = ResolversParentTypes['AfterShiftRemove']> = ResolversObject<{
@@ -3368,6 +3639,14 @@ export type AssignmentShiftSlotResolvers<ContextType = any, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type AssignmentSummaryResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentSummary'] = ResolversParentTypes['AssignmentSummary']> = ResolversObject<{
+  callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  missionAssignments?: Resolver<Maybe<ResolversTypes['MissionAssignments']>, ParentType, ContextType>;
+  squad?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  supervisor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type AvailabilityTimeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AvailabilityTime'] = ResolversParentTypes['AvailabilityTime']> = ResolversObject<{
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3414,6 +3693,14 @@ export type ContactInfoResolvers<ContextType = any, ParentType extends Resolvers
   secondaryPhone?: Resolver<Maybe<ResolversTypes['Phone']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
+}
+
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
 
 export type DayAvailabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['DayAvailability'] = ResolversParentTypes['DayAvailability']> = ResolversObject<{
   available?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3644,6 +3931,42 @@ export type InAppNotificationsResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type IncidentFormResolvers<ContextType = any, ParentType extends ResolversParentTypes['IncidentForm'] = ResolversParentTypes['IncidentForm']> = ResolversObject<{
+  activityLog?: Resolver<ResolversTypes['ActivityLog'], ParentType, ContextType>;
+  assignmentSummary?: Resolver<ResolversTypes['AssignmentSummary'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  envelopeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
+  eventId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  modifiedById?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  operationalPeriod?: Resolver<ResolversTypes['OperationalPeriod'], ParentType, ContextType>;
+  org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  reviewer?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  shiftDetails?: Resolver<ResolversTypes['ShiftDetails'], ParentType, ContextType>;
+  step?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  timekeeping?: Resolver<ResolversTypes['Timekeeping'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  vehicleInformation?: Resolver<ResolversTypes['VehicleInformation'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type IncidentFormResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['IncidentFormResponse'] = ResolversParentTypes['IncidentFormResponse']> = ResolversObject<{
+  signingUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type IncidentFormSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['IncidentFormSearchResult'] = ResolversParentTypes['IncidentFormSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<ResolversTypes['IncidentForm']>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type InterestListSettingResolvers<ContextType = any, ParentType extends ResolversParentTypes['InterestListSetting'] = ResolversParentTypes['InterestListSetting']> = ResolversObject<{
   defaultAutoHireCutoff?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   defaultHoursBeforeShift?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -3823,6 +4146,21 @@ export type MemberSkillSearchResultResolvers<ContextType = any, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type MissionAssignmentsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MissionAssignments'] = ResolversParentTypes['MissionAssignments']> = ResolversObject<{
+  escort?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  evacuations?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  hardClosure?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  incidentManagementTeam?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  logistics?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  other?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  rovingSecurity?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  rrf?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  searchAndRescue?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  softClosure?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  welfareCheck?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addRanksToGroup?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAddRanksToGroupArgs, 'rankGroupId' | 'rankIds'>>;
   adminEditPassword?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAdminEditPasswordArgs, 'input'>>;
@@ -3842,6 +4180,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   generateDSInvoice?: Resolver<Maybe<ResolversTypes['EventInvoiceResponse']>, ParentType, ContextType, RequireFields<MutationGenerateDsInvoiceArgs, 'eventId'>>;
   generateInvoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationGenerateInvoiceArgs, 'eventId'>>;
   impersonateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationImpersonateUserArgs, 'userId'>>;
+  incidentForm?: Resolver<ResolversTypes['IncidentFormResponse'], ParentType, ContextType, RequireFields<MutationIncidentFormArgs, 'input'>>;
   inviteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationInviteUserArgs, 'user'>>;
   newUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationNewUserArgs, 'user'>>;
   notification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationNotificationArgs, 'notification'>>;
@@ -3862,6 +4201,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeEquipment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEquipmentArgs, 'id'>>;
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
   removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
+  removeIncidentForm?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveIncidentFormArgs, 'id'>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
   removeOutsideUser?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveOutsideUserArgs, 'id'>>;
   removeRank?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveRankArgs, 'id'>>;
@@ -3927,6 +4267,15 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 export type NotificationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotificationSearchResult'] = ResolversParentTypes['NotificationSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Notification']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjectId'], any> {
+  name: 'ObjectId';
+}
+
+export type OperationalPeriodResolvers<ContextType = any, ParentType extends ResolversParentTypes['OperationalPeriod'] = ResolversParentTypes['OperationalPeriod']> = ResolversObject<{
+  date?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4109,6 +4458,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inAppNotifications?: Resolver<Maybe<ResolversTypes['InAppNotificationSearchResult']>, ParentType, ContextType, Partial<QueryInAppNotificationsArgs>>;
+  incidentForms?: Resolver<Maybe<ResolversTypes['IncidentFormSearchResult']>, ParentType, ContextType, Partial<QueryIncidentFormsArgs>>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
   lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;
   lotteryShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType>;
@@ -4329,6 +4679,15 @@ export type ShiftDayTimeResolvers<ContextType = any, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type ShiftDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftDetails'] = ResolversParentTypes['ShiftDetails']> = ResolversObject<{
+  arrivalAtUOA?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  enrouteToIncident?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  staging1097?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  staging1098?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  time18Hour?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type ShiftInterestRequestResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftInterestRequest'] = ResolversParentTypes['ShiftInterestRequest']> = ResolversObject<{
   assignedShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
@@ -4446,6 +4805,15 @@ export type SkillSearchResultResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type TimekeepingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Timekeeping'] = ResolversParentTypes['Timekeeping']> = ResolversObject<{
+  overtimeHours?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  rdo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  straightHours?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  timeIn?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  timeOut?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type UnitResolvers<ContextType = any, ParentType extends ResolversParentTypes['Unit'] = ResolversParentTypes['Unit']> = ResolversObject<{
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4539,6 +4907,17 @@ export type VehicleCategoriesSearchResultResolvers<ContextType = any, ParentType
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type VehicleInformationResolvers<ContextType = any, ParentType extends ResolversParentTypes['VehicleInformation'] = ResolversParentTypes['VehicleInformation']> = ResolversObject<{
+  endingMileage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  hasVehicle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  startingMileage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vehicleMake?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vehicleModel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vehicleNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type VenueResolvers<ContextType = any, ParentType extends ResolversParentTypes['Venue'] = ResolversParentTypes['Venue']> = ResolversObject<{
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4584,16 +4963,21 @@ export type VenueSearchResultResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type Resolvers<ContextType = any> = ResolversObject<{
+  ActivityLog?: ActivityLogResolvers<ContextType>;
+  ActivityLogEntry?: ActivityLogEntryResolvers<ContextType>;
   AfterShiftRemove?: AfterShiftRemoveResolvers<ContextType>;
   Assignment?: AssignmentResolvers<ContextType>;
   AssignmentSearchResult?: AssignmentSearchResultResolvers<ContextType>;
   AssignmentShiftSlot?: AssignmentShiftSlotResolvers<ContextType>;
+  AssignmentSummary?: AssignmentSummaryResolvers<ContextType>;
   AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
   BrowserNotificationKeys?: BrowserNotificationKeysResolvers<ContextType>;
   BrowserNotificationSetting?: BrowserNotificationSettingResolvers<ContextType>;
   BrowserNotificationSubscription?: BrowserNotificationSubscriptionResolvers<ContextType>;
   CheckInOutSetting?: CheckInOutSettingResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
+  Date?: GraphQLScalarType;
+  DateTime?: GraphQLScalarType;
   DayAvailability?: DayAvailabilityResolvers<ContextType>;
   Division?: DivisionResolvers<ContextType>;
   DivisionSearchResult?: DivisionSearchResultResolvers<ContextType>;
@@ -4613,6 +4997,9 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
   InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;
   InAppNotifications?: InAppNotificationsResolvers<ContextType>;
+  IncidentForm?: IncidentFormResolvers<ContextType>;
+  IncidentFormResponse?: IncidentFormResponseResolvers<ContextType>;
+  IncidentFormSearchResult?: IncidentFormSearchResultResolvers<ContextType>;
   InterestListSetting?: InterestListSettingResolvers<ContextType>;
   LotteryCounter?: LotteryCounterResolvers<ContextType>;
   LotteryCounterSearchResult?: LotteryCounterSearchResultResolvers<ContextType>;
@@ -4628,9 +5015,12 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   MemberSkill?: MemberSkillResolvers<ContextType>;
   MemberSkillAttachmentUpload?: MemberSkillAttachmentUploadResolvers<ContextType>;
   MemberSkillSearchResult?: MemberSkillSearchResultResolvers<ContextType>;
+  MissionAssignments?: MissionAssignmentsResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   NotificationSearchResult?: NotificationSearchResultResolvers<ContextType>;
+  ObjectId?: GraphQLScalarType;
+  OperationalPeriod?: OperationalPeriodResolvers<ContextType>;
   Organization?: OrganizationResolvers<ContextType>;
   OrganizationContact?: OrganizationContactResolvers<ContextType>;
   OrganizationCustomizations?: OrganizationCustomizationsResolvers<ContextType>;
@@ -4661,6 +5051,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftCheckInOutEquipment?: ShiftCheckInOutEquipmentResolvers<ContextType>;
   ShiftCheckOutResponse?: ShiftCheckOutResponseResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
+  ShiftDetails?: ShiftDetailsResolvers<ContextType>;
   ShiftInterestRequest?: ShiftInterestRequestResolvers<ContextType>;
   ShiftInterestRequestsSearchResult?: ShiftInterestRequestsSearchResultResolvers<ContextType>;
   ShiftLotteryRequest?: ShiftLotteryRequestResolvers<ContextType>;
@@ -4671,6 +5062,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   SiteLock?: SiteLockResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
   SkillSearchResult?: SkillSearchResultResolvers<ContextType>;
+  Timekeeping?: TimekeepingResolvers<ContextType>;
   Unit?: UnitResolvers<ContextType>;
   UnitSearchResult?: UnitSearchResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
@@ -4679,6 +5071,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   UserSearchResult?: UserSearchResultResolvers<ContextType>;
   VehicleCategories?: VehicleCategoriesResolvers<ContextType>;
   VehicleCategoriesSearchResult?: VehicleCategoriesSearchResultResolvers<ContextType>;
+  VehicleInformation?: VehicleInformationResolvers<ContextType>;
   Venue?: VenueResolvers<ContextType>;
   VenueContact?: VenueContactResolvers<ContextType>;
   VenueContract?: VenueContractResolvers<ContextType>;

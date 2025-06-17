@@ -68,6 +68,15 @@ export class ShiftInterestRequestModel extends BaseMongo<IShiftInterestRequest> 
     super(db, DocType.ShiftInterestRequest, 'shiftInterestRequests');
   }
 
+  async getExistingRequest(userId: string, shiftGroupId: string): Promise<IShiftInterestRequest | null> {
+    const userObjectId = new ObjectId(userId);
+    return this.collection.findOne<IShiftInterestRequest>({
+      userId: userObjectId,
+      shiftGroupId,
+      removedAt: { $exists: false },
+    });
+  }
+
   async markAllAsApproved(ids: ObjectId[]) {
     return this.collection.updateMany(
       { _id: { $in: ids } },

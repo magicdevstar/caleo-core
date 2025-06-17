@@ -45,6 +45,16 @@ export const Mutation = {
       throw new GraphQLError('Shift not found');
     }
 
+    if (
+      user.id! === shiftInterestRequest.userId &&
+      !shiftInterestRequest.id
+    ) {
+      const existingRequest = await shiftInterestRequests.getExistingRequest(shiftInterestRequest.userId, shiftInterestRequest.shiftGroupId);
+      if (existingRequest) {
+        throw new GraphQLError('You already have a pending request for this shift.');
+      }
+    }
+
     let notificationPayload: any = null;
     let assignedShiftId: ObjectId | undefined;
     if (shiftInterestRequest.id) {

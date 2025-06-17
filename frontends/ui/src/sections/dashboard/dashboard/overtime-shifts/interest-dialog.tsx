@@ -87,7 +87,16 @@ export default function InterestDialog({
       );
       closeDialog();
     } catch (error) {
-      if (/This shift has an overlapping time/.test(error.message)) {
+      if (/You already have a pending request for this shift/.test(error.message)) {
+        enqueueSnackbar(
+          'You already have a pending request for this shift.',
+          { variant: 'error', autoHideDuration: 5000 }
+        );
+        closeDialog();
+        await client.refetchQueries({
+          include: [GET_AVAILABLE_SHIFTS],
+        });
+      } else if (/This shift has an overlapping time/.test(error.message)) {
         enqueueSnackbar(
           'This shift overlaps with another shift. Please try selecting another shift.',
           { variant: 'error', autoHideDuration: 5000 }

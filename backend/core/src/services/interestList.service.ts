@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import uniqBy from 'lodash/uniqBy';
 import { toZonedTime } from "date-fns-tz";
 import { startOfMonth } from "date-fns/startOfMonth";
 import { endOfMonth } from "date-fns/endOfMonth";
@@ -222,7 +223,9 @@ export class InterestListService {
   }) {
     // Get all interest requests for the shift group
     // sorted by tier
-    const requests = await this.shiftInterestRequests.requestsStagedForAssignment(sampleShift.shiftId);
+    const allRequests = await this.shiftInterestRequests.requestsStagedForAssignment(sampleShift.shiftId);
+    // Filter out duplicate requests by userId
+    const requests = uniqBy(allRequests, (request) => request.userId.toString());
 
     // Get total hours for each user in the month of the shift
     const userIds = requests.map((request) => request.userId);

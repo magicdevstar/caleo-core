@@ -1731,12 +1731,20 @@ type DocusignSignerDetailsData {
     date: Date! # required
   }
 
+  enum TimekeepingType {
+    PAID
+    SAVED
+  }
+
   type Timekeeping {
     rdo: String # "yes" or "no"
     overtimeHours: Float # required when rdo is "yes"
     straightHours: Float # required when rdo is "no"
     timeIn: DateTime # required
     timeOut: DateTime # required
+    overtimeTimeIn: DateTime
+    overtimeTimeOut: DateTime
+    type: TimekeepingType
   }
 
   type ShiftDetails {
@@ -1777,6 +1785,7 @@ type DocusignSignerDetailsData {
     squad: String
     supervisor: String
     missionAssignments: MissionAssignments
+    otherExplanation: String
   }
 
   type ActivityLogEntry {
@@ -1839,6 +1848,9 @@ type DocusignSignerDetailsData {
     straightHours: Float # required when rdo is "no"
     timeIn: DateTime # required
     timeOut: DateTime # required
+    overtimeTimeIn: DateTime
+    overtimeTimeOut: DateTime
+    type: TimekeepingType
   }
 
   input IShiftDetails {
@@ -1879,6 +1891,7 @@ type DocusignSignerDetailsData {
     squad: String
     supervisor: String
     missionAssignments: IMissionAssignments
+    otherExplanation: String
   }
 
   input IActivityLogEntry {

@@ -1,8 +1,12 @@
+import dayjs from 'dayjs';
+import { useWatch } from 'react-hook-form';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import { RHFTimePicker } from '../../../components/hook-form';
 
 export default function ShiftDetailsStep() {
+  const minTimeIn = useWatch({ name: 'timekeeping.minTimeIn' });
+  console.log('minTimeIn', minTimeIn);
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>
@@ -10,6 +14,7 @@ export default function ShiftDetailsStep() {
           <RHFTimePicker
             name="shiftDetails.enrouteToIncident"
             label="Enroute to Incident"
+            minTime={minTimeIn ? dayjs(minTimeIn) : null}
             textFieldProps={{ fullWidth: true }}
             format="HH:mm"
             ampm={false}

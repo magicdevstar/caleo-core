@@ -50,18 +50,18 @@ export const requestToPDFForm = ({
       reviwerEmployeeNumber2: reviewer.pNumber,
       rdoNo: incidentForm.timekeeping.rdo === 'no',
       rdoYes: incidentForm.timekeeping.rdo === 'yes',
-      ...(incidentForm.timekeeping.rdo === 'yes' ? {
-        straightTimeIn: format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm'),
-        straightTimeOut: format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm'),
-        straightTotalTime: `${differenceInHours(
-          toZonedTime(incidentForm.timekeeping.timeOut, org.timezone),
-          toZonedTime(incidentForm.timekeeping.timeIn, org.timezone)
-        ) || '1'}`,
-      } : {
-        timeIn: format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm'),
-        timeOut: format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm'),
-        totalTime: `${differenceInHours(incidentForm.timekeeping.timeOut, incidentForm.timekeeping.timeIn) || '1'}`,
-      }),
+      straightTimeIn: format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm'),
+      straightTimeOut: format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm'),
+      straightTotalTime: `${differenceInHours(
+        toZonedTime(incidentForm.timekeeping.timeOut, org.timezone),
+        toZonedTime(incidentForm.timekeeping.timeIn, org.timezone)
+      ) || '1'}`,
+      timeIn: incidentForm.timekeeping.overtimeTimeIn ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeIn, org.timezone), 'HH:mm') : '',
+      timeOut: incidentForm.timekeeping.overtimeTimeOut ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeOut, org.timezone), 'HH:mm') : '',
+      totalTime: incidentForm.timekeeping.overtimeTimeIn && incidentForm.timekeeping.overtimeTimeOut && `${differenceInHours(
+        toZonedTime(incidentForm.timekeeping.overtimeTimeOut, org.timezone),
+        toZonedTime(incidentForm.timekeeping.overtimeTimeIn, org.timezone)
+      ) || '1'}`,
       enrouteToIncident: incidentForm.shiftDetails.enrouteToIncident ? format(toZonedTime(incidentForm.shiftDetails.enrouteToIncident, org.timezone), 'HH:mm') : '',
       staging1097: incidentForm.shiftDetails.staging1097 ? format(toZonedTime(incidentForm.shiftDetails.staging1097, org.timezone), 'HH:mm') : '',
       staging1098: incidentForm.shiftDetails.staging1098 ? format(toZonedTime(incidentForm.shiftDetails.staging1098, org.timezone), 'HH:mm') : '',
@@ -73,11 +73,11 @@ export const requestToPDFForm = ({
         vehicleNumber: incidentForm.vehicleInformation.vehicleNumber || '',
         'Vehicle Model': incidentForm.vehicleInformation.vehicleModel || '',
         vehicleMake: incidentForm.vehicleInformation.vehicleMake || '',
-        vehicleStartingMileage: `${incidentForm.vehicleInformation.startingMileage}` || '',
-        vehicleEndingMileage: `${incidentForm.vehicleInformation.endingMileage}` || '',
+        vehicleStartingMileage: `${incidentForm.vehicleInformation.startingMileage?.toLocaleString('en-US')}` || '',
+        vehicleEndingMileage: `${incidentForm.vehicleInformation.endingMileage?.toLocaleString('en-US')}` || '',
         vehicleTotalMileage:
-          `${(incidentForm.vehicleInformation.endingMileage || 0) -
-          (incidentForm.vehicleInformation.startingMileage || 0)}` || '',
+          `${((incidentForm.vehicleInformation.endingMileage || 0) -
+          (incidentForm.vehicleInformation.startingMileage || 0)).toLocaleString('en-US')}` || '',
       }),
       callSign: incidentForm.assignmentSummary.callSign || '',
       squad: incidentForm.assignmentSummary.squad || '',

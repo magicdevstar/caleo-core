@@ -75,28 +75,28 @@ export default function ActivityLogStep() {
           <Stack direction="row" spacing={1} alignItems="flex-start">
             <Box flexGrow={1}>
               <Grid container spacing={2}>
-                <Grid item xs={12}md={6}>
-                  <RHFTimePicker
-                    name={`activityLog.entries.${index}.time`}
-                    label="Time"
-                    textFieldProps={{ fullWidth: true }}
-                    format="HH:mm"
-                    ampm={false}
-                  />
+                <Grid item xs={12} md={4}>
+                  <Stack spacing={1}>
+                    <RHFTimePicker
+                      name={`activityLog.entries.${index}.time`}
+                      label="Time"
+                      textFieldProps={{ fullWidth: true }}
+                      format="HH:mm"
+                      ampm={false}
+                    />
+                    <RHFTextField
+                      name={`activityLog.entries.${index}.missionNumber`}
+                      label="Mission Number"
+                      fullWidth
+                    />
+                  </Stack>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <RHFTextField
-                    name={`activityLog.entries.${index}.missionNumber`}
-                    label="Mission Number"
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={8}>
                   <RHFTextField
                     name={`activityLog.entries.${index}.notes`}
                     label="Notes"
                     multiline
-                    rows={2}
+                    rows={4}
                     fullWidth
                   />
                 </Grid>

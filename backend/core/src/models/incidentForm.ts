@@ -62,6 +62,7 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
       userId,
       eventId,
       'operationalPeriod.date': submissionDate,
+      envelopeId: { $exists: true },
     });
   }
 

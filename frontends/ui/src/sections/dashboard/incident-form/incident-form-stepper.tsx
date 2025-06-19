@@ -34,7 +34,7 @@ import { reader } from 'src/layouts/_common/notifications-popover/notification-i
 
 // sections
 import OperationalPeriodStep from './operational-period-step';
-import TimekeepingStep from './timekeeping-step';
+import TimekeepingStep, { getEarliestTime, TimekeepingType } from './timekeeping-step';
 import ShiftDetailsStep from './shift-details-step';
 import VehicleInformationStep from './vehicle-information-step';
 import AssignmentSummaryStep from './assignment-summary-step';
@@ -56,18 +56,16 @@ const IncidentFormSchema = Yup.object().shape({
   reviewer: Yup.string().required('Reviewer is required'),
   timekeeping: Yup.object().shape({
     rdo: Yup.string().required('RDO selection is required'),
-    overtimeHours: Yup.number().when('rdo', {
-      is: 'yes',
-      then: (schema) => schema.required('Overtime Hours is required').min(0, 'Must be positive'),
-      otherwise: (schema) => schema.nullable(),
-    }),
-    straightHours: Yup.number().when('rdo', {
-      is: 'no',
-      then: (schema) => schema.required('Straight Hours is required').min(0, 'Must be positive'),
-      otherwise: (schema) => schema.nullable(),
-    }),
+    type: Yup.string().required('Paid or Saved selection is required'),
+    overtimeHours: Yup.number().min(0, 'Must be positive'),
+    straightHours: Yup.number().min(0, 'Must be positive'),
+    overtimeHoursDisplay: Yup.string().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
+    straightHoursDisplay: Yup.string().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
     timeIn: Yup.date().nullable().required('Time In is required'),
     timeOut: Yup.date().nullable().required('Time Out is required'),
+    overtimeTimeIn: Yup.date().nullable(),
+    overtimeTimeOut: Yup.date().nullable(),
+    minTimeIn: Yup.date().nullable(),
   }),
   shiftDetails: Yup.object().shape({
     enrouteToIncident: Yup.date().nullable(),
@@ -115,7 +113,7 @@ const IncidentFormSchema = Yup.object().shape({
   }),
   assignmentSummary: Yup.object().shape({
     callSign: Yup.string().required('Call Sign is required'),
-    squad: Yup.string().required('Squad is required'),
+    squad: Yup.string().nullable(),
     supervisor: Yup.string().required('Supervisor is required'),
     missionAssignments: Yup.object().shape({
       escort: Yup.boolean(),
@@ -134,13 +132,17 @@ const IncidentFormSchema = Yup.object().shape({
       'At least one mission assignment must be selected',
       (value) => Object.values(value || {}).some(Boolean)
     ),
+    otherExplanation: Yup.string().when('missionAssignments.other', {
+      is: true,
+      then: (schema) => schema.required('Please provide details for "Other" assignment'),
+    }),
   }),
   activityLog: Yup.object().shape({
     entries: Yup.array()
       .of(
         Yup.object().shape({
           time: Yup.date().nullable().required('Time is required'),
-          missionNumber: Yup.string().required('Mission number is required'),
+          missionNumber: Yup.string(),
           notes: Yup.string().required('Notes are required'),
         })
       )
@@ -158,10 +160,16 @@ const defaultValues: IncidentFormSchemaType = {
   reviewer: '',
   timekeeping: {
     rdo: '',
+    type: TimekeepingType.PAID,
     overtimeHours: 0,
     straightHours: 0,
+    overtimeHoursDisplay: '0:00',
+    straightHoursDisplay: '0:00',
     timeIn: null as any,
     timeOut: null as any,
+    overtimeTimeIn: null as any,
+    overtimeTimeOut: null as any,
+    minTimeIn: null as any,
   },
   shiftDetails: {
     enrouteToIncident: null as any,
@@ -238,13 +246,31 @@ export default function IncidentFormStepper({
 
   const onSubmit = async (data: IncidentFormSchemaType) => {
     try {
+      // Remove display fields before submission, keeping only numeric values for backend
+      const {
+        // Display only
+        minTimeIn,
+        // Remove display fields - backend only expects numeric values
+        straightHoursDisplay,
+        overtimeHoursDisplay,
+        ...timekeeping
+      } = data.timekeeping;
+      const submitData = {
+        ...data,
+        timekeeping,
+        vehicleInformation: {
+          ...data.vehicleInformation,
+          vehicleNumber: data.vehicleInformation.hasVehicle === 'yes' ? data.vehicleInformation.vehicleNumber : 'N/A',
+        },
+      };
+      
       const res = await submitIncidentForm({
         variables: {
           input: omitDeep({
-            ...data,
+            ...submitData,
             step: activeStep,
             eventId: event.id,
-          }, ['__typename']),
+          }, ['__typename', 'straightHoursDisplay', 'overtimeHoursDisplay']),
           saveOnly: false,
         },
       });
@@ -277,14 +303,7 @@ export default function IncidentFormStepper({
       stepFields = ['operationalPeriod.date'];
     } else if (step === 1) {
       // Validate timekeeping fields based on RDO selection
-      const rdoValue = getValues('timekeeping.rdo');
       stepFields = ['timekeeping.rdo', 'timekeeping.timeIn', 'timekeeping.timeOut'];
-      
-      if (rdoValue === 'yes') {
-        stepFields.push('timekeeping.overtimeHours');
-      } else if (rdoValue === 'no') {
-        stepFields.push('timekeeping.straightHours');
-      }
     } else if (step === 2) {
       // Shift details are all optional, so we can proceed without validation
       return true;
@@ -308,9 +327,9 @@ export default function IncidentFormStepper({
       // Validate assignment summary fields
       stepFields = [
         'assignmentSummary.callSign',
-        'assignmentSummary.squad',
         'assignmentSummary.supervisor',
-        'assignmentSummary.missionAssignments'
+        'assignmentSummary.missionAssignments',
+        'assignmentSummary.otherExplanation',
       ];
     } else if (step === 5) {
       // Activity log validation is handled by the schema (array min/max validation)
@@ -364,12 +383,26 @@ export default function IncidentFormStepper({
 
   // Handle selecting an in-progress submission
   const handleSelectSubmission = (submission: any) => {
-    // Reset form with the submission data
+    // Helper function to convert numeric hours to H:MM format
+    const formatHours = (hours: number): string => {
+      const h = Math.floor(hours);
+      const m = Math.round((hours - h) * 60);
+      return `${h}:${m.toString().padStart(2, '0')}`;
+    };
+    const times = [submission.timekeeping.timeIn, submission.timekeeping.overtimeTimeIn].filter(Boolean);
+
+    // Reset form with the submission data, adding display fields
     methods.reset({
       id: submission.id,
       operationalPeriod: submission.operationalPeriod,
       reviewer: submission.reviewer,
-      timekeeping: submission.timekeeping,
+      timekeeping: {
+        ...submission.timekeeping,
+        // Add display fields based on numeric values
+        straightHoursDisplay: formatHours(submission.timekeeping.straightHours || 0),
+        overtimeHoursDisplay: formatHours(submission.timekeeping.overtimeHours || 0),
+        minTimeIn: getEarliestTime(times as Date[]),
+      },
       shiftDetails: submission.shiftDetails,
       vehicleInformation: submission.vehicleInformation,
       assignmentSummary: submission.assignmentSummary,
@@ -512,13 +545,29 @@ export default function IncidentFormStepper({
             variant="outlined"
             onClick={() => {
               const data = getValues();
+              // Remove display fields before submission, keeping only numeric values for backend
+              const submitData = {
+                ...data,
+                timekeeping: {
+                  ...data.timekeeping,
+                  // Remove display fields - backend only expects numeric values
+                  straightHoursDisplay: undefined,
+                  overtimeHoursDisplay: undefined,
+                  minTimeIn: undefined,
+                },
+                vehicleInformation: {
+                  ...data.vehicleInformation,
+                  vehicleNumber: data.vehicleInformation.hasVehicle === 'yes' ? data.vehicleInformation.vehicleNumber : 'N/A',
+                }
+              };
+              
               submitIncidentForm({
                 variables: {
                   input: omitDeep({
-                    ...data,
+                    ...submitData,
                     step: activeStep,
                     eventId: event.id,
-                  }, ['__typename']),
+                  }, ['__typename', 'straightHoursDisplay', 'overtimeHoursDisplay', 'minTimeIn']),
                   saveOnly: true,
                 },
               })

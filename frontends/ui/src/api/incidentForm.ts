@@ -17,6 +17,9 @@ export const GET_INCIDENT_SUBMISSIONS = gql`
           straightHours
           timeIn
           timeOut
+          overtimeTimeIn
+          overtimeTimeOut
+          type
         }
         shiftDetails {
           enrouteToIncident
@@ -38,6 +41,7 @@ export const GET_INCIDENT_SUBMISSIONS = gql`
           callSign
           squad
           supervisor
+          otherExplanation
           missionAssignments {
             escort
             evacuations
@@ -83,6 +87,9 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
           straightHours
           timeIn
           timeOut
+          overtimeTimeIn
+          overtimeTimeOut
+          type
         }
         shiftDetails {
           enrouteToIncident
@@ -104,6 +111,7 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
           callSign
           squad
           supervisor
+          otherExplanation
           missionAssignments {
             escort
             evacuations

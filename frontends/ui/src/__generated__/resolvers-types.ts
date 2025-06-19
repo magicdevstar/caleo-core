@@ -113,6 +113,7 @@ export type AssignmentSummary = {
   __typename?: 'AssignmentSummary';
   callSign?: Maybe<Scalars['String']['output']>;
   missionAssignments?: Maybe<MissionAssignments>;
+  otherExplanation?: Maybe<Scalars['String']['output']>;
   squad?: Maybe<Scalars['String']['output']>;
   supervisor?: Maybe<Scalars['String']['output']>;
 };
@@ -535,6 +536,7 @@ export type IActivityLogEntry = {
 export type IAssignmentSummary = {
   callSign?: InputMaybe<Scalars['String']['input']>;
   missionAssignments?: InputMaybe<IMissionAssignments>;
+  otherExplanation?: InputMaybe<Scalars['String']['input']>;
   squad?: InputMaybe<Scalars['String']['input']>;
   supervisor?: InputMaybe<Scalars['String']['input']>;
 };
@@ -580,10 +582,13 @@ export type IShiftDetails = {
 
 export type ITimekeeping = {
   overtimeHours?: InputMaybe<Scalars['Float']['input']>;
+  overtimeTimeIn?: InputMaybe<Scalars['DateTime']['input']>;
+  overtimeTimeOut?: InputMaybe<Scalars['DateTime']['input']>;
   rdo?: InputMaybe<Scalars['String']['input']>;
   straightHours?: InputMaybe<Scalars['Float']['input']>;
   timeIn?: InputMaybe<Scalars['DateTime']['input']>;
   timeOut?: InputMaybe<Scalars['DateTime']['input']>;
+  type?: InputMaybe<TimekeepingType>;
 };
 
 export type IVehicleInformation = {
@@ -2513,11 +2518,19 @@ export enum SkillStatus {
 export type Timekeeping = {
   __typename?: 'Timekeeping';
   overtimeHours?: Maybe<Scalars['Float']['output']>;
+  overtimeTimeIn?: Maybe<Scalars['DateTime']['output']>;
+  overtimeTimeOut?: Maybe<Scalars['DateTime']['output']>;
   rdo?: Maybe<Scalars['String']['output']>;
   straightHours?: Maybe<Scalars['Float']['output']>;
   timeIn?: Maybe<Scalars['DateTime']['output']>;
   timeOut?: Maybe<Scalars['DateTime']['output']>;
+  type?: Maybe<TimekeepingType>;
 };
+
+export enum TimekeepingType {
+  Paid = 'PAID',
+  Saved = 'SAVED'
+}
 
 export type Unit = {
   __typename?: 'Unit';
@@ -3311,6 +3324,7 @@ export type ResolversTypes = ResolversObject<{
   SkillStatus: SkillStatus;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Timekeeping: ResolverTypeWrapper<Timekeeping>;
+  TimekeepingType: TimekeepingType;
   Unit: ResolverTypeWrapper<Unit>;
   UnitSearchInput: UnitSearchInput;
   UnitSearchResult: ResolverTypeWrapper<UnitSearchResult>;
@@ -3651,6 +3665,7 @@ export type AssignmentShiftSlotResolvers<ContextType = any, ParentType extends R
 export type AssignmentSummaryResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentSummary'] = ResolversParentTypes['AssignmentSummary']> = ResolversObject<{
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   missionAssignments?: Resolver<Maybe<ResolversTypes['MissionAssignments']>, ParentType, ContextType>;
+  otherExplanation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   squad?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   supervisor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -4819,10 +4834,13 @@ export type SkillSearchResultResolvers<ContextType = any, ParentType extends Res
 
 export type TimekeepingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Timekeeping'] = ResolversParentTypes['Timekeeping']> = ResolversObject<{
   overtimeHours?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  overtimeTimeIn?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  overtimeTimeOut?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   rdo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   straightHours?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   timeIn?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   timeOut?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['TimekeepingType']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

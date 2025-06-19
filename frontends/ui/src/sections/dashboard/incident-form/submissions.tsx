@@ -95,7 +95,16 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
     e.stopPropagation();
     try {
       // Use omitDeep to remove typename and id fields throughout the nested object
-      const cleanedData = omitDeep(JSON.parse(JSON.stringify(submission)), ['__typename', 'id', 'event', 'envelopeId', 'createdAt', 'status']);
+      const cleanedData = omitDeep(JSON.parse(JSON.stringify(submission)), [
+        '__typename',
+        'id',
+        'event',
+        'envelopeId',
+        'createdAt',
+        'status',
+        'startingMilage',
+        'endingMileage'
+      ]);
       
       const res = await duplicateSubmission({
         variables: {

@@ -28,7 +28,7 @@ export default function VehicleInformationStep() {
     <Stack spacing={3}>
       <RHFRadioGroup
         name="vehicleInformation.hasVehicle"
-        label="Did you use a vehicle?"
+        label="Did you drive a vehicle?"
         options={[
           { label: 'Yes', value: 'yes' },
           { label: 'No', value: 'no' },

@@ -1,3 +1,4 @@
+import { useWatch } from 'react-hook-form';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -20,6 +21,7 @@ const MISSION_ASSIGNMENTS = [
 ];
 
 export default function AssignmentSummaryStep() {
+  const otherSelected = useWatch({ name: 'assignmentSummary.missionAssignments.other' });
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>
@@ -61,6 +63,15 @@ export default function AssignmentSummaryStep() {
             </Grid>
           ))}
         </Grid>
+        {otherSelected && (
+          <Box sx={{ mt: 2 }}>
+            <RHFTextField
+              name="assignmentSummary.otherExplanation"
+              label="Please provide details for Other"
+              fullWidth
+            />
+          </Box>
+        )}
       </Box>
     </Stack>
   );

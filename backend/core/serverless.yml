@@ -225,7 +225,7 @@ functions:
     timeout: 120
     package:
       patterns:
-        - assets/ActivityLog.pdf
+        - assets/*.pdf
 
   # Scheduled Tasks
   scheduledEvents:  

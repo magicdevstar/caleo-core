@@ -50,6 +50,13 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
     super(db, DocType.IncidentForm, 'incidentSubmissions');
   }
 
+  findByIdAndOrgId(_id: ObjectId, orgId: ObjectId) {
+    return this.collection.findOne<IIncidentForm>({
+      _id,
+      orgId,
+    }).then((doc) => doc ? { ...doc, id: doc._id!.toHexString() } : null);
+  }
+
   saveEnvelopeId(_id: ObjectId, envelopeId: string) {
     return this.collection.updateOne(
       { _id },

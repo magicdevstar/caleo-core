@@ -1,4 +1,6 @@
 import { ObjectId } from "mongodb";
+import uniq from 'lodash.uniq';
+import startCase from 'lodash/startCase';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { DocumentModel } from "../models/document";
 import { DocusignModel } from "../models/docusign";
@@ -13,7 +15,7 @@ import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { IIncidentForm as IncidentForm } from '../models/incidentForm';
-import { DocusignEventSearchInput, DocusignEventUserRole, IIncidentForm, IncidentFormResponse } from "../__generated__/resolvers-types";
+import { DocusignEventSearchInput, DocusignEventUserRole, IncidentFormResponse } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -21,7 +23,7 @@ import { InvoiceService } from "./invoice.service";
 import { IncidentSubmissionModel, InputIncidentForm } from "../models/incidentForm";
 import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { requestToPDFForm } from "../models/incidentForm/lasd";
-import { IIncidentInput, IIncidentResponse } from "../types/incidentForm";
+import { FormEntityType, IGenerateFormResponse, IIncidentInput, IncidentFormType } from "../types/incidentForm";
 
 const lambda = new LambdaClient({});
 
@@ -562,30 +564,56 @@ export class Docusign {
         throw new Error('User unit not found');
       }
   
+      const assignments = Object.keys(incidentForm.assignmentSummary.missionAssignments || {})
+        .filter((key) => incidentForm.assignmentSummary.missionAssignments?.[key])
+        .map((key) => {
+          if (key.toLowerCase() === 'other') {
+            return `${key} (${incidentForm.assignmentSummary.otherExplanation || 'no details provided'})`;
+          }
+          return startCase(key);
+        })
+        .join(', ');
+      const missionNumbers =  uniq(
+        (incidentForm.activityLog.entries || [])
+          .map((entry) => entry?.missionNumber)
+          .filter(Boolean)
+      ).join(', ');
       const incidentFormDetails = requestToPDFForm({
         incidentForm,
         reviewer,
         event,
         user,
+        supervisor: reviewer,
         org,
         rank,
         unit,
+        useCallSignPrefix: true,
+        incidentCommander: reviewer,
+        details: `Incident: ${event.name}
+Assigned To: ${assignments}
+Mission Number: ${missionNumbers}
+See ICS-214 for additional details`,
       });
   
       // Submit to docusign
       const input: IIncidentInput = {
+        entityId: event._id!.toHexString(),
+        entityType: FormEntityType.EVENTS,
+        incidentFormId: savedForm.id!,
         org,
         user,
+        isReserve: rank.name.toLowerCase().includes('deputy, reserve'),
         reviewer,
         totalActivities: incidentForm.activityLog.entries!.length,
-        incidentFormDetails
+        incidentFormDetails,
+        type: IncidentFormType.LASD_INCIDENT_FORM,
       };
       const lambdaResponse = await lambda.send(new InvokeCommand({
         FunctionName: process.env.GENERATE_INCIDENT_FORM_LAMBDA!,
         InvocationType: 'RequestResponse',
         Payload: Buffer.from(JSON.stringify(input)),
       }));
-      const res: IIncidentResponse = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload!));
+      const res: IGenerateFormResponse = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload!));
   
       // Save to mongo
       this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId);

@@ -9,23 +9,45 @@ import { IOutsideUser } from "../outsideUsers/outsideUser.repository";
 import { IRank } from "../rank";
 import { IUnit } from "../unit";
 import { differenceInHours } from "date-fns/differenceInHours";
+import { TimekeepingType } from "../../__generated__/resolvers-types";
+
+/**
+ * outsideOrgCode - string
+ * saved - checkbox
+ * paid - checkbox
+ * ordered - checkbox
+ * voluntary - checkbox
+ * incidentCommanderName - string
+ * incidentCommanderEmployeeNumber - string
+ * details - string
+ * callSign - string (Call Sign: ____________)
+ * lieutenantEmployeeNumber - string [Reserve only]
+ */
 
 export const requestToPDFForm = ({
     incidentForm,
     reviewer,
     user,
     event,
+    supervisor,
     unit,
     org,
     rank,
+    incidentCommander,
+    details,
+    useCallSignPrefix,
   }: {
-    reviewer: IOutsideUser;
+    details: string;
+    incidentCommander: IUser | IOutsideUser;
+    reviewer: IUser | IOutsideUser;
+    supervisor: IUser | IOutsideUser;
     incidentForm: InputIncidentForm;
     event: IEvent;
     user: IUser;
     org: IOrganization;
     rank: IRank;
     unit: IUnit;
+    useCallSignPrefix?: boolean;
   }): IIncidentFormDetails => {
     const alItems = incidentForm.activityLog.entries!.reduce((acc, entry, index) => ({
       ...acc,
@@ -34,6 +56,19 @@ export const requestToPDFForm = ({
       [`alNote${index}`]: entry!.notes || '',
     }), {});
     return {
+      ocn: event.ocn || '',
+      budgetActivityCode: event.budgetActivityCode || '',
+      overtimeReasonCode: event.overtimeReasonCode || '',
+      paid: incidentForm.timekeeping.type === TimekeepingType.Paid,
+      saved: incidentForm.timekeeping.type === TimekeepingType.Saved,
+      ordered: true,
+      voluntary: false,
+      incidentCommanderName: incidentCommander.name,
+      incidentCommanderEmployeeNumber: (incidentCommander as IOutsideUser)?.pNumber || (incidentCommander as IUser)?.member?.pNumber,
+      lieutenantEmployeeNumber: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
+      details,
+      outsideOrgCode: event.outsideOrgCode || '',
+      unitCommanderName: supervisor.name || '',
       eventName: event.name,
       eventName2: event.name,
       today: format(toZonedTime(incidentForm.operationalPeriod.date, org.timezone), 'MM/dd/yyyy'),
@@ -45,9 +80,9 @@ export const requestToPDFForm = ({
       officerEmployeeNumber2: user.member.pNumber,
       officerEmployeeNumber3: user.member.pNumber,
       reviwerName: reviewer.name,
-      reviwerEmployeeNumber: reviewer.pNumber,
+      reviwerEmployeeNumber: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
       reviewerName2: reviewer.name,
-      reviwerEmployeeNumber2: reviewer.pNumber,
+      reviwerEmployeeNumber2: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
       rdoNo: incidentForm.timekeeping.rdo === 'no',
       rdoYes: incidentForm.timekeeping.rdo === 'yes',
       straightTimeIn: format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm'),
@@ -79,7 +114,7 @@ export const requestToPDFForm = ({
           `${((incidentForm.vehicleInformation.endingMileage || 0) -
           (incidentForm.vehicleInformation.startingMileage || 0)).toLocaleString('en-US')}` || '',
       }),
-      callSign: incidentForm.assignmentSummary.callSign || '',
+      callSign: `${useCallSignPrefix ? 'Call Sign: ' : ''}${incidentForm.assignmentSummary.callSign || ''}`,
       squad: incidentForm.assignmentSummary.squad || '',
       supervisor: incidentForm.assignmentSummary.supervisor || '',
       escort: incidentForm.assignmentSummary.missionAssignments!.escort || false,

@@ -2,21 +2,50 @@ import { IOrganization } from "../models/organizations/organization.entity";
 import { IOutsideUser } from "../models/outsideUsers/outsideUser.repository";
 import { IUser } from "./common";
 
-export interface IIncidentResponse {
+export enum IncidentFormType {
+  LASD_INCIDENT_FORM,
+  LASD_OVERTIME_SLIP,
+};
+
+// Describes what entity the form is generated for
+export enum FormEntityType {
+  EVENTS = "EVENTS",
+  SHIFTS = "SHIFTS",
+}
+
+export interface IGenerateFormResponse {
   signingUrl: string;
   envelopeId: string;
 };
 
 export interface IIncidentInput {
   org: IOrganization;
+  entityId: string;
+  entityType: FormEntityType;
+  incidentFormId: string;
   totalActivities: number;
   user: IUser;
+  isReserve: boolean;
   reviewer: IOutsideUser;
   incidentFormDetails: IIncidentFormDetails;
+  type: IncidentFormType;
 };
 
 export interface IIncidentFormDetails {
+  ocn: string;
+  budgetActivityCode: string;
+  overtimeReasonCode: string;
   'Vehicle Model'?: string;
+  outsideOrgCode: string;
+  saved: boolean;
+  paid: boolean;
+  ordered: boolean;
+  voluntary: boolean;
+  incidentCommanderName: string;
+  incidentCommanderEmployeeNumber: string;
+  lieutenantEmployeeNumber: string;
+  details: string;
+  unitCommanderName: string;
   eventName: string;
   today: string;
   officerName: string;
@@ -147,4 +176,4 @@ export interface IIncidentFormDetails {
   alMission22?: string;
   alMission23?: string;
   alMission24?: string;
-}
+};

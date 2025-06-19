@@ -8,18 +8,19 @@ import EmptyContent from '../empty-content';
 // ----------------------------------------------------------------------
 
 type Props = {
+  title?: string;
   notFound: boolean;
   sx?: SxProps<Theme>;
 };
 
-export default function TableNoData({ notFound, sx }: Props) {
+export default function TableNoData({ title, notFound, sx }: Props) {
   return (
     <TableRow>
       {notFound ? (
         <TableCell colSpan={12}>
           <EmptyContent
             filled
-            title="No Data"
+            title={title || "No Data"}
             sx={{
               py: 10,
               ...sx,

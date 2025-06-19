@@ -71,7 +71,7 @@ export default function GQLTable({
   const total = useMemo(() => apiTotal, [apiTotal]);
   const isEmpty = total === 0;
 
-  const denseHeight = 57;
+  const denseHeight = config.table?.denseHeight || 57;
 
   const canReset = filters
     .filter(({ type, value }) =>
@@ -80,6 +80,7 @@ export default function GQLTable({
     .some((filter) => JSON.stringify(filter.value) !== JSON.stringify(filter.defaultValue));
 
   const notFound = (!items.length && canReset) || (isEmpty && !loading);
+  const hasData = !loading && !notFound
 
   const handleFilters = useCallback(
     (id: string, value: any) => {
@@ -143,38 +144,42 @@ export default function GQLTable({
 
   return (
     <Card>
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        p: 2,
-        pb: 0,
-      }}>
-        <Typography variant="h4"> { config.header.title } </Typography>
-        <Stack direction="row" spacing={2}>
-          {config.header.button && <LoadingButton
-            loading={config.header.button.loading}
-            variant="contained"
-            disabled={config.header.button.disabled}
-            startIcon={<Iconify icon={config.header.button.icon}/>}
-            onClick={config.header.button.onClick}
-          >{config.header.button.text}</LoadingButton>}
-          {config.header.buttons &&
-            config.header.buttons.map((buttonConfig) => (
-              buttonConfig.render ? buttonConfig.render(buttonConfig) :
-              <LoadingButton
-                key={buttonConfig.key}
-                loading={buttonConfig.loading}
-                variant={(buttonConfig.variant || 'contained' as any)}
-                disabled={buttonConfig.disabled}
-                startIcon={<Iconify icon={buttonConfig.icon || ''}/>}
-                onClick={buttonConfig.onClick}
-              >{buttonConfig.text}</LoadingButton>
-            ))
-          }
-        </Stack>
-      </Box>
+      {
+        (!config.table?.noData?.hideHeader || hasData) && (
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            p: 2,
+            pb: 0,
+          }}>
+            <Typography variant="h4"> { config.header.title } </Typography>
+            <Stack direction="row" spacing={2}>
+              {config.header.button && <LoadingButton
+                loading={config.header.button.loading}
+                variant="contained"
+                disabled={config.header.button.disabled}
+                startIcon={<Iconify icon={config.header.button.icon}/>}
+                onClick={config.header.button.onClick}
+              >{config.header.button.text}</LoadingButton>}
+              {config.header.buttons &&
+                config.header.buttons.map((buttonConfig) => (
+                  buttonConfig.render ? buttonConfig.render(buttonConfig) :
+                  <LoadingButton
+                    key={buttonConfig.key}
+                    loading={buttonConfig.loading}
+                    variant={(buttonConfig.variant || 'contained' as any)}
+                    disabled={buttonConfig.disabled}
+                    startIcon={<Iconify icon={buttonConfig.icon || ''}/>}
+                    onClick={buttonConfig.onClick}
+                  >{buttonConfig.text}</LoadingButton>
+                ))
+              }
+            </Stack>
+          </Box>
+        )
+      }
 
       {config?.tabs && <Tabs
         value={currentTab}
@@ -215,14 +220,18 @@ export default function GQLTable({
       <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
         <Scrollbar>
           <Table size='small' sx={{ minWidth: config?.table?.sx?.minWidth || 960 }}>
-            <TableHeadCustom
-              order={table.order}
-              orderBy={table.orderBy}
-              headLabel={config.columns}
-              rowCount={tableData.length}
-              numSelected={table.selected.length}
-              onSort={table.onSort}
-            />
+            {
+              (!config.table?.noData?.hideHeader || hasData) && (
+                <TableHeadCustom
+                  order={table.order}
+                  orderBy={table.orderBy}
+                  headLabel={config.columns}
+                  rowCount={tableData.length}
+                  numSelected={table.selected.length}
+                  onSort={table.onSort}
+                />
+              )
+            }
 
             <TableBody>
               {loading ? (
@@ -250,13 +259,13 @@ export default function GQLTable({
                 emptyRows={table.rowsPerPage - items.length}
               />}
 
-              {!loading && <TableNoData notFound={notFound} />}
+              {!loading && <TableNoData title={config?.table?.noData?.title} sx={config?.table?.noData?.sx} notFound={notFound} />}
             </TableBody>
           </Table>
         </Scrollbar>
       </TableContainer>
 
-      {!config.search.data && <TablePaginationCustom
+      {!loading && !config.search.data && <TablePaginationCustom
         count={total}
         page={total ? table.page : 0}
         rowsPerPage={table.rowsPerPage}

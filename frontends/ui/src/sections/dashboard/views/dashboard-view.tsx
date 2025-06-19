@@ -13,7 +13,7 @@ import AppWelcome from 'src/components/app/app-welcome';
 import RecentNotifications from '../dashboard/recent-notifications/recent-notifications';
 import OvertimeShifts from '../dashboard/overtime-shifts/overtime-shifts';
 import CheckInOut from '../dashboard/check-in-out/check-in-out';
-import Incidents from '../dashboard/incidents/incidents';
+import { ActiveIncidentsTable } from '../dashboard/incidents/active-incidents-table';
 
 export default function DashboardView() {
   const { currentShifts } = useCheckInOut();
@@ -37,8 +37,8 @@ export default function DashboardView() {
     }
     if (incidentEvents) {
       layout = {
-        welcome: 4,
-        incidents: 4,
+        // welcome: 4,
+        incidents: 8,
         notifications: 4,
       };
       if (hasCheckInOutShifts) {
@@ -64,8 +64,9 @@ export default function DashboardView() {
         }
         {
           sizes.incidents && (
-            <Grid xs={12} md={sizes.notifications}>
-              <Incidents title="Active Incidents" />
+            <Grid xs={12} md={sizes.incidents}>
+              <ActiveIncidentsTable />
+              {/* <Incidents title="Active Incidents" /> */}
             </Grid>
           )
         }

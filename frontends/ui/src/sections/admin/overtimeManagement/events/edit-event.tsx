@@ -582,6 +582,23 @@ export default function EditEvent({
               helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
             />
 
+            {
+              incidentEvents && !currentEvent && (
+                <RHFSelect
+                  fullWidth
+                  name="status"
+                  required
+                  label="Posting type"
+                  disabled={allDisabled || isComplete}
+                  InputLabelProps={{ shrink: true }}
+                  PaperPropsSx={{ textTransform: 'capitalize' }}
+                >
+                  <MenuItem value={EventStatus.Draft}>Pre Planned</MenuItem>
+                  <MenuItem value={EventStatus.Incident}>{eventStatusNames[EventStatus.Incident]}</MenuItem>
+                </RHFSelect>
+              )
+            }
+
             {lasdEventFields && (
               <Stack>
                 <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
@@ -741,19 +758,6 @@ export default function EditEvent({
 
             {incidentEvents && !currentEvent && (
               <>
-                <RHFSelect
-                  fullWidth
-                  name="status"
-                  required
-                  label="Posting type"
-                  disabled={allDisabled || isComplete}
-                  InputLabelProps={{ shrink: true }}
-                  PaperPropsSx={{ textTransform: 'capitalize' }}
-                >
-                  <MenuItem value={EventStatus.Draft}>Pre Planned</MenuItem>
-                  <MenuItem value={EventStatus.Incident}>{eventStatusNames[EventStatus.Incident]}</MenuItem>
-                </RHFSelect>
-
                 { currentFormValues && isIncident && (
                   <Stack direction="row" spacing={1.5}>
                     <RHFDateTimePicker

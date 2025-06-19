@@ -30,8 +30,14 @@ export interface TableConfig<T> {
     }[]
   },
   table?: {
+    denseHeight?: number;
     sx?: {
       minWidth?: number | string;
+    },
+    noData?: {
+      title?: string;
+      hideHeader?: boolean;
+      sx?: any;
     },
     toolbar?: ToolbarConfig;
   },

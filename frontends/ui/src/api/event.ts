@@ -256,6 +256,9 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       id
       referenceId
       name
+      supervisor {
+        name
+      }
       startTime
       endTime
       ocn
@@ -266,12 +269,14 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       }
       venue {
         id
+        city
         name
       }
       assignments {
         id
         name
         callSign
+        reportingLocation
         requiredEquipment {
           id
           name

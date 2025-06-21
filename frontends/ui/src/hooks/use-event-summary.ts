@@ -9,6 +9,7 @@ import { useDownloadCsv } from "./use-download-csv";
 import { convertDate, useDateFormats } from "./use-datejs";
 import { useFeatures } from "./use-features";
 import { usePNumberLabel } from "./use-pNumber-label";
+import { useLasdEventSummary } from "./use-lasd-event-summary";
 
 export const useEventSummary = () => {
   const { dateTimeFormat, dateFormat } = useDateFormats();
@@ -21,8 +22,15 @@ export const useEventSummary = () => {
     fileName: 'event-summary',
     ext: 'csv',
   });
+  const { generateLasdEventDownload, loading: lasdLoading } = useLasdEventSummary();
 
   const generateEventDownload = useCallback(async (eventId: string) => {
+    if (lasdEventFields) {
+      // download lasd event summary instead if feature is active
+      await generateLasdEventDownload(eventId);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data: res } = await client.query({
@@ -125,11 +133,12 @@ export const useEventSummary = () => {
     equipment,
     pNumberLabel,
     enqueueSnackbar,
-    download
+    download,
+    generateLasdEventDownload
   ]);
 
   return {
     generateEventDownload,
-    loading,
+    loading: loading || lasdLoading,
   };
 };

@@ -458,8 +458,8 @@ export default function EventsTable() {
             case EventStatus.FirstComeFirstServe:
             case EventStatus.InterestList:
             case EventStatus.Requested:
-            case EventStatus.Incident:
               return 'primary';
+            case EventStatus.Incident:
             case EventStatus.Removed:
               return 'error';
             case EventStatus.Draft:

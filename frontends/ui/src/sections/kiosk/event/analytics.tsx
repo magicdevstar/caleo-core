@@ -99,10 +99,11 @@ export default function Analytics({
     };
   }, [filteredData]);
 
+  console.log(checkInData);
+
   return (
     <>
       <Grid item xs={12} md={4}>
-        {/* Unassigned Shifts */}
         <SummaryWidget
           title="Awaiting Arrival"
           percent={awaitingArrivalShifts.percent}
@@ -112,27 +113,24 @@ export default function Analytics({
       </Grid>
 
       <Grid item xs={12} md={4}>
-        {/* Total check ins */}
         <SummaryWidget
           title="Total Check Ins"
           percent={checkInData.percent} // Updated code
           total={checkInData.total} // Updated code
-          chart={checkInData.chart} // Updated code
+          chart={{ series: [] }} // Updated code
         />
       </Grid>
 
       <Grid item xs={12} md={4}>
-        {/* Total Check outs */}
         <SummaryWidget
           title="Total Check Outs"
           percent={checkOutData.percent}
           total={checkOutData.total}
-          chart={checkOutData.chart}
+          chart={{ series: [] }}
         />
       </Grid>
 
       <Grid item xs={12} md={6}>
-        {/* Late Personnel */}
         <SummaryWidget
           title="Late Personnel"
           percent={latePersonnelData.percent}
@@ -142,7 +140,6 @@ export default function Analytics({
       </Grid>
 
       <Grid item xs={12} md={6}>
-        {/* No Show Personnel */}
         <SummaryWidget
           title="No Show"
           percent={noShowPersonnelData.percent}

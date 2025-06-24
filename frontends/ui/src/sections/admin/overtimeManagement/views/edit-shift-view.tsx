@@ -93,6 +93,7 @@ export default function ShiftDetail() {
       >
         <EditShift
           eventId={params.eventId!}
+          refetch={refetch}
           assignmentId={params.assignmentId!}
           currentShifts={data?.groupedShifts || []}
           backLink={assignmentLink}

@@ -65,6 +65,7 @@ type Props = {
   backLink: string;
   shiftId?: string;
   shiftInterestRequests?: ShiftInterestRequest[];
+  refetch: () => Promise<any>;
 };
 
 dayjs.extend(utc);
@@ -82,6 +83,7 @@ export default function EditShift({
   shiftInterestRequests,
   backLink,
   shiftId,
+  refetch,
 }: Props) {
   const router = useRouter();
   const { dateTimeFormat } = useDateFormats();
@@ -798,6 +800,7 @@ export default function EditShift({
       <InterestList open={showInterestList} interestList={shiftInterestRequests || []} />
 
       <EditCheckInOut
+        refetch={refetch}
         shift={editCheckInOut!}
         editCheckInOutModal={editCheckInOutModal}
         handleClose={() => {

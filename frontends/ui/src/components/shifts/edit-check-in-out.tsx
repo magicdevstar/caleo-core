@@ -100,7 +100,7 @@ export const EditCheckInOut = ({
       customId: shift?.customId,
       checkInNote: shift?.shiftCheckInOut?.checkInNote,
       checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
-      adminNotes: shift?.shiftCheckInOut?.adminNotes,
+      adminNotes: shift?.shiftCheckInOut?.adminNotes || '',
       vehicleCategoryId: shift?.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.id,
       checkInEquipmentTime: shift?.shiftCheckInOut?.equipmentDetails?.checkInTime ? convertDate({
         date: new Date(shift.shiftCheckInOut.equipmentDetails.checkInTime),
@@ -134,7 +134,7 @@ export const EditCheckInOut = ({
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitting, isDirty, touchedFields },
+    formState: { isSubmitting, isDirty, dirtyFields },
   } = methods;
 
   useEffect(() => {
@@ -152,11 +152,11 @@ export const EditCheckInOut = ({
         noShow: formData.noShow,
       }
       
-      if (touchedFields.checkInTime && formData.checkInTime) {
+      if (dirtyFields.checkInTime && formData.checkInTime) {
         payload.checkInTime = formData.checkInTime.toISOString();
       }
 
-      if (touchedFields.checkOutTime && formData.checkOutTime) {
+      if (dirtyFields.checkOutTime && formData.checkOutTime) {
         payload.checkOutTime = formData.checkOutTime.toISOString();
       }
 
@@ -182,9 +182,9 @@ export const EditCheckInOut = ({
       })
 
       enqueueSnackbar('Shift details updated successfully', { variant: 'success', autoHideDuration: 4000 });
-      await client.refetchQueries({
-        include: [GET_GROUPED_SHIFTS],
-      });
+      // await client.refetchQueries({
+      //   include: [GET_GROUPED_SHIFTS],
+      // });
       if (refetch) {
         refetch();
       }

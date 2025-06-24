@@ -249,10 +249,10 @@ export default function IncidentFormStepper({
       // Remove display fields before submission, keeping only numeric values for backend
       const {
         // Display only
-        minTimeIn,
+        minTimeIn, // eslint-disable-line @typescript-eslint/no-unused-vars
         // Remove display fields - backend only expects numeric values
-        straightHoursDisplay,
-        overtimeHoursDisplay,
+        straightHoursDisplay, // eslint-disable-line @typescript-eslint/no-unused-vars
+        overtimeHoursDisplay, // eslint-disable-line @typescript-eslint/no-unused-vars
         ...timekeeping
       } = data.timekeeping;
       const submitData = {

@@ -99,8 +99,6 @@ export default function Analytics({
     };
   }, [filteredData]);
 
-  console.log(checkInData);
-
   return (
     <>
       <Grid item xs={12} md={4}>

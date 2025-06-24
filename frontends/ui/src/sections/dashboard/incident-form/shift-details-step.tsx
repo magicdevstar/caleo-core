@@ -6,7 +6,6 @@ import { RHFTimePicker } from '../../../components/hook-form';
 
 export default function ShiftDetailsStep() {
   const minTimeIn = useWatch({ name: 'timekeeping.minTimeIn' });
-  console.log('minTimeIn', minTimeIn);
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>

@@ -159,7 +159,7 @@ const defaultValues: IncidentFormSchemaType = {
   },
   reviewer: '',
   timekeeping: {
-    rdo: '',
+    rdo: 'yes',
     type: TimekeepingType.PAID,
     overtimeHours: 0,
     straightHours: 0,

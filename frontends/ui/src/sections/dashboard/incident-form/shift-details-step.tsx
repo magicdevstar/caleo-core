@@ -1,11 +1,25 @@
 import dayjs from 'dayjs';
-import { useWatch } from 'react-hook-form';
+import { useWatch, useFormContext } from 'react-hook-form';
+import { useEffect } from 'react';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import { RHFTimePicker } from '../../../components/hook-form';
 
 export default function ShiftDetailsStep() {
   const minTimeIn = useWatch({ name: 'timekeeping.minTimeIn' });
+  const enrouteToIncident = useWatch({ name: 'shiftDetails.enrouteToIncident' });
+  const { setValue } = useFormContext();
+
+  // Calculate 18-hour time when enroute time changes
+  useEffect(() => {
+    if (enrouteToIncident) {
+      const enrouteTime = dayjs(enrouteToIncident);
+      const time18Hour = enrouteTime.add(18, 'hour');
+      setValue('shiftDetails.time18Hour', time18Hour.toDate());
+    } else {
+      setValue('shiftDetails.time18Hour', null);
+    }
+  }, [enrouteToIncident, setValue]);
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>
@@ -50,6 +64,7 @@ export default function ShiftDetailsStep() {
           <RHFTimePicker
             name="shiftDetails.time18Hour"
             label="18-hour Time"
+            disabled
             textFieldProps={{ fullWidth: true }}
             format="HH:mm"
             ampm={false}

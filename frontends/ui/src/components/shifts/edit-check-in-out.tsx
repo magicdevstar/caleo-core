@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import { useMutation } from '@apollo/client';
-import { client } from 'src/utils/apollo';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -26,7 +25,7 @@ import { Shift } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
 import { MAPBOX_API } from 'src/config-global';
 import { convertDate } from 'src/hooks/use-datejs';
-import { EDIT_CHECK_IN_OUT, GET_GROUPED_SHIFTS } from 'src/api/shifts';
+import { EDIT_CHECK_IN_OUT } from 'src/api/shifts';
 import Iconify from '../iconify';
 import { RHFVehicleCategoriesSelect } from '../hook-form/rhf-vehicle-categories-select';
 import ConfirmDialogWithForm from '../custom-dialog/confirm-dialog-with-form';

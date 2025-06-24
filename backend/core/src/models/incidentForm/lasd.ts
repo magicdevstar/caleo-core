@@ -130,6 +130,7 @@ export const requestToPDFForm = ({
       softClosure: incidentForm.assignmentSummary.missionAssignments!.softClosure || false,
       welfareCheck: incidentForm.assignmentSummary.missionAssignments!.welfareCheck || false,
       other: incidentForm.assignmentSummary.missionAssignments!.other || false,
+      otherExplanation: incidentForm.assignmentSummary.otherExplanation || '',
       continue: incidentForm.activityLog.entries!.length > 4,
       ...alItems,
     }

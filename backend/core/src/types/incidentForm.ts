@@ -83,6 +83,7 @@ export interface IIncidentFormDetails {
   softClosure?: boolean;
   welfareCheck?: boolean;
   other?: boolean;
+  otherExplanation: string;
   continue: boolean;
   eventName2?: string;
   today2?: string;

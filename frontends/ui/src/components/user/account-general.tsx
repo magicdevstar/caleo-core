@@ -309,7 +309,7 @@ export default function AccountGeneral({
               }),
               contactInfo: {
                 primaryEmail: {
-                  address: d.primaryEmail,
+                  address: d.primaryEmail?.trim(),
                   receiveEmails: d.primaryEmailReceive,
                 },
                 primaryPhone: {
@@ -318,7 +318,7 @@ export default function AccountGeneral({
                 },
                 ...(d.secondaryEmail && {
                   secondaryEmail: {
-                    address: d.secondaryEmail,
+                    address: d.secondaryEmail?.trim(),
                     receiveEmails: !!d.secondaryEmailReceive,
                   }
                 }),

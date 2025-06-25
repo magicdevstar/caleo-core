@@ -28,7 +28,7 @@ import { IncidentForm, IncidentFormStatus } from 'src/__generated__/resolvers-ty
 import { GET_INCIDENT_SUBMISSIONS, REMOVE_INCIDENT_SUBMISSION, UPSERT_INCIDENT_SUBMISSION } from 'src/api/incidentForm';
 import { convertDate } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
-import { DocusignStatus, docusignStatusLabel } from 'src/utils/docusign';
+import { DocusignStatus } from 'src/utils/docusign';
 
 // ----------------------------------------------------------------------
 
@@ -275,7 +275,7 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
                                   color,
                                 }}
                               >
-                                {docusignStatusLabel(submission.docusignEvent?.status) || (submission.status === IncidentFormStatus.Submitted ? 'Submitted' : 'Draft')}
+                                {status}
                               </Typography>
                             )}
                           </Box>

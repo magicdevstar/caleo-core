@@ -35,6 +35,10 @@ export interface IAssignment extends Omit<
   'shiftSlots' |
   'ranks' |
   'rankIds' |
+  'supervisorId' |
+  'supervisor' |
+  'lieutenantId' |
+  'lieutenant' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -46,6 +50,8 @@ export interface IAssignment extends Omit<
   requiredEquipmentIds?: ObjectId[];
   rankIds: ObjectId[];
   modifiedById: ObjectId;
+  supervisorId?: ObjectId;
+  lieutenantId?: ObjectId;
   shiftSlots?: {
     id?: ObjectId;
     slotCount: number;

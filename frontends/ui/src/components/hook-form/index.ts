@@ -15,6 +15,7 @@ export { default as RHFTimePicker } from './rhf-time-picker';
 export { default as RHFDateRangePicker } from './rhf-date-range';
 export { default as RHFPhone } from './rhf-phone-field';
 export { default as RHFAssignmentShiftSlots } from './rhf-assignment-shift-slots';
+export { default as RHFUserAutocomplete } from './rhf-user-autocomplete';
 export { FormFooter } from './form-footer';
 
 export { default } from './form-provider';

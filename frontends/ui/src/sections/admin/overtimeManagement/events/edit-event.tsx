@@ -1,5 +1,4 @@
 import { useMemo, useEffect, useCallback, useState } from 'react';
-import { useDebounce } from "react-use";
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -24,8 +23,6 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
-import Chip from '@mui/material/Chip';
-import Checkbox from '@mui/material/Checkbox';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -43,10 +40,8 @@ import {
   EventStatus,
   Venue,
   VenueStatus,
-  MemberStatus,
 } from 'src/__generated__/resolvers-types';
 import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } from 'src/api/event';
-import { GET_USERS_SLIM } from 'src/api/user';
 import { GET_VENUE_LIST } from 'src/api/venues';
 // components
 import { useSnackbar } from 'src/components/snackbar';
@@ -58,6 +53,7 @@ import FormProvider, {
   RHFSwitch,
   RHFAutocomplete,
   RHFDateTimePicker,
+  RHFUserAutocomplete,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
@@ -139,12 +135,6 @@ export default function EditEvent({
     lasdEventFields,
     incidentEvents,
   } = useFeatures();
-  const [userSearch, setUserSearch] = useState('');
-  const [queryText, setQueryText] = useState('');
-
-  useDebounce(() => {
-    setQueryText(userSearch);
-  }, 500, [userSearch, setQueryText]);
 
   const eventStatuses = useMemo(() => {
     const statuses = [
@@ -212,19 +202,6 @@ export default function EditEvent({
   }, [currentEvent?.assignments, currentEvent?.status]);
 
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
-
-  const { data: usersData, loading: loadingUser } = useQuery(GET_USERS_SLIM, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {
-        query: queryText,
-        limit: 10,
-        statuses: [MemberStatus.Active],
-      }
-    },
-  });
-  const users = usersData?.users?.items || [];
 
   const { data: venueRes, loading: venuesLoading } = useQuery(GET_VENUE_LIST, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -629,72 +606,17 @@ export default function EditEvent({
                 {
                   !isIncident && (
                     <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                      <RHFAutocomplete
+                      <RHFUserAutocomplete
                         name="supervisor"
                         label='Lieutenant'
-                        sx={{ width: '100%' }}
-                        placeholder="Lieutenant"
                         disabled={allDisabled}
-                        loading={loadingUser}
-                        textFieldChange={(event) => {
-                          setUserSearch((event as any).target.value);
-                        }}
                         helperText="Incident commander that oversees the event and will be included on all shift documents"
-                        options={users}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        getOptionLabel={(u: any) => u?.name}
-                        renderOption={(props, option, { selected }) => (
-                          <li {...props} key={option?.id}>
-                            <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                            {option?.name}
-                          </li>
-                        )}
-                        renderTags={(selected, getTagProps) =>
-                          selected.map((option, index) => (
-                            <Chip
-                              {...getTagProps({ index })}
-                              key={option?.id}
-                              label={option?.name}
-                              size="small"
-                              color="info"
-                              variant="soft"
-                            />
-                          ))
-
-                        }
                       />
-                      <RHFAutocomplete
+                      <RHFUserAutocomplete
                         name="lieutenant"
                         label='Signing Supervisor'
-                        placeholder="Signing Supervisor"
                         disabled={allDisabled}
-                        loading={loadingUser}
-                        sx={{ width: '100%' }}
-                        textFieldChange={(event) => {
-                          setUserSearch((event as any).target.value);
-                        }}
                         helperText="Supervisor that will sign off all shift confirmation documents."
-                        options={users}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        getOptionLabel={(u: any) => u?.name}
-                        renderOption={(props, option, { selected }) => (
-                          <li {...props} key={option?.id}>
-                            <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                            {option?.name}
-                          </li>
-                        )}
-                        renderTags={(selected, getTagProps) =>
-                          selected.map((option, index) => (
-                            <Chip
-                              {...getTagProps({ index })}
-                              key={option?.id}
-                              label={option?.name}
-                              size="small"
-                              color="info"
-                              variant="soft"
-                            />
-                          ))
-                        }
                       />
                     </Stack>
                   )

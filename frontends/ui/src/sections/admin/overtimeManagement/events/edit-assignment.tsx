@@ -28,6 +28,7 @@ import FormProvider, {
   RHFSwitch,
   RHFAutocomplete,
   RHFAssignmentShiftSlots,
+  RHFUserAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_EVENT } from 'src/api/event';
@@ -116,6 +117,8 @@ export default function EditAssignment({
     requiredEquipment: Yup.array(),
     ranks: Yup.array().min(1).required('At least one rank is required'),
     shifts: Yup.array(),
+    supervisor: Yup.object().nullable(),
+    lieutenant: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -137,6 +140,8 @@ export default function EditAssignment({
       requiredEquipment: currentAssignment?.requiredEquipment || [],
       ranks: currentAssignment?.ranks || [],
       shifts: currentAssignment?.shifts || [],
+      supervisor: currentAssignment?.supervisor || null,
+      lieutenant: currentAssignment?.lieutenant || null,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
@@ -186,6 +191,8 @@ export default function EditAssignment({
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             rankIds: formData?.ranks?.map(({ id }: Rank) => id),
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
+            supervisorId: formData?.supervisor?.id,
+            lieutenantId: formData?.lieutenant?.id,
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
         },
@@ -242,6 +249,25 @@ export default function EditAssignment({
                 label="Call Sign"
               />
             )}
+
+            {
+              lasdEventFields && (
+                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                  <RHFUserAutocomplete
+                    name="supervisor"
+                    label='Lieutenant'
+                    disabled={allDisabled}
+                    helperText="Incident commander that oversees the event and will be included on all shift documents"
+                  />
+                  <RHFUserAutocomplete
+                    name="lieutenant"
+                    label='Signing Supervisor'
+                    disabled={allDisabled}
+                    helperText="Supervisor that will sign off all shift confirmation documents."
+                  />
+                </Stack>
+              )
+            }
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Notes</Typography>

@@ -1448,4 +1448,16 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     return this.collection.aggregate<IShiftWithAssignment>(pipeline).toArray();
   }
+
+  setCallSignByShiftId(callSign: string, shiftId: string, user: IUser) {
+    return this.collection.updateMany({
+      shiftId,
+    }, {
+      $set: {
+        callSign,
+        modifiedById: user._id!,
+        updatedAt: new Date(),
+      },
+    });
+  }
 };

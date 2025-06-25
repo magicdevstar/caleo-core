@@ -127,6 +127,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         refNumber
         userId
         locked
+        callSign
         event {
           id
           referenceId
@@ -339,6 +340,7 @@ export const GET_ALL_SHIFTS = gql`
         refNumber
         userId
         locked
+        callSign
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -423,6 +425,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         refNumber
         userId
         locked
+        callSign
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -623,6 +626,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         startTime
         endTime
         status
+        callSign
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -736,6 +740,7 @@ export const GET_GROUPED_SHIFTS = gql`
       status
       locked
       userId
+      callSign
 
       shiftCheckInOut {
         checkInTime
@@ -821,6 +826,7 @@ query GetShiftDetails($id: String!) {
     refNumber
     userId
     locked
+    callSign
     event {
       id
       referenceId
@@ -1015,6 +1021,12 @@ export const UPSERT_SHIFTS = gql`
 export const UPDATE_SHIFTS = gql`
   mutation UpdateShifts($shiftId: String!, $updates: ShiftUpdates!) {
     partialShiftUpdate(shiftId: $shiftId, updates: $updates)
+  }
+`;
+
+export const UPDATE_SHIFTS_CALL_SIGN = gql`
+  mutation UpdateShifts($shiftId: String!, $callSign: String!) {
+    shiftsCallSign(shiftGroupId: $shiftId, callSign: $callSign)
   }
 `;
 

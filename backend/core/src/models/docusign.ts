@@ -414,7 +414,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'callSignLabel') {
         res[tab.tabLabel] = 'Call Sign: ';
       } else if (tab.tabLabel === 'callSign') {
-        res[tab.tabLabel] = assignment.callSign || 'N/A';
+        res[tab.tabLabel] = shift.callSign || assignment.callSign || 'N/A';
       }
     }
 
@@ -424,6 +424,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
   async createLASDShiftEnvelope({
     org,
     shift,
+    assignment,
     event,
     venue,
     user,
@@ -434,6 +435,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     signNow,
     requiresVehicleInformation,
   }: {
+    assignment?: IAssignment | null;
     org: IOrganization;
     shift: IShift;
     user: IUser;
@@ -475,6 +477,10 @@ export class DocusignModel extends BaseMongo<IDocusign> {
               tabLabel: 'requiredVehicleInformation',
               value: requiresVehicleInformation ? 'true' : 'false',
             },
+            ...((shift.callSign || assignment?.callSign) ? [{
+              tabLabel: 'callSign',
+              value: shift.callSign || assignment?.callSign || '',
+            }] : []),
           ],
         },
       },

@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import useDebounce from 'react-use/lib/useDebounce';
 import orderBy from 'lodash/orderBy';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -18,6 +19,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { client } from 'src/utils/apollo';
@@ -39,6 +41,7 @@ import {
   NOTIFY_OF_SHIFT,
   REMOVE_SHIFT,
   UPDATE_SHIFTS,
+  UPDATE_SHIFTS_CALL_SIGN,
   UPSERT_SHIFTS
 } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
@@ -95,6 +98,7 @@ export default function EditShift({
     interestLists,
     endOfShiftPDF,
     customizableShiftId,
+    lasdEventFields,
   } = useFeatures();
   const { downloadEndOfShiftPDF } = useEndOfShiftDownload();
   const [editShiftId, setEditShiftId] = useState<string | null>();
@@ -126,6 +130,8 @@ export default function EditShift({
     const completeEndTime = currentShifts?.[0]?.event?.endTime ? Date.now() >= new Date(currentShifts[0].event.endTime).valueOf() : false;
     return completeStatus || completeEndTime;
   }, [currentShifts]);
+
+  const [updateCallSign] = useMutation(UPDATE_SHIFTS_CALL_SIGN);
 
   const [notify] = useMutation(NOTIFY_OF_SHIFT, {
     variables: {
@@ -206,6 +212,7 @@ export default function EditShift({
     ],
   });
 
+  const [callSign, setCallSign] = useState<string | null>(currentShifts?.[0]?.callSign || null);
   const [startTime, setStartTime] = useState<Date | null>(
     currentShifts?.[0]?.startTime
       ? new Date(currentShifts[0].startTime)
@@ -216,6 +223,19 @@ export default function EditShift({
       ? new Date(currentShifts[0].endTime)
       : dayjs().startOf('hour').add(1, 'hour').toDate()
   );
+
+  const existingCallSign = useMemo(() => currentShifts?.[0]?.callSign || '', [currentShifts]);
+
+  useDebounce(async () => {
+    if (shiftId && callSign?.trim() !== '' && existingCallSign !== callSign) {
+      await updateCallSign({
+        variables: {
+          shiftId,
+          callSign,
+        }
+      });
+    }
+  }, 500, [shiftId, callSign, existingCallSign]);
 
   const mdUp = useResponsive('up', 'md');
   const existingUserIds: string[] = useMemo(() => currentShifts.map((shift) => shift.user?.id).filter((id) => !!id) || [], [currentShifts]) as any;
@@ -308,6 +328,7 @@ export default function EditShift({
           endTime: endTime?.toISOString(),
           assignmentId,
           eventId,
+          callSign,
           shiftId: groupId,
         })),
       }
@@ -322,6 +343,7 @@ export default function EditShift({
     }
     createSlotsConfirm.onFalse();
   }, [
+    callSign,
     createSlotsConfirm,
     router,
     startTime,
@@ -387,6 +409,7 @@ export default function EditShift({
                         assignmentId,
                         eventId,
                         shiftId: groupId,
+                        callSign,
                       }
                     ],
                   }
@@ -620,7 +643,7 @@ export default function EditShift({
         <Card>
           {!mdUp && <CardHeader title="Details" />}
 
-          <Stack direction="row" spacing={3} sx={{ p: 3 }}>
+          <Stack direction="row" spacing={3} sx={{ p: 3, pb: 0 }}>
             <DateTimePicker
               timezone={user.member.org?.timezone}
               ampm={false}
@@ -702,6 +725,18 @@ export default function EditShift({
               }}
             />
           </Stack>
+          {
+            lasdEventFields && (
+              <Box sx={{ p: 3, pt: 1 }}>
+                <TextField
+                  value={callSign}
+                  fullWidth
+                  onChange={(e) => setCallSign(e.target.value.trim())}
+                  label="Call Sign"
+                  variant="outlined" />
+              </Box>
+            )
+          }
         </Card>
       </Grid>
 
@@ -782,6 +817,7 @@ export default function EditShift({
                     endTime: lockShift?.endTime,
                     assignmentId,
                     eventId,
+                    callSign,
                     status: lockShift?.status,
                     shiftId: lockShift?.shiftId,
                     locked: !lockShift?.locked,

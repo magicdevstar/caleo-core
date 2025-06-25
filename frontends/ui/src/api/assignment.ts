@@ -64,6 +64,16 @@ export const GET_ASSIGNMENT = gql`
         slotCount
       }
 
+      supervisor {
+        id
+        name
+      }
+
+      lieutenant {
+        id
+        name
+      }
+
       requiredEquipment {
         id
         name

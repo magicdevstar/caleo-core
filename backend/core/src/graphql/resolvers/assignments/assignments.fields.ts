@@ -16,5 +16,7 @@ export const fields = {
     shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
     availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnAssignment.load(item.id!.toString()!),
     totalShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnAssignment.load(item.id!.toString()!),
+    supervisor: (assignment: IAssignment, _, { users }: Context) => assignment.supervisorId ? users.loader.load(assignment.supervisorId.toString()) : null,
+    lieutenant: (assignment: IAssignment, _, { users }: Context) => assignment.lieutenantId ? users.loader.load(assignment.lieutenantId.toString()) : null,
   },
 };

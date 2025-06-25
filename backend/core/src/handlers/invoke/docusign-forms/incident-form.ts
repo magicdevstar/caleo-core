@@ -192,7 +192,6 @@ export const IncidentForm = async (event: IIncidentInput) => {
     };
   };
 
-  // TODO: Attach overtimePDFBytes to the envelope :)
   const submitToDocusgin = async ({
     incidentPDFBytes,
     overtimePDFBytes,

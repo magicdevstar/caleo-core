@@ -67,6 +67,8 @@ export type Assignment = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  lieutenant?: Maybe<User>;
+  lieutenantId?: Maybe<Scalars['String']['output']>;
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
@@ -84,6 +86,8 @@ export type Assignment = {
   shiftIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   shiftSlots?: Maybe<Array<Maybe<AssignmentShiftSlot>>>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
+  supervisor?: Maybe<User>;
+  supervisorId?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
 };
@@ -1057,6 +1061,7 @@ export type Mutation = {
   shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   shiftLotteryRequest?: Maybe<ShiftLotteryRequest>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
+  shiftsCallSign?: Maybe<Scalars['Boolean']['output']>;
   siteLock?: Maybe<SiteLock>;
   skill?: Maybe<Skill>;
   templateEvent?: Maybe<Event>;
@@ -1394,6 +1399,12 @@ export type MutationShiftLotteryRequestArgs = {
 export type MutationShiftsArgs = {
   removeSlots?: InputMaybe<Scalars['Boolean']['input']>;
   shifts: Array<InputMaybe<UpsertShift>>;
+};
+
+
+export type MutationShiftsCallSignArgs = {
+  callSign: Scalars['String']['input'];
+  shiftGroupId: Scalars['String']['input'];
 };
 
 
@@ -2088,6 +2099,7 @@ export type Shift = {
   assignment: Assignment;
   assignmentId: Scalars['String']['output'];
   availability?: Maybe<ShiftAvailabilityTime>;
+  callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
@@ -2585,6 +2597,7 @@ export type UpsertAssignment = {
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
+  lieutenantId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -2593,6 +2606,7 @@ export type UpsertAssignment = {
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftSlots?: InputMaybe<Array<InputMaybe<UpsertAssignmentShiftSlot>>>;
+  supervisorId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertAssignmentShiftSlot = {
@@ -2807,6 +2821,7 @@ export type UpsertRankGroup = {
 
 export type UpsertShift = {
   assignmentId: Scalars['String']['input'];
+  callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   customId?: InputMaybe<Scalars['String']['input']>;
   endTime: Scalars['String']['input'];
@@ -3628,6 +3643,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3645,6 +3662,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   shiftIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   shiftSlots?: Resolver<Maybe<Array<Maybe<ResolversTypes['AssignmentShiftSlot']>>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
+  supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -4254,6 +4273,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType, Partial<MutationShiftInterestRequestArgs>>;
   shiftLotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType, Partial<MutationShiftLotteryRequestArgs>>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
+  shiftsCallSign?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationShiftsCallSignArgs, 'callSign' | 'shiftGroupId'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType, Partial<MutationSiteLockArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSkillArgs, 'skill'>>;
   templateEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationTemplateEventArgs, 'id'>>;
@@ -4574,6 +4594,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   availability?: Resolver<Maybe<ResolversTypes['ShiftAvailabilityTime']>, ParentType, ContextType>;
+  callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

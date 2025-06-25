@@ -1,11 +1,16 @@
 import capitalize from "lodash/capitalize";
-import { ShiftStatus } from "src/__generated__/resolvers-types";
+import { Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 
-export const getShiftStatus = (status: ShiftStatus): string => {
-  if (status === ShiftStatus.Relinquished) {
+export const getShiftStatus = (shift: Shift): string => {
+  if (shift.status === ShiftStatus.Relinquished) {
     return 'Scratched';
   }
-  return capitalize(status);
+
+  if (shift.locked) {
+    return 'Locked';
+  }
+
+  return capitalize(shift.status);
 }
 
 export const formattedStatus = [

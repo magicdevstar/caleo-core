@@ -138,8 +138,14 @@ export default function DynamicShiftFilter() {
         id: 'status',
         label: 'Status',
         columnType: 'string',
-        renderValue: (shiftStatus: any) => getShiftStatus(shiftStatus),
-        getLabelColor: (row: any) => {
+        renderValue: (_, _in, shift) => getShiftStatus(shift),
+        getLabelColor: (row) => {
+          // There is a bug where locked shifts can have a different
+          // status than ShiftStatus.Locked, so for now we override if the locked.
+          // flag is set.
+          if (row.locked) {
+            return 'secondary';
+          }
           switch(row.status) {
             case ShiftStatus.Assigned:
               return 'success';

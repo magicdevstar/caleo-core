@@ -302,8 +302,12 @@ export class Docusign {
       const unit = await this.units.get(user.member.unitId!);
       const rank = await this.ranks.get(user.member.rankId!);
       const venue = await this.venues.get(event.venueId!);
-      const supervisor = await this.users.get(event.supervisorId!);
-      const lieutenant = await this.users.get(event.lieutenantId!);
+
+      let supervisorId = (assignment?.supervisorId || event.supervisorId)!;
+      let lieutenantId = (assignment?.lieutenantId || event.lieutenantId)!;
+
+      const supervisor = await this.users.get(supervisorId);
+      const lieutenant = await this.users.get(lieutenantId!);
 
       const tabs = await this.docusign.generateTabs({
         org: organization,
@@ -354,9 +358,13 @@ export class Docusign {
           const unit = await this.units.get(user.member.unitId!);
           const rank = await this.ranks.get(user.member.rankId!);
           const venue = await this.venues.get(event.venueId!);
-          const supervisor = await this.users.get(event.supervisorId!);
-          const lieutenant = await this.users.get(event.lieutenantId!);
           const assignment = await this.assignments.get(shift.assignmentId);
+
+          let supervisorId = (assignment?.supervisorId || event.supervisorId)!;
+          let lieutenantId = (assignment?.lieutenantId || event.lieutenantId)!;
+
+          const supervisor = await this.users.get(supervisorId);
+          const lieutenant = await this.users.get(lieutenantId);
           let requiresVehicleInformation = false;
 
           if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {

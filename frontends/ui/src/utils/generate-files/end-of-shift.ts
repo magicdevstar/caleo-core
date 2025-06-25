@@ -72,16 +72,19 @@ export const generateFilledPDF = async ({
   
   // Load PDF document
   const stage = /dev-/.test(process.env.REACT_APP_APOLLO_API!) ? 'dev' : 'prod';
-  const url = `https://caleo-assets-${stage}.s3.us-west-2.amazonaws.com/${pdfPath}/template.pdf?v=1`;
+  const url = `https://caleo-assets-${stage}.s3.us-west-2.amazonaws.com/${pdfPath}/template.pdf?v=2`;
   const arrayBuffer = await fetch(url).then(res => res.arrayBuffer())
   const pdfDoc = await PDFDocument.load(arrayBuffer);
 
   try {
-    if (pdfPath.includes('shift-close')) {
+    if (pdfPath == 'shift-close') {
       // Fill in ordered checkbox
       const form = pdfDoc.getForm();
       const checkBox = form.getCheckBox('ordered');
       checkBox.check();
+
+      const checkBox2 = form.getCheckBox('paid');
+      checkBox2.check();
     }
   } catch(error) {
     console.error('No checkbox found');

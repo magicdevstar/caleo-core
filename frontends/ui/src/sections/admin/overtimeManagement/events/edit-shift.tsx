@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import useDebounce from 'react-use/lib/useDebounce';
+import { useCallback, useMemo, useState } from 'react';
 import orderBy from 'lodash/orderBy';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -19,7 +18,6 @@ import Tooltip from '@mui/material/Tooltip';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-import Box from '@mui/material/Box';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { client } from 'src/utils/apollo';
@@ -41,7 +39,6 @@ import {
   NOTIFY_OF_SHIFT,
   REMOVE_SHIFT,
   UPDATE_SHIFTS,
-  UPDATE_SHIFTS_CALL_SIGN,
   UPSERT_SHIFTS
 } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';

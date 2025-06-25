@@ -27,7 +27,7 @@ export default function ShiftTable({
   loading: boolean;
   data: Shift[] | undefined;
 }) {
-  const { eventCheckIn, customizableShiftId } = useFeatures();
+  const { eventCheckIn, customizableShiftId, docusignCheckout } = useFeatures();
   const shiftData = useMemo(() => (data || []).filter((shift) => !!shift.userId), [data]);
   const unassignedData = useMemo(() => (data || []).filter((shift) => !shift.userId), [data]);
   const totalUnassigned = unassignedData.length;
@@ -39,7 +39,7 @@ export default function ShiftTable({
     { id: 'user.member.rank.name', label: 'Rank' },
     { id: 'user.member.pNumber', label: pNumberLabel },
     { id: 'user.member.contactInfo.primaryPhone.number', label: 'Phone #' },
-    { id: 'docusignEvent.status', label: 'Docusign' },
+    ...(docusignCheckout ? [{ id: 'docusignEvent.status', label: 'Docusign' }] : []),
     { id: 'shiftCheckInOut.noShow', label: 'No Show' },
     { id: 'shiftCheckInOut.adminNotes', label: 'Comments' },
     { id: 'startTime', label: 'Start' },

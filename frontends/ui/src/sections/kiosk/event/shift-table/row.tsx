@@ -22,7 +22,7 @@ type Props = {
 export default function Row({
   row,
 }: Props) {
-  const { customizableShiftId } = useFeatures();
+  const { customizableShiftId, docusignCheckout } = useFeatures();
   const confirm = useBoolean();
   const parsed = parsePhoneNumber(row.user?.member?.contactInfo?.primaryPhone?.number || '', 'US');
 
@@ -34,7 +34,7 @@ export default function Row({
         <StringCell labelColor={row.user?.member?.rank?.name ? 'primary' : 'default'} value={row.user?.member?.rank?.name || '-'} />
         <StringCell value={row.user?.member?.pNumber || '-'} />
         <StringCell value={parsed?.format?.("NATIONAL") || '-'} />
-        <StringCell labelColor={docusignStatusColor(row.docusignEvent?.status)} value={row.docusignEvent?.status || '-'} />
+        {docusignCheckout && <StringCell labelColor={docusignStatusColor(row.docusignEvent?.status)} value={row.docusignEvent?.status || '-'} />}
         <BooleanCell value={!!row.shiftCheckInOut?.noShow} />
         <BooleanCell value={!!(row.shiftCheckInOut?.adminNotes || '').trim()} />
         <DateCell value={row.startTime} />

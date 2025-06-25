@@ -9,6 +9,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 // routes
 import { paths } from 'src/routes/paths';
 import { REQUIRED_EVENT_FIELDS } from 'src/api/event';
+import { useFeatures } from 'src/hooks/use-features';
 
 export interface KioskOpenDialogProps {
   /** 
@@ -27,6 +28,7 @@ export default function KioskOpenDialog({
   kioskConfirm,
   eventId,
 }: KioskOpenDialogProps) {
+  const { lasdEventFields } = useFeatures();
   const { data, loading } = useQuery(REQUIRED_EVENT_FIELDS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -39,16 +41,16 @@ export default function KioskOpenDialog({
 
   // Define the yup schema for validation
   const eventValidationSchema = yup.object().shape({
-    ocn: yup.string().required(),
-    outsideOrgCode: yup.string().required(),
-    overtimeReasonCode: yup.string().required(),
-    budgetActivityCode: yup.string().required(),
-    supervisor: yup.object().shape({
+    ocn: lasdEventFields ? yup.string().required() : yup.string().nullable(),
+    outsideOrgCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
+    overtimeReasonCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
+    budgetActivityCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
+    supervisor: lasdEventFields ? yup.object().shape({
       name: yup.string().required(),
-    }),
-    lieutenant: yup.object().shape({
+    }) : yup.object().nullable(),
+    lieutenant: lasdEventFields ? yup.object().shape({
       name: yup.string().required(),
-    }),
+    }) : yup.object().nullable(),
     venue: yup.object().shape({
       name: yup.string().required(),
     }),

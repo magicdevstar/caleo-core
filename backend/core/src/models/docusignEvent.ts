@@ -40,6 +40,13 @@ export interface IDocusignEvent extends Omit<
 }
 
 export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
+  public loadByEnvelopeId = new DataLoader(async (keys: readonly string[]) => {
+    const res = await this.collection.find<IDocusignEvent>({
+      envelopeId: { $in: keys },
+    }).toArray();
+    return keys.map((key) => res.find((item) => item.envelopeId === key));
+  });
+
   public loadByShiftId = new DataLoader(async (keys: readonly string[]) => {
     const ids = keys.map((key) => new ObjectId(key));
     const res = await this.collection.find<IDocusignEvent>({

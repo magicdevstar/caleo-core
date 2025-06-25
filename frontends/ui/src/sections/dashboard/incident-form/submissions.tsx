@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import omitDeep from 'omit-deep';
+import capitalize from 'lodash/capitalize';
 import { useQuery, useMutation } from '@apollo/client';
 import { useSnackbar } from 'notistack';
 
@@ -27,8 +28,40 @@ import { IncidentForm, IncidentFormStatus } from 'src/__generated__/resolvers-ty
 import { GET_INCIDENT_SUBMISSIONS, REMOVE_INCIDENT_SUBMISSION, UPSERT_INCIDENT_SUBMISSION } from 'src/api/incidentForm';
 import { convertDate } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
+import { DocusignStatus, docusignStatusLabel } from 'src/utils/docusign';
 
 // ----------------------------------------------------------------------
+
+const getChipDetails = (incident: IncidentForm) => {
+  const status = (incident.docusignEvent?.status || incident.status)?.toUpperCase();
+  let bgcolor = '';
+  let color = '';
+
+  switch(status) {
+    case IncidentFormStatus.Submitted:
+    case DocusignStatus.COMPLETED:
+      bgcolor = 'success.lighter';
+      color = 'success.dark';
+      break;
+    case DocusignStatus.VOIDED:
+    case DocusignStatus.DECLINED:
+      bgcolor = 'error.lighter';
+      color = 'error.dark';
+      break;
+    case IncidentFormStatus.Draft:
+    case DocusignStatus.SENT:
+    default:
+      bgcolor = 'warning.lighter';
+      color = 'warning.dark';
+      break;
+  }
+
+  return {
+    status: capitalize(status),
+    bgcolor,
+    color,
+  };
+}
 
 interface SubmissionsProps {
   eventId: string;
@@ -103,7 +136,8 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
         'createdAt',
         'status',
         'startingMilage',
-        'endingMileage'
+        'endingMileage',
+        'docusignEvent',
       ]);
       
       const res = await duplicateSubmission({
@@ -215,62 +249,61 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
             </Box>
           ) : (
             <List disablePadding>
-              {submissions.map((submission: IncidentForm) => (
-                <ListItem key={submission.id} disablePadding divider>
-                  <ListItemButton onClick={() => handleSelectSubmission(submission)}>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography variant="body1">
-                            {convertDate({
-                              date: submission.operationalPeriod.date,
-                              user,
-                            }).format('MM/DD/YYYY')}
-                          </Typography>
-                          {submission.status && (
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                ml: 1,
-                                px: 1, 
-                                py: 0.5, 
-                                borderRadius: 1,
-                                bgcolor: submission.status === IncidentFormStatus.Submitted 
-                                  ? 'success.lighter' 
-                                  : 'warning.lighter',
-                                color: submission.status === IncidentFormStatus.Submitted 
-                                  ? 'success.dark' 
-                                  : 'warning.dark',
-                              }}
-                            >
-                              {submission.status === IncidentFormStatus.Submitted ? 'Submitted' : 'Draft'}
+              {submissions.map((submission: IncidentForm) => {
+                const { status, bgcolor, color } = getChipDetails(submission);
+                return (
+                  <ListItem key={submission.id} disablePadding divider>
+                    <ListItemButton onClick={() => handleSelectSubmission(submission)}>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="body1">
+                              {convertDate({
+                                date: submission.operationalPeriod.date,
+                                user,
+                              }).format('MM/DD/YYYY')}
                             </Typography>
-                          )}
-                        </Box>
-                      }
-                    />
-                    {submission.status === IncidentFormStatus.Submitted ? (
-                      <IconButton 
-                        edge="end" 
-                        color="info" 
-                        onClick={(e) => handleDuplicateSubmission(e, submission)}
-                        title="Duplicate this submission"
-                      >
-                        <Iconify icon="solar:copy-bold-duotone" />
-                      </IconButton>
-                    ) : (
-                      <IconButton 
-                        edge="end" 
-                        color="error" 
-                        onClick={(e) => handleOpenDeleteDialog(e, submission.id)}
-                        title="Delete this submission"
-                      >
-                        <Iconify icon="solar:trash-bin-trash-bold-duotone" />
-                      </IconButton>
-                    )}
-                  </ListItemButton>
-                </ListItem>
-              ))}
+                            {submission.status && (
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  ml: 1,
+                                  px: 1, 
+                                  py: 0.5, 
+                                  borderRadius: 1,
+                                  bgcolor,
+                                  color,
+                                }}
+                              >
+                                {docusignStatusLabel(submission.docusignEvent?.status) || (submission.status === IncidentFormStatus.Submitted ? 'Submitted' : 'Draft')}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                      {submission.status === IncidentFormStatus.Submitted ? (
+                        <IconButton 
+                          edge="end" 
+                          color="info" 
+                          onClick={(e) => handleDuplicateSubmission(e, submission)}
+                          title="Duplicate this submission"
+                        >
+                          <Iconify icon="solar:copy-bold-duotone" />
+                        </IconButton>
+                      ) : (
+                        <IconButton 
+                          edge="end" 
+                          color="error" 
+                          onClick={(e) => handleOpenDeleteDialog(e, submission.id)}
+                          title="Delete this submission"
+                        >
+                          <Iconify icon="solar:trash-bin-trash-bold-duotone" />
+                        </IconButton>
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                )
+              })}
             </List>
           )}
         </AccordionDetails>

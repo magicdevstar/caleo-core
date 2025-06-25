@@ -81,6 +81,10 @@ export class Docusign {
     });
   }
 
+  async loadByEnvelopeId(envelopeId: string) {
+    return this.docusignEvent.loadByEnvelopeId.load(envelopeId);
+  }
+
   async loadEventsByShiftId(id: string) {
     return this.docusignEvent.loadByShiftId.load(id);
   }
@@ -542,7 +546,7 @@ export class Docusign {
     const savedForm = await this.incidentSubmission.upsert(incidentForm);
     if (!saveOnly) {
       const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
-      if (existing && existing._id.toHexString() !== savedForm.id) {
+      if (existing && existing?._id?.toHexString() !== savedForm.id && !['voided', 'declined'].includes(existing?.docusignEvent?.status)) {
         throw new Error('An incident form already exists for this event and date');
       }
       const event = await this.events.get(incidentForm.eventId);

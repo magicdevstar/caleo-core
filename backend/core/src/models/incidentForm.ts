@@ -1,5 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
-import { DocType, IncidentForm } from '../__generated__/resolvers-types';
+import { DocType, DocusignEvent, IncidentForm } from '../__generated__/resolvers-types';
 import { BaseMongo } from './base.v2';
 
 export interface InputIncidentForm extends Omit<
@@ -65,11 +65,29 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
   }
 
   findExistingByEventId(userId: ObjectId, eventId: ObjectId, submissionDate: Date) {
-    return this.collection.findOne({
-      userId,
-      eventId,
-      'operationalPeriod.date': submissionDate,
-      envelopeId: { $exists: true },
+    return this.collection.aggregate<IIncidentForm>([
+      {
+        $match: {
+          userId,
+          eventId,
+          'operationalPeriod.date': submissionDate,
+          envelopeId: { $exists: true },
+        }
+      },
+      {
+        $lookup: {
+          from: 'dsEvents',
+          localField: 'envelopeId',
+          foreignField: 'envelopeId',
+          as: 'docusignEvent',
+        },
+      },
+    ]).toArray().then((docs) => {
+      const doc = docs[0]!;
+      return {
+        ...doc,
+        docusignEvent: doc.docusignEvent?.[0] as DocusignEvent,
+      };
     });
   }
 

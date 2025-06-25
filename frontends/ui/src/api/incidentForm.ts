@@ -63,6 +63,11 @@ export const GET_INCIDENT_SUBMISSIONS = gql`
             notes
           }
         }
+
+        docusignEvent {
+          id
+          status
+        }
       }
       total
     }

@@ -57,10 +57,10 @@ const IncidentFormSchema = Yup.object().shape({
   timekeeping: Yup.object().shape({
     rdo: Yup.string().required('RDO selection is required'),
     type: Yup.string().required('Paid or Saved selection is required'),
-    overtimeHours: Yup.number().min(0, 'Must be positive'),
-    straightHours: Yup.number().min(0, 'Must be positive'),
-    overtimeHoursDisplay: Yup.string().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
-    straightHoursDisplay: Yup.string().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
+    overtimeHours: Yup.number().nullable().min(0, 'Must be positive'),
+    straightHours: Yup.number().nullable().min(0, 'Must be positive'),
+    overtimeHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
+    straightHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
     timeIn: Yup.date().nullable().required('Time In is required'),
     timeOut: Yup.date().nullable().required('Time Out is required'),
     overtimeTimeIn: Yup.date().nullable(),
@@ -76,27 +76,27 @@ const IncidentFormSchema = Yup.object().shape({
   }),
   vehicleInformation: Yup.object().shape({
     hasVehicle: Yup.string().required('This selection is required'),
-    vehicleCategory: Yup.string().when('hasVehicle', {
+    vehicleCategory: Yup.string().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => schema.required('Vehicle Category is required'),
     }),
-    vehicleMake: Yup.string().when('hasVehicle', {
+    vehicleMake: Yup.string().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => schema.required('Vehicle Make is required'),
     }),
-    vehicleModel: Yup.string().when('hasVehicle', {
+    vehicleModel: Yup.string().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => schema.required('Vehicle Model is required'),
     }),
-    vehicleNumber: Yup.string().when('hasVehicle', {
+    vehicleNumber: Yup.string().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => schema.required('Vehicle Number is required'),
     }),
-    startingMileage: Yup.number().when('hasVehicle', {
+    startingMileage: Yup.number().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => schema.required('Starting Mileage is required').min(0, 'Must be positive'),
     }),
-    endingMileage: Yup.number().when('hasVehicle', {
+    endingMileage: Yup.number().nullable().when('hasVehicle', {
       is: 'yes',
       then: (schema) => 
         schema.required('Ending Mileage is required')
@@ -132,7 +132,7 @@ const IncidentFormSchema = Yup.object().shape({
       'At least one mission assignment must be selected',
       (value) => Object.values(value || {}).some(Boolean)
     ),
-    otherExplanation: Yup.string().when('missionAssignments.other', {
+    otherExplanation: Yup.string().nullable().when('missionAssignments.other', {
       is: true,
       then: (schema) => schema.required('Please provide details for "Other" assignment'),
     }),
@@ -142,7 +142,7 @@ const IncidentFormSchema = Yup.object().shape({
       .of(
         Yup.object().shape({
           time: Yup.date().nullable().required('Time is required'),
-          missionNumber: Yup.string(),
+          missionNumber: Yup.string().nullable(),
           notes: Yup.string().required('Notes are required'),
         })
       )
@@ -243,6 +243,8 @@ export default function IncidentFormStepper({
     getValues,
     trigger,
   } = methods;
+
+  console.log(methods.formState.errors)
 
   const onSubmit = async (data: IncidentFormSchemaType) => {
     try {
@@ -425,7 +427,7 @@ export default function IncidentFormStepper({
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <OperationalPeriodStep />;
+        return <OperationalPeriodStep event={event} />;
       case 1:
         return <TimekeepingStep />;
       case 2:

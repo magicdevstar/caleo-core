@@ -10,7 +10,7 @@ import TextField from '@mui/material/TextField';
 // components
 import Label from 'src/components/label';
 // types
-import { Shift, ShiftStatus } from 'src/__generated__/resolvers-types';
+import { Shift } from 'src/__generated__/resolvers-types';
 import TableContainer from '@mui/material/TableContainer';
 import Scrollbar from 'src/components/scrollbar';
 import Table from '@mui/material/Table';
@@ -28,8 +28,8 @@ export default function ShiftTable({
   data: Shift[] | undefined;
 }) {
   const { eventCheckIn, customizableShiftId } = useFeatures();
-  const shiftData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
-  const unassignedData = useMemo(() => (data || []).filter((shift) => shift.status === ShiftStatus.Available), [data]);
+  const shiftData = useMemo(() => (data || []).filter((shift) => !!shift.userId), [data]);
+  const unassignedData = useMemo(() => (data || []).filter((shift) => !shift.userId), [data]);
   const totalUnassigned = unassignedData.length;
   const total = shiftData.length;
   const { pNumberLabel } = usePNumberLabel();

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import Grid from '@mui/material/Grid';
 import SummaryWidget from 'src/components/widgets/summary';
-import { ShiftStatus } from 'src/__generated__/resolvers-types';
 import PieChart from 'src/components/widgets/pie-chart';
 import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
 import { ShiftData } from 'src/api/shifts';
@@ -12,7 +11,7 @@ export default function Analytics({
 }: {
   data: ShiftData | undefined;
 }) {
-  const filteredData = useMemo(() => (data?.shifts?.items || []).filter((shift) => shift.status === ShiftStatus.Assigned), [data]);
+  const filteredData = useMemo(() => (data?.shifts?.items || []).filter((shift) => !!shift.userId), [data]);
   const total = filteredData.length;
 
   const checkInData = useMemo(() => calculateCheckData({

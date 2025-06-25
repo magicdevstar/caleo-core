@@ -13,7 +13,7 @@ import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import { SxProps } from "@mui/material";
 // types
-import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, ShiftStatus, Skill } from "src/__generated__/resolvers-types";
+import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -347,7 +347,7 @@ export default function ShiftItem({
 
       <Grid item xs={12} sm={firstRowSize}>
         {/* Event Ref or call sign */}
-        { callSign && shift.status === ShiftStatus.Assigned ? (
+        { callSign && !!shift.userId ? (
           <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Call Sign</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>

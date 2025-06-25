@@ -125,6 +125,8 @@ export const GET_AVAILABLE_SHIFTS = gql`
         endTime
         customId
         refNumber
+        userId
+        locked
         event {
           id
           referenceId
@@ -335,6 +337,8 @@ export const GET_ALL_SHIFTS = gql`
         status
         customId
         refNumber
+        userId
+        locked
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -417,6 +421,8 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         status
         customId
         refNumber
+        userId
+        locked
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -813,6 +819,8 @@ query GetShiftDetails($id: String!) {
     endTime
     customId
     refNumber
+    userId
+    locked
     event {
       id
       referenceId

@@ -2490,7 +2490,6 @@ type Mutation {
   removeAssignment(id: String!): ID!
 
   shifts(shifts: [UpsertShift]!, removeSlots: Boolean): [Shift]
-  shiftsCallSign(shiftGroupId: String!, callSign: String!): Boolean
   partialShiftUpdate(shiftId: String!, updates: ShiftUpdates!): String
   removeShift(id: String!): ID!
   removeShifts(shiftId: String!): [String]!

@@ -111,10 +111,12 @@ export default function EditShift({
   const lockConfirm = useBoolean();
   const showInterestList = useBoolean();
   const editCustomId = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
+  const editCallSign = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
   const [shiftsToCreate, setShiftsToCreate] = useState<number>(1);
   const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
+  const [callSign, setCallSign] = useState<string>('');
   const isInterestList = useMemo(() => currentShifts?.[0]?.event?.status === EventStatus.InterestList, [currentShifts]);
   const canNotify = useMemo(() =>
     [EventStatus.FirstComeFirstServe, EventStatus.InterestList].includes(currentShifts?.[0]?.event?.status) &&
@@ -130,8 +132,6 @@ export default function EditShift({
     const completeEndTime = currentShifts?.[0]?.event?.endTime ? Date.now() >= new Date(currentShifts[0].event.endTime).valueOf() : false;
     return completeStatus || completeEndTime;
   }, [currentShifts]);
-
-  const [updateCallSign] = useMutation(UPDATE_SHIFTS_CALL_SIGN);
 
   const [notify] = useMutation(NOTIFY_OF_SHIFT, {
     variables: {
@@ -212,7 +212,6 @@ export default function EditShift({
     ],
   });
 
-  const [callSign, setCallSign] = useState<string | null>(currentShifts?.[0]?.callSign || null);
   const [startTime, setStartTime] = useState<Date | null>(
     currentShifts?.[0]?.startTime
       ? new Date(currentShifts[0].startTime)
@@ -223,19 +222,6 @@ export default function EditShift({
       ? new Date(currentShifts[0].endTime)
       : dayjs().startOf('hour').add(1, 'hour').toDate()
   );
-
-  const existingCallSign = useMemo(() => currentShifts?.[0]?.callSign || '', [currentShifts]);
-
-  useDebounce(async () => {
-    if (shiftId && callSign?.trim() !== '' && existingCallSign !== callSign) {
-      await updateCallSign({
-        variables: {
-          shiftId,
-          callSign,
-        }
-      });
-    }
-  }, 500, [shiftId, callSign, existingCallSign]);
 
   const mdUp = useResponsive('up', 'md');
   const existingUserIds: string[] = useMemo(() => currentShifts.map((shift) => shift.user?.id).filter((id) => !!id) || [], [currentShifts]) as any;
@@ -328,7 +314,6 @@ export default function EditShift({
           endTime: endTime?.toISOString(),
           assignmentId,
           eventId,
-          callSign,
           shiftId: groupId,
         })),
       }
@@ -343,7 +328,6 @@ export default function EditShift({
     }
     createSlotsConfirm.onFalse();
   }, [
-    callSign,
     createSlotsConfirm,
     router,
     startTime,
@@ -409,7 +393,6 @@ export default function EditShift({
                         assignmentId,
                         eventId,
                         shiftId: groupId,
-                        callSign,
                       }
                     ],
                   }
@@ -513,6 +496,22 @@ export default function EditShift({
         onClick: (row: Shift) => isInterestList && !row.user ? showInterestList.onTrue() : assignableClick(row),
         renderValue: defaultString,
       },
+      ...(
+        lasdEventFields ? [
+          {
+            id: 'callSign',
+            width: '25%',
+            label: 'Call Sign',
+            columnType: 'string',
+            clickable: () => true,
+            onClick: (row: Shift) => {
+              setCallSign(row.callSign || '');
+              editCallSign.onTrue(row);
+            },
+            renderValue: defaultString,
+          },
+        ] : []
+      ),
       {
         id: 'user.member.contactInfo.primaryPhone.number',
         width: '25%',
@@ -725,18 +724,6 @@ export default function EditShift({
               }}
             />
           </Stack>
-          {
-            lasdEventFields && (
-              <Box sx={{ p: 3, pt: 1 }}>
-                <TextField
-                  value={callSign}
-                  fullWidth
-                  onChange={(e) => setCallSign(e.target.value.trim())}
-                  label="Call Sign"
-                  variant="outlined" />
-              </Box>
-            )
-          }
         </Card>
       </Grid>
 
@@ -817,7 +804,6 @@ export default function EditShift({
                     endTime: lockShift?.endTime,
                     assignmentId,
                     eventId,
-                    callSign,
                     status: lockShift?.status,
                     shiftId: lockShift?.shiftId,
                     locked: !lockShift?.locked,
@@ -829,6 +815,51 @@ export default function EditShift({
             setLockShift(undefined);
           }} loading={isSubmitting}>
             {lockShift?.locked ? 'Unlock' : 'Lock'}
+          </LoadingButton>
+        }
+      />
+
+      <ConfirmDialog
+        open={editCallSign.value}
+        onClose={editCallSign.onFalse}
+        title="Set Call Sign"
+        content={(
+          <Stack direction="column" spacing={2}>
+            <Typography variant='body1'>Set the call sign for this shift slot.</Typography>
+            <TextField
+              label="Call Sign"
+              variant="outlined"
+              value={callSign || editCallSign.attribute?.callSign}
+              onChange={(e) => {
+                setCallSign(e.target.value.trim());
+              }}
+            />
+          </Stack>
+        )}
+        action={
+          <LoadingButton variant="contained" onClick={async () => {
+            await upsertShifts({
+              variables: {
+                input: [
+                  {
+                    id: editCallSign.attribute?.id,
+                    customId: editCallSign.attribute?.customId,
+                    refNumber: editCallSign.attribute?.refNumber,
+                    startTime: editCallSign.attribute?.startTime,
+                    endTime: editCallSign.attribute?.endTime,
+                    assignmentId,
+                    eventId,
+                    callSign,
+                    status: editCallSign.attribute?.status,
+                    shiftId: editCallSign.attribute?.shiftId,
+                    locked: editCallSign.attribute?.locked,
+                  },
+                ],
+              }
+            });
+            editCallSign.onFalse();
+          }} loading={isSubmitting}>
+            Save
           </LoadingButton>
         }
       />

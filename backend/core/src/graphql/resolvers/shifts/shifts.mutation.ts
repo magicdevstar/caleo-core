@@ -646,13 +646,4 @@ export const Mutation = {
 
     return updatedShift!;
   },
-  shiftsCallSign: async (
-    _parent: unknown,
-    { shiftGroupId, callSign }: { shiftGroupId: string; callSign: string },
-    { shifts, user }: Context
-  ): Promise<boolean> => {
-    adminOnly(user);
-    await shifts.setCallSignByShiftId(callSign, shiftGroupId, user);
-    return true;
-  }
 };

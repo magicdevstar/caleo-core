@@ -77,7 +77,7 @@ export const generateFilledPDF = async ({
   const pdfDoc = await PDFDocument.load(arrayBuffer);
 
   try {
-    if (pdfPath == 'shift-close') {
+    if (pdfPath === 'shift-close') {
       // Fill in ordered checkbox
       const form = pdfDoc.getForm();
       const checkBox = form.getCheckBox('ordered');

@@ -780,6 +780,7 @@ export const GET_GROUPED_SHIFTS = gql`
         id
         name
         removedAt
+        isSigningAuthority
         requiredEquipment {
           id
           requiresEquipmentTime

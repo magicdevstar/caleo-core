@@ -3,6 +3,7 @@ import { AssignmentSearchInput } from "../../../__generated__/resolvers-types";
 import { SearchResults } from "../../../utils/common.resolvers";
 import { IAssignment } from "../../../models/assignment";
 import { ObjectId } from "mongodb";
+import { IUser } from "../../../types/common";
 
 export const Query = {
   assignment: async (
@@ -20,5 +21,10 @@ export const Query = {
     ...input,
     ...(input.eventId && { eventId: new ObjectId(input.eventId) }),
     orgId: user.member.orgId,
-  })
+  }),
+  signingAuthorityUsers: async (
+    _parent: unknown,
+    { eventId }: { eventId: ObjectId },
+    { assignments }: Context
+  ): Promise<SearchResults<IUser>> => assignments.signingAuthorityUsers(eventId),
 };

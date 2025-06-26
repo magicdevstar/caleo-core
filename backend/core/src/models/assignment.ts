@@ -290,4 +290,71 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       });
     }
   }
+
+  async signingAuthorityUsers(eventId: ObjectId) {
+    const users = await this.collection.aggregate<IUser>([
+      {
+        $match: {
+          eventId,
+          isSigningAuthority: true,
+          removed: { $exists: false },
+        },
+      },
+      {
+        $lookup: {
+          from: 'shifts',
+          localField: "_id",
+          foreignField: "assignmentId",
+          as: "shifts",
+        }
+      },
+      // Step 3: Add a field for the first matching shift
+      {
+        $addFields: {
+          shift: {
+            $first: {
+              $filter: {
+                input: '$shifts',
+                as: 'shift',
+                cond: {
+                  $and: [
+                    { $ne: ['$$shift.userId', null] },
+                    { $not: { $ifNull: ['$$shift.removedAt', false] } },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // Step 4: Lookup user from the `users` collection using shift.userId
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'shift.userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+
+      // Optional: Flatten user array
+      {
+        $addFields: {
+          user: { $first: '$user' },
+        },
+      },
+      {
+        $replaceWith: '$user',
+      },
+    ]).toArray();
+
+    return {
+      items: users.map((user) => ({
+        ...user,
+        id: user._id!.toString(),
+      })),
+      total: users.length,
+    };
+  }
 };

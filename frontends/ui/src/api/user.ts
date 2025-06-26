@@ -57,6 +57,7 @@ const userDetailProperties = `
         customizableShiftId
         incidentEvents
         outsideUserList
+        signingAuthorityAssignment
       }
       customizations {
         pNumber
@@ -331,6 +332,17 @@ query GetUsers($input: UserSearchInput!) {
       member {
         maxShifts
       }
+    }
+  }
+}
+`;
+
+export const GET_SIGNING_AUTHORITY_USERS = gql`
+query GetSigningAuthorityUsers($eventId: ObjectId!) {
+  signingAuthorityUsers(eventId: $eventId) {
+    items {
+      id
+      name
     }
   }
 }

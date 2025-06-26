@@ -28,6 +28,7 @@ type Props = {
   eventId: string;
   currentAssignment?: Assignment;
   allDisabled: boolean;
+  isSigningAuthority: boolean;
   isComplete: boolean;
   isValid: boolean;
   upsertAssignmentLoading: boolean;
@@ -37,6 +38,7 @@ type Props = {
 
 export default function AssignmentShiftsTable({
   eventId,
+  isSigningAuthority,
   currentAssignment,
   allDisabled,
   isComplete,
@@ -71,6 +73,11 @@ export default function AssignmentShiftsTable({
       if (assignmentId) {
         enqueueSnackbar('Created Assignment!');
       }
+    }
+
+    if (isSigningAuthority && (currentAssignment?.shifts?.length || 0) >= 1) {
+      enqueueSnackbar('You can only add one shift slot per signing authority assignment.', { variant: 'warning' });
+      return;
     }
 
     if (assignmentId) {

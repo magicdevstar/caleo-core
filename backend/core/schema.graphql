@@ -492,6 +492,9 @@
     # Overrides for event
     supervisorId: String
     lieutenantId: String
+    # If the assignment is a signing authority assignment
+    # we will only allow a single locked shift to be assigned to it
+    isSigningAuthority: Boolean
     
     createdAt: String!
     updatedAt: String!
@@ -847,6 +850,7 @@
     shiftIds: [String]
     supervisorId: String
     lieutenantId: String
+    isSigningAuthority: Boolean
   }
 
   input UpsertAssignmentShiftSlot {
@@ -2366,6 +2370,7 @@ type Query {
   users(input: UserSearchInput): UserSearchResult
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
   docusignEvents(input: DocusignEventSearchInput!): DocusignEventSearchResult
+  signingAuthorityUsers(eventId: ObjectId!): UserSearchResult
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

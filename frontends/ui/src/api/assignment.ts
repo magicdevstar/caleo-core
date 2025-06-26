@@ -17,6 +17,7 @@ export const GET_ALL_ASSIGNMENT = gql`
         eventId
         bwNeeded
         createdAt
+        isSigningAuthority
 
         requiredEquipment {
           id
@@ -45,6 +46,15 @@ export const GET_ALL_ASSIGNMENT = gql`
   }
 `;
 
+export const GET_ASSIGNMENT_SIGNING_AUTHORITY = gql`
+  query GetAssignment($id: String!) {
+    assignment(id: $id) {
+      id
+      isSigningAuthority
+    }
+  }
+`;
+
 export const GET_ASSIGNMENT = gql`
   query GetAssignment($id: String!) {
     assignment(id: $id) {
@@ -58,6 +68,7 @@ export const GET_ASSIGNMENT = gql`
       bwNeeded
       createdAt
       removedAt
+      isSigningAuthority
 
       shiftSlots {
         id

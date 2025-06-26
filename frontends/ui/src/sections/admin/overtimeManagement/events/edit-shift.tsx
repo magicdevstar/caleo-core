@@ -59,6 +59,7 @@ import { AssignShiftModal } from './assign-shift';
 // ----------------------------------------------------------------------
 
 type Props = {
+  isSigningAuthority: boolean;
   eventId: string;
   assignmentId: string;
   currentShifts: Shift[];
@@ -77,6 +78,7 @@ const defaultString = (value: string) => {
 };
 
 export default function EditShift({
+  isSigningAuthority,
   eventId,
   assignmentId,
   currentShifts,
@@ -239,8 +241,10 @@ export default function EditShift({
   };
 
   const lockClick = (row: Shift) => {
-    setLockShift(row);
-    lockConfirm.onTrue();
+    if (!isSigningAuthority) {
+      setLockShift(row);
+      lockConfirm.onTrue();
+    }
   };
 
   const clickCheckInOut = (row: Shift) => {
@@ -302,6 +306,36 @@ export default function EditShift({
     enqueueSnackbar
   ]);
 
+  const handleAddShift = async () => {
+    if (currentShifts.length >= 1 && isSigningAuthority) {
+      enqueueSnackbar('You can only add one shift slot at a time when you are the signing authority.', { variant: 'warning' });
+      return;
+    }
+    const groupId = shiftId || uuid();
+    await upsertShifts({
+      variables: {
+        input: [
+          {
+            startTime: startTime?.toISOString(),
+            endTime: endTime?.toISOString(),
+            assignmentId,
+            eventId,
+            shiftId: groupId,
+            locked: isSigningAuthority,
+          }
+        ],
+      }
+    });
+    if (!shiftId) {
+      router.push(
+        paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
+        .replace(':eventId', eventId!)
+        .replace(':assignmentId', assignmentId!)
+        .replace(':shiftId', groupId)
+      );
+    }
+  };
+
   const handleBulkShiftCreate = useCallback(async () => {
     const groupId = shiftId || uuid();
     await upsertShifts({
@@ -312,6 +346,7 @@ export default function EditShift({
           assignmentId,
           eventId,
           shiftId: groupId,
+          locked: isSigningAuthority,
         })),
       }
     });
@@ -325,6 +360,7 @@ export default function EditShift({
     }
     createSlotsConfirm.onFalse();
   }, [
+    isSigningAuthority,
     createSlotsConfirm,
     router,
     startTime,
@@ -356,7 +392,11 @@ export default function EditShift({
           icon: 'ic:baseline-add',
           loading: isSubmitting,
           disabled: !startTime || !endTime || allDisabled || isComplete,
-          render: () => (
+          render: () => isSigningAuthority ? (
+            <Button variant="contained" onClick={handleAddShift}>
+              Add shift slot
+            </Button>
+          ) : (
             <DropDownButton
               text="Add shift slot"
               menuItems={[
@@ -379,30 +419,7 @@ export default function EditShift({
                   icon: 'ic:round-playlist-add'
                 },
               ]}
-              buttonClick={async () => {
-                const groupId = shiftId || uuid();
-                await upsertShifts({
-                  variables: {
-                    input: [
-                      {
-                        startTime: startTime?.toISOString(),
-                        endTime: endTime?.toISOString(),
-                        assignmentId,
-                        eventId,
-                        shiftId: groupId,
-                      }
-                    ],
-                  }
-                });
-                if (!shiftId) {
-                  router.push(
-                    paths.dashboard.admin.overtime.eventAssignmentShiftsDetail
-                    .replace(':eventId', eventId!)
-                    .replace(':assignmentId', assignmentId!)
-                    .replace(':shiftId', groupId)
-                  );
-                }
-              }}
+              buttonClick={handleAddShift}
             />
           ),
         },
@@ -431,7 +448,7 @@ export default function EditShift({
       {
         getName: (row: Shift) => row.locked ? 'Unlock' : 'Lock',
         getIcon: (row: Shift) => row.locked ? 'solar:lock-keyhole-unlocked-bold-duotone' : 'solar:lock-keyhole-bold-duotone',
-        getDisabled: () => allDisabled || isComplete,
+        getDisabled: () => isSigningAuthority || allDisabled || isComplete,
         onClick: lockClick,
       },
       {
@@ -460,7 +477,7 @@ export default function EditShift({
         id: 'id',
         label: 'Locked',
         columnType: 'string',
-        clickable: () => true,
+        clickable: () => !isSigningAuthority,
         renderValue: (rowKey: string) => {
           const foundShift = currentShifts.find((shift) => shift.id === rowKey);
           if (!foundShift) return null;
@@ -581,14 +598,24 @@ export default function EditShift({
     </>
   );
 
+  const notifyTooltip = useMemo(() => {
+    if (isSigningAuthority) {
+      return 'Signing authority must be assigned by an admin';
+    }
+    if (!canNotify) {
+      return 'Event must be available to officers and there must be available shifts';
+    }
+    return '';
+  }, [isSigningAuthority, canNotify]);
+
   const renderActions = (
     <>
       {mdUp && <Grid md={4} />}
       <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-        <Tooltip title={!canNotify ? 'Event must available to officers and there must be available shifts' : ''}>
+        <Tooltip title={notifyTooltip}>
           <span>
             <Button
-              disabled={!canNotify || allDisabled || isComplete}
+              disabled={isSigningAuthority || !canNotify || allDisabled || isComplete}
               variant='outlined'
               size="large"
               onClick={notify as any}

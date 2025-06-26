@@ -28,7 +28,7 @@ import FormProvider, {
   RHFSwitch,
   RHFAutocomplete,
   RHFAssignmentShiftSlots,
-  RHFUserAutocomplete,
+  RHFSigningAuthorityAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_EVENT } from 'src/api/event';
@@ -57,6 +57,7 @@ export default function EditAssignment({
     equipment: equipmentFeature,
     lasdEventFields,
     callSign,
+    signingAuthorityAssignment,
   } = useFeatures();
   const router = useRouter();
 
@@ -117,6 +118,7 @@ export default function EditAssignment({
     requiredEquipment: Yup.array(),
     ranks: Yup.array().min(1).required('At least one rank is required'),
     shifts: Yup.array(),
+    isSigningAuthority: Yup.boolean(),
     supervisor: Yup.object().nullable(),
     lieutenant: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
@@ -140,8 +142,9 @@ export default function EditAssignment({
       requiredEquipment: currentAssignment?.requiredEquipment || [],
       ranks: currentAssignment?.ranks || [],
       shifts: currentAssignment?.shifts || [],
-      supervisor: currentAssignment?.supervisor || null,
-      lieutenant: currentAssignment?.lieutenant || null,
+      supervisor: currentAssignment?.isSigningAuthority ? null : (currentAssignment?.supervisor || null),
+      lieutenant: currentAssignment?.isSigningAuthority ? null : (currentAssignment?.lieutenant || null),
+      isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
@@ -162,6 +165,8 @@ export default function EditAssignment({
     setValue,
     formState: { isSubmitting, isValid },
   } = methods;
+
+  const { isSigningAuthority } = getValues();
 
   useEffect(() => {
     if (currentAssignment) {
@@ -193,6 +198,7 @@ export default function EditAssignment({
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
             supervisorId: formData?.supervisor?.id,
             lieutenantId: formData?.lieutenant?.id,
+            isSigningAuthority: formData?.isSigningAuthority,
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
         },
@@ -251,15 +257,28 @@ export default function EditAssignment({
             )}
 
             {
-              lasdEventFields && (
+              signingAuthorityAssignment && (
+                <RHFSwitch
+                  helperText={(currentAssignment?.shifts?.length || 0) > 1 ? 'Signing authority is only allowed with a single shift slot' : ''}
+                  disabled={(currentAssignment?.shifts?.length || 0) > 1}
+                  name="isSigningAuthority"
+                  label="Signing Authority"
+                />
+              )
+            }
+
+            {
+              lasdEventFields && !isSigningAuthority && (
                 <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                  <RHFUserAutocomplete
+                  <RHFSigningAuthorityAutocomplete
+                    eventId={eventId}
                     name="supervisor"
                     label='Lieutenant'
                     disabled={allDisabled}
                     helperText="Incident commander that oversees the event and will be included on all shift documents"
                   />
-                  <RHFUserAutocomplete
+                  <RHFSigningAuthorityAutocomplete
+                    eventId={eventId}
                     name="lieutenant"
                     label='Signing Supervisor'
                     disabled={allDisabled}
@@ -394,6 +413,7 @@ export default function EditAssignment({
           ) : (
             <AssignmentShiftsTable 
               eventId={eventId}
+              isSigningAuthority={!!isSigningAuthority}
               currentAssignment={currentAssignment}
               allDisabled={allDisabled}
               isComplete={isComplete}

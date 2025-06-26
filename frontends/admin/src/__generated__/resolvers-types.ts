@@ -67,6 +67,7 @@ export type Assignment = {
   event: Event;
   eventId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  isSigningAuthority?: Maybe<Scalars['Boolean']['output']>;
   lieutenant?: Maybe<User>;
   lieutenantId?: Maybe<Scalars['String']['output']>;
   modifiedBy?: Maybe<User>;
@@ -1061,7 +1062,6 @@ export type Mutation = {
   shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   shiftLotteryRequest?: Maybe<ShiftLotteryRequest>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
-  shiftsCallSign?: Maybe<Scalars['Boolean']['output']>;
   siteLock?: Maybe<SiteLock>;
   skill?: Maybe<Skill>;
   templateEvent?: Maybe<Event>;
@@ -1402,12 +1402,6 @@ export type MutationShiftsArgs = {
 };
 
 
-export type MutationShiftsCallSignArgs = {
-  callSign: Scalars['String']['input'];
-  shiftGroupId: Scalars['String']['input'];
-};
-
-
 export type MutationSiteLockArgs = {
   input?: InputMaybe<UpsertSiteLock>;
 };
@@ -1646,6 +1640,7 @@ export type OrganizationFeatures = {
   profileTenor: Scalars['Boolean']['output'];
   rankGrouping: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
+  signingAuthorityAssignment: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   vehicleCategories: Scalars['Boolean']['output'];
   venueContractDates: Scalars['Boolean']['output'];
@@ -1765,6 +1760,7 @@ export type Query = {
   shiftTabs?: Maybe<ShiftTabResponse>;
   shiftUsers?: Maybe<UserSearchResult>;
   shifts?: Maybe<ShiftSearchResult>;
+  signingAuthorityUsers?: Maybe<UserSearchResult>;
   siteLock?: Maybe<SiteLock>;
   skill?: Maybe<Skill>;
   skills?: Maybe<SkillSearchResult>;
@@ -1957,6 +1953,11 @@ export type QueryShiftUsersArgs = {
 
 export type QueryShiftsArgs = {
   input?: InputMaybe<ShiftSearchInput>;
+};
+
+
+export type QuerySigningAuthorityUsersArgs = {
+  eventId: Scalars['ObjectId']['input'];
 };
 
 
@@ -2597,6 +2598,7 @@ export type UpsertAssignment = {
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
+  isSigningAuthority?: InputMaybe<Scalars['Boolean']['input']>;
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2781,6 +2783,7 @@ export type UpsertOrganizationFeatures = {
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankGrouping?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
+  signingAuthorityAssignment?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   vehicleCategories?: InputMaybe<Scalars['Boolean']['input']>;
   venueContractDates?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3643,6 +3646,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isSigningAuthority?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -4273,7 +4277,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType, Partial<MutationShiftInterestRequestArgs>>;
   shiftLotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType, Partial<MutationShiftLotteryRequestArgs>>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
-  shiftsCallSign?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationShiftsCallSignArgs, 'callSign' | 'shiftGroupId'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType, Partial<MutationSiteLockArgs>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSkillArgs, 'skill'>>;
   templateEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationTemplateEventArgs, 'id'>>;
@@ -4422,6 +4425,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankGrouping?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  signingAuthorityAssignment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   vehicleCategories?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   venueContractDates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4531,6 +4535,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   shiftTabs?: Resolver<Maybe<ResolversTypes['ShiftTabResponse']>, ParentType, ContextType, RequireFields<QueryShiftTabsArgs, 'id'>>;
   shiftUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftUsersArgs, 'id'>>;
   shifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryShiftsArgs>>;
+  signingAuthorityUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QuerySigningAuthorityUsersArgs, 'eventId'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Maybe<ResolversTypes['SkillSearchResult']>, ParentType, ContextType, Partial<QuerySkillsArgs>>;

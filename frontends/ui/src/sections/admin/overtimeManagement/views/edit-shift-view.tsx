@@ -14,6 +14,7 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { GET_GROUPED_SHIFTS, SHIFT_INTEREST_REQUESTS } from 'src/api/shifts';
 import QueryView from 'src/components/query-view';
+import { GET_ASSIGNMENT_SIGNING_AUTHORITY } from 'src/api/assignment';
 import EditShift from '../events/edit-shift';
 
 // ----------------------------------------------------------------------
@@ -27,9 +28,18 @@ const timezoneValues: Record<string, number> = {
 
 export default function ShiftDetail() {
   const { user } = useAuthContext();
-  const { interestLists } = useFeatures();
+  const { interestLists, signingAuthorityAssignment } = useFeatures();
   const settings = useSettingsContext();
   const params = useParams();
+
+  const { data: assignmentData } = useQuery(GET_ASSIGNMENT_SIGNING_AUTHORITY, {
+    fetchPolicy: 'network-only', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      id: params.assignmentId,
+    },
+    skip: !signingAuthorityAssignment,
+  });
 
   const { data, refetch, loading, error } = useQuery(GET_GROUPED_SHIFTS, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -62,6 +72,8 @@ export default function ShiftDetail() {
     paths.dashboard.admin.overtime.eventAssignmentDetail.replace(':eventId', params?.eventId || '').replace(':assignmentId', params?.assignmentId || ''),
   [params]);
 
+  console.log(assignmentData);
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
@@ -92,6 +104,7 @@ export default function ShiftDetail() {
         refetch={refetch}
       >
         <EditShift
+          isSigningAuthority={assignmentData?.assignment?.isSigningAuthority || false}
           eventId={params.eventId!}
           refetch={refetch}
           assignmentId={params.assignmentId!}

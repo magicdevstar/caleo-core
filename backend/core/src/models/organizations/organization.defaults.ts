@@ -66,6 +66,7 @@ export const featureDefinitions = [
   { value: 'customizableShiftId', label: 'Customizable Shift id', defaultEnabled: false },
   { value: 'incidentEvents', label: 'Enable incident events', defaultEnabled: false },
   { value: 'outsideUserList', label: 'CSV Upload for outside users', defaultEnabled: false },
+  { value: 'signingAuthorityAssignment', label: 'Signing Authority Assignment', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

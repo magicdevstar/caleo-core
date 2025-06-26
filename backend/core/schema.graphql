@@ -1383,6 +1383,7 @@ type DocusignSignerDetailsData {
     customizableShiftId: Boolean!
     incidentEvents: Boolean!
     outsideUserList: Boolean!
+    signingAuthorityAssignment: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1591,6 +1592,7 @@ type DocusignSignerDetailsData {
     customizableShiftId: Boolean
     incidentEvents: Boolean
     outsideUserList: Boolean
+    signingAuthorityAssignment: Boolean
   }
 
   input UpsertInterestListSetting {

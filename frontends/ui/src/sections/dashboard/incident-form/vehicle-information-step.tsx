@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { RHFVehicleCategoriesSelect } from 'src/components/hook-form/rhf-vehicle-categories-select';
 import { RHFRadioGroup, RHFTextField } from '../../../components/hook-form';
+import { TotalBox } from './total-box';
 
 export default function VehicleInformationStep() {
   const { control } = useFormContext();
@@ -90,18 +91,7 @@ export default function VehicleInformationStep() {
             </Grid>
           </Grid>
           
-          <Box sx={{ 
-            mt: 2, 
-            p: 2, 
-            bgcolor: 'background.neutral', 
-            borderRadius: 1,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <Typography variant="subtitle1">Total Mileage:</Typography>
-            <Typography variant="h6">{totalMileage}</Typography>
-          </Box>
+          <TotalBox mt={2} label="Total Milage" total={totalMileage} />
         </>
       )}
     </Stack>

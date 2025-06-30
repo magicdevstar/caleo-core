@@ -276,6 +276,16 @@ export const GET_EVENT_FOR_SUMMARY = gql`
         id
         name
         callSign
+        supervisorAssignment {
+          id
+          shifts {
+            id
+            user {
+              id
+              name
+            }
+          }
+        }
         reportingLocation
         requiredEquipment {
           id
@@ -293,6 +303,7 @@ export const GET_EVENT_FOR_SUMMARY = gql`
         shifts {
           id
           customId
+          callSign
           startTime
           endTime
           status

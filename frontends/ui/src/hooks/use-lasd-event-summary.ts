@@ -125,14 +125,13 @@ export const useLasdEventSummary = () => {
             // id
             shift.customId || '',
             // call sign
-            shift.assignment?.callSign || '',
+            shift.callSign || shift.assignment?.callSign || '',
             // Assignment Name
             shift.assignment?.name || '',
             // Assignment Location
             shift.assignment?.reportingLocation || shift?.event?.venue?.city || '',
             // Assignment Supervisor
-            // TODO: Implement Assignment Supervisor
-            '',
+            shift.assignment?.supervisorAssignment?.shifts?.[0]?.user?.name || shift.event?.supervisor?.name || '',
             // Start Time
             shift.startTime
               ? convertDate({ date: shift.startTime, user }).format('MM/DD - HH:mm')

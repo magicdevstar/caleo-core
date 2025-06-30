@@ -337,17 +337,6 @@ query GetUsers($input: UserSearchInput!) {
 }
 `;
 
-export const GET_SIGNING_AUTHORITY_USERS = gql`
-query GetSigningAuthorityUsers($eventId: ObjectId!) {
-  signingAuthorityUsers(eventId: $eventId) {
-    items {
-      id
-      name
-    }
-  }
-}
-`;
-
 export const GET_USERS = gql`
   query GetUsers($input: UserSearchInput!) {
     users(input: $input) {

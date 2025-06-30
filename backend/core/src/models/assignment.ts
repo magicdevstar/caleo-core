@@ -35,10 +35,6 @@ export interface IAssignment extends Omit<
   'shiftSlots' |
   'ranks' |
   'rankIds' |
-  'supervisorId' |
-  'supervisor' |
-  'lieutenantId' |
-  'lieutenant' |
   'supervisorAssignmentId' |
   'supervisorAssignment' |
   'lieutenantAssignmentId' |
@@ -54,8 +50,6 @@ export interface IAssignment extends Omit<
   requiredEquipmentIds?: ObjectId[];
   rankIds: ObjectId[];
   modifiedById: ObjectId;
-  supervisorId?: ObjectId;
-  lieutenantId?: ObjectId;
   supervisorAssignmentId?: ObjectId;
   lieutenantAssignmentId?: ObjectId;
   shiftSlots?: {
@@ -305,73 +299,6 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
         eventId,
       });
     }
-  }
-
-  async signingAuthorityUsers(eventId: ObjectId) {
-    const users = await this.collection.aggregate<IUser>([
-      {
-        $match: {
-          eventId,
-          isSigningAuthority: true,
-          removed: { $exists: false },
-        },
-      },
-      {
-        $lookup: {
-          from: 'shifts',
-          localField: "_id",
-          foreignField: "assignmentId",
-          as: "shifts",
-        }
-      },
-      // Step 3: Add a field for the first matching shift
-      {
-        $addFields: {
-          shift: {
-            $first: {
-              $filter: {
-                input: '$shifts',
-                as: 'shift',
-                cond: {
-                  $and: [
-                    { $ne: ['$$shift.userId', null] },
-                    { $not: { $ifNull: ['$$shift.removedAt', false] } },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
-
-      // Step 4: Lookup user from the `users` collection using shift.userId
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'shift.userId',
-          foreignField: '_id',
-          as: 'user',
-        },
-      },
-
-      // Optional: Flatten user array
-      {
-        $addFields: {
-          user: { $first: '$user' },
-        },
-      },
-      {
-        $replaceWith: '$user',
-      },
-    ]).toArray();
-
-    return {
-      items: users.map((user) => ({
-        ...user,
-        id: user._id!.toString(),
-      })),
-      total: users.length,
-    };
   }
 
   async getSigningAuthorityUser(assignmentId?: ObjectId) {

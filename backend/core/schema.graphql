@@ -492,6 +492,11 @@
     # Overrides for event
     supervisorId: String
     lieutenantId: String
+    # Overrides for event supervisor and lieutenant
+    @deprecated(reason: "Use supervisorAssignmentId instead!")
+    supervisorAssignmentId: String
+    @deprecated(reason: "Use lieutenantAssignmentId instead!")
+    lieutenantAssignmentId: String
     # If the assignment is a signing authority assignment
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
@@ -510,6 +515,8 @@
     totalShifts: Int
     supervisor: User
     lieutenant: User
+    supervisorAssignment: Assignment
+    lieutenantAssignment: Assignment
     org: Organization!
     modifiedBy: User
   }
@@ -848,8 +855,12 @@
     rankIds: [String]
     bwNeeded: Boolean
     shiftIds: [String]
+    @deprecated(reason: "Use supervisorAssignmentId instead!")
     supervisorId: String
+    @deprecated(reason: "Use lieutenantAssignmentId instead!")
     lieutenantId: String
+    supervisorAssignmentId: String
+    lieutenantAssignmentId: String
     isSigningAuthority: Boolean
   }
 
@@ -2371,6 +2382,7 @@ type Query {
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
   docusignEvents(input: DocusignEventSearchInput!): DocusignEventSearchResult
   signingAuthorityUsers(eventId: ObjectId!): UserSearchResult
+  signingAuthorityAssignments(eventId: ObjectId!): AssignmentSearchResult
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

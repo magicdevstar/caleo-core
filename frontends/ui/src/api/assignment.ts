@@ -55,6 +55,17 @@ export const GET_ASSIGNMENT_SIGNING_AUTHORITY = gql`
   }
 `;
 
+export const GET_SIGNING_AUTHORITY_ASSIGNMENTS = gql`
+query GetSigningAuthorityAssignments($eventId: ObjectId!) {
+  signingAuthorityAssignments(eventId: $eventId) {
+    items {
+      id
+      name
+    }
+  }
+}
+`;
+
 export const GET_ASSIGNMENT = gql`
   query GetAssignment($id: String!) {
     assignment(id: $id) {
@@ -75,12 +86,12 @@ export const GET_ASSIGNMENT = gql`
         slotCount
       }
 
-      supervisor {
+      supervisorAssignment {
         id
         name
       }
 
-      lieutenant {
+      lieutenantAssignment {
         id
         name
       }

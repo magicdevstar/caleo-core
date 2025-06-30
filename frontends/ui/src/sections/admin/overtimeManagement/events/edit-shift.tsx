@@ -241,10 +241,8 @@ export default function EditShift({
   };
 
   const lockClick = (row: Shift) => {
-    if (!isSigningAuthority) {
-      setLockShift(row);
-      lockConfirm.onTrue();
-    }
+    setLockShift(row);
+    lockConfirm.onTrue();
   };
 
   const clickCheckInOut = (row: Shift) => {
@@ -321,7 +319,6 @@ export default function EditShift({
             assignmentId,
             eventId,
             shiftId: groupId,
-            locked: isSigningAuthority,
           }
         ],
       }
@@ -346,7 +343,6 @@ export default function EditShift({
           assignmentId,
           eventId,
           shiftId: groupId,
-          locked: isSigningAuthority,
         })),
       }
     });
@@ -360,7 +356,6 @@ export default function EditShift({
     }
     createSlotsConfirm.onFalse();
   }, [
-    isSigningAuthority,
     createSlotsConfirm,
     router,
     startTime,

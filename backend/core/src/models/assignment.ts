@@ -39,6 +39,10 @@ export interface IAssignment extends Omit<
   'supervisor' |
   'lieutenantId' |
   'lieutenant' |
+  'supervisorAssignmentId' |
+  'supervisorAssignment' |
+  'lieutenantAssignmentId' |
+  'lieutenantAssignment' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -52,6 +56,8 @@ export interface IAssignment extends Omit<
   modifiedById: ObjectId;
   supervisorId?: ObjectId;
   lieutenantId?: ObjectId;
+  supervisorAssignmentId?: ObjectId;
+  lieutenantAssignmentId?: ObjectId;
   shiftSlots?: {
     id?: ObjectId;
     slotCount: number;
@@ -168,6 +174,12 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       orderBy: 'asc',
     });
 
+    const idMap: Record<string, ObjectId> = {};
+    // Create a map of original assignment IDs to new ObjectIds
+    originalAssignments.forEach((assignment) => {
+      idMap[assignment.id!] = new ObjectId();
+    });
+
     // If the assignment doesn't have a shift slots attached we will need to create them
     const assignmentTemplates = await Promise.all(
       originalAssignments.map(async ({
@@ -186,6 +198,10 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
         }
         return {
           ...assignment,
+          _id: idMap[id!],
+          ...(assignment.supervisorAssignmentId && { supervisorAssignmentId: idMap[assignment.supervisorAssignmentId.toString()] }),
+          ...(assignment.lieutenantAssignmentId && { lieutenantAssignmentId: idMap[assignment.lieutenantAssignmentId.toString()] }),
+          shiftIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           eventId,
@@ -356,5 +372,76 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       })),
       total: users.length,
     };
+  }
+
+  async getSigningAuthorityUser(assignmentId?: ObjectId) {
+    if (!assignmentId) {
+      return null;
+    }
+    const user = await this.collection.aggregate<IUser>([
+      {
+        $match: {
+          _id: assignmentId,
+          isSigningAuthority: true,
+          removed: { $exists: false },
+        },
+      },
+      {
+        $lookup: {
+          from: 'shifts',
+          localField: "_id",
+          foreignField: "assignmentId",
+          as: "shifts",
+        }
+      },
+      // Step 3: Add a field for the first matching shift
+      {
+        $addFields: {
+          shift: {
+            $first: {
+              $filter: {
+                input: '$shifts',
+                as: 'shift',
+                cond: {
+                  $and: [
+                    { $ne: ['$$shift.userId', null] },
+                    { $not: { $ifNull: ['$$shift.removedAt', false] } },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // Step 4: Lookup user from the `users` collection using shift.userId
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'shift.userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+
+      // Optional: Flatten user array
+      {
+        $addFields: {
+          user: { $first: '$user' },
+        },
+      },
+      {
+        $replaceWith: '$user',
+      },
+    ]).toArray();
+
+    return user[0] || null;
+  }
+
+  async signingAuthorityAssignments(eventId: ObjectId) {
+    return this.search({
+      eventId,
+      isSigningAuthority: true,
+    });
   }
 };

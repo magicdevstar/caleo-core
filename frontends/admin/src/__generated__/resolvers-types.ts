@@ -69,6 +69,9 @@ export type Assignment = {
   id: Scalars['ID']['output'];
   isSigningAuthority?: Maybe<Scalars['Boolean']['output']>;
   lieutenant?: Maybe<User>;
+  lieutenantAssignment?: Maybe<Assignment>;
+  lieutenantAssignmentId?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use supervisorAssignmentId instead! */
   lieutenantId?: Maybe<Scalars['String']['output']>;
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
@@ -88,6 +91,9 @@ export type Assignment = {
   shiftSlots?: Maybe<Array<Maybe<AssignmentShiftSlot>>>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
   supervisor?: Maybe<User>;
+  supervisorAssignment?: Maybe<Assignment>;
+  /** @deprecated Use lieutenantAssignmentId instead! */
+  supervisorAssignmentId?: Maybe<Scalars['String']['output']>;
   supervisorId?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
@@ -1760,6 +1766,7 @@ export type Query = {
   shiftTabs?: Maybe<ShiftTabResponse>;
   shiftUsers?: Maybe<UserSearchResult>;
   shifts?: Maybe<ShiftSearchResult>;
+  signingAuthorityAssignments?: Maybe<AssignmentSearchResult>;
   signingAuthorityUsers?: Maybe<UserSearchResult>;
   siteLock?: Maybe<SiteLock>;
   skill?: Maybe<Skill>;
@@ -1953,6 +1960,11 @@ export type QueryShiftUsersArgs = {
 
 export type QueryShiftsArgs = {
   input?: InputMaybe<ShiftSearchInput>;
+};
+
+
+export type QuerySigningAuthorityAssignmentsArgs = {
+  eventId: Scalars['ObjectId']['input'];
 };
 
 
@@ -2599,6 +2611,7 @@ export type UpsertAssignment = {
   eventId: Scalars['String']['input'];
   id?: InputMaybe<Scalars['String']['input']>;
   isSigningAuthority?: InputMaybe<Scalars['Boolean']['input']>;
+  lieutenantAssignmentId?: InputMaybe<Scalars['String']['input']>;
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2606,8 +2619,11 @@ export type UpsertAssignment = {
   reportingLocation?: InputMaybe<Scalars['String']['input']>;
   requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** @deprecated Use supervisorAssignmentId instead! */
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftSlots?: InputMaybe<Array<InputMaybe<UpsertAssignmentShiftSlot>>>;
+  supervisorAssignmentId?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use lieutenantAssignmentId instead! */
   supervisorId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3648,6 +3664,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isSigningAuthority?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  lieutenantAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  lieutenantAssignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3667,6 +3685,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   shiftSlots?: Resolver<Maybe<Array<Maybe<ResolversTypes['AssignmentShiftSlot']>>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
   supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  supervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4535,6 +4555,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   shiftTabs?: Resolver<Maybe<ResolversTypes['ShiftTabResponse']>, ParentType, ContextType, RequireFields<QueryShiftTabsArgs, 'id'>>;
   shiftUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QueryShiftUsersArgs, 'id'>>;
   shifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryShiftsArgs>>;
+  signingAuthorityAssignments?: Resolver<Maybe<ResolversTypes['AssignmentSearchResult']>, ParentType, ContextType, RequireFields<QuerySigningAuthorityAssignmentsArgs, 'eventId'>>;
   signingAuthorityUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, RequireFields<QuerySigningAuthorityUsersArgs, 'eventId'>>;
   siteLock?: Resolver<Maybe<ResolversTypes['SiteLock']>, ParentType, ContextType>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;

@@ -72,8 +72,6 @@ export default function ShiftDetail() {
     paths.dashboard.admin.overtime.eventAssignmentDetail.replace(':eventId', params?.eventId || '').replace(':assignmentId', params?.assignmentId || ''),
   [params]);
 
-  console.log(assignmentData);
-
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs

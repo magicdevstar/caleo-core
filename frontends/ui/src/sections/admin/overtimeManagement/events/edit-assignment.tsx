@@ -119,8 +119,8 @@ export default function EditAssignment({
     ranks: Yup.array().min(1).required('At least one rank is required'),
     shifts: Yup.array(),
     isSigningAuthority: Yup.boolean(),
-    supervisor: Yup.object().nullable(),
-    lieutenant: Yup.object().nullable(),
+    supervisorAssignment: Yup.object().nullable(),
+    lieutenantAssignment: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -142,8 +142,8 @@ export default function EditAssignment({
       requiredEquipment: currentAssignment?.requiredEquipment || [],
       ranks: currentAssignment?.ranks || [],
       shifts: currentAssignment?.shifts || [],
-      supervisor: currentAssignment?.isSigningAuthority ? null : (currentAssignment?.supervisor || null),
-      lieutenant: currentAssignment?.isSigningAuthority ? null : (currentAssignment?.lieutenant || null),
+      supervisorAssignment: currentAssignment?.supervisorAssignment || null,
+      lieutenantAssignment: currentAssignment?.lieutenantAssignment || null,
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
@@ -196,8 +196,8 @@ export default function EditAssignment({
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             rankIds: formData?.ranks?.map(({ id }: Rank) => id),
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
-            supervisorId: formData?.supervisor?.id,
-            lieutenantId: formData?.lieutenant?.id,
+            supervisorAssignmentId: formData?.supervisorAssignment?.id,
+            lieutenantAssignmentId: formData?.lieutenantAssignment?.id,
             isSigningAuthority: formData?.isSigningAuthority,
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
@@ -268,21 +268,21 @@ export default function EditAssignment({
             }
 
             {
-              lasdEventFields && !isSigningAuthority && (
+              lasdEventFields && (
                 <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
                   <RHFSigningAuthorityAutocomplete
                     eventId={eventId}
-                    name="supervisor"
+                    name="supervisorAssignment"
                     label='Lieutenant'
                     disabled={allDisabled}
-                    helperText="Incident commander that oversees the event and will be included on all shift documents"
+                    helperText="Incident commander assignment that oversees the event and will be included on all shift documents"
                   />
                   <RHFSigningAuthorityAutocomplete
                     eventId={eventId}
-                    name="lieutenant"
+                    name="lieutenantAssignment"
                     label='Signing Supervisor'
                     disabled={allDisabled}
-                    helperText="Supervisor that will sign off all shift confirmation documents."
+                    helperText="Supervisor assignment that will sign off all shift confirmation documents."
                   />
                 </Stack>
               )

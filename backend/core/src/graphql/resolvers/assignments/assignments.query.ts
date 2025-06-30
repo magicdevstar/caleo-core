@@ -22,6 +22,11 @@ export const Query = {
     ...(input.eventId && { eventId: new ObjectId(input.eventId) }),
     orgId: user.member.orgId,
   }),
+  signingAuthorityAssignments: async (
+    _parent: unknown,
+    { eventId }: { eventId: ObjectId },
+    { assignments }: Context
+  ): Promise<SearchResults<IAssignment>> => assignments.signingAuthorityAssignments(eventId),
   signingAuthorityUsers: async (
     _parent: unknown,
     { eventId }: { eventId: ObjectId },

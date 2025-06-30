@@ -1,8 +1,8 @@
+import { useState } from "react";
+import { useQuery } from "@apollo/client";
 import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
-import { useQuery } from "@apollo/client";
-import { GET_SIGNING_AUTHORITY_USERS } from "src/api/user";
-import { useState } from "react";
+import { GET_SIGNING_AUTHORITY_ASSIGNMENTS } from "src/api/assignment";
 import RHFAutocomplete from "./rhf-autocomplete";
 
 export default function RHFSigningAuthorityAutocomplete({
@@ -19,19 +19,19 @@ export default function RHFSigningAuthorityAutocomplete({
   disabled?: boolean;
   loading?: boolean;
 }) {
-  const [userSearch, setUserSearch] = useState('');
+  const [search, setSearch] = useState('');
 
-  const { data: usersData, loading: loadingUser } = useQuery(GET_SIGNING_AUTHORITY_USERS, {
+  const { data, loading } = useQuery(GET_SIGNING_AUTHORITY_ASSIGNMENTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
     variables: {
       eventId,
     },
   });
-  const users = usersData?.signingAuthorityUsers?.items || [];
+  const items = data?.signingAuthorityAssignments?.items || [];
 
-  const filteredUsers = users.filter((user: any) => 
-    user.name.toLowerCase().includes(userSearch.toLowerCase()));
+  const filteredItems = items.filter((item: any) => 
+    item.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <RHFAutocomplete
@@ -40,12 +40,12 @@ export default function RHFSigningAuthorityAutocomplete({
       sx={{ width: '100%' }}
       placeholder={label}
       disabled={disabled}
-      loading={loadingUser}
+      loading={loading}
       textFieldChange={(event) => {
-        setUserSearch((event as any).target.value);
+        setSearch((event as any).target.value);
       }}
       helperText={helperText}
-      options={filteredUsers}
+      options={filteredItems}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       getOptionLabel={(u: any) => u?.name}
       renderOption={(props, option, { selected }) => (

@@ -3,13 +3,14 @@ import Grid from '@mui/material/Grid';
 import { useWatch, useFormContext } from 'react-hook-form';
 import { useEffect } from 'react';
 import { RHFRadioGroup, RHFTextField, RHFTimePicker } from '../../../components/hook-form';
+import { TotalBox } from './total-box';
 
 export enum TimekeepingType {
   PAID = 'PAID',
   SAVED = 'SAVED',
 };
 
-// Helper function to round up to nearest 15 minutes and format as hours:minutes
+// Helper function to round up to nearest 15 minutes and format in decimal hours
 const calculateAndFormatHours = (startTime: Date, endTime: Date) => {
   const diffInMs = endTime.getTime() - startTime.getTime();
   const diffInMinutes = Math.max(0, diffInMs / (1000 * 60));
@@ -17,12 +18,12 @@ const calculateAndFormatHours = (startTime: Date, endTime: Date) => {
   // Round up to nearest 15 minutes
   const roundedMinutes = Math.ceil(diffInMinutes / 15) * 15;
   
-  const hours = Math.floor(roundedMinutes / 60);
-  const minutes = roundedMinutes % 60;
+  const decimalHours = roundedMinutes / 60;
   
   return {
+    // numeric: decimalHours,
     numeric: roundedMinutes / 60, // For form validation/submission
-    formatted: `${hours}:${minutes.toString().padStart(2, '0')}` // For display
+    formatted: `${decimalHours.toFixed(2)}` // For display in 0.25-hour increments
   };
 };
 
@@ -43,6 +44,8 @@ export default function TimekeepingStep() {
   const rdoValue = useWatch({ name: 'timekeeping.rdo' });
   const timeIn = useWatch({ name: 'timekeeping.timeIn' });
   const timeOut = useWatch({ name: 'timekeeping.timeOut' });
+  const overtimeHoursDisplay = useWatch({ name: 'timekeeping.overtimeHoursDisplay' });
+  const straightHoursDisplay = useWatch({ name: 'timekeeping.straightHoursDisplay' });
   const overtimeTimeIn = useWatch({ name: 'timekeeping.overtimeTimeIn' });
   const overtimeTimeOut = useWatch({ name: 'timekeeping.overtimeTimeOut' });
 
@@ -56,7 +59,7 @@ export default function TimekeepingStep() {
       setValue('timekeeping.straightHoursDisplay', result.formatted); // Store formatted for display
     } else {
       setValue('timekeeping.straightHours', 0);
-      setValue('timekeeping.straightHoursDisplay', '0:00');
+      setValue('timekeeping.straightHoursDisplay', '0.00');
     }
   }, [timeIn, timeOut, setValue]);
 
@@ -70,7 +73,7 @@ export default function TimekeepingStep() {
       setValue('timekeeping.overtimeHoursDisplay', result.formatted); // Store formatted for display
     } else {
       setValue('timekeeping.overtimeHours', 0);
-      setValue('timekeeping.overtimeHoursDisplay', '0:00');
+      setValue('timekeeping.overtimeHoursDisplay', '0.00');
     }
   }, [overtimeTimeIn, overtimeTimeOut, setValue]);
 
@@ -110,60 +113,48 @@ export default function TimekeepingStep() {
         ]}
         row
       />
-      
+
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <RHFTimePicker
-            name="timekeeping.timeIn"
-            label="Time In"
+            name="timekeeping.overtimeTimeIn"
+            label="Overtime Time In"
             textFieldProps={{ fullWidth: true }}
             ampm={false}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
           <RHFTimePicker
-            name="timekeeping.timeOut"
-            label="Time Out"
+            name="timekeeping.overtimeTimeOut"
+            label="Overtime Time Out"
             textFieldProps={{ fullWidth: true }}
             ampm={false}
           />
         </Grid>
       </Grid>
-      <RHFTextField 
-        name="timekeeping.straightHoursDisplay"
-        disabled
-        label="Straight Hours"
-        type="text"
-        placeholder="0:00"
-      />
+      <TotalBox label='Overtime Hours' total={overtimeHoursDisplay} />
 
       {(rdoValue === 'no') && (
         <>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <RHFTimePicker
-                name="timekeeping.overtimeTimeIn"
-                label="Overtime Time In"
+                name="timekeeping.timeIn"
+                label="Time In"
                 textFieldProps={{ fullWidth: true }}
                 ampm={false}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <RHFTimePicker
-                name="timekeeping.overtimeTimeOut"
-                label="Overtime Time Out"
+                name="timekeeping.timeOut"
+                label="Time Out"
                 textFieldProps={{ fullWidth: true }}
                 ampm={false}
               />
             </Grid>
           </Grid>
-          <RHFTextField 
-            name="timekeeping.overtimeHoursDisplay"
-            disabled
-            label="Overtime Hours"
-            type="text"
-            placeholder="0:00"
-          />
+          <TotalBox label='Straight Hours' total={straightHoursDisplay} />
         </>
       )}
     </Stack>

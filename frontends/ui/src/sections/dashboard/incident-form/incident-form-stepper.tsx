@@ -61,10 +61,16 @@ const IncidentFormSchema = Yup.object().shape({
     straightHours: Yup.number().nullable().min(0, 'Must be positive'),
     overtimeHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
     straightHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
-    timeIn: Yup.date().nullable().required('Time In is required'),
-    timeOut: Yup.date().nullable().required('Time Out is required'),
-    overtimeTimeIn: Yup.date().nullable(),
-    overtimeTimeOut: Yup.date().nullable(),
+    timeIn: Yup.date().nullable().when('rdo', {
+      is: 'no',
+      then: (schema) => schema.required('Time In is required'),
+    }),
+    timeOut: Yup.date().nullable().when('rdo', {
+      is: 'no',
+      then: (schema) => schema.required('Time Out is required'),
+    }),
+    overtimeTimeIn: Yup.date().nullable().required('Overtime Time In is required'),
+    overtimeTimeOut: Yup.date().nullable().required('Overtime Time Out is required'),
     minTimeIn: Yup.date().nullable(),
   }),
   shiftDetails: Yup.object().shape({

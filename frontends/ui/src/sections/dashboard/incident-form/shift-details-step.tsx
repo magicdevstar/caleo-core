@@ -12,14 +12,14 @@ export default function ShiftDetailsStep() {
 
   // Calculate 18-hour time when enroute time changes
   useEffect(() => {
-    if (enrouteToIncident) {
-      const enrouteTime = dayjs(enrouteToIncident);
-      const time18Hour = enrouteTime.add(18, 'hour');
+    if (minTimeIn) {
+      const baseTime = dayjs(minTimeIn);
+      const time18Hour = baseTime.add(18, 'hour');
       setValue('shiftDetails.time18Hour', time18Hour.toDate());
     } else {
       setValue('shiftDetails.time18Hour', null);
     }
-  }, [enrouteToIncident, setValue]);
+  }, [minTimeIn, setValue]);
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>

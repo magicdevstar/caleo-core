@@ -2406,7 +2406,7 @@ type Query {
   event(id: String!): Event
   events(input: EventSearchInput): EventSearchResult
 
-  incidentForms(input: IncidentFormSearchInput): IncidentFormSearchResult
+  incidentForms(input: IncidentFormSearchInput, report: Boolean): IncidentFormSearchResult
 
   assignment(id: String!): Assignment
   assignments(input: AssignmentSearchInput): AssignmentSearchResult

@@ -83,10 +83,13 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
         },
       },
     ]).toArray().then((docs) => {
+      if (!docs || docs.length === 0) {
+        return null;
+      }
       const doc = docs[0]!;
       return {
         ...doc,
-        docusignEvent: doc.docusignEvent?.[0] as DocusignEvent,
+        docusignEvent: doc?.docusignEvent?.[0] as DocusignEvent,
       };
     });
   }

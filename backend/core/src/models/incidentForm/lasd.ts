@@ -85,12 +85,12 @@ export const requestToPDFForm = ({
     reviwerEmployeeNumber2: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
     rdoNo: incidentForm.timekeeping.rdo === 'no',
     rdoYes: incidentForm.timekeeping.rdo === 'yes',
-    straightTimeIn: format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm'),
-    straightTimeOut: format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm'),
-    straightTotalTime: `${differenceInHours(
+    straightTimeIn: incidentForm.timekeeping.timeIn ? format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm') : '',
+    straightTimeOut: incidentForm.timekeeping.timeOut ? format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm') : '',
+    straightTotalTime: incidentForm.timekeeping.timeIn && incidentForm.timekeeping.timeOut ? `${differenceInHours(
       toZonedTime(incidentForm.timekeeping.timeOut, org.timezone),
       toZonedTime(incidentForm.timekeeping.timeIn, org.timezone)
-    ) || '1'}`,
+    ) || '1'}` : '',
     timeIn: incidentForm.timekeeping.overtimeTimeIn ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeIn, org.timezone), 'HH:mm') : '',
     timeOut: incidentForm.timekeeping.overtimeTimeOut ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeOut, org.timezone), 'HH:mm') : '',
     totalTime: incidentForm.timekeeping.overtimeTimeIn && incidentForm.timekeeping.overtimeTimeOut && `${differenceInHours(

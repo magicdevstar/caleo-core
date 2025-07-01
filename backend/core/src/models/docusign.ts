@@ -577,9 +577,11 @@ export class DocusignModel extends BaseMongo<IDocusign> {
   async getDocument({
     envelopeId,
     orgId,
+    documentId = '1',
   }: {
     envelopeId: string;
     orgId: string;
+    documentId?: string;
   }): Promise<string> {
     const tokenRecord = await this.collection.findOne({
       orgId: new ObjectId(orgId),
@@ -594,7 +596,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     return (envAPI.getDocument as any)(
       tokenRecord.accountId,
       envelopeId,
-      '1',
+      documentId,
       null
     );
   }

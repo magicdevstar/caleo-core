@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { toZonedTime } from 'date-fns-tz';
 import uniq from 'lodash.uniq';
 import startCase from 'lodash/startCase';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
@@ -194,6 +195,22 @@ export class Docusign {
         orgId: orgId.toHexString(),
       }),
     });
+
+    // We need to save the over time slip that is attached to the document
+    if (incident) {
+       const document = await this.docusign.getDocument({
+        envelopeId,
+        orgId: orgId.toHexString(),
+        documentId: '2',
+      });
+      await this.document.save({
+        data: Buffer.from(document, 'binary'),
+        Key: this.docusignEvent.buildDocumentPath({
+          envelopeId: `${envelopeId}-2`,
+          orgId: orgId.toHexString(),
+        }),
+      });
+    }
   }
 
   async saveInvoiceEvent({
@@ -260,11 +277,13 @@ export class Docusign {
 
   async getDocumentUrl({
     event,
+    docId,
   }: {
     event: IDocusignEvent;
+    docId?: string;
   }) {
     const Key = this.docusignEvent.buildDocumentPath({
-      envelopeId: event.envelopeId,
+      envelopeId: `${event.envelopeId}${docId ? `-${docId}` : ''}`,
       orgId: event.orgId.toString(),
     });
     if (!await this.document.documentExists(Key)) {
@@ -571,7 +590,10 @@ export class Docusign {
     org: IOrganization;
     user: IUser;
   }): Promise<IncidentFormResponse> {
-    const savedForm = await this.incidentSubmission.upsert(incidentForm);
+    const savedForm = await this.incidentSubmission.upsert({
+      ...incidentForm,
+      ...(!saveOnly && { submittedDate: toZonedTime(new Date(), org.timezone || 'America/Los_Angeles') })
+    });
     if (!saveOnly) {
       const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
       if (existing && existing?._id?.toHexString() !== savedForm.id && !['voided', 'declined'].includes(existing?.docusignEvent?.status)) {

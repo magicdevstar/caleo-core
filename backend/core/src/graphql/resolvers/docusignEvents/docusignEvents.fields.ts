@@ -17,5 +17,19 @@ export const fields = {
     ) => context.docusign.getDocumentUrl({
       event,
     }),
+    documentUrls: async (
+      event: IDocusignEvent,
+      _: unknown,
+      context: Context
+    ) => {
+      const doc1 = await context.docusign.getDocumentUrl({
+        event,
+      });
+      const doc2 = await context.docusign.getDocumentUrl({
+        event,
+        docId: '2',
+      });
+      return [doc1, doc2].filter(Boolean);
+    },
   }
 };

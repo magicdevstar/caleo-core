@@ -909,6 +909,7 @@ type DocusignEvent {
 
   shift: Shift
   documentUrl: String
+  documentUrls: [String]
 }
 
 type DocusignSignerDetails {
@@ -1838,6 +1839,7 @@ type DocusignSignerDetailsData {
 
     step: Int
     status: IncidentFormStatus
+    submittedDate: DateTime
 
     envelopeId: String
     eventId: ObjectId!
@@ -1850,6 +1852,7 @@ type DocusignSignerDetailsData {
 
     event: Event!
     user: User!
+    reviewerUser: OutsideUser
     modifiedBy: User!
     org: Organization!
 
@@ -1957,6 +1960,9 @@ type DocusignSignerDetailsData {
     query: String
     orderBy: String
     order: String
+    status: IncidentFormStatus
+    userId: ObjectId
+    submittedDate: SearchDateFilter
     eventId: ObjectId!
   }
 
@@ -2143,6 +2149,12 @@ type DocusignSignerDetailsData {
     gte: String
     lte: String
     value: String
+  }
+
+  input SearchDateFilter {
+    gte: DateTime
+    lte: DateTime
+    value: DateTime
   }
 
   input SearchTimeRange {

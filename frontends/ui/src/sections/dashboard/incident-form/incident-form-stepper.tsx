@@ -59,8 +59,8 @@ const IncidentFormSchema = Yup.object().shape({
     type: Yup.string().required('Paid or Saved selection is required'),
     overtimeHours: Yup.number().nullable().min(0, 'Must be positive'),
     straightHours: Yup.number().nullable().min(0, 'Must be positive'),
-    overtimeHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
-    straightHoursDisplay: Yup.string().nullable().matches(/^\d+:\d{2}$/, 'Must be in format H:MM'),
+    overtimeHoursDisplay: Yup.string().nullable().matches(/^\d+.\d{2}$/, 'Must be in format H.MM'),
+    straightHoursDisplay: Yup.string().nullable().matches(/^\d+.\d{2}$/, 'Must be in format H.MM'),
     timeIn: Yup.date().nullable().when('rdo', {
       is: 'no',
       then: (schema) => schema.required('Time In is required'),
@@ -249,8 +249,6 @@ export default function IncidentFormStepper({
     getValues,
     trigger,
   } = methods;
-
-  console.log(methods.formState.errors)
 
   const onSubmit = async (data: IncidentFormSchemaType) => {
     try {

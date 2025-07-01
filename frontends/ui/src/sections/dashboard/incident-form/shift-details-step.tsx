@@ -7,7 +7,6 @@ import { RHFTimePicker } from '../../../components/hook-form';
 
 export default function ShiftDetailsStep() {
   const minTimeIn = useWatch({ name: 'timekeeping.minTimeIn' });
-  const enrouteToIncident = useWatch({ name: 'shiftDetails.enrouteToIncident' });
   const { setValue } = useFormContext();
 
   // Calculate 18-hour time when enroute time changes

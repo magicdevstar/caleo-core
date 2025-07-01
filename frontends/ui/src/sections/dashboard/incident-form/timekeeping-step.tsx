@@ -1,7 +1,7 @@
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import { useWatch, useFormContext } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { RHFRadioGroup, RHFTextField, RHFTimePicker } from '../../../components/hook-form';
 import { TotalBox } from './total-box';
 
@@ -41,6 +41,8 @@ export const getEarliestTime = (times: Date[]) => {
 
 export default function TimekeepingStep() {
   const { setValue, getValues } = useFormContext();
+  // Our best effort to auto calculate the enrouteToIncident time when they are first filling out the form
+  const enrouteToIncidentHasValue = useMemo(() => !!getValues('shiftDetails.enrouteToIncident'), [getValues]);
   const rdoValue = useWatch({ name: 'timekeeping.rdo' });
   const timeIn = useWatch({ name: 'timekeeping.timeIn' });
   const timeOut = useWatch({ name: 'timekeeping.timeOut' });
@@ -79,18 +81,16 @@ export default function TimekeepingStep() {
 
   // Set enrouteToIncident to earliest time if not already set
   useEffect(() => {
-    const currentEnrouteToIncident = getValues('shiftDetails.enrouteToIncident');
-    
     // Only set if enrouteToIncident is not already set
-    if (!currentEnrouteToIncident) {
-      const times = [timeIn, overtimeTimeIn].filter(Boolean);
+    if (!enrouteToIncidentHasValue) {
+      const times = [timeIn, overtimeTimeIn].filter((val) => val instanceof Date && !Number.isNaN(val.getTime()));
       const earliestTime = getEarliestTime(times as Date[]);
       if (earliestTime) {
         setValue('timekeeping.minTimeIn', earliestTime);
         setValue('shiftDetails.enrouteToIncident', earliestTime);
       }
     }
-  }, [timeIn, overtimeTimeIn, setValue, getValues]);
+  }, [enrouteToIncidentHasValue, timeIn, overtimeTimeIn, setValue, getValues]);
   
   return (
     <Stack spacing={3}>

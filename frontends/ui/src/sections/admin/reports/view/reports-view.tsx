@@ -23,6 +23,8 @@ import ShiftsByDate from '../reports/shifts-by-date';
 import NoShowByOfficer from '../reports/no-show-by-officer';
 import EventBillingByEvent from '../reports/event-billing-by-event';
 import OvertimeSlipDataByEvent from '../reports/overtime-slip-data-by-event';
+import { IncidentReimbursementReport } from '../reports/incident-reimbursment';
+import { FEMAReimbursementReport } from '../reports/fema-reimbursment';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -49,6 +51,10 @@ const ReportTypeSwitch = memo(({ reportType }: { reportType: ReportType }) => {
       return <RelinquishedShiftsByOfficer />;
     case ReportType.NO_SHOW_REPORT_BY_OFFICER:
       return <NoShowByOfficer />;
+    case ReportType.INCIDENT_REIMBURSEMENT:
+      return <IncidentReimbursementReport />;
+    case ReportType.FEMA_REIMBURSEMENT:
+      return <FEMAReimbursementReport />;
     default:
       return null;
   }

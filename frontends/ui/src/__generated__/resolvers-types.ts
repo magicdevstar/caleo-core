@@ -308,6 +308,7 @@ export type DocusignEvent = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   documentUrl?: Maybe<Scalars['String']['output']>;
+  documentUrls?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   envelopeId: Scalars['String']['output'];
   eventId?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -673,9 +674,11 @@ export type IncidentForm = {
   orgId: Scalars['ObjectId']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   reviewer: Scalars['String']['output'];
+  reviewerUser?: Maybe<OutsideUser>;
   shiftDetails: ShiftDetails;
   status?: Maybe<IncidentFormStatus>;
   step?: Maybe<Scalars['Int']['output']>;
+  submittedDate?: Maybe<Scalars['DateTime']['output']>;
   timekeeping: Timekeeping;
   updatedAt: Scalars['String']['output'];
   user: User;
@@ -696,6 +699,9 @@ export type IncidentFormSearchInput = {
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<IncidentFormStatus>;
+  submittedDate?: InputMaybe<SearchDateFilter>;
+  userId?: InputMaybe<Scalars['ObjectId']['input']>;
 };
 
 export type IncidentFormSearchResult = {
@@ -1853,6 +1859,7 @@ export type QueryInAppNotificationsArgs = {
 
 export type QueryIncidentFormsArgs = {
   input?: InputMaybe<IncidentFormSearchInput>;
+  report?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -2079,6 +2086,12 @@ export type RankSearchResult = {
   __typename?: 'RankSearchResult';
   items?: Maybe<Array<Maybe<Rank>>>;
   total: Scalars['Int']['output'];
+};
+
+export type SearchDateFilter = {
+  gte?: InputMaybe<Scalars['DateTime']['input']>;
+  lte?: InputMaybe<Scalars['DateTime']['input']>;
+  value?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 export type SearchInput = {
@@ -3310,6 +3323,7 @@ export type ResolversTypes = ResolversObject<{
   RankGroupSearchResult: ResolverTypeWrapper<RankGroupSearchResult>;
   RankSearchInput: RankSearchInput;
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
+  SearchDateFilter: SearchDateFilter;
   SearchInput: SearchInput;
   SearchTimeFilter: SearchTimeFilter;
   SearchTimeRange: SearchTimeRange;
@@ -3536,6 +3550,7 @@ export type ResolversParentTypes = ResolversObject<{
   RankGroupSearchResult: RankGroupSearchResult;
   RankSearchInput: RankSearchInput;
   RankSearchResult: RankSearchResult;
+  SearchDateFilter: SearchDateFilter;
   SearchInput: SearchInput;
   SearchTimeFilter: SearchTimeFilter;
   SearchTimeRange: SearchTimeRange;
@@ -3795,6 +3810,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  documentUrls?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   envelopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -4008,9 +4024,11 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reviewer?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reviewerUser?: Resolver<Maybe<ResolversTypes['OutsideUser']>, ParentType, ContextType>;
   shiftDetails?: Resolver<ResolversTypes['ShiftDetails'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['IncidentFormStatus']>, ParentType, ContextType>;
   step?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  submittedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   timekeeping?: Resolver<ResolversTypes['Timekeeping'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;

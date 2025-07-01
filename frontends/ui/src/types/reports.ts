@@ -11,6 +11,8 @@ export enum ReportType {
   RANKED_SHIFTS_BY_OFFICER = 'RANKED_SHIFTS_BY_OFFICER',
   RELINQUISHED_SHIFTS_BY_OFFICER = 'RELINQUISHED_SHIFTS_BY_OFFICER',
   NO_SHOW_REPORT_BY_OFFICER = 'NO_SHOW_REPORT_BY_OFFICER',
+  INCIDENT_REIMBURSEMENT = 'INCIDENT_REIMBURSEMENT',
+  FEMA_REIMBURSEMENT = 'FEMA_REIMBURSEMENT',
 }
 
 export const reportTypes = (features: OrganizationFeatures) => {
@@ -35,6 +37,11 @@ export const reportTypes = (features: OrganizationFeatures) => {
     options.push(ReportType.EVENT_BILLING_BY_EVENT, ReportType.OVERTIME_SLIP_DATA_BY_EVENT);
   }
 
+  if (features.incidentEvents) {
+    options.push(ReportType.INCIDENT_REIMBURSEMENT);
+    options.push(ReportType.FEMA_REIMBURSEMENT);
+  }
+
   return options;
 };
 
@@ -49,4 +56,6 @@ export const ReportTypeNames = {
   [ReportType.RANKED_SHIFTS_BY_OFFICER]: 'Ranked Shifts by Officer',
   [ReportType.RELINQUISHED_SHIFTS_BY_OFFICER]: 'Scratched Shifts by Officer',
   [ReportType.NO_SHOW_REPORT_BY_OFFICER]: 'No Show by Officer',
+  [ReportType.INCIDENT_REIMBURSEMENT]: 'Incident Reimbursement',
+  [ReportType.FEMA_REIMBURSEMENT]: 'FEMA Reimbursement',
 };

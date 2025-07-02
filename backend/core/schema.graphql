@@ -1099,6 +1099,7 @@ type DocusignSignerDetailsData {
     name: String!
     active: Boolean!
     hourlyRate: Float
+    incidentHourlyRate: Float
     rankGroupId: String
     docType: DocType!
     orgId: String!
@@ -1117,6 +1118,7 @@ type DocusignSignerDetailsData {
     name: String
     rankGroupId: String
     hourlyRate: Float
+    incidentHourlyRate: Float
     active: Boolean
   }
 
@@ -1201,6 +1203,7 @@ type DocusignSignerDetailsData {
     id: ID!
     name: String!
     active: Boolean!
+    milageRate: Float
     docType: DocType!
     orgId: String!
     createdAt: String!
@@ -1215,6 +1218,7 @@ type DocusignSignerDetailsData {
   input UpsertVehicleCategories {
     id: String
     name: String
+    milageRate: Float
     active: Boolean
   }
 ###### END Vehicle Categories ######

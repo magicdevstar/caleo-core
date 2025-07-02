@@ -102,6 +102,7 @@ export default function VehicleCategoriesTable() {
     ],
     columns: [
       { id: 'name', label: 'Name', columnType: 'string' },
+      { id: 'milageRate', label: 'Milage Rate', width: 110, columnType: 'string', renderValue: (value: string) => `$ ${value || '-'}` },
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

@@ -12,6 +12,7 @@ export const GET_VEHICLE_CATEGORIES = gql`
       items {
         id
         name
+        milageRate
         active
         createdAt
       }

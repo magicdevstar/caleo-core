@@ -30,6 +30,7 @@ interface InputProps {
 const schema = yup.object().shape({
   name: yup.string().trim().required('Name is required'),
   hourlyRate: yup.number().min(0, 'Hourly Rate must be a positive number').nullable(),
+  incidentHourlyRate: yup.number().min(0, 'Incident Hourly Rate must be a positive number').nullable(),
   rankGroup: yup.object().nullable(),
 });
 
@@ -50,6 +51,7 @@ export default function UpsertRankDialogue({
     defaultValues: {
       name: rank?.name || '',
       hourlyRate: rankHourlyRate ? rank?.hourlyRate || 0 : null,
+      incidentHourlyRate: rankHourlyRate ? rank?.incidentHourlyRate || 0 : null,
       rankGroup: rank?.rankGroup || null,
     },
     resolver: yupResolver(schema),
@@ -62,6 +64,7 @@ export default function UpsertRankDialogue({
       setValue('name', rank.name);
       if (rankHourlyRate) {
         setValue('hourlyRate', rank.hourlyRate || 0);
+        setValue('incidentHourlyRate', rank.incidentHourlyRate || 0);
       }
       if (rankGrouping && rank.rankGroup) {
         setValue('rankGroup', rank.rankGroup);
@@ -71,14 +74,14 @@ export default function UpsertRankDialogue({
     }
   }, [rank, rankHourlyRate, rankGrouping, reset, setValue]);
 
-  const onSubmit = async (data: { name: string; hourlyRate: number | null, rankGroup: RankGroup | null }) => {
+  const onSubmit = async (data: { name: string; hourlyRate: number | null, incidentHourlyRate: number | null, rankGroup: RankGroup | null }) => {
     try {
       await rankMutation({
         variables: {
           input: {
             id: rank?.id,
             name: data.name.trim(),
-            ...(rankHourlyRate && { hourlyRate: data.hourlyRate }),
+            ...(rankHourlyRate && { hourlyRate: data.hourlyRate, incidentHourlyRate: data.incidentHourlyRate }),
             active: rank ? rank.active : true,
             ...(rankGrouping && {
               rankGroupId: data.rankGroup?.id || null,
@@ -111,7 +114,10 @@ export default function UpsertRankDialogue({
         <Stack spacing={2} mt={1}>
           <RHFTextField name="name" label="Name" type="text" autoFocus />
           {rankHourlyRate && (
-            <RHFTextField name="hourlyRate" label="Hourly Rate" type="number" />
+            <>
+              <RHFTextField name="hourlyRate" label="Hourly Rate" type="number" />
+              <RHFTextField name="incidentHourlyRate" label="Incident Hourly Rate" type="number" />
+            </>
           )}
           {rankGrouping && (
             <RHFRankGroup name="rankGroup" label="Rank Group" />

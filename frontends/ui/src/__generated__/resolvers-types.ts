@@ -2032,6 +2032,7 @@ export type Rank = {
   docType: DocType;
   hourlyRate?: Maybe<Scalars['Float']['output']>;
   id: Scalars['ID']['output'];
+  incidentHourlyRate?: Maybe<Scalars['Float']['output']>;
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
@@ -2835,6 +2836,7 @@ export type UpsertRank = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   hourlyRate?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  incidentHourlyRate?: InputMaybe<Scalars['Float']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   rankGroupId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -2919,6 +2921,7 @@ export type UpsertUserRelinquishShift = {
 export type UpsertVehicleCategories = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  milageRate?: InputMaybe<Scalars['Float']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3022,6 +3025,7 @@ export type VehicleCategories = {
   createdAt: Scalars['String']['output'];
   docType: DocType;
   id: Scalars['ID']['output'];
+  milageRate?: Maybe<Scalars['Float']['output']>;
   modifiedBy?: Maybe<User>;
   modifiedById?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
@@ -4587,6 +4591,7 @@ export type RankResolvers<ContextType = any, ParentType extends ResolversParentT
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   hourlyRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  incidentHourlyRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4979,6 +4984,7 @@ export type VehicleCategoriesResolvers<ContextType = any, ParentType extends Res
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  milageRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

@@ -98,7 +98,17 @@ export default function RankTable() {
     ],
     columns: [
       { id: 'name', label: 'Rank', columnType: 'string' },
-      ...(rankHourlyRate ? [{ id: 'hourlyRate', label: 'Hourly Rate', width: 110, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
+      ...(rankHourlyRate ? [{
+        id: 'hourlyRate',
+        label: 'Hourly/Incident Rate',
+        width: 180,
+        columnType: 'string',
+        renderValue: (value: string, _index: number, row: Rank) => {
+          const rate = `$ ${value || '-'}`;
+          const incidentRate = row.incidentHourlyRate ? ` / ${row.incidentHourlyRate}` : ' / -';
+          return `${rate}${incidentRate}`;
+        }
+      }] : [] as any[]),
       ...(rankGrouping ? [{ id: 'rankGroup.name', label: 'Group Name', width: 210, columnType: 'string', renderValue: (value: string) => value || '-' }] : [] as any[]),
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },

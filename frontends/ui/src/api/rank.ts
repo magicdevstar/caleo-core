@@ -13,6 +13,7 @@ export const GET_RANKS = gql`
         id
         name
         hourlyRate
+        incidentHourlyRate
         active
         createdAt
         rankGroup {

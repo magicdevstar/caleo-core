@@ -21,7 +21,6 @@ export default function EventDetail() {
   const params = useParams();
   const shouldSkip = !params.eventId || params.eventId === 'new';
 
-
   const { data, refetch, loading, error } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions

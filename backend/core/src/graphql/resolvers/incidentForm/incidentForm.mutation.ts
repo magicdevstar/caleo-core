@@ -26,8 +26,9 @@ export const Mutation = {
       });
       return res;
     } catch(error) {
-      if (error.message === 'An incident form already exists for this event and date') {
-        throw new GraphQLError(error.message);
+      const e = error as Error;
+      if (e.message === 'An incident form already exists for this event and date') {
+        throw new GraphQLError(e.message);
       }
       logger.error('Error in incidentForm mutation:', { error });
       throw new GraphQLError('Failed to save incident form');

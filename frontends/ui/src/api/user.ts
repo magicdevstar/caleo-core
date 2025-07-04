@@ -58,6 +58,7 @@ const userDetailProperties = `
         incidentEvents
         outsideUserList
         signingAuthorityAssignment
+        financeUnit
       }
       customizations {
         pNumber

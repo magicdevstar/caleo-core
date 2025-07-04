@@ -1,7 +1,5 @@
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { RHFVehicleCategoriesSelect } from 'src/components/hook-form/rhf-vehicle-categories-select';
 import { RHFRadioGroup, RHFTextField } from '../../../components/hook-form';

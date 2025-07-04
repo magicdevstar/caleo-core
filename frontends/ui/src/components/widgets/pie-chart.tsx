@@ -4,7 +4,7 @@ import { useTheme, styled } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Card, { CardProps } from '@mui/material/Card';
 // utils
-import { fNumber } from 'src/utils/format-number';
+import { fCurrency, fNumber } from 'src/utils/format-number';
 // components
 import Chart, { useChart } from 'src/components/chart';
 
@@ -31,6 +31,7 @@ const StyledChart = styled(Chart)(({ theme }) => ({
 interface Props extends CardProps {
   title?: string;
   subheader?: string;
+  currency?: boolean;
   chart: {
     colors?: string[];
     series: {
@@ -41,7 +42,7 @@ interface Props extends CardProps {
   };
 }
 
-export default function PieChart({ title, subheader, chart, ...other }: Props) {
+export default function PieChart({ title, subheader, chart, currency, ...other }: Props) {
   const theme = useTheme();
 
   const { colors, series, options } = chart;
@@ -66,7 +67,7 @@ export default function PieChart({ title, subheader, chart, ...other }: Props) {
     tooltip: {
       fillSeriesColor: false,
       y: {
-        formatter: (value: number) => fNumber(value),
+        formatter: (value: number) => currency ? fCurrency(value) : fNumber(value),
         title: {
           formatter: (seriesName: string) => `${seriesName}`,
         },
@@ -78,12 +79,12 @@ export default function PieChart({ title, subheader, chart, ...other }: Props) {
           size: '90%',
           labels: {
             value: {
-              formatter: (value: number | string) => fNumber(value),
+              formatter: (value: number | string) => currency ? fCurrency(value) : fNumber(value),
             },
             total: {
               formatter: (w: { globals: { seriesTotals: number[] } }) => {
                 const sum = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                return fNumber(sum);
+                return currency ? fCurrency(sum) : fNumber(sum);
               },
             },
           },

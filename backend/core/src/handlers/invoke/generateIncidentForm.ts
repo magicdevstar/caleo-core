@@ -13,7 +13,7 @@ const generateIncidentForm = async (event: IIncidentInput): Promise<IGenerateFor
         const incidentService = await IncidentForm(event);
         const res = await incidentService.submitForm();
         return res;
-      case IncidentFormType.LASD_INCIDENT_FORM:
+      case IncidentFormType.LASD_OVERTIME_SLIP:
         logger.info('Generating LASD Incident Form', { event });
         const overtimeService = await OvertimeForm(event);
         const overtimeResponse = await overtimeService.submitForm();

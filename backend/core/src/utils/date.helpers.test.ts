@@ -22,8 +22,8 @@ describe('date helpers', () => {
       const endDate = new Date('2023-10-01T13:34:56Z');
       const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.startTime.getMinutes()).toBe(30);
-      expect(result.endTime.getMinutes()).toBe(45);
+      expect(result.startTime?.getMinutes()).toBe(30);
+      expect(result.endTime?.getMinutes()).toBe(45);
       expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
@@ -33,8 +33,8 @@ describe('date helpers', () => {
       const endDate = new Date('2023-10-01T13:30:00Z');
       const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
-      expect(result.startTime.getMinutes()).toBe(15); // Should stay at 15
-      expect(result.endTime.getMinutes()).toBe(30); // Should stay at 30
+      expect(result.startTime?.getMinutes()).toBe(15); // Should stay at 15
+      expect(result.endTime?.getMinutes()).toBe(30); // Should stay at 30
       expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
@@ -54,7 +54,7 @@ describe('date helpers', () => {
       const timezone = 'America/Los_Angeles' as Timezone;
       const result = docusignDates({ startTime: date, endTime: endDate, timezone });
       // Check day transition is maintained properly
-      expect(result.startTime.getDate()).not.toBe(result.endTime.getDate());
+      expect(result.startTime?.getDate()).not.toBe(result.endTime?.getDate());
       expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
     });
 
@@ -86,10 +86,10 @@ describe('date helpers', () => {
       
       // Check that 2 hours were subtracted from start time
       // Original start time would be 5:00 AM Pacific (12:00 UTC), minus 2 hours = 3:00 AM
-      expect(result.startTime.getHours()).toBe(3);
-      
+      expect(result.startTime?.getHours()).toBe(3);
+
       // Default 1 hour added to end time
-      expect(result.endTime.getHours()).toBe(7); // 13:00 UTC + 1 hour = 7:00 AM Pacific (14:00 UTC)
+      expect(result.endTime?.getHours()).toBe(7); // 13:00 UTC + 1 hour = 7:00 AM Pacific (14:00 UTC)
     });
 
     it('should handle endEquipmentTime by adding hours to end time', () => {
@@ -107,10 +107,10 @@ describe('date helpers', () => {
       });
       
       // No start equipment time, so start is unmodified
-      expect(result.startTime.getHours()).toBe(5); // 12:00 UTC = 5:00 AM Pacific
+      expect(result.startTime?.getHours()).toBe(5); // 12:00 UTC = 5:00 AM Pacific
       
       // End time should have 3 hours added instead of default 1
-      expect(result.endTime.getHours()).toBe(9); // 13:00 UTC + 3 hours = 9:00 AM Pacific (16:00 UTC)
+      expect(result.endTime?.getHours()).toBe(9); // 13:00 UTC + 3 hours = 9:00 AM Pacific (16:00 UTC)
     });
 
     it('should handle both startEquipmentTime and endEquipmentTime together', () => {
@@ -129,10 +129,10 @@ describe('date helpers', () => {
       });
       
       // Start time should be 1 hour earlier
-      expect(result.startTime.getHours()).toBe(4); // 12:00 UTC - 1 hour = 4:00 AM Pacific
+      expect(result.startTime?.getHours()).toBe(4); // 12:00 UTC - 1 hour = 4:00 AM Pacific
       
       // End time should have 2 hours added
-      expect(result.endTime.getHours()).toBe(8); // 13:00 UTC + 2 hours = 8:00 AM Pacific
+      expect(result.endTime?.getHours()).toBe(8); // 13:00 UTC + 2 hours = 8:00 AM Pacific
       
       // Difference should be 4 hours (original 1 hour + 1 hour start + 2 hours end)
       expect(result.formattedDiff).toBe(4);
@@ -150,7 +150,7 @@ describe('date helpers', () => {
       });
       
       // End time should still have default 1 hour added
-      expect(result.endTime.getHours()).toBe(7); // 13:00 UTC + 1 hour = 7:00 AM Pacific
+      expect(result.endTime?.getHours()).toBe(7); // 13:00 UTC + 1 hour = 7:00 AM Pacific
     });
   });
 });

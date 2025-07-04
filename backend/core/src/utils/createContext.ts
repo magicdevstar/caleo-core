@@ -43,6 +43,7 @@ import { RankGroupRepo } from "../models/rankGroup/rankGroup.repository";
 import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { OutsideUserRepo } from "../models/outsideUsers/outsideUser.repository";
 import { IncidentSubmissionModel } from "../models/incidentForm";
+import { FinanceService } from "../services/finance.service";
 
 let db: Db;
 
@@ -94,6 +95,7 @@ export interface Context {
   incidentSubmissionModel: IncidentSubmissionModel;
   rankGroups: RankGroupRepo;
   outsideUsers: OutsideUserService;
+  finance: FinanceService;
   organization: IOrganization;
   user: IUser;
   originalUser?: IUser;
@@ -189,6 +191,12 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     changesModel,
   );
 
+  const finance = new FinanceService(
+    events,
+    shifts,
+    incidentSubmissionModel,
+  );
+
   return {
     db,
     organizations,
@@ -227,5 +235,6 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     outsideUsers,
     docusignModel,
     incidentSubmissionModel,
+    finance,
   };
 };

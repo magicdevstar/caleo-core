@@ -59,6 +59,7 @@
     "apexcharts": "^4.5.0",
     "autosuggest-highlight": "^3.3.4",
     "axios": "^1.4.0",
+    "bignumber.js": "^9.3.0",
     "bson-objectid": "^2.0.4",
     "copy-to-clipboard": "^3.3.3",
     "date-fns": "^2.30.0",

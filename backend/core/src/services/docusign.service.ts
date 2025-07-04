@@ -326,7 +326,7 @@ export class Docusign {
       const eventLieutenantId = event.lieutenantId;
       const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-      let eventSupervisorId = event.supervisorId;
+      const eventSupervisorId = event.supervisorId;
       const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
       const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));
@@ -387,7 +387,7 @@ export class Docusign {
           const eventLieutenantId = event.lieutenantId;
           const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-          let eventSupervisorId = event.supervisorId;
+          const eventSupervisorId = event.supervisorId;
           const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
           const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));
@@ -464,7 +464,7 @@ export class Docusign {
         const eventLieutenantId = event.lieutenantId;
         const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-        let eventSupervisorId = event.supervisorId;
+        const eventSupervisorId = event.supervisorId;
         const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
         const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));

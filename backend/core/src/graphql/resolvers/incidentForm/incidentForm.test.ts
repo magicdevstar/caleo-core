@@ -6,14 +6,18 @@ import {
   jest,
 } from '@jest/globals';
 import { testingService } from '../../../services/testing/testing.service';
+import { ObjectId } from 'mongodb';
 
 // Mock the Docusign class
 jest.mock('./../../../services/docusign.service', () => {
   return {
     Docusign: jest.fn().mockImplementation(() => {
       return {
-        submitIncidentForm: () => Promise.resolve({
-          envelopeId: 'mock-envelope-id-12345',
+        submitIncidentForm: (input) => Promise.resolve({
+          incidentForm: {
+            ...input.incidentForm,
+            id: new ObjectId().toString(),
+          },
           signingUrl: 'http://mock-signing-url.com',
         }),
       };
@@ -38,7 +42,7 @@ describe('Incident Form', () => {
       "operationalPeriod": {
         "date": "2025-06-12"
       },
-      "reviewer": "John Doe",
+      "reviewer": new ObjectId().toString(),
       "timekeeping": {
         "rdo": "no",
         "straightHours": 8.0,
@@ -54,7 +58,7 @@ describe('Incident Form', () => {
       },
       "vehicleInformation": {
         "hasVehicle": "yes",
-        "vehicleCategory": "SUV",
+        "vehicleCategory": new ObjectId().toString(),
         "vehicleMake": "Ford",
         "vehicleModel": "Explorer",
         "vehicleNumber": "F1234",

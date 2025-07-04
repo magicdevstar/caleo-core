@@ -10,8 +10,18 @@ import { adminOnly } from "../../../utils/access";
 import { SearchResults } from "../../../utils/common.resolvers";
 import { IUserSearchResult } from "../../../types/common";
 import { IShift } from "../../../models/shift";
+import { IFinanceShift } from "../../../services/finance.service";
 
 export const Query = {
+  financeShifts: async (
+    _parent: unknown,
+    { eventId }: { eventId: ObjectId },
+    { finance, user, organization }: Context
+  ): Promise<IFinanceShift[]> => {
+    adminOnly(user);
+
+    return finance.get(eventId, organization);
+  },
   shiftTabs: async (
     _parent: unknown,
     { id }: { id: string },

@@ -1,0 +1,159 @@
+import { 
+  calculateOptimalBuckets, 
+  generateTimeBuckets, 
+  calculateShiftCost,
+  groupShiftsIntoBuckets 
+} from '../use-shifts-by-date';
+import { FinanceShift } from 'src/__generated__/resolvers-types';
+
+// Example test cases showing how the functions can be tested
+describe('Bucketing Calculations', () => {
+  describe('calculateOptimalBuckets', () => {
+    it('should return daily buckets for short time spans', () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-10');
+      
+      const result = calculateOptimalBuckets(startDate, endDate);
+      
+      expect(result.bucketType).toBe('day');
+      expect(result.bucketCount).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should return weekly buckets for medium time spans', () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-02-15');
+      
+      const result = calculateOptimalBuckets(startDate, endDate);
+      
+      expect(result.bucketType).toBe('week');
+      expect(result.bucketCount).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should return monthly buckets for longer time spans', () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-12-31');
+      
+      const result = calculateOptimalBuckets(startDate, endDate);
+      
+      expect(result.bucketType).toBe('month');
+      expect(result.bucketCount).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('generateTimeBuckets', () => {
+    it('should generate correct number of buckets', () => {
+      const options = {
+        bucketType: 'month' as const,
+        bucketCount: 3,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-03-31'),
+      };
+      
+      const buckets = generateTimeBuckets(options);
+      
+      expect(buckets).toHaveLength(3);
+      expect(buckets[0].label).toContain('Jan');
+      expect(buckets[1].label).toContain('Feb');
+      expect(buckets[2].label).toContain('Mar');
+    });
+  });
+
+  describe('calculateShiftCost', () => {
+    it('should calculate total cost correctly', () => {
+      const mockShift: FinanceShift = {
+        __typename: 'FinanceShift',
+        totalOvertimeHours: 2,
+        totalStraightHours: 8,
+        totalVehicleMilage: 100,
+        startTime: '2024-01-01T09:00:00Z',
+        endTime: '2024-01-01T17:00:00Z',
+        user: {} as any,
+        rank: {
+          incidentHourlyRate: 50,
+          hourlyRate: 25,
+        } as any,
+        vehicleCategory: {
+          milageRate: 0.5,
+        } as any,
+      };
+
+      const result = calculateShiftCost(mockShift);
+      
+      // Personnel: (2 * 50) + (8 * 25) = 100 + 200 = 300
+      // Equipment: 100 * 0.5 = 50
+      // Total: 300 + 50 = 350
+      expect(result).toBe(350);
+    });
+
+    it('should handle missing rates gracefully', () => {
+      const mockShift: FinanceShift = {
+        __typename: 'FinanceShift',
+        totalOvertimeHours: 2,
+        totalStraightHours: 8,
+        totalVehicleMilage: 100,
+        startTime: '2024-01-01T09:00:00Z',
+        endTime: '2024-01-01T17:00:00Z',
+        user: {} as any,
+        rank: null,
+        vehicleCategory: null,
+      };
+
+      const result = calculateShiftCost(mockShift);
+      
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('groupShiftsIntoBuckets', () => {
+    it('should group shifts into correct buckets', () => {
+      const shifts: FinanceShift[] = [
+        {
+          __typename: 'FinanceShift',
+          startTime: '2024-01-15T09:00:00Z',
+          endTime: '2024-01-15T17:00:00Z',
+          totalOvertimeHours: 0,
+          totalStraightHours: 8,
+          totalVehicleMilage: 50,
+          user: {} as any,
+          rank: { hourlyRate: 25, incidentHourlyRate: 50 } as any,
+          vehicleCategory: { milageRate: 0.5 } as any,
+        },
+        {
+          __typename: 'FinanceShift',
+          startTime: '2024-02-15T09:00:00Z',
+          endTime: '2024-02-15T17:00:00Z',
+          totalOvertimeHours: 2,
+          totalStraightHours: 6,
+          totalVehicleMilage: 30,
+          user: {} as any,
+          rank: { hourlyRate: 25, incidentHourlyRate: 50 } as any,
+          vehicleCategory: { milageRate: 0.5 } as any,
+        },
+      ];
+
+      const buckets = [
+        {
+          label: 'Jan 2024',
+          start: new Date('2024-01-01'),
+          end: new Date('2024-02-01'),
+          count: 0,
+          totalCost: 0,
+        },
+        {
+          label: 'Feb 2024',
+          start: new Date('2024-02-01'),
+          end: new Date('2024-03-01'),
+          count: 0,
+          totalCost: 0,
+        },
+      ];
+
+      const result = groupShiftsIntoBuckets(shifts, buckets);
+
+      expect(result[0].count).toBe(1);
+      expect(result[0].totalCost).toBe(225); // (8 * 25) + (50 * 0.5) = 200 + 25 = 225
+      expect(result[1].count).toBe(1);
+      expect(result[1].totalCost).toBe(265); // (2 * 50) + (6 * 25) + (30 * 0.5) = 100 + 150 + 15 = 265
+    });
+  });
+});

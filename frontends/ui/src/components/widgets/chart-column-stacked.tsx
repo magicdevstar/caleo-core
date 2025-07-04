@@ -3,6 +3,8 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 // components
 import Chart, { useChart } from 'src/components/chart';
+// utils
+import { fCurrency, fNumber } from 'src/utils/format-number';
 
 // ----------------------------------------------------------------------
 
@@ -10,6 +12,7 @@ type Props = {
   title: string;
   height?: number;
   categories: string[];
+  currency?: boolean;
   series: {
     name: string;
     data: number[];
@@ -18,6 +21,7 @@ type Props = {
 
 export default function ChartColumnStacked({
   title,
+  currency,
   categories,
   height = 375,
   series
@@ -47,6 +51,20 @@ export default function ChartColumnStacked({
     xaxis: {
       type: 'category',
       categories,
+    },
+    yaxis: {
+      labels: {
+        formatter: (value: number) => currency ? fCurrency(value) : fNumber(value),
+      },
+    },
+    tooltip: {
+      y: {
+        formatter: (value: number) => currency ? fCurrency(value) : fNumber(value),
+      },
+    },
+    dataLabels: {
+      enabled: false, // You can enable this if you want data labels on the bars
+      formatter: (value: number) => currency ? fCurrency(value) : fNumber(value),
     },
   });
 

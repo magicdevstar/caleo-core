@@ -728,6 +728,21 @@
     docusignEvent: DocusignEvent
   }
 
+  # Normalized shift between an incident and a regular shift
+  type FinanceShift {
+    user: User!
+    rank: Rank
+    division: Division
+    unit: Unit
+    startTime: DateTime!
+    endTime: DateTime!
+    totalOvertimeHours: Float!
+    totalStraightHours: Float!
+    totalVehicleMilage: Float!
+    vehicleCategory: VehicleCategories
+    docusignEvent: DocusignEvent
+  }
+
   type ShiftCheckOutResponse {
     shift: Shift!
     signingUrl: String
@@ -928,6 +943,8 @@ type DocusignSignerDetailsData {
   endingMilage: String
   totalMilage: String
   startingMilage: String
+  officerShiftTimeIn: String
+  officerShiftTimeOut: String
 }
 ###### END Docusign Events ######
 
@@ -1400,6 +1417,7 @@ type DocusignSignerDetailsData {
     incidentEvents: Boolean!
     outsideUserList: Boolean!
     signingAuthorityAssignment: Boolean!
+    financeUnit: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1609,6 +1627,7 @@ type DocusignSignerDetailsData {
     incidentEvents: Boolean
     outsideUserList: Boolean
     signingAuthorityAssignment: Boolean
+    financeUnit: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -1785,7 +1804,7 @@ type DocusignSignerDetailsData {
 
   type VehicleInformation {
     hasVehicle: String # "yes" or "no"
-    vehicleCategory: String # required when hasVehicle is "yes"
+    vehicleCategory: ObjectId # required when hasVehicle is "yes"
     vehicleMake: String # required when hasVehicle is "yes"
     vehicleModel: String # required when hasVehicle is "yes"
     vehicleNumber: String # required when hasVehicle is "yes"
@@ -1834,7 +1853,7 @@ type DocusignSignerDetailsData {
   type IncidentForm {
     id: ID!
     operationalPeriod: OperationalPeriod!
-    reviewer: String!
+    reviewer: ObjectId!
     timekeeping: Timekeeping!
     shiftDetails: ShiftDetails!
     vehicleInformation: VehicleInformation!
@@ -1893,7 +1912,7 @@ type DocusignSignerDetailsData {
 
   input IVehicleInformation {
     hasVehicle: String # "yes" or "no"
-    vehicleCategory: String # required when hasVehicle is "yes"
+    vehicleCategory: ObjectId # required when hasVehicle is "yes"
     vehicleMake: String # required when hasVehicle is "yes"
     vehicleModel: String # required when hasVehicle is "yes"
     vehicleNumber: String # required when hasVehicle is "yes"
@@ -1937,7 +1956,7 @@ type DocusignSignerDetailsData {
   input IIncidentForm {
     id: ID
     operationalPeriod: IOperationalPeriod!
-    reviewer: String!
+    reviewer: ObjectId!
     timekeeping: ITimekeeping!
     shiftDetails: IShiftDetails!
     vehicleInformation: IVehicleInformation!
@@ -1956,6 +1975,10 @@ type DocusignSignerDetailsData {
     query: String
     orderBy: String
     order: String
+  }
+
+  input FinanceShiftSearchInput {
+    eventId: ObjectId!
   }
 
   input IncidentFormSearchInput {
@@ -2438,6 +2461,7 @@ type Query {
   shiftLotteryRequests(input: ShiftLotteryRequestsSearchInput): ShiftLotteryRequestsSearchResult
   shiftLottoRequests(input: ShiftLottoRequestsSearchInput!): ShiftLotteryRequestsSearchResult
   shiftInterestRequests(input: ShiftInterestRequestsSearchInput): ShiftInterestRequestsSearchResult
+  financeShifts(eventId: ObjectId!): [FinanceShift]
 
   lotteryCounter(counter: Int): LotteryCounter
   lotteryCounters(input: SearchInput): LotteryCounterSearchResult

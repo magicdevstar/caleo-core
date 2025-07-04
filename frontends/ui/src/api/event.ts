@@ -347,6 +347,16 @@ export const GET_EVENT_FOR_SUMMARY = gql`
   }
 `;
 
+export const GET_EVENT_SLIM = gql`
+  query GetEventSlim($id: String!) {
+    event(id: $id) {
+      id
+      name
+      status
+    }
+  }
+`;
+
 export const GET_EVENT = gql`
   query GetEvent($id: String!) {
     event(id: $id) {

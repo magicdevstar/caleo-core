@@ -42,6 +42,8 @@ const EditEventAssignment = lazyWithRetry(() => import('src/pages/dashboard/admi
 const EditEventAssignmentShift = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editShift'));
 const IncidentForm = lazyWithRetry(() => import('src/pages/dashboard/incidents/incident-form'));
 const OutsideUsers = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/outsideUsers'));
+const FinanceUnit = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/finance-unit'));
+const FinanceUnitDetail = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/finance-unit-detail'));
 
 // ----------------------------------------------------------------------
 
@@ -73,6 +75,8 @@ export const dashboardRoutes = [
             path: 'event-management',
             children: [
               { path: 'dashboards', element: <EventDashboards /> },
+              { path: 'finance-unit', element: <FinanceUnit /> },
+              { path: 'finance-unit/:eventId', element: <FinanceUnitDetail /> },
             ]
           },
           {

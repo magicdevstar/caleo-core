@@ -1001,6 +1001,46 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
   }
 `;
 
+export const GET_ALL_FINANCE_SHIFTS = gql`
+  query GetAllFinanceShifts($eventId: ObjectId!) {
+    financeShifts(eventId: $eventId) {
+      startTime
+      endTime
+      totalOvertimeHours
+      totalStraightHours
+      totalVehicleMilage
+      user {
+        id
+        name
+      }
+      docusignEvent {
+        id
+        status
+        documentUrls
+      }
+      rank {
+        id
+        name
+        hourlyRate
+        incidentHourlyRate
+      }
+      division {
+        id
+        name
+      }
+      unit {
+        id
+        name
+      }
+      vehicleCategory {
+        id
+        name
+        milageRate
+      }
+    }
+  }
+`;
+
 export const SET_SHIFT_BUFFER_STATUS = gql`
   mutation SetShiftBufferStatus($id: String!, $status: ShiftBufferRequestStatus!, $reason: String) {
     setShiftBufferStatus(id: $id, status: $status, reason: $reason) {

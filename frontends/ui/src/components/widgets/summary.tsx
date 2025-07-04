@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Card, { CardProps } from '@mui/material/Card';
 // utils
-import { fNumber, fPercent } from 'src/utils/format-number';
+import { fNumber, fCurrency, fPercent } from 'src/utils/format-number';
 // components
 import Iconify from 'src/components/iconify';
 import Chart from 'src/components/chart';
@@ -17,6 +17,7 @@ interface Props extends CardProps {
   title: string;
   total: number;
   percent: number;
+  currency?: boolean;
   chart: {
     colors?: string[];
     series: number[];
@@ -24,8 +25,10 @@ interface Props extends CardProps {
   };
 }
 
-export default function SummaryWidget({ title, percent, total, chart, sx, ...other }: Props) {
+export default function SummaryWidget({ title, percent, total, chart, sx, currency, ...other }: Props) {
   const theme = useTheme();
+  
+  const formattedTotal = currency ? fCurrency(total) : fNumber(total);
 
   const {
     colors = [theme.palette.primary.light, theme.palette.primary.main],
@@ -97,7 +100,7 @@ export default function SummaryWidget({ title, percent, total, chart, sx, ...oth
           </Typography>
         </Stack>
 
-        <Typography variant="h3">{fNumber(total)}</Typography>
+        <Typography variant="h3">{formattedTotal}</Typography>
       </Box>
 
       <Chart type="bar" series={[{ data: series }]} options={chartOptions as any} width={60} height={36} />

@@ -3,7 +3,6 @@ import { AssignmentSearchInput } from "../../../__generated__/resolvers-types";
 import { SearchResults } from "../../../utils/common.resolvers";
 import { IAssignment } from "../../../models/assignment";
 import { ObjectId } from "mongodb";
-import { IUser } from "../../../types/common";
 
 export const Query = {
   assignment: async (

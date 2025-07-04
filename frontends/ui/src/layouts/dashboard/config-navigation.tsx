@@ -53,6 +53,7 @@ export function useNavData() {
     lottery,
     lasdUserFields,
     eventTemplates,
+    financeUnit,
     kiosk,
     outsideUserList,
   } = useFeatures();
@@ -102,6 +103,9 @@ export function useNavData() {
                 icon: ICONS.tour,
                 children: [
                   { title: 'Resource Unit', path: paths.dashboard.admin.eventManagement.eventDashboards },
+                  ...(financeUnit ? [
+                    { title: 'Finance Unit', path: paths.dashboard.admin.eventManagement.financeUnit, internalChildRoutes: true },
+                  ] : [])
                 ],
               }
             ] : []),
@@ -143,6 +147,7 @@ export function useNavData() {
       kiosk,
       user?.role,
       equipment,
+      financeUnit,
       lottery,
       lasdUserFields,
       eventTemplates,

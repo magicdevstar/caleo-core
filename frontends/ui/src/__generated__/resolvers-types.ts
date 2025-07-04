@@ -364,6 +364,8 @@ export type DocusignSignerDetailsData = {
   __typename?: 'DocusignSignerDetailsData';
   callSign?: Maybe<Scalars['String']['output']>;
   endingMilage?: Maybe<Scalars['String']['output']>;
+  officerShiftTimeIn?: Maybe<Scalars['String']['output']>;
+  officerShiftTimeOut?: Maybe<Scalars['String']['output']>;
   startingMilage?: Maybe<Scalars['String']['output']>;
   totalMilage?: Maybe<Scalars['String']['output']>;
   vehicleMake?: Maybe<Scalars['String']['output']>;
@@ -535,6 +537,25 @@ export enum EventStatus {
   Template = 'TEMPLATE'
 }
 
+export type FinanceShift = {
+  __typename?: 'FinanceShift';
+  division?: Maybe<Division>;
+  docusignEvent?: Maybe<DocusignEvent>;
+  endTime: Scalars['DateTime']['output'];
+  rank?: Maybe<Rank>;
+  startTime: Scalars['DateTime']['output'];
+  totalOvertimeHours: Scalars['Float']['output'];
+  totalStraightHours: Scalars['Float']['output'];
+  totalVehicleMilage: Scalars['Float']['output'];
+  unit?: Maybe<Unit>;
+  user: User;
+  vehicleCategory?: Maybe<VehicleCategories>;
+};
+
+export type FinanceShiftSearchInput = {
+  eventId: Scalars['ObjectId']['input'];
+};
+
 export type IActivityLog = {
   entries?: InputMaybe<Array<InputMaybe<IActivityLogEntry>>>;
 };
@@ -559,7 +580,7 @@ export type IIncidentForm = {
   eventId: Scalars['ObjectId']['input'];
   id?: InputMaybe<Scalars['ID']['input']>;
   operationalPeriod: IOperationalPeriod;
-  reviewer: Scalars['String']['input'];
+  reviewer: Scalars['ObjectId']['input'];
   shiftDetails: IShiftDetails;
   step?: InputMaybe<Scalars['Int']['input']>;
   timekeeping: ITimekeeping;
@@ -607,7 +628,7 @@ export type IVehicleInformation = {
   endingMileage?: InputMaybe<Scalars['Float']['input']>;
   hasVehicle?: InputMaybe<Scalars['String']['input']>;
   startingMileage?: InputMaybe<Scalars['Float']['input']>;
-  vehicleCategory?: InputMaybe<Scalars['String']['input']>;
+  vehicleCategory?: InputMaybe<Scalars['ObjectId']['input']>;
   vehicleMake?: InputMaybe<Scalars['String']['input']>;
   vehicleModel?: InputMaybe<Scalars['String']['input']>;
   vehicleNumber?: InputMaybe<Scalars['String']['input']>;
@@ -673,7 +694,7 @@ export type IncidentForm = {
   org: Organization;
   orgId: Scalars['ObjectId']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
-  reviewer: Scalars['String']['output'];
+  reviewer: Scalars['ObjectId']['output'];
   reviewerUser?: Maybe<OutsideUser>;
   shiftDetails: ShiftDetails;
   status?: Maybe<IncidentFormStatus>;
@@ -1639,6 +1660,7 @@ export type OrganizationFeatures = {
   eventInvoice: Scalars['Boolean']['output'];
   eventTemplates: Scalars['Boolean']['output'];
   externalEventRequests: Scalars['Boolean']['output'];
+  financeUnit: Scalars['Boolean']['output'];
   incidentEvents: Scalars['Boolean']['output'];
   interestLists: Scalars['Boolean']['output'];
   kiosk: Scalars['Boolean']['output'];
@@ -1743,6 +1765,7 @@ export type Query = {
   equipments?: Maybe<EquipmentSearchResult>;
   event?: Maybe<Event>;
   events?: Maybe<EventSearchResult>;
+  financeShifts?: Maybe<Array<Maybe<FinanceShift>>>;
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
   inAppNotifications?: Maybe<InAppNotificationSearchResult>;
@@ -1844,6 +1867,11 @@ export type QueryEventArgs = {
 
 export type QueryEventsArgs = {
   input?: InputMaybe<EventSearchInput>;
+};
+
+
+export type QueryFinanceShiftsArgs = {
+  eventId: Scalars['ObjectId']['input'];
 };
 
 
@@ -2794,6 +2822,7 @@ export type UpsertOrganizationFeatures = {
   eventInvoice?: InputMaybe<Scalars['Boolean']['input']>;
   eventTemplates?: InputMaybe<Scalars['Boolean']['input']>;
   externalEventRequests?: InputMaybe<Scalars['Boolean']['input']>;
+  financeUnit?: InputMaybe<Scalars['Boolean']['input']>;
   incidentEvents?: InputMaybe<Scalars['Boolean']['input']>;
   interestLists?: InputMaybe<Scalars['Boolean']['input']>;
   kiosk?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3055,7 +3084,7 @@ export type VehicleInformation = {
   endingMileage?: Maybe<Scalars['Float']['output']>;
   hasVehicle?: Maybe<Scalars['String']['output']>;
   startingMileage?: Maybe<Scalars['Float']['output']>;
-  vehicleCategory?: Maybe<Scalars['String']['output']>;
+  vehicleCategory?: Maybe<Scalars['ObjectId']['output']>;
   vehicleMake?: Maybe<Scalars['String']['output']>;
   vehicleModel?: Maybe<Scalars['String']['output']>;
   vehicleNumber?: Maybe<Scalars['String']['output']>;
@@ -3241,6 +3270,8 @@ export type ResolversTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
+  FinanceShift: ResolverTypeWrapper<FinanceShift>;
+  FinanceShiftSearchInput: FinanceShiftSearchInput;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   IActivityLog: IActivityLog;
   IActivityLogEntry: IActivityLogEntry;
@@ -3473,6 +3504,8 @@ export type ResolversParentTypes = ResolversObject<{
   EventRequestDetails: EventRequestDetails;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
+  FinanceShift: FinanceShift;
+  FinanceShiftSearchInput: FinanceShiftSearchInput;
   Float: Scalars['Float']['output'];
   IActivityLog: IActivityLog;
   IActivityLogEntry: IActivityLogEntry;
@@ -3854,6 +3887,8 @@ export type DocusignSignerDetailsResolvers<ContextType = any, ParentType extends
 export type DocusignSignerDetailsDataResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusignSignerDetailsData'] = ResolversParentTypes['DocusignSignerDetailsData']> = ResolversObject<{
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   endingMilage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  officerShiftTimeIn?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  officerShiftTimeOut?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startingMilage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalMilage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   vehicleMake?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3976,6 +4011,21 @@ export type EventSearchResultResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type FinanceShiftResolvers<ContextType = any, ParentType extends ResolversParentTypes['FinanceShift'] = ResolversParentTypes['FinanceShift']> = ResolversObject<{
+  division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType>;
+  docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
+  endTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  rank?: Resolver<Maybe<ResolversTypes['Rank']>, ParentType, ContextType>;
+  startTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  totalOvertimeHours?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totalStraightHours?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totalVehicleMilage?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  unit?: Resolver<Maybe<ResolversTypes['Unit']>, ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['VehicleCategories']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type InAppNotificationMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['InAppNotificationMeta'] = ResolversParentTypes['InAppNotificationMeta']> = ResolversObject<{
   assignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4027,7 +4077,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  reviewer?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reviewer?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   reviewerUser?: Resolver<Maybe<ResolversTypes['OutsideUser']>, ParentType, ContextType>;
   shiftDetails?: Resolver<ResolversTypes['ShiftDetails'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['IncidentFormStatus']>, ParentType, ContextType>;
@@ -4448,6 +4498,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   eventInvoice?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   eventTemplates?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   externalEventRequests?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  financeUnit?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   incidentEvents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   interestLists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   kiosk?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4542,6 +4593,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   equipments?: Resolver<Maybe<ResolversTypes['EquipmentSearchResult']>, ParentType, ContextType, Partial<QueryEquipmentsArgs>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventArgs, 'id'>>;
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
+  financeShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['FinanceShift']>>>, ParentType, ContextType, RequireFields<QueryFinanceShiftsArgs, 'eventId'>>;
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inAppNotifications?: Resolver<Maybe<ResolversTypes['InAppNotificationSearchResult']>, ParentType, ContextType, Partial<QueryInAppNotificationsArgs>>;
@@ -5005,7 +5057,7 @@ export type VehicleInformationResolvers<ContextType = any, ParentType extends Re
   endingMileage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   hasVehicle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startingMileage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  vehicleCategory?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vehicleCategory?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   vehicleMake?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   vehicleModel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   vehicleNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -5088,6 +5140,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   EventInvoiceResponse?: EventInvoiceResponseResolvers<ContextType>;
   EventRequestDetails?: EventRequestDetailsResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
+  FinanceShift?: FinanceShiftResolvers<ContextType>;
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
   InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;
   InAppNotifications?: InAppNotificationsResolvers<ContextType>;

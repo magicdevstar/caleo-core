@@ -127,8 +127,8 @@ export function generateTimeBuckets(options: BucketingOptions): TimeBucket[] {
  * Calculates shift cost for a single shift
  */
 export function calculateShiftCost(shift: FinanceShift): number {
-  const overtimeCost = new BigNumber(shift.totalOvertimeHours || 0).multipliedBy(shift.rank?.incidentHourlyRate || 0);
-  const straightCost = new BigNumber(shift.totalStraightHours || 0).multipliedBy(shift.rank?.hourlyRate || 0);
+  const overtimeCost = new BigNumber(shift.totalOvertimeHours || 0).multipliedBy(shift.user?.member?.incidentHourlyRate || shift.rank?.incidentHourlyRate || 0);
+  const straightCost = new BigNumber(shift.totalStraightHours || 0).multipliedBy(shift.user?.member?.hourlyRate || shift.rank?.hourlyRate || 0);
   const shiftPersonnelCost = overtimeCost.plus(straightCost);
   const vehicleMileageCost = new BigNumber(shift.totalVehicleMilage || 0).multipliedBy(shift.vehicleCategory?.milageRate || 0);
   return shiftPersonnelCost.plus(vehicleMileageCost).toNumber();

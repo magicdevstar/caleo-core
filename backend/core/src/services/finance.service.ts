@@ -80,7 +80,7 @@ export class FinanceService {
         },
         {
           $match: {
-            'docusignEvent.status': 'completed',
+            'docusignEvent.status': {$nin: ['voided', 'declined']},
           },
         },
         {
@@ -171,7 +171,7 @@ export class FinanceService {
       {
         $match: {
           eventId,
-          docusignEnvelopeId: { $exists: true },
+          userId: { $exists: true },
           removedAt: { $exists: false }
         }
       },
@@ -270,10 +270,10 @@ export class FinanceService {
 
     return allShifts.map((shift): IFinanceShift => {
       const { formattedDiff } = docusignDates({
-        startTime: shift.shiftCheckInOut!.checkInTime!,
-        endTime: shift.shiftCheckInOut!.checkOutTime!,
-        startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
-        endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
+        startTime: shift.shiftCheckInOut?.checkInTime ? shift.shiftCheckInOut.checkInTime : shift.startTime,
+        endTime: shift.shiftCheckInOut?.checkOutTime ? shift.shiftCheckInOut.checkOutTime : shift.endTime,
+        startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime || new Date(0),
+        endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime || new Date(0),
         timezone: org.timezone as any,
       });
       return {

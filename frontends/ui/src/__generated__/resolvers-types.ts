@@ -879,8 +879,10 @@ export type Member = {
   deactivationNote?: Maybe<Scalars['String']['output']>;
   division?: Maybe<Division>;
   divisionId?: Maybe<Scalars['String']['output']>;
+  hourlyRate?: Maybe<Scalars['Float']['output']>;
   inactivateUntil?: Maybe<Scalars['String']['output']>;
   inactivationNote?: Maybe<Scalars['String']['output']>;
+  incidentHourlyRate?: Maybe<Scalars['Float']['output']>;
   maxShifts?: Maybe<Scalars['Int']['output']>;
   memberEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   memberEquipments?: Maybe<Array<Maybe<MemberEquipment>>>;
@@ -1497,8 +1499,10 @@ export type NewMember = {
   contactInfo?: InputMaybe<NewContactInfo>;
   deactivationNote?: InputMaybe<Scalars['String']['input']>;
   divisionId?: InputMaybe<Scalars['String']['input']>;
+  hourlyRate?: InputMaybe<Scalars['Float']['input']>;
   inactivateUntil?: InputMaybe<Scalars['String']['input']>;
   inactivationNote?: InputMaybe<Scalars['String']['input']>;
+  incidentHourlyRate?: InputMaybe<Scalars['Float']['input']>;
   maxShifts?: InputMaybe<Scalars['Int']['input']>;
   memberEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   memberSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -4183,8 +4187,10 @@ export type MemberResolvers<ContextType = any, ParentType extends ResolversParen
   deactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType>;
   divisionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hourlyRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   inactivateUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  incidentHourlyRate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   maxShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   memberEquipments?: Resolver<Maybe<Array<Maybe<ResolversTypes['MemberEquipment']>>>, ParentType, ContextType>;

@@ -20,6 +20,8 @@ const userDetailProperties = `
     inactivateUntil
     inactivationNote
     tenor
+    hourlyRate
+    incidentHourlyRate
     org {
       id
       timezone
@@ -352,6 +354,8 @@ export const GET_USERS = gql`
           orgId
           inactivateUntil
           inactivationNote
+          hourlyRate
+          incidentHourlyRate
           contactInfo {
             primaryEmail {
               address
@@ -403,6 +407,8 @@ export const GET_ACCOUNT_REQUEST_USERS = gql`
           rankId
           unitId
           divisionId
+          hourlyRate
+          incidentHourlyRate
           contactInfo {
             primaryEmail {
               address

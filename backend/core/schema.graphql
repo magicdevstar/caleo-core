@@ -182,6 +182,8 @@
     adminNote: String
     deactivationNote: String
     maxShifts: Int
+    hourlyRate: Float
+    incidentHourlyRate: Float
 
     availability: UserAvailability!
     rank: Rank
@@ -319,6 +321,8 @@
     deactivationNote: String
     contactInfo: NewContactInfo
     availability: InputUserAvailability
+    hourlyRate: Float
+    incidentHourlyRate: Float
   }
 ###### END User ######
 

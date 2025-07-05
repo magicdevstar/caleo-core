@@ -10,6 +10,9 @@ import { useMutation } from '@apollo/client';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Stack from '@mui/material/Stack';
 
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
+
 // components
 import ConfirmDialogWithForm from "src/components/custom-dialog/confirm-dialog-with-form";
 import { RHFSwitch, RHFTextField } from 'src/components/hook-form';
@@ -35,6 +38,7 @@ export default function UpsertVehicleCategoryDialogue({
   upsert,
   onUpsert = () => {},
 }: InputProps) {
+  const { rankHourlyRate } = useFeatures();
   const [mutate, { loading }] = useMutation(UPSERT_VEHICLE_CATEGORY, {
     refetchQueries: [GET_VEHICLE_CATEGORIES],
   });
@@ -99,7 +103,7 @@ export default function UpsertVehicleCategoryDialogue({
       content={
         <Stack spacing={2} mt={1}>
           <RHFTextField name="name" label="Name" type="text" autoFocus />
-          <RHFTextField name="milageRate" label="Milage Rate" type="number" placeholder="Enter milage rate" />
+          {rankHourlyRate && <RHFTextField name="milageRate" label="Milage Rate" type="number" placeholder="Enter milage rate" />}
           <RHFSwitch name="active" label="Active" />
         </Stack>
       }

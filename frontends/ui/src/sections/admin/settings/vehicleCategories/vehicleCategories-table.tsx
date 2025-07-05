@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import { useMutation } from '@apollo/client';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -19,6 +20,7 @@ import UpsertVehicleCategoryDialogue from './upsert-vehicleCategories-dialogue';
 // ----------------------------------------------------------------------
 
 export default function VehicleCategoriesTable() {
+  const { rankHourlyRate } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const [update] = useMutation(UPSERT_VEHICLE_CATEGORY, {
     refetchQueries: [GET_VEHICLE_CATEGORIES],
@@ -102,7 +104,9 @@ export default function VehicleCategoriesTable() {
     ],
     columns: [
       { id: 'name', label: 'Name', columnType: 'string' },
-      { id: 'milageRate', label: 'Milage Rate', width: 110, columnType: 'string', renderValue: (value: string) => `$ ${value || '-'}` },
+      ...(rankHourlyRate ? [
+        { id: 'milageRate', label: 'Milage Rate', width: 110, columnType: 'string', renderValue: (value: string) => `$ ${value || '-'}` }
+      ] : []) as any,
       { id: 'active', label: 'Active', width: 110, columnType: 'boolean' },
       { id: 'createdAt', label: 'Create at', width: 160, columnType: 'date' },
       { id: '', width: 88, columnType: 'action', label: '' },

@@ -122,7 +122,7 @@ export default function AccountGeneral({
 }) {
   const { user: currentUser, reInitialize } = useAuthContext();
   const { dateTimeFormat, dateFormat } = useDateFormats();
-  const { disabledTiers, disabledTierUntil, lasdUserFields } = useFeatures();
+  const { disabledTiers, disabledTierUntil, lasdUserFields, rankHourlyRate } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
@@ -181,6 +181,8 @@ export default function AccountGeneral({
     secondaryEmail: Yup.string(),
     secondaryEmailReceive: Yup.boolean(),
     adminNote: Yup.string(),
+    hourlyRate: Yup.number().nullable(),
+    incidentHourlyRate: Yup.number().nullable(),
   });
 
   const defaultValues = {
@@ -206,6 +208,8 @@ export default function AccountGeneral({
     secondaryEmail: user?.member?.contactInfo?.secondaryEmail?.address,
     secondaryEmailReceive: user?.member?.contactInfo?.secondaryEmail?.receiveEmails,
     adminNote: user?.member?.adminNote || '',
+    hourlyRate: user?.member?.hourlyRate || null,
+    incidentHourlyRate: user?.member?.incidentHourlyRate || null,
   } as any;
 
   const methods = useForm({
@@ -295,6 +299,8 @@ export default function AccountGeneral({
               orgId: user?.member?.orgId,
               pNumber: d.pNumber,
               tenor: d.tenor,
+              hourlyRate: d.hourlyRate || null,
+              incidentHourlyRate: d.incidentHourlyRate || null,
               ...((adminViewer || lasdUserFields) && {
                 rankId: d.rank.id,
                 ...(d.unit?.divisions?.[0]?.id && {divisionId: d.unit.divisions[0].id}),
@@ -530,6 +536,26 @@ export default function AccountGeneral({
               }
             </Box>
             <Divider sx={{ mt: 4, mb: 2 }} />
+            {
+              adminViewer && rankHourlyRate && (
+                <>
+                  <Typography sx={{ mb: 2 }} variant='h6'>Rates</Typography>
+                  <Box
+                    rowGap={3}
+                    columnGap={2}
+                    display="grid"
+                    gridTemplateColumns={{
+                      xs: 'repeat(1, 1fr)',
+                      sm: 'repeat(2, 1fr)',
+                    }}
+                  >
+                    <RHFTextField disabled={!adminViewer || allDisabled} type="number" name="hourlyRate" label="Hourly Rate" helperText="This field will override the hourly rate assigned to the officers rank." />
+                    <RHFTextField disabled={!adminViewer || allDisabled} type="number" name="incidentHourlyRate" label="Incident Hourly Rate" helperText="This field will override the incident hourly rate assigned to the officers rank." />
+                  </Box>
+                  <Divider sx={{ mt: 4, mb: 2 }} />
+                </>
+              )
+            }
             <Typography sx={{ mt: 3, mb: 2 }} variant='h6'>Contact Info</Typography>
             <Box
               rowGap={3}

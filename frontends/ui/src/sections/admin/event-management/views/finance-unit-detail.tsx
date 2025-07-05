@@ -5,12 +5,14 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 // types
 import { GET_ALL_FINANCE_SHIFTS } from 'src/api/shifts';
+import { EventStatus } from 'src/__generated__/resolvers-types';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
 import { GET_EVENT_SLIM } from 'src/api/event';
 import QueryView from 'src/components/query-view';
+import EmptyContent from 'src/components/empty-content';
 import AnalyticsDetails from '../finance-unit/analytics-details';
 import ReportDetails from '../finance-unit/report-details';
 
@@ -57,11 +59,24 @@ export default function FinanceUnitDetailView() {
           ]}
           sx={{ mb: 3 }}
         />
-        <Grid container spacing={3} mb={6}>
-          <AnalyticsDetails data={data?.financeShifts || []} />
-
-          <ReportDetails data={data?.financeShifts || []} event={eventData?.event} />
-        </Grid>
+        {
+          data?.financeShifts?.length === 0 ? (
+            <EmptyContent
+              filled
+              title='No data available'
+              description={
+                eventData?.status === EventStatus.Incident ?
+                 'Data will be available once a incident submission has been received.' :
+                 'Data will be available once a shift has been assigned to an officer.'
+              }
+            />
+          ) : (
+            <Grid container spacing={3} mb={6}>
+              <AnalyticsDetails data={data?.financeShifts || []} />
+              <ReportDetails data={data?.financeShifts || []} event={eventData?.event} />
+            </Grid>
+          )
+        }
       </QueryView>
     </Container>
   );

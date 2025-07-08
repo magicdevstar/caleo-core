@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useMemo } from "react";
-import { EventStatus } from "src/__generated__/resolvers-types";
+import { EventStatus, Event } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENTS } from "src/api/event";
 import { useAuthContext } from "src/auth/hooks";
 import GQLTable from "src/components/table/gql/table"
@@ -64,9 +64,31 @@ export const ActiveIncidentsTable = () => {
       },
       processResult: (d: any, options) => {
         const { events: { items, total } } = d || { events: { items: [], total: 0 } };
+
+        // Get user's skill IDs
+        const userSkillIds = user?.member?.memberSkills
+          ?.filter(memberSkill => memberSkill?.status === 'APPROVED')
+          ?.map(memberSkill => memberSkill?.skillId)
+          ?.filter(Boolean) || [];
+        
+        // Filter events based on required skills
+        const filteredEvents = items.filter((event: Event) => {
+          const requiredSkillIds = event.requiredSkills?.map(skill => skill?.id).filter(Boolean) || [];
+          
+          // If no skills are required, event is open to all users
+          if (requiredSkillIds.length === 0) {
+            return true;
+          }
+          
+          // Check if user has all required skills
+          return requiredSkillIds.every(requiredSkillId => 
+            userSkillIds.includes(requiredSkillId)
+          );
+        });
+
         return {
-          total,
-          items,
+          total: filteredEvents.length,
+          items: filteredEvents,
         };
       },
     },

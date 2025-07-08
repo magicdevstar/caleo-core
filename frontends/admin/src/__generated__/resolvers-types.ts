@@ -465,6 +465,8 @@ export type Event = {
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   requestDetails?: Maybe<EventRequestDetails>;
+  requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  requiredSkills?: Maybe<Array<Maybe<Skill>>>;
   scheduledCloseInterestList?: Maybe<Scalars['String']['output']>;
   scheduledFirstComeFirstServe?: Maybe<Scalars['String']['output']>;
   scheduledInterestList?: Maybe<Scalars['String']['output']>;
@@ -2716,6 +2718,7 @@ export type UpsertEvent = {
   outsideOrgCode?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
+  requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
   scheduledFirstComeFirstServe?: InputMaybe<Scalars['String']['input']>;
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -3972,6 +3975,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
+  requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
   scheduledCloseInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledFirstComeFirstServe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scheduledInterestList?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

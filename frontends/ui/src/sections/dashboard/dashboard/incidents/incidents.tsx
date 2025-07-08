@@ -53,7 +53,29 @@ export default function Incidents({ title, subheader, ...other }: Props) {
 
   const activeIncidents: IIncident[] = useMemo(() => {
     const eventList = data?.events?.items || [];
-    return eventList.map((event: Event) => ({
+    
+    // Get user's skill IDs
+    const userSkillIds = user?.member?.memberSkills
+      ?.filter(memberSkill => memberSkill?.status === 'APPROVED')
+      ?.map(memberSkill => memberSkill?.skillId)
+      ?.filter(Boolean) || [];
+    
+    // Filter events based on required skills
+    const filteredEvents = eventList.filter((event: Event) => {
+      const requiredSkillIds = event.requiredSkills?.map(skill => skill?.id).filter(Boolean) || [];
+      
+      // If no skills are required, event is open to all users
+      if (requiredSkillIds.length === 0) {
+        return true;
+      }
+      
+      // Check if user has all required skills
+      return requiredSkillIds.every(requiredSkillId => 
+        userSkillIds.includes(requiredSkillId)
+      );
+    });
+    
+    return filteredEvents.map((event: Event) => ({
       id: event.id,
       title: `${event.name}${event.ocn ? `: ${event.ocn}` : ''}`,
       body: event.notes ? event.notes : 'Click to sign FEMA form',
@@ -64,7 +86,7 @@ export default function Incidents({ title, subheader, ...other }: Props) {
       },
       avatarUrl: '/assets/icons/files/ic_file.svg',
     }));
-  }, [data, getHref]);
+  }, [data, getHref, user]);
 
   const carousel = useCarousel({
     adaptiveHeight: true,

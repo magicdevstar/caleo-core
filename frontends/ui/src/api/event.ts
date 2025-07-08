@@ -118,6 +118,10 @@ export const GET_ALL_EVENTS = gql`
             pNumber
           }
         }
+        requiredSkills {
+          id
+          name
+        }
         assignments {
           id
           shiftSlots {
@@ -391,6 +395,11 @@ export const GET_EVENT = gql`
         newVenue
         numberOfOfficers
         estimatedAttendees
+      }
+
+      requiredSkills {
+        id
+        name
       }
 
       docusignEvent {

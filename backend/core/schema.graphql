@@ -449,10 +449,14 @@
     supervisorId: String
     lieutenantId: String
 
+    # Incident only fields
+    requiredSkillIds: [String]
+
     venue: Venue
     org: Organization!
     assignments: [Assignment!]
     attachments: [String!]
+    requiredSkills: [Skill]
     createdBy: User
     availableShifts: Int
     totalShifts: Int
@@ -825,6 +829,9 @@
     startTime: String
     # Incident only field! This will only be accepted when the event status is INCIDENT
     endTime: String
+
+    # Incident only field
+    requiredSkillIds: [String]
   }
 
   input InputEventRequestDetails {

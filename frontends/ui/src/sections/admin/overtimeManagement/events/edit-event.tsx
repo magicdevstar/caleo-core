@@ -38,6 +38,7 @@ import { RouterLink } from 'src/routes/components';
 import {
   Event,
   EventStatus,
+  Skill,
   Venue,
   VenueStatus,
 } from 'src/__generated__/resolvers-types';
@@ -54,6 +55,7 @@ import FormProvider, {
   RHFAutocomplete,
   RHFDateTimePicker,
   RHFUserAutocomplete,
+  RHFSkillAutocomplete,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
@@ -99,6 +101,7 @@ const NewEventSchema = Yup.object().shape({
   scheduledCloseInterestList: Yup.string(),
   createdById: Yup.string(),
   assignments: Yup.array(),
+  requiredSkills: Yup.array(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
   outsideOrgCode: Yup.string().nullable(),
   overtimeReasonCode: Yup.string().nullable(),
@@ -288,6 +291,7 @@ export default function EditEvent({
       lieutenant: currentEvent?.lieutenant || null,
       startTime: currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date(),
       endTime: currentEvent?.endTime ? new Date(currentEvent.endTime) : undefined,
+      requiredSkills: currentEvent?.requiredSkills || [],
     }),
     [
       currentEvent,
@@ -490,6 +494,7 @@ export default function EditEvent({
             budgetActivityCode: formData?.budgetActivityCode,
             supervisorId: formData?.supervisor?.id,
             lieutenantId: formData?.lieutenant?.id,
+            requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
             ),
@@ -623,6 +628,17 @@ export default function EditEvent({
                 }
               </Stack>
             )}
+
+            {
+              isIncident && (
+                <RHFSkillAutocomplete
+                  name="requiredSkills"
+                  label="Required Skills"
+                  disabled={allDisabled || isComplete}
+                  helperText="Leave empty to not require any skills"
+                />
+              )
+            }
 
             {!isIncident && (
               <RHFAutocomplete

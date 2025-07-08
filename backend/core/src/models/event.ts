@@ -57,6 +57,8 @@ export interface IEvent extends Omit<
   'referenceId' |
   'supervisorId' |
   'lieutenantId' |
+  'requiredSkills' |
+  'requiredSkillIds' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -66,6 +68,7 @@ export interface IEvent extends Omit<
   venueId?: ObjectId;
   assignmentIds?: ObjectId[];
   createdById?: ObjectId;
+  requiredSkillIds?: ObjectId[];
 
   supervisorId?: ObjectId;
   lieutenantId?: ObjectId;

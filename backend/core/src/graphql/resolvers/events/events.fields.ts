@@ -28,6 +28,7 @@ export const fields = {
 
       return results.filter((result) => result.status === 'fulfilled').map((result: any) => result.value);
     },
+    requiredSkills: (event: IEvent, _, { skills }: Context) => skills.loader.loadMany((event.requiredSkillIds || []).map((id) => id.toString())),
     availableShifts: async (item: IEvent, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnEvent.load(item.id!),
     totalShifts: async (item: IEvent, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnEvent.load(item.id!),
     docusignEvent: (item: IEvent, _, context: Context) => {

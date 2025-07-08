@@ -18,6 +18,7 @@ export { default as RHFAssignmentShiftSlots } from './rhf-assignment-shift-slots
 export { default as RHFUserAutocomplete } from './rhf-user-autocomplete';
 export { default as RHFSigningAuthorityAutocomplete } from './rhf-signing-authority-autocomplete';
 export { default as RHFGQLSearchAutocomplete } from './rhf-gql-search-autocomplete';
+export { default as RHFSkillAutocomplete } from './rhf-skill-autocomplete';
 export { FormFooter } from './form-footer';
 
 export { default } from './form-provider';

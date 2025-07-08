@@ -29,11 +29,11 @@ import FormProvider, {
   RHFAutocomplete,
   RHFAssignmentShiftSlots,
   RHFSigningAuthorityAutocomplete,
+  RHFSkillAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
-import { GET_SKILL_SLIM } from 'src/api/skill';
 import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 import { useFeatures } from 'src/hooks/use-features';
 import RHFRankAutocomplete from 'src/components/ranks/rhf-rank';
@@ -86,21 +86,11 @@ export default function EditAssignment({
       }
     },
   });
-  const { data: skillData } = useQuery(GET_SKILL_SLIM, {
-    fetchPolicy: 'network-only', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {
-        active: true,
-      }
-    },
-  });
   const [upsertAssignment, { loading: upsertAssignmentLoading }] = useMutation(UPSERT_ASSIGNMENT, {
     refetchQueries: [GET_EVENT, GET_ASSIGNMENT],
   });
 
   const equipment = equipmentData?.equipments?.items || [];
-  const skills = skillData?.skills?.items || [];
   const mdUp = useResponsive('up', 'md');
 
   const { enqueueSnackbar } = useSnackbar();
@@ -300,34 +290,11 @@ export default function EditAssignment({
               isComplete={isComplete}
             />
 
-            <RHFAutocomplete
+            <RHFSkillAutocomplete
               name="requiredSkills"
-              placeholder="Required Skills"
+              label="Required Skills"
               disabled={allDisabled || isComplete}
-              multiple
-              disableCloseOnSelect
-              helperText="Leave empty to not require any shifts"
-              options={(skills || [])}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              getOptionLabel={(skill: any) => skill?.name}
-              renderOption={(props, option, { selected }) => (
-                <li {...props} key={option?.id}>
-                  <Checkbox style={{ marginRight: 8 }} checked={selected} />
-                  {option?.name}
-                </li>
-              )}
-              renderTags={(selected, getTagProps) =>
-                selected.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option?.id}
-                    label={option?.name}
-                    size="small"
-                    color="info"
-                    variant="soft"
-                  />
-                ))
-              }
+              helperText="Leave empty to not require any skills"
             />
 
             {

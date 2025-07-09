@@ -139,6 +139,8 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
         'endingMileage',
         'docusignEvent',
       ]);
+
+      console.log('Cleaned submission data:', cleanedData);
       
       const res = await duplicateSubmission({
         variables: {
@@ -157,6 +159,7 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
       
       refetch();
 
+      console.log('New submission:', res.data?.incidentForm);
       if (res.data?.incidentForm?.incidentForm) {
         handleSelectSubmission(res.data?.incidentForm?.incidentForm);
       }

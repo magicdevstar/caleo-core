@@ -25,6 +25,7 @@ import { IncidentSubmissionModel, InputIncidentForm } from "../models/incidentFo
 import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { requestToPDFForm } from "../models/incidentForm/lasd";
 import { FormEntityType, IGenerateFormResponse, IIncidentInput, IncidentFormType } from "../types/incidentForm";
+import { buildDescription } from "../utils/formDetails";
 
 const lambda = new LambdaClient({});
 
@@ -617,21 +618,7 @@ export class Docusign {
       if (!unit) {
         throw new Error('User unit not found');
       }
-  
-      const assignments = Object.keys(incidentForm.assignmentSummary.missionAssignments || {})
-        .filter((key) => incidentForm.assignmentSummary.missionAssignments?.[key])
-        .map((key) => {
-          if (key.toLowerCase() === 'other') {
-            return `${key} (${incidentForm.assignmentSummary.otherExplanation || 'no details provided'})`;
-          }
-          return startCase(key);
-        })
-        .join(', ');
-      const missionNumbers =  uniq(
-        (incidentForm.activityLog.entries || [])
-          .map((entry) => entry?.missionNumber)
-          .filter(Boolean)
-      ).join(', ');
+
       const incidentFormDetails = requestToPDFForm({
         incidentForm,
         reviewer,
@@ -643,10 +630,7 @@ export class Docusign {
         unit,
         useCallSignPrefix: true,
         incidentCommander: reviewer,
-        details: `Incident: ${event.name}
-Assigned To: ${assignments}
-Mission Number: ${missionNumbers}
-See ICS-214 for additional details`,
+        details: buildDescription(event.name, incidentForm),
       });
   
       // Submit to docusign

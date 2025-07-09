@@ -582,7 +582,7 @@ export type IIncidentForm = {
   eventId: Scalars['ObjectId']['input'];
   id?: InputMaybe<Scalars['ID']['input']>;
   operationalPeriod: IOperationalPeriod;
-  reviewer: Scalars['ObjectId']['input'];
+  reviewer?: InputMaybe<Scalars['ObjectId']['input']>;
   shiftDetails: IShiftDetails;
   step?: InputMaybe<Scalars['Int']['input']>;
   timekeeping: ITimekeeping;
@@ -696,7 +696,7 @@ export type IncidentForm = {
   org: Organization;
   orgId: Scalars['ObjectId']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
-  reviewer: Scalars['ObjectId']['output'];
+  reviewer?: Maybe<Scalars['ObjectId']['output']>;
   reviewerUser?: Maybe<OutsideUser>;
   shiftDetails: ShiftDetails;
   status?: Maybe<IncidentFormStatus>;
@@ -4086,7 +4086,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  reviewer?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  reviewer?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   reviewerUser?: Resolver<Maybe<ResolversTypes['OutsideUser']>, ParentType, ContextType>;
   shiftDetails?: Resolver<ResolversTypes['ShiftDetails'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['IncidentFormStatus']>, ParentType, ContextType>;

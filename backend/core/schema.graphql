@@ -1864,7 +1864,7 @@ type DocusignSignerDetailsData {
   type IncidentForm {
     id: ID!
     operationalPeriod: OperationalPeriod!
-    reviewer: ObjectId!
+    reviewer: ObjectId
     timekeeping: Timekeeping!
     shiftDetails: ShiftDetails!
     vehicleInformation: VehicleInformation!
@@ -1967,7 +1967,7 @@ type DocusignSignerDetailsData {
   input IIncidentForm {
     id: ID
     operationalPeriod: IOperationalPeriod!
-    reviewer: ObjectId!
+    reviewer: ObjectId
     timekeeping: ITimekeeping!
     shiftDetails: IShiftDetails!
     vehicleInformation: IVehicleInformation!

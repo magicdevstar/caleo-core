@@ -1,3 +1,4 @@
+import addDays from 'date-fns/addDays';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import { useWatch, useFormContext } from 'react-hook-form';
@@ -12,6 +13,10 @@ export enum TimekeepingType {
 
 // Helper function to round up to nearest 15 minutes and format in decimal hours
 const calculateAndFormatHours = (startTime: Date, endTime: Date) => {
+  if (startTime.getTime() >= endTime.getTime()) {
+    endTime = addDays(endTime, 1);
+  }
+
   const diffInMs = endTime.getTime() - startTime.getTime();
   const diffInMinutes = Math.max(0, diffInMs / (1000 * 60));
   

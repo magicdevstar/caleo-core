@@ -104,8 +104,16 @@ export const ObjectIdScalar = new GraphQLScalarType({
   
   // Convert string to ObjectId
   parseValue(value) {
+    if (value === null) {
+      return null;
+    }
+
     if (typeof value !== 'string') {
       throw new Error('ObjectId scalar parser expected a string');
+    }
+
+    if (value.trim() === '') {
+      return null;
     }
     
     if (ObjectId.isValid(value)) {
@@ -117,8 +125,16 @@ export const ObjectIdScalar = new GraphQLScalarType({
   
   // Parse AST literal to ObjectId
   parseLiteral(ast) {
+    if (ast.kind === Kind.NULL) {
+      return null;
+    }
+
     if (ast.kind !== Kind.STRING) {
       throw new Error('ObjectId scalar parser expected a string');
+    }
+
+    if (ast.value.trim() === '') {
+      return null;
     }
     
     if (ObjectId.isValid(ast.value)) {

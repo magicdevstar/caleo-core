@@ -8,7 +8,6 @@ import { IOrganization } from "../organizations/organization.entity";
 import { IOutsideUser } from "../outsideUsers/outsideUser.repository";
 import { IRank } from "../rank";
 import { IUnit } from "../unit";
-import { differenceInHours } from "date-fns/differenceInHours";
 import { TimekeepingType } from "../../__generated__/resolvers-types";
 
 /**
@@ -85,18 +84,12 @@ export const requestToPDFForm = ({
     reviwerEmployeeNumber2: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
     rdoNo: incidentForm.timekeeping.rdo === 'no',
     rdoYes: incidentForm.timekeeping.rdo === 'yes',
-    straightTimeIn: incidentForm.timekeeping.timeIn ? format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm') : '',
-    straightTimeOut: incidentForm.timekeeping.timeOut ? format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm') : '',
-    straightTotalTime: incidentForm.timekeeping.timeIn && incidentForm.timekeeping.timeOut ? `${differenceInHours(
-      toZonedTime(incidentForm.timekeeping.timeOut, org.timezone),
-      toZonedTime(incidentForm.timekeeping.timeIn, org.timezone)
-    ) || '1'}` : '',
+    straightTimeIn: incidentForm.timekeeping.rdo === 'no' && incidentForm.timekeeping.timeIn ? format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm') : '',
+    straightTimeOut: incidentForm.timekeeping.rdo === 'no' && incidentForm.timekeeping.timeOut ? format(toZonedTime(incidentForm.timekeeping.timeOut, org.timezone), 'HH:mm') : '',
+    straightTotalTime: incidentForm.timekeeping.rdo === 'no' && incidentForm.timekeeping.straightHours ? incidentForm.timekeeping.straightHours.toFixed(2) : '',
     timeIn: incidentForm.timekeeping.overtimeTimeIn ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeIn, org.timezone), 'HH:mm') : '',
     timeOut: incidentForm.timekeeping.overtimeTimeOut ? format(toZonedTime(incidentForm.timekeeping.overtimeTimeOut, org.timezone), 'HH:mm') : '',
-    totalTime: incidentForm.timekeeping.overtimeTimeIn && incidentForm.timekeeping.overtimeTimeOut && `${differenceInHours(
-      toZonedTime(incidentForm.timekeeping.overtimeTimeOut, org.timezone),
-      toZonedTime(incidentForm.timekeeping.overtimeTimeIn, org.timezone)
-    ) || '1'}`,
+    totalTime: incidentForm.timekeeping.overtimeHours ? incidentForm.timekeeping.overtimeHours.toFixed(2) : '' ,
     enrouteToIncident: incidentForm.shiftDetails.enrouteToIncident ? format(toZonedTime(incidentForm.shiftDetails.enrouteToIncident, org.timezone), 'HH:mm') : '',
     staging1097: incidentForm.shiftDetails.staging1097 ? format(toZonedTime(incidentForm.shiftDetails.staging1097, org.timezone), 'HH:mm') : '',
     staging1098: incidentForm.shiftDetails.staging1098 ? format(toZonedTime(incidentForm.shiftDetails.staging1098, org.timezone), 'HH:mm') : '',
@@ -104,7 +97,7 @@ export const requestToPDFForm = ({
     officerUnitOfAssignment: unit.name,
     officerRank: rank.name,
     time18Hour: incidentForm.shiftDetails.time18Hour ? format(toZonedTime(incidentForm.shiftDetails.time18Hour, org.timezone), 'HH:mm') : '',
-    ...(incidentForm.vehicleInformation.hasVehicle && {
+    ...(incidentForm.vehicleInformation.hasVehicle === 'yes' && {
       vehicleNumber: incidentForm.vehicleInformation.vehicleNumber || '',
       'Vehicle Model': incidentForm.vehicleInformation.vehicleModel || '',
       vehicleMake: incidentForm.vehicleInformation.vehicleMake || '',

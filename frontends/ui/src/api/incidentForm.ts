@@ -85,6 +85,7 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
         operationalPeriod {
           date
         }
+        reviewer
         timekeeping {
           rdo
           overtimeHours

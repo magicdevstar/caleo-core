@@ -63,7 +63,7 @@ export const ActiveIncidentsTable = () => {
         defaultRowsPerPage: loading ? 4 : 5,
       },
       processResult: (d: any, options) => {
-        const { events: { items, total } } = d || { events: { items: [], total: 0 } };
+        const { events: { items } } = d || { events: { items: [], total: 0 } };
 
         // Get user's skill IDs
         const userSkillIds = user?.member?.memberSkills

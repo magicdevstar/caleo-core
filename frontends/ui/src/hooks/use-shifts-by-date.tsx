@@ -203,10 +203,6 @@ export const useShiftsByDate = (data: FinanceShift[]) => {
           name: 'Total Shifts',
           data: populatedBuckets.map(bucket => bucket.count),
         },
-        {
-          name: 'Total Cost',
-          data: populatedBuckets.map(bucket => bucket.totalCost),
-        },
       ],
     }];
 

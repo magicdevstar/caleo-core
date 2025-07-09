@@ -75,6 +75,10 @@ export default function AnalyticsDetails({ data }: Props) {
       </Grid>
       <Grid item xs={12} md={4}>
         <LargeSummary
+          sx={{
+            height: '100%',
+            justifyContent: 'space-around',
+          }}
           title="Total Shifts"
           total={financeData.totalShifts.total}
           percent={financeData.totalShifts.percent}

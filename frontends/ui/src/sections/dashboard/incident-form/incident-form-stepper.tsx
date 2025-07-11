@@ -53,7 +53,11 @@ const IncidentFormSchema = Yup.object().shape({
   operationalPeriod: Yup.object().shape({
     date: Yup.date().required('Date is required'),
   }),
-  reviewer: Yup.string().required('Reviewer is required'),
+  reviewer: Yup.object().shape({
+    id: Yup.string().required('Reviewer ID is required'),
+    name: Yup.string().required('Reviewer name is required'),
+    pNumber: Yup.string().required('Reviewer PNumber is required'),
+  }).required('Reviewer is required'),
   timekeeping: Yup.object().shape({
     rdo: Yup.string().required('RDO selection is required'),
     type: Yup.string().required('Paid or Saved selection is required'),
@@ -163,7 +167,7 @@ const defaultValues: IncidentFormSchemaType = {
   operationalPeriod: {
     date: null as any,
   },
-  reviewer: '',
+  reviewer: null as any,
   timekeeping: {
     rdo: 'yes',
     type: TimekeepingType.PAID,
@@ -261,12 +265,16 @@ export default function IncidentFormStepper({
         overtimeHoursDisplay, // eslint-disable-line @typescript-eslint/no-unused-vars
         ...timekeeping
       } = data.timekeeping;
+
+      const { reviewer, ...otherData } = data;
+
       const submitData = {
-        ...data,
+        ...otherData,
         timekeeping,
+        reviewer: reviewer.id, // Use reviewer ID for submission
         vehicleInformation: {
-          ...data.vehicleInformation,
-          vehicleNumber: data.vehicleInformation.hasVehicle === 'yes' ? data.vehicleInformation.vehicleNumber : 'N/A',
+          ...otherData.vehicleInformation,
+          vehicleNumber: otherData.vehicleInformation.hasVehicle === 'yes' ? otherData.vehicleInformation.vehicleNumber : 'N/A',
         },
       };
       
@@ -401,7 +409,7 @@ export default function IncidentFormStepper({
     methods.reset({
       id: submission.id,
       operationalPeriod: submission.operationalPeriod,
-      reviewer: submission.reviewer,
+      reviewer: submission.reviewerUser,
       timekeeping: {
         ...submission.timekeeping,
         // Add display fields based on numeric values
@@ -552,18 +560,20 @@ export default function IncidentFormStepper({
             onClick={() => {
               const data = getValues();
               // Remove display fields before submission, keeping only numeric values for backend
+              const { reviewer, ...otherData } = data;
               const submitData = {
-                ...data,
+                ...otherData,
+                reviewer: reviewer.id, // Use reviewer ID for submission
                 timekeeping: {
-                  ...data.timekeeping,
+                  ...otherData.timekeeping,
                   // Remove display fields - backend only expects numeric values
                   straightHoursDisplay: undefined,
                   overtimeHoursDisplay: undefined,
                   minTimeIn: undefined,
                 },
                 vehicleInformation: {
-                  ...data.vehicleInformation,
-                  vehicleNumber: data.vehicleInformation.hasVehicle === 'yes' ? data.vehicleInformation.vehicleNumber : 'N/A',
+                  ...otherData.vehicleInformation,
+                  vehicleNumber: otherData.vehicleInformation.hasVehicle === 'yes' ? otherData.vehicleInformation.vehicleNumber : 'N/A',
                 }
               };
               

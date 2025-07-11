@@ -138,9 +138,8 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
         'startingMilage',
         'endingMileage',
         'docusignEvent',
+        'reviewerUser',
       ]);
-
-      console.log('Cleaned submission data:', cleanedData);
       
       const res = await duplicateSubmission({
         variables: {

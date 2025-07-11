@@ -36,7 +36,6 @@ export const docusignStatusColor = (status?: string) => {
     case DocusignStatus.VOIDED:
       return 'error';
     case DocusignStatus.DECLINED:
-      return 'declined';
     default:
       return 'default';
   }

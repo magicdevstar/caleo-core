@@ -32,7 +32,7 @@ const OutsideUsersSelect: React.FC<OutsideUsersSelectProps> = ({
   const { data, loading, error } = useQuery(GET_OUTSIDE_USERS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: { input: { skip: 0, limit: 10000 } },
+    variables: { input: { } },
   });
 
   const labelId = `outside-users-select-label-${React.useId()}`;

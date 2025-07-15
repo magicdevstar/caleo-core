@@ -91,6 +91,11 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
           date
         }
         reviewer
+        reviewerUser {
+          id
+          name
+          pNumber
+        }
         timekeeping {
           rdo
           overtimeHours
@@ -160,6 +165,7 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
         operationalPeriod {
           date
         }
+        reviewer
         reviewerUser {
           id
           name

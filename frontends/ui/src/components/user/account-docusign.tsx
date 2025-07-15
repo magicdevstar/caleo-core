@@ -46,14 +46,14 @@ export default function AccountDocusign({
       ],
       columns: [
         {
-          id: 'shift.event.referenceId',
+          id: 'event.referenceId',
           label: 'Event Ref#',
           columnType: 'string',
           width: '10%',
           noSort: true,
         },
         {
-          id: 'shift.event.name',
+          id: 'event.name',
           label: 'Event Name',
           columnType: 'string',
           width: '30%',
@@ -65,13 +65,16 @@ export default function AccountDocusign({
           columnType: 'string',
           width: '20%',
           noSort: true,
+          renderValue: (value: string) => value || 'N/A',
         },
         {
           id: 'shift.startTime',
-          label: 'Shift start time',
+          label: 'Start time',
           columnType: 'date',
           width: '20%',
           noSort: true,
+          renderValue: (value: string, _, row: DocusignEvent) =>
+            value || row.event?.startTime,
         },
         {
           id: 'status',

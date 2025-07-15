@@ -5,6 +5,11 @@ import { Context } from "../../../utils/createContext";
 export const fields = {
   DocusignEvent: {
     ...baseResolvers,
+    event: (
+      event: IDocusignEvent,
+      _: unknown,
+      context: Context
+    ) => event.eventId ? context.events.loader.load(event.eventId.toString()) : null,
     shift: (
       event: IDocusignEvent,
       _: unknown,

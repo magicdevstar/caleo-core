@@ -310,6 +310,7 @@ export type DocusignEvent = {
   documentUrl?: Maybe<Scalars['String']['output']>;
   documentUrls?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   envelopeId: Scalars['String']['output'];
+  event?: Maybe<Event>;
   eventId?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   lieutenantId?: Maybe<Scalars['String']['output']>;
@@ -3856,6 +3857,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   documentUrls?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   envelopeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType>;
   eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

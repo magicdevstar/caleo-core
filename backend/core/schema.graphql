@@ -933,6 +933,7 @@ type DocusignEvent {
   updatedAt: String!
   removedAt: String
 
+  event: Event
   shift: Shift
   documentUrl: String
   documentUrls: [String]

@@ -626,7 +626,6 @@ export class Docusign {
         org,
         rank,
         unit,
-        useCallSignPrefix: true,
         incidentCommander: reviewer,
         details: buildDescription(event.name, incidentForm),
       });

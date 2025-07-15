@@ -34,7 +34,6 @@ export const requestToPDFForm = ({
   rank,
   incidentCommander,
   details,
-  useCallSignPrefix,
 }: {
   details: string;
   incidentCommander: IUser | IOutsideUser;
@@ -46,8 +45,8 @@ export const requestToPDFForm = ({
   org: IOrganization;
   rank: IRank;
   unit: IUnit;
-  useCallSignPrefix?: boolean;
 }): IIncidentFormDetails => {
+  const officerName = `${user.lastName}, ${user.firstName}`;
   const alItems = incidentForm.activityLog.entries!.reduce((acc, entry, index) => ({
     ...acc,
     [`alTime${index}`]: entry!.time ? format(toZonedTime(entry!.time, org.timezone), 'HH:mm') : '',
@@ -72,16 +71,16 @@ export const requestToPDFForm = ({
     eventName2: event.name,
     today: format(toZonedTime(incidentForm.operationalPeriod.date, org.timezone), 'MM/dd/yyyy'),
     today2: format(toZonedTime(incidentForm.operationalPeriod.date, org.timezone), 'MM/dd/yyyy'),
-    officerName: user.name,
-    officerName2: user.name,
-    officerName3: user.name,
+    officerName,
+    officerName2: officerName,
+    officerName3: officerName,
     officerEmployeeNumber: user.member.pNumber,
     officerEmployeeNumber2: user.member.pNumber,
     officerEmployeeNumber3: user.member.pNumber,
-    reviwerName: reviewer.name,
-    reviwerEmployeeNumber: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
+    reviewerName: reviewer.name,
+    reviewerEmployeeNumber: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
     reviewerName2: reviewer.name,
-    reviwerEmployeeNumber2: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
+    reviewerEmployeeNumber2: (reviewer as IOutsideUser)?.pNumber || (reviewer as IUser)?.member?.pNumber,
     rdoNo: incidentForm.timekeeping.rdo === 'no',
     rdoYes: incidentForm.timekeeping.rdo === 'yes',
     straightTimeIn: incidentForm.timekeeping.rdo === 'no' && incidentForm.timekeeping.timeIn ? format(toZonedTime(incidentForm.timekeeping.timeIn, org.timezone), 'HH:mm') : '',
@@ -94,7 +93,7 @@ export const requestToPDFForm = ({
     staging1097: incidentForm.shiftDetails.staging1097 ? format(toZonedTime(incidentForm.shiftDetails.staging1097, org.timezone), 'HH:mm') : '',
     staging1098: incidentForm.shiftDetails.staging1098 ? format(toZonedTime(incidentForm.shiftDetails.staging1098, org.timezone), 'HH:mm') : '',
     arrivalAtUOA: incidentForm.shiftDetails.arrivalAtUOA ? format(toZonedTime(incidentForm.shiftDetails.arrivalAtUOA, org.timezone), 'HH:mm') : '',
-    officerUnitOfAssignment: unit.name,
+    officerUnitOfAssignment: unit.overtimeCode || '',
     officerRank: rank.name,
     time18Hour: incidentForm.shiftDetails.time18Hour ? format(toZonedTime(incidentForm.shiftDetails.time18Hour, org.timezone), 'HH:mm') : '',
     ...(incidentForm.vehicleInformation.hasVehicle === 'yes' && {
@@ -107,7 +106,8 @@ export const requestToPDFForm = ({
         `${((incidentForm.vehicleInformation.endingMileage || 0) -
         (incidentForm.vehicleInformation.startingMileage || 0)).toLocaleString('en-US')}` || '',
     }),
-    callSign: `${useCallSignPrefix ? 'Call Sign: ' : ''}${incidentForm.assignmentSummary.callSign || ''}`,
+    callSignWithPrefix: `Call Sign: ${incidentForm.assignmentSummary.callSign || ''}`,
+    callSign: incidentForm.assignmentSummary.callSign || '',
     squad: incidentForm.assignmentSummary.squad || '',
     supervisor: incidentForm.assignmentSummary.supervisor || '',
     escort: incidentForm.assignmentSummary.missionAssignments!.escort || false,

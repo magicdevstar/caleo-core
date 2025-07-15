@@ -8,6 +8,13 @@ export const GET_DOCUSIGN_EVENTS = gql`
         envelopeId
         documentUrl
         status
+        event {
+          id
+          referenceId
+          name
+          startTime,
+          endTime,
+        }
         shift {
           id
           startTime

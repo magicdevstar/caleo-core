@@ -68,6 +68,7 @@ export interface IIncidentFormDetails {
   vehicleEndingMileage?: string;
   vehicleTotalMileage?: string;
   callSign: string;
+  callSignWithPrefix: string;
   squad?: string;
   supervisor?: string;
   escort?: boolean;
@@ -91,14 +92,14 @@ export interface IIncidentFormDetails {
   officerEmployeeNumber3?: string;
   officerSigningDate2?: string;
   reviewerName2?: string;
-  reviwerEmployeeNumber2?: string;
-  reviwerSigningDate2?: string;
+  reviewerEmployeeNumber2?: string;
+  reviewerSigningDate2?: string;
   officerName2: string;
   officerEmployeeNumber2: string;
   officerSigningDate?: string;
-  reviwerName: string;
-  reviwerEmployeeNumber: string;
-  reviwerSigningDate?: string;
+  reviewerName: string;
+  reviewerEmployeeNumber: string;
+  reviewerSigningDate?: string;
   timeIn?: string;
   totalTime?: string;
   timeOut?: string;

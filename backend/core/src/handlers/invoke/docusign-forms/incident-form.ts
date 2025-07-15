@@ -25,9 +25,20 @@ export const IncidentForm = async (event: IIncidentInput) => {
   
     for (const field of fields) {
       const fieldName = field.getName();
+
+      if (
+        fieldName === 'otherExplanation' &&
+        (!event.incidentFormDetails.other || event.incidentFormDetails.otherExplanation.trim() === '')
+      ) {
+        logger.info('Removing "otherExplanation" field as "other" is not selected', { fieldName });
+        form.removeField(field);
+        continue;
+      }
+
       if(!event.incidentFormDetails[fieldName]) {
         continue;
       }
+
       const fieldType = field.constructor.name;
       
       try {
@@ -56,12 +67,6 @@ export const IncidentForm = async (event: IIncidentInput) => {
 
   const incidentFormGen = async () => {
     const pdfDoc = await loadDoc(`${__dirname}/../../../assets/ActivityLog.pdf`);
-  
-    // Remove second page if totalActivities is less than or equal to 4
-    if (event.totalActivities <= 4) {
-      pdfDoc.removePage(1);
-    }
-
     return fillForm(pdfDoc).save();
   };
 
@@ -85,41 +90,81 @@ export const IncidentForm = async (event: IIncidentInput) => {
     document.documentId = '1';
 
     const signHere = (ds as any).SignHere.constructFromObject({
-      anchorString: event.totalActivities > 4 ? '{officerSignature2}' : '{officerSignature}',
+      anchorString: '{officerSignature}',
       documentId: document.documentId,
       recipientId: officerId,
       tabLabel: 'officerSignature',
     });
+    const signHerePage2 = (ds as any).SignHere.constructFromObject({
+      anchorString: '{officerSignature2}',
+      documentId: document.documentId,
+      recipientId: officerId,
+      tabLabel: 'officerSignaturePage2',
+    });
     const dateSigned = (ds as any).DateSigned.constructFromObject({
-      anchorString: event.totalActivities > 4 ? '{officerSigningDate2}' : '{officerSigningDate}',
+      anchorString: '{officerSigningDate}',
       documentId: document.documentId,
       recipientId: officerId,
       fontColor: 'Black',
+      font: 'Arial',
+      fontSize: 'size10',
+      anchorUnits: 'pixels',
+      anchorYOffset: '-2',
+    });
+    const dateSignedPage2 = (ds as any).DateSigned.constructFromObject({
+      anchorString: '{officerSigningDate2}',
+      documentId: document.documentId,
+      recipientId: officerId,
+      fontColor: 'Black',
+      font: 'Arial',
+      fontSize: 'size10',
+      anchorUnits: 'pixels',
+      anchorYOffset: '-2',
     });
 
     const reviewerSignHere = (ds as any).SignHere.constructFromObject({
-      anchorString: event.totalActivities > 4 ? '{reviewerSignature2}' : '{reviewerSignature}',
+      anchorString: '{reviewerSignature}',
       documentId: document.documentId,
       recipientId: reviewerId,
       tabLabel: 'reviewerSignature',
     });
+    const reviewerSignHerePage2 = (ds as any).SignHere.constructFromObject({
+      anchorString: '{reviewerSignature2}',
+      documentId: document.documentId,
+      recipientId: reviewerId,
+      tabLabel: 'reviewerSignaturePage2',
+    });
     const reviewerDateSigned = (ds as any).DateSigned.constructFromObject({
-      anchorString: event.totalActivities > 4 ? '{reviewerSigningDate2}' : '{reviewerSigningDate}',
+      anchorString: '{reviewerSigningDate}',
       documentId: document.documentId,
       recipientId: reviewerId,
       fontColor: 'Black',
+      font: 'Arial',
+      fontSize: 'size10',
+      anchorUnits: 'pixels',
+      anchorYOffset: '-2',
+    });
+    const reviewerDateSignedPage2 = (ds as any).DateSigned.constructFromObject({
+      anchorString: '{reviewerSigningDate2}',
+      documentId: document.documentId,
+      recipientId: reviewerId,
+      fontColor: 'Black',
+      font: 'Arial',
+      fontSize: 'size10',
+      anchorUnits: 'pixels',
+      anchorYOffset: '-2',
     });
 
     return {
       document,
       officerTabs: {
-        signHereTabs: [signHere],
-        dateSignedTabs: [dateSigned],
+        signHereTabs: [signHere, signHerePage2],
+        dateSignedTabs: [dateSigned, dateSignedPage2],
         initialHereTabs: [],
       },
       reviewerTabs: {
-        signHereTabs: [reviewerSignHere],
-        dateSignedTabs: [reviewerDateSigned],
+        signHereTabs: [reviewerSignHere, reviewerSignHerePage2],
+        dateSignedTabs: [reviewerDateSigned, reviewerDateSignedPage2],
         initialHereTabs: [],
       },
     };
@@ -147,6 +192,10 @@ export const IncidentForm = async (event: IIncidentInput) => {
       documentId: document.documentId,
       recipientId: officerId,
       fontColor: 'Black',
+      font: 'Arial',
+      anchorUnits: 'pixels',
+      anchorXOffset: '-10',
+      fontSize: 'size10',
     });
 
     const reviewerSignHere = (ds as any).SignHere.constructFromObject({
@@ -172,6 +221,8 @@ export const IncidentForm = async (event: IIncidentInput) => {
       documentId: document.documentId,
       recipientId: reviewerId,
       fontColor: 'Black',
+      font: 'Arial',
+      fontSize: 'size10',
     });
 
     return {

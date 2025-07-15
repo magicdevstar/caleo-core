@@ -3,7 +3,7 @@ import startCase from 'lodash/startCase';
 import { InputIncidentForm } from '../models/incidentForm';
 
 export const buildDescription = (eventName: string, incidentForm: InputIncidentForm): string => {
-  let description = `Incident Form for ${eventName}`;
+  let description = `Incident: ${eventName}`;
 
   const assignmentList = Object.keys(incidentForm.assignmentSummary.missionAssignments || {});
   if (assignmentList.length > 0) {

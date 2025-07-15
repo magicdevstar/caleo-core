@@ -6,6 +6,8 @@
   "scripts": {
     "deploy": "npm run generate && sls deploy",
     "deploy:graphql": "npm run generate && sls deploy function -f graphql",
+    "offline": "sls offline",
+    "mongo-local": "mongod --dbpath ~/Downloads/restore-6874be97fba7030c21511018/",
     "generate": "graphql-codegen --config codegen.yml",
     "gen": "npm run generate",
     "lint": "eslint ./src --ignore-pattern src/__generated__/*",
@@ -72,6 +74,7 @@
     "serverless": "^3.38.0",
     "serverless-domain-manager": "^8.0.0",
     "serverless-esbuild": "^1.55.0",
+    "serverless-offline": "^14.4.0",
     "serverless-step-functions": "^3.23.0",
     "ts-jest": "^29.3.4",
     "typescript": "^5.8.3",

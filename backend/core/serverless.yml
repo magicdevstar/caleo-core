@@ -3,6 +3,7 @@ frameworkVersion: '3'
 
 params:
   default:
+    mongoURI: ${ssm:/caleo/mongoURI}
     dbName: caleo-dev
     poolName: caleo-${sls:stage}
     legacyPoolName: lvmpd-oms-uat
@@ -25,6 +26,13 @@ params:
     docusignBase: https://account-d.docusign.com
     eventsChangeStreamId: 68239689ef62a3d84d50d85e
     assignmentsChangeStreamId: 68240731e108a8235a5da7f3
+  local:
+    mongoURI: mongodb://localhost:27017
+    dbName: caleo-prod
+    LOG_LEVEL: errors
+    LOG_SAMPLE_RATE: 0
+    ## Set to your impersonation user
+    serviceId: fa563217-bf80-4c84-a658-2aff5d870d4f
   prod:
     dbName: caleo-prod
     legacyPoolName: lvmpd-oms-prod
@@ -64,7 +72,7 @@ provider:
     STAGE: ${sls:stage}
     REGION: ${aws:region}
     COGNITO_POOL_ID: ${param:poolId}
-    MONGODB_URI: ${ssm:/caleo/mongoURI}
+    MONGODB_URI: ${param:mongoURI}
     BROWSER_PUBLIC_KEY: ${ssm:/caleo/browserPublicKey}
     BROWSER_PRIVATE_KEY: ${ssm:/caleo/browserPrivateKey}
     MONGODB_NAME: ${param:dbName}
@@ -115,6 +123,7 @@ plugins:
   - serverless-esbuild
   - serverless-domain-manager
   - serverless-step-functions
+  - serverless-offline
 
 package:
   individually: true
@@ -138,6 +147,9 @@ custom:
     packager: yarn
     external:
       - 'saslprep'
+  serverless-offline:
+    noPrependStageInUrl: true
+    noAuth: true
 
 functions:
   # GQL API

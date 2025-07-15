@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
+import uniq from 'lodash.uniq';
 import {
   addDays,
   setMilliseconds,
@@ -364,6 +365,11 @@ export const Mutation = {
     }: Context
   ): Promise<IShift[]> => {
     adminOnly(user);
+
+    const shiftIds = uniq(shifts.map(shift => shift.shiftId).filter(Boolean));
+    if (shiftIds.length > 1) {
+      throw new GraphQLError("You can only create or update one shift group at a time");
+    }
 
     const organization = await organizations.get(user.member.orgId!);
     if (!organization) {

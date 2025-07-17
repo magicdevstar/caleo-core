@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { toZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, UpsertShift, User } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
@@ -24,6 +24,13 @@ const dayOfWeek = [
   'friday',
   'saturday', // [6]
 ];
+
+export interface UpsertShiftExtended extends UpsertShift {
+  availability?: Record<string, {
+    startTime: Date;
+    endTime: Date;
+  } | null>;
+}
 
 export interface ShiftSearchExtended extends ShiftSearchInput {
   orgId: ObjectId;

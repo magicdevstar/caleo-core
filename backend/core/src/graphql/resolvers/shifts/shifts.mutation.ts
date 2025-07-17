@@ -1,6 +1,5 @@
 import { GraphQLError } from "graphql";
 import { ObjectId } from "mongodb";
-import uniq from 'lodash.uniq';
 import {
   addDays,
   setMilliseconds,
@@ -14,13 +13,12 @@ import {
   ShiftCheckInOutEvent,
   ShiftStatus,
   ShiftUpdates,
-  UpsertShift,
 } from "../../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../../utils/access";
 import { EventRemoveEventType } from "../../../models/event";
 import { MailerEvents } from "../../../types/mailer";
 import logger from "../../../utils/logger";
-import { IShift } from "../../../models/shift";
+import { IShift, UpsertShiftExtended } from "../../../models/shift";
 import { ShiftNotificationType } from "../../../services/notification.service";
 
 export const Mutation = {
@@ -353,7 +351,7 @@ export const Mutation = {
   },
   shifts: async (
     _parent: unknown,
-    { shifts, removeSlots }: { shifts: UpsertShift[], removeSlots?: boolean },
+    { shifts, removeSlots }: { shifts: UpsertShiftExtended[], removeSlots?: boolean },
     {
       organizations,
       assignments,
@@ -366,16 +364,15 @@ export const Mutation = {
   ): Promise<IShift[]> => {
     adminOnly(user);
 
-    const shiftIds = uniq(shifts.map(shift => shift.shiftId).filter(Boolean));
-    if (shiftIds.length > 1) {
-      throw new GraphQLError("You can only create or update one shift group at a time");
-    }
-
     const organization = await organizations.get(user.member.orgId!);
     if (!organization) {
       throw new GraphQLError("Organization not found");
     }
-    const availability = shiftsModel.createAvailability(shifts[0] as any, organization.timezone!);
+
+    for (const shift of shifts) {
+      shift.availability = shiftsModel.createAvailability(shift as any, organization.timezone!);
+    }
+
     const assignmentId = shifts[0].assignmentId;
     const eventId = shifts[0].eventId;
     const assignment = await assignments.get(assignmentId);
@@ -422,7 +419,6 @@ export const Mutation = {
         ...(rest.eventId && { eventId: new ObjectId(rest.eventId) }),
         ...(rest.userId && { userId: new ObjectId(rest.userId) }),
         status,
-        availability,
         orgId: user.member.orgId!,
         startTime: setSeconds(setMilliseconds(new Date(startTime), 0), 0),
         endTime: setSeconds(setMilliseconds(new Date(endTime), 0), 0),

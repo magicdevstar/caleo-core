@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
+import { InputLabelProps } from "@mui/material/InputLabel";
 import { DocumentNode, useQuery } from "@apollo/client";
 import { useDebounce } from "react-use";
 import RHFAutocomplete from "./rhf-autocomplete";
@@ -14,7 +15,8 @@ export default function RHFGQLSearchAutocomplete({
   helperText,
   query,
   responseKey,
-  filters = {}
+  filters = {},
+  inputLabelProps = {},
 }: {
   label: string;
   helperText?: string;
@@ -25,6 +27,7 @@ export default function RHFGQLSearchAutocomplete({
   loading?: boolean;
   query: DocumentNode;
   responseKey: string;
+  inputLabelProps?: Partial<InputLabelProps> | undefined;
   filters?: Record<string, any>;
 }) {
   const [search, setSearch] = useState('');
@@ -59,6 +62,7 @@ export default function RHFGQLSearchAutocomplete({
       placeholder={placeholder || label}
       disabled={disabled}
       loading={loading}
+      inputLabelProps={inputLabelProps}
       textFieldChange={(event) => {
         setSearch((event as any).target.value);
       }}

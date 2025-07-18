@@ -1,6 +1,7 @@
 import { useFormContext, Controller } from 'react-hook-form';
 // @mui
 import TextField from '@mui/material/TextField';
+import { InputLabelProps } from '@mui/material/InputLabel';
 import Autocomplete, { AutocompleteProps } from '@mui/material/Autocomplete';
 
 // ----------------------------------------------------------------------
@@ -16,6 +17,7 @@ interface Props<
   valueKey?: string;
   placeholder?: string;
   helperText?: React.ReactNode;
+  inputLabelProps?: Partial<InputLabelProps> | undefined;
   textFieldChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
 }
 
@@ -30,6 +32,7 @@ export default function RHFAutocomplete<
   placeholder,
   helperText,
   valueKey,
+  inputLabelProps = {},
   textFieldChange,
   ...other
 }: Omit<Props<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'>) {
@@ -64,6 +67,7 @@ export default function RHFAutocomplete<
               }}
               helperText={error ? error?.message : helperText}
               {...params}
+              InputLabelProps={{ ...(params?.InputLabelProps || {}), ...inputLabelProps }}
             />
           )}
           {...other}

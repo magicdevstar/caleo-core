@@ -44,7 +44,7 @@ import Submissions from './submissions';
 
 // ----------------------------------------------------------------------
 
-const STEPS = ['Operational Period', 'Timekeeping', 'Shift Details', 'Vehicle Information', 'Assignment Summary', 'Activity Log', 'Select Reviewer'];
+const STEPS = ['Operational Period', 'Timekeeping', 'Shift Details', 'Vehicle Information', 'Assignment Summary', 'Activity Log', 'Select Reviewer/Approver'];
 
 // ----------------------------------------------------------------------
 

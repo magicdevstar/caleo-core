@@ -7,8 +7,6 @@ import { RHFGQLSearchAutocomplete } from 'src/components/hook-form';
 export default function SelectReviewerStep() {
   return (
     <Stack spacing={3}>
-      <Typography variant="subtitle1">Select a reviewer for this incident report</Typography>
-      
       <RHFGQLSearchAutocomplete
         name="reviewer"
         label="Reviewer/Approver"
@@ -16,6 +14,7 @@ export default function SelectReviewerStep() {
         hideBeforeTyping
         query={GET_OUTSIDE_USERS}
         responseKey='outsideUsers'
+        inputLabelProps={{ shrink: true }}
       />
     </Stack>
   );

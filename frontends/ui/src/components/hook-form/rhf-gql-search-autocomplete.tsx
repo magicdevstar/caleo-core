@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
 import { DocumentNode, useQuery } from "@apollo/client";
@@ -8,6 +8,8 @@ import RHFAutocomplete from "./rhf-autocomplete";
 export default function RHFGQLSearchAutocomplete({
   name,
   label,
+  hideBeforeTyping = false,
+  placeholder,
   disabled,
   helperText,
   query,
@@ -16,6 +18,8 @@ export default function RHFGQLSearchAutocomplete({
 }: {
   label: string;
   helperText?: string;
+  placeholder?: string;
+  hideBeforeTyping?: boolean;
   name: string;
   disabled?: boolean;
   loading?: boolean;
@@ -25,6 +29,9 @@ export default function RHFGQLSearchAutocomplete({
 }) {
   const [search, setSearch] = useState('');
   const [queryText, setQueryText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  const open = useMemo(() => isFocused && (!hideBeforeTyping || search.trim() !== ''), [isFocused, hideBeforeTyping, search]);
 
   useDebounce(() => {
     setQueryText(search);
@@ -47,13 +54,16 @@ export default function RHFGQLSearchAutocomplete({
     <RHFAutocomplete
       name={name}
       label={label}
+      open={open}
       sx={{ width: '100%' }}
-      placeholder={label}
+      placeholder={placeholder || label}
       disabled={disabled}
       loading={loading}
       textFieldChange={(event) => {
         setSearch((event as any).target.value);
       }}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
       helperText={helperText}
       options={items}
       isOptionEqualToValue={(option, value) => option.id === value.id}

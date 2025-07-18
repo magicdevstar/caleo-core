@@ -109,6 +109,30 @@ export default function TimekeepingStep() {
         row
       />
 
+      {(rdoValue === 'no') && (
+        <>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <RHFTimePicker
+                name="timekeeping.timeIn"
+                label="Time In"
+                textFieldProps={{ fullWidth: true }}
+                ampm={false}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <RHFTimePicker
+                name="timekeeping.timeOut"
+                label="Time Out"
+                textFieldProps={{ fullWidth: true }}
+                ampm={false}
+              />
+            </Grid>
+          </Grid>
+          <TotalBox label='Straight Hours' total={straightHoursDisplay} />
+        </>
+      )}
+
       <RHFRadioGroup
         name="timekeeping.type"
         label="Paid or Saved"
@@ -138,30 +162,6 @@ export default function TimekeepingStep() {
         </Grid>
       </Grid>
       <TotalBox label='Overtime Hours' total={overtimeHoursDisplay} />
-
-      {(rdoValue === 'no') && (
-        <>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <RHFTimePicker
-                name="timekeeping.timeIn"
-                label="Time In"
-                textFieldProps={{ fullWidth: true }}
-                ampm={false}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <RHFTimePicker
-                name="timekeeping.timeOut"
-                label="Time Out"
-                textFieldProps={{ fullWidth: true }}
-                ampm={false}
-              />
-            </Grid>
-          </Grid>
-          <TotalBox label='Straight Hours' total={straightHoursDisplay} />
-        </>
-      )}
     </Stack>
   );
 }

@@ -75,10 +75,16 @@ export const fixShiftAvailability = async (prodDb: Db) => {
 
     for await (const shift of prodDb.collection('shifts').aggregate([
       {
+        $match: {
+          removedAt: { $exists: false },
+        }
+      },
+      {
         $group: {
           _id: '$shiftId',
           items: {
             $addToSet: {
+              id: "$_id",
               availability: "$availability",
               startTime: "$startTime",
               endTime: "$endTime"
@@ -93,7 +99,7 @@ export const fixShiftAvailability = async (prodDb: Db) => {
       });
 
       if (JSON.stringify(availability) !== JSON.stringify(shift.items[0].availability)) {
-        console.log('No match!', shift._id, JSON.stringify(availability, null, 2), JSON.stringify(shift.items[0].availability, null, 2));
+        console.log('No match!', shift._id, shift.items[0].id, JSON.stringify(availability, null, 2), JSON.stringify(shift.items[0].availability, null, 2));
         bulkUpdates.push({
           updateMany: {
             filter: { shiftId: shift._id },

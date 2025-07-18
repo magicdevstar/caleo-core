@@ -11,7 +11,9 @@ export default function SelectReviewerStep() {
       
       <RHFGQLSearchAutocomplete
         name="reviewer"
-        label="Reviewer"
+        label="Reviewer/Approver"
+        placeholder='Type here to search'
+        hideBeforeTyping
         query={GET_OUTSIDE_USERS}
         responseKey='outsideUsers'
       />

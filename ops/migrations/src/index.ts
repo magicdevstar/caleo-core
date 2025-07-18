@@ -44,7 +44,7 @@ import { importUnitsAndDivisions } from "./utils/import-units-and-divisions";
     const mongoClient = connection.db('caleo-dev'); // process.env.DB);
     const mongoClientProd = connectionProd.db(process.env.DB);
 
-    await importUnitsAndDivisions(mongoClientProd);
+    // await importUnitsAndDivisions(mongoClientProd);
     
     // await correctEmails(mongoClient);
 
@@ -53,7 +53,7 @@ import { importUnitsAndDivisions } from "./utils/import-units-and-divisions";
     // await importRank(mongoClientProd);
     
     // await analysisLotto58(mongoClientProd);
-    // await fixShiftAvailability(mongoClientProd);
+    await fixShiftAvailability(mongoClientProd);
     // await lottoAnalysis(mongoClientProd, 57);
     // await removeOldShifts(mongoClientProd);
     // await migrateCollectionToV2(mongoClient.collection('memberNotifications'));

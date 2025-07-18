@@ -96,6 +96,11 @@ export const GET_ASSIGNMENT = gql`
         name
       }
 
+      fieldSupervisorAssignment {
+        id
+        name
+      }
+
       requiredEquipment {
         id
         name

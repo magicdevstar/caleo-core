@@ -322,14 +322,14 @@ export class Docusign {
       const venue = await this.venues.get(event.venueId!);
 
       // Get lieutenant and supervisor from assignment or event
-      const eventLieutenantId = event.lieutenantId;
+      const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
       const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-      const eventSupervisorId = event.supervisorId;
+      const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
       const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
-      const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));
-      const lieutenant = assignmentLieutenant || (await this.users.get(eventLieutenantId!));
+      const supervisor = assignmentSupervisor || eventSupervisor;
+      const lieutenant = assignmentLieutenant || eventLieutenant;
 
       const tabs = await this.docusign.generateTabs({
         org: organization,
@@ -383,14 +383,14 @@ export class Docusign {
           const assignment = await this.assignments.get(shift.assignmentId);
 
           // Get lieutenant and supervisor from assignment or event
-          const eventLieutenantId = event.lieutenantId;
+          const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
           const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-          const eventSupervisorId = event.supervisorId;
+          const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
           const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
-          const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));
-          const lieutenant = assignmentLieutenant || (await this.users.get(eventLieutenantId!));
+          const supervisor = assignmentSupervisor || eventSupervisor;
+          const lieutenant = assignmentLieutenant || eventLieutenant;
 
           let requiresVehicleInformation = false;
 
@@ -460,14 +460,14 @@ export class Docusign {
         const assignment = await this.assignments.get(shift.assignmentId!);
 
         // Get lieutenant and supervisor from assignment or event
-        const eventLieutenantId = event.lieutenantId;
+        const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
         const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
-        const eventSupervisorId = event.supervisorId;
+        const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
         const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
-        const supervisor = assignmentSupervisor || (await this.users.get(eventSupervisorId!));
-        const lieutenant = assignmentLieutenant || (await this.users.get(eventLieutenantId!));
+        const supervisor = assignmentSupervisor || eventSupervisor;
+        const lieutenant = assignmentLieutenant || eventLieutenant;
 
         let requiresVehicleInformation = false;
 

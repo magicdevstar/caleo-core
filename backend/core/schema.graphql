@@ -446,8 +446,11 @@
     outsideOrgCode: String
     overtimeReasonCode: String
     budgetActivityCode: String
-    supervisorId: String
-    lieutenantId: String
+    supervisorId: String @deprecated(reason: "Use supervisorAssignmentId instead!")
+    lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
+    supervisorAssignmentId: ObjectId
+    lieutenantAssignmentId: ObjectId
+    fieldSupervisorAssignmentId: ObjectId
 
     # Incident only fields
     requiredSkillIds: [String]
@@ -464,6 +467,9 @@
     lotteryCounter: LotteryCounter
     supervisor: User
     lieutenant: User
+    supervisorAssignment: Assignment
+    lieutenantAssignment: Assignment
+    fieldSupervisorAssignment: Assignment
     docusignEvent: DocusignEvent
   }
 
@@ -501,8 +507,9 @@
     supervisorId: String @deprecated(reason: "Use supervisorAssignmentId instead!")
     lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
     # Overrides for event supervisor and lieutenant
-    supervisorAssignmentId: String
-    lieutenantAssignmentId: String
+    supervisorAssignmentId: ObjectId
+    lieutenantAssignmentId: ObjectId
+    fieldSupervisorAssignmentId: ObjectId
     # If the assignment is a signing authority assignment
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
@@ -523,6 +530,7 @@
     lieutenant: User
     supervisorAssignment: Assignment
     lieutenantAssignment: Assignment
+    fieldSupervisorAssignment: Assignment
     org: Organization!
     modifiedBy: User
   }
@@ -824,6 +832,9 @@
     budgetActivityCode: String
     supervisorId: String
     lieutenantId: String
+    supervisorAssignmentId: ObjectId
+    lieutenantAssignmentId: ObjectId
+    fieldSupervisorAssignmentId: ObjectId
 
     # Incident only field! This will only be accepted when the event status is INCIDENT
     startTime: String
@@ -881,8 +892,9 @@
     shiftIds: [String]
     supervisorId: String @deprecated(reason: "Use supervisorAssignmentId instead!")
     lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
-    supervisorAssignmentId: String
-    lieutenantAssignmentId: String
+    supervisorAssignmentId: ObjectId
+    lieutenantAssignmentId: ObjectId
+    fieldSupervisorAssignmentId: ObjectId
     isSigningAuthority: Boolean
   }
 

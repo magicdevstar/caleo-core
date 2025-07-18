@@ -131,7 +131,7 @@ export const useLasdEventSummary = () => {
             // Assignment Location
             shift.assignment?.reportingLocation || shift?.event?.venue?.city || '',
             // Assignment Supervisor
-            shift.assignment?.supervisorAssignment?.shifts?.[0]?.user?.name || shift.event?.supervisor?.name || '',
+            shift.assignment?.supervisorAssignment?.shifts?.[0]?.user?.name || shift.event?.supervisorAssignment?.shifts?.[0]?.user?.name || '',
             // Start Time
             shift.startTime
               ? convertDate({ date: shift.startTime, user }).format('MM/DD - HH:mm')

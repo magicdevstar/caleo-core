@@ -260,8 +260,16 @@ export const GET_EVENT_FOR_SUMMARY = gql`
       id
       referenceId
       name
-      supervisor {
+      supervisorAssignment {
+        id
         name
+        shifts {
+          id
+          user {
+            id
+            name
+          }
+        }
       }
       startTime
       endTime
@@ -408,12 +416,17 @@ export const GET_EVENT = gql`
         documentUrl
       }
 
-      supervisor {
+      supervisorAssignment {
         id
         name
       }
 
-      lieutenant {
+      lieutenantAssignment {
+        id
+        name
+      }
+
+      fieldSupervisorAssignment {
         id
         name
       }
@@ -481,13 +494,40 @@ export const REQUIRED_EVENT_FIELDS = gql`
       outsideOrgCode
       overtimeReasonCode
       budgetActivityCode
-      supervisor {
+      supervisorAssignment {
         id
         name
+        shifts {
+          id
+          user {
+            id
+            name
+          }
+        }
       }
-      lieutenant {
+
+      lieutenantAssignment {
         id
         name
+        shifts {
+          id
+          user {
+            id
+            name
+          }
+        }
+      }
+
+      fieldSupervisorAssignment {
+        id
+        name
+        shifts {
+          id
+          user {
+            id
+            name
+          }
+        }
       }
       venue {
         id

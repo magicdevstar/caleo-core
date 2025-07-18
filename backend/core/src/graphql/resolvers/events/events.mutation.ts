@@ -188,12 +188,12 @@ export const Mutation = {
 
       await assignments.createTemplates({
         originalEventId: new ObjectId(id),
-        eventId: clonedEvent._id!,
+        event: clonedEvent,
         organization: organization!,
         user: user!,
         shifts: s,
-        addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) =>
-          events.addAssignmentIds(id, assignmentIds, modifiedById),
+        updateEventPostAssignmentClone: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId, otherSetValues: Record<string, any>) =>
+          events.updateEventPostAssignmentCreate(id, assignmentIds, modifiedById, otherSetValues),
       });
 
       return clonedEvent;
@@ -226,12 +226,12 @@ export const Mutation = {
 
       await assignments.cloneAssignmentsByEvent({
         originalEventId: new ObjectId(id),
-        eventId: clonedEvent._id!,
+        event: clonedEvent,
         organization: organization!,
         user: user!,
         generateSlots: (assignmentId: ObjectId) => shifts.generateSlotsFromAssignment(assignmentId),
-        addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) =>
-          events.addAssignmentIds(id, assignmentIds, modifiedById),
+        updateEventPostAssignmentClone: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId, otherSetValues: Record<string, any>) =>
+          events.updateEventPostAssignmentCreate(id, assignmentIds, modifiedById, otherSetValues),
       });
 
       return clonedEvent;

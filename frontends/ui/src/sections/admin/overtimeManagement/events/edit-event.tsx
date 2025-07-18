@@ -54,7 +54,7 @@ import FormProvider, {
   RHFSwitch,
   RHFAutocomplete,
   RHFDateTimePicker,
-  RHFUserAutocomplete,
+  RHFSigningAuthorityAutocomplete,
   RHFSkillAutocomplete,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -106,8 +106,9 @@ const NewEventSchema = Yup.object().shape({
   outsideOrgCode: Yup.string().nullable(),
   overtimeReasonCode: Yup.string().nullable(),
   budgetActivityCode: Yup.string().nullable(),
-  supervisor: Yup.object().nullable(),
-  lieutenant: Yup.object().nullable(),
+  supervisorAssignment: Yup.object().nullable(),
+  lieutenantAssignment: Yup.object().nullable(),
+  fieldSupervisorAssignment: Yup.object().nullable(),
   interestListAutoAssignCutoff: Yup.string().nullable(),
   ocn: Yup
     .string()
@@ -287,8 +288,9 @@ export default function EditEvent({
       outsideOrgCode: currentEvent?.outsideOrgCode,
       overtimeReasonCode: currentEvent?.overtimeReasonCode,
       budgetActivityCode: currentEvent?.budgetActivityCode,
-      supervisor: currentEvent?.supervisor || null,
-      lieutenant: currentEvent?.lieutenant || null,
+      supervisorAssignment: currentEvent?.supervisorAssignment || null,
+      lieutenantAssignment: currentEvent?.lieutenantAssignment || null,
+      fieldSupervisorAssignment: currentEvent?.fieldSupervisorAssignment || null,
       startTime: currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date(),
       endTime: currentEvent?.endTime ? new Date(currentEvent.endTime) : undefined,
       requiredSkills: currentEvent?.requiredSkills || [],
@@ -492,8 +494,9 @@ export default function EditEvent({
             outsideOrgCode: formData?.outsideOrgCode || '15778',
             overtimeReasonCode: formData?.overtimeReasonCode,
             budgetActivityCode: formData?.budgetActivityCode,
-            supervisorId: formData?.supervisor?.id,
-            lieutenantId: formData?.lieutenant?.id,
+            supervisorAssignmentId: formData?.supervisorAssignment?.id,
+            lieutenantAssignmentId: formData?.lieutenantAssignment?.id,
+            fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
@@ -611,17 +614,26 @@ export default function EditEvent({
                 {
                   !isIncident && (
                     <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                      <RHFUserAutocomplete
-                        name="supervisor"
-                        label='Lieutenant'
+                      <RHFSigningAuthorityAutocomplete
+                        eventId={currentEvent?.id}
+                        name="supervisorAssignment"
+                        label='Pre-Approval Supervisor'
                         disabled={allDisabled}
-                        helperText="Incident commander that oversees the event and will be included on all shift documents"
+                        helperText="Supervisor assignment that oversees the event and will be included on all shift documents"
                       />
-                      <RHFUserAutocomplete
-                        name="lieutenant"
+                      <RHFSigningAuthorityAutocomplete
+                        eventId={currentEvent?.id}
+                        name="lieutenantAssignment"
                         label='Signing Supervisor'
                         disabled={allDisabled}
-                        helperText="Supervisor that will sign off all shift confirmation documents."
+                        helperText="Supervisor assignment that will sign off all shift confirmation documents."
+                      />
+                      <RHFSigningAuthorityAutocomplete
+                        eventId={currentEvent?.id}
+                        name="fieldSupervisorAssignment"
+                        label='Field Supervisor'
+                        disabled={allDisabled}
+                        helperText="Field Supervisor assignment."
                       />
                     </Stack>
                   )

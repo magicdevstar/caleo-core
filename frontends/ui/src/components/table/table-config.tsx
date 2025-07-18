@@ -19,6 +19,7 @@ export interface TableConfig<T> {
       icon: string;
       loading?: boolean;
       disabled?: boolean;
+      tooltip?: string;
       onClick: () => void;
     },
   },

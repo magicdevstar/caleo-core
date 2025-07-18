@@ -111,6 +111,7 @@ export default function EditAssignment({
     isSigningAuthority: Yup.boolean(),
     supervisorAssignment: Yup.object().nullable(),
     lieutenantAssignment: Yup.object().nullable(),
+    fieldSupervisorAssignment: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -134,6 +135,7 @@ export default function EditAssignment({
       shifts: currentAssignment?.shifts || [],
       supervisorAssignment: currentAssignment?.supervisorAssignment || null,
       lieutenantAssignment: currentAssignment?.lieutenantAssignment || null,
+      fieldSupervisorAssignment: currentAssignment?.fieldSupervisorAssignment || null,
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
@@ -188,6 +190,7 @@ export default function EditAssignment({
             shiftIds: formData?.shifts?.map(({ id }: Shift) => id),
             supervisorAssignmentId: formData?.supervisorAssignment?.id,
             lieutenantAssignmentId: formData?.lieutenantAssignment?.id,
+            fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             isSigningAuthority: formData?.isSigningAuthority,
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
@@ -249,10 +252,10 @@ export default function EditAssignment({
             {
               signingAuthorityAssignment && (
                 <RHFSwitch
-                  helperText={(currentAssignment?.shifts?.length || 0) > 1 ? 'Signing authority is only allowed with a single shift slot' : ''}
+                  helperText={(currentAssignment?.shifts?.length || 0) > 1 ? 'Supervisor assignments are only allowed with a single shift slot' : ''}
                   disabled={(currentAssignment?.shifts?.length || 0) > 1}
                   name="isSigningAuthority"
-                  label="Signing Authority"
+                  label="Supervisor"
                 />
               )
             }
@@ -263,7 +266,7 @@ export default function EditAssignment({
                   <RHFSigningAuthorityAutocomplete
                     eventId={eventId}
                     name="supervisorAssignment"
-                    label='Lieutenant'
+                    label='Pre-Approval Supervisor'
                     disabled={allDisabled}
                     helperText="Incident commander assignment that oversees the event and will be included on all shift documents"
                   />
@@ -273,6 +276,13 @@ export default function EditAssignment({
                     label='Signing Supervisor'
                     disabled={allDisabled}
                     helperText="Supervisor assignment that will sign off all shift confirmation documents."
+                  />
+                  <RHFSigningAuthorityAutocomplete
+                    eventId={eventId}
+                    name="fieldSupervisorAssignment"
+                    label='Field Supervisor'
+                    disabled={allDisabled}
+                    helperText="Field Supervisor assignment."
                   />
                 </Stack>
               )
@@ -374,6 +384,7 @@ export default function EditAssignment({
           {assignmentTemplateView ? (
             <RHFAssignmentShiftSlots
               name="shiftSlots"
+              isSupervisorAssignment={!!isSigningAuthority}
               allDisabled={allDisabled}
               isComplete={isComplete}
             />

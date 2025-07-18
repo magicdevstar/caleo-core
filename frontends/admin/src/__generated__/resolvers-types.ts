@@ -66,11 +66,13 @@ export type Assignment = {
   docType: DocType;
   event: Event;
   eventId: Scalars['String']['output'];
+  fieldSupervisorAssignment?: Maybe<Assignment>;
+  fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   id: Scalars['ID']['output'];
   isSigningAuthority?: Maybe<Scalars['Boolean']['output']>;
   lieutenant?: Maybe<User>;
   lieutenantAssignment?: Maybe<Assignment>;
-  lieutenantAssignmentId?: Maybe<Scalars['String']['output']>;
+  lieutenantAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   /** @deprecated Use lieutenantAssignmentId instead! */
   lieutenantId?: Maybe<Scalars['String']['output']>;
   modifiedBy?: Maybe<User>;
@@ -92,7 +94,7 @@ export type Assignment = {
   shifts?: Maybe<Array<Maybe<Shift>>>;
   supervisor?: Maybe<User>;
   supervisorAssignment?: Maybe<Assignment>;
-  supervisorAssignmentId?: Maybe<Scalars['String']['output']>;
+  supervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
@@ -445,10 +447,15 @@ export type Event = {
   docusignEnvelopeStatus?: Maybe<Scalars['String']['output']>;
   docusignEvent?: Maybe<DocusignEvent>;
   endTime?: Maybe<Scalars['String']['output']>;
+  fieldSupervisorAssignment?: Maybe<Assignment>;
+  fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   id: Scalars['ID']['output'];
   interestListAutoAssignCutoff?: Maybe<Scalars['String']['output']>;
   interestListTransition?: Maybe<EventStatus>;
   lieutenant?: Maybe<User>;
+  lieutenantAssignment?: Maybe<Assignment>;
+  lieutenantAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
+  /** @deprecated Use lieutenantAssignmentId instead! */
   lieutenantId?: Maybe<Scalars['String']['output']>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryNumber?: Maybe<Scalars['Int']['output']>;
@@ -475,6 +482,9 @@ export type Event = {
   startTime?: Maybe<Scalars['String']['output']>;
   status: EventStatus;
   supervisor?: Maybe<User>;
+  supervisorAssignment?: Maybe<Assignment>;
+  supervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
+  /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
@@ -2652,9 +2662,10 @@ export type UpsertAssignment = {
   callSign?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
+  fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   isSigningAuthority?: InputMaybe<Scalars['Boolean']['input']>;
-  lieutenantAssignmentId?: InputMaybe<Scalars['String']['input']>;
+  lieutenantAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   /** @deprecated Use lieutenantAssignmentId instead! */
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -2665,7 +2676,7 @@ export type UpsertAssignment = {
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftSlots?: InputMaybe<Array<InputMaybe<UpsertAssignmentShiftSlot>>>;
-  supervisorAssignmentId?: InputMaybe<Scalars['String']['input']>;
+  supervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -2706,9 +2717,11 @@ export type UpsertEvent = {
   callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   endTime?: InputMaybe<Scalars['String']['input']>;
+  fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
+  lieutenantAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   lotteryNumber?: InputMaybe<Scalars['Int']['input']>;
   name: Scalars['String']['input'];
@@ -2725,6 +2738,7 @@ export type UpsertEvent = {
   scheduledInterestList?: InputMaybe<Scalars['String']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<EventStatus>;
+  supervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   supervisorId?: InputMaybe<Scalars['String']['input']>;
   venueId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -3715,11 +3729,13 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fieldSupervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isSigningAuthority?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   lieutenantAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
-  lieutenantAssignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  lieutenantAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3740,7 +3756,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType>;
   supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   supervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
-  supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3956,10 +3972,14 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   docusignEnvelopeStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  fieldSupervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interestListAutoAssignCutoff?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  lieutenantAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  lieutenantAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   lieutenantId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType>;
   lotteryNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -3986,6 +4006,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   startTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['EventStatus'], ParentType, ContextType>;
   supervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  supervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
+  supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

@@ -306,7 +306,7 @@ export default function EditShift({
 
   const handleAddShift = async () => {
     if (currentShifts.length >= 1 && isSigningAuthority) {
-      enqueueSnackbar('You can only add one shift slot at a time when you are the signing authority.', { variant: 'warning' });
+      enqueueSnackbar('You can only add one shift slot at a time when you are the supervisor assignment.', { variant: 'warning' });
       return;
     }
     const groupId = shiftId || uuid();
@@ -595,7 +595,7 @@ export default function EditShift({
 
   const notifyTooltip = useMemo(() => {
     if (isSigningAuthority) {
-      return 'Signing authority must be assigned by an admin';
+      return 'Supervisor must be assigned by an admin';
     }
     if (!canNotify) {
       return 'Event must be available to officers and there must be available shifts';

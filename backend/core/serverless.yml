@@ -234,6 +234,7 @@ functions:
   # PDF Utils
   generateIncidentForm:
     handler: src/handlers/invoke/generateIncidentForm.handler
+    memorySize: 4096
     timeout: 120
     package:
       patterns:

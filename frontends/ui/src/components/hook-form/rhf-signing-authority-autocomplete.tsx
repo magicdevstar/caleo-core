@@ -12,7 +12,7 @@ export default function RHFSigningAuthorityAutocomplete({
   disabled,
   helperText,
 }: {
-  eventId: string;
+  eventId?: string;
   label: string;
   helperText?: string;
   name: string;
@@ -27,6 +27,7 @@ export default function RHFSigningAuthorityAutocomplete({
     variables: {
       eventId,
     },
+    skip: !eventId,
   });
   const items = data?.signingAuthorityAssignments?.items || [];
 

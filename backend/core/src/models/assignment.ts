@@ -8,6 +8,7 @@ import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { IOrganization } from './organizations/organization.entity';
 import { IAssignmentShiftSlots, IUser } from '../types/common';
 import { IShift } from './shift';
+import { IEvent } from './event';
 
 const lambda = new LambdaClient({});
 
@@ -39,6 +40,8 @@ export interface IAssignment extends Omit<
   'supervisorAssignment' |
   'lieutenantAssignmentId' |
   'lieutenantAssignment' |
+  'fieldSupervisorAssignmentId' |
+  'fieldSupervisorAssignment' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -52,6 +55,7 @@ export interface IAssignment extends Omit<
   modifiedById: ObjectId;
   supervisorAssignmentId?: ObjectId;
   lieutenantAssignmentId?: ObjectId;
+  fieldSupervisorAssignmentId?: ObjectId;
   shiftSlots?: {
     id?: ObjectId;
     slotCount: number;
@@ -69,18 +73,18 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
 
   async createTemplates({
     originalEventId,
-    eventId,
+    event,
     organization,
     user,
-    addAssignmentIds,
+    updateEventPostAssignmentClone,
     shifts,
   }: {
     originalEventId: ObjectId;
-    eventId: ObjectId;
+    event: IEvent;
     organization: IOrganization;
     user: IUser;
     shifts: IShift[];
-    addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) => Promise<void>;
+    updateEventPostAssignmentClone: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId, otherSetValues: Record<string, any>) => Promise<void>;
   }) {
     const {
       items: originalAssignments,
@@ -110,6 +114,12 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       }
     }
 
+    const idMap: Record<string, ObjectId> = {};
+    // Create a map of original assignment IDs to new ObjectIds
+    originalAssignments.forEach((assignment) => {
+      idMap[assignment.id!] = new ObjectId();
+    });
+
     const assignmentTemplates = originalAssignments.map(({
       id,
       _id,
@@ -123,7 +133,11 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       ...a
     }) => ({
       ...a,
-      eventId,
+      _id: idMap[id!],
+      ...(a.supervisorAssignmentId && { supervisorAssignmentId: idMap[a.supervisorAssignmentId.toString()] }),
+      ...(a.lieutenantAssignmentId && { lieutenantAssignmentId: idMap[a.lieutenantAssignmentId.toString()] }),
+      ...(a.fieldSupervisorAssignmentId && { fieldSupervisorAssignmentId: idMap[a.fieldSupervisorAssignmentId.toString()] }),
+      eventId: event._id,
       shiftSlots: result[id!] || [],
       shiftIds: [],
       createdAt: new Date(),
@@ -135,10 +149,15 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     const finalAssignmentIds = Object.values(res.insertedIds);
 
     // Add assignmentIds to event once they have been created
-    await addAssignmentIds(
-      eventId,
+    await updateEventPostAssignmentClone(
+      event._id!,
       finalAssignmentIds,
       user._id!,
+      {
+        supervisorAssignmentId: idMap[event?.supervisorAssignmentId?.toString?.() || '-'] || undefined,
+        lieutenantAssignmentId: idMap[event?.lieutenantAssignmentId?.toString?.() || '-'] || undefined,
+        fieldSupervisorAssignmentId: idMap[event?.fieldSupervisorAssignmentId?.toString?.() || '-'] || undefined,
+      },
     );
 
     return res;
@@ -146,18 +165,18 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
 
   async cloneAssignmentsByEvent({
     originalEventId,
-    eventId,
+    event,
     organization,
     user,
-    addAssignmentIds,
+    updateEventPostAssignmentClone,
     generateSlots,
   } : {
     originalEventId: ObjectId;
-    eventId: ObjectId;
+    event: IEvent;
     organization: IOrganization;
     user: IUser;
     generateSlots: (assignmentId: ObjectId) => Promise<IAssignmentShiftSlots[]>;
-    addAssignmentIds: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId) => Promise<void>;
+    updateEventPostAssignmentClone: (id: ObjectId, assignmentIds: ObjectId[], modifiedById: ObjectId, otherSetValues: Record<string, any>) => Promise<void>;
   }) {
     const {
       items: originalAssignments,
@@ -195,10 +214,11 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
           _id: idMap[id!],
           ...(assignment.supervisorAssignmentId && { supervisorAssignmentId: idMap[assignment.supervisorAssignmentId.toString()] }),
           ...(assignment.lieutenantAssignmentId && { lieutenantAssignmentId: idMap[assignment.lieutenantAssignmentId.toString()] }),
+          ...(assignment.fieldSupervisorAssignmentId && { fieldSupervisorAssignmentId: idMap[assignment.fieldSupervisorAssignmentId.toString()] }),
           shiftIds: [],
           createdAt: new Date(),
           updatedAt: new Date(),
-          eventId,
+          eventId: event._id,
           modifiedById: user._id,
           orgId: organization._id,
         };
@@ -208,10 +228,15 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     const assignments = await this.collection.insertMany(assignmentTemplates);
 
     // Add assignmentIds to event once they have been created
-    await addAssignmentIds(
-      eventId,
+    await updateEventPostAssignmentClone(
+      event._id!,
       Object.values(assignments.insertedIds),
       user._id!,
+      {
+        supervisorAssignmentId: idMap[event?.supervisorAssignmentId?.toString?.() || '-'] || undefined,
+        lieutenantAssignmentId: idMap[event?.lieutenantAssignmentId?.toString?.() || '-'] || undefined,
+        fieldSupervisorAssignmentId: idMap[event?.fieldSupervisorAssignmentId?.toString?.() || '-'] || undefined,
+      }
     );
 
     return assignments;

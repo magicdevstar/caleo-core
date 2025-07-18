@@ -76,7 +76,7 @@ export default function AssignmentShiftsTable({
     }
 
     if (isSigningAuthority && (currentAssignment?.shifts?.length || 0) >= 1) {
-      enqueueSnackbar('You can only add one shift slot per signing authority assignment.', { variant: 'warning' });
+      enqueueSnackbar('You can only add one shift slot per supervisor assignment.', { variant: 'warning' });
       return;
     }
 

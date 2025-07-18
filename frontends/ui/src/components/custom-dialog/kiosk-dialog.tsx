@@ -45,12 +45,27 @@ export default function KioskOpenDialog({
     outsideOrgCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
     overtimeReasonCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
     budgetActivityCode: lasdEventFields ? yup.string().required() : yup.string().nullable(),
-    supervisor: lasdEventFields ? yup.object().shape({
-      name: yup.string().required(),
-    }) : yup.object().nullable(),
-    lieutenant: lasdEventFields ? yup.object().shape({
-      name: yup.string().required(),
-    }) : yup.object().nullable(),
+    supervisorAssignment: lasdEventFields ? yup.object().shape({
+      shifts: yup.array().of(
+        yup.object().shape({
+          user: yup.object().required(),
+        })
+      ).min(1, 'At least one shift with a user is required'),
+    }).required() : yup.object().nullable(),
+    lieutenantAssignment: lasdEventFields ? yup.object().shape({
+      shifts: yup.array().of(
+        yup.object().shape({
+          user: yup.object().required(),
+        })
+      ).min(1, 'At least one shift with a user is required'),
+    }).required() : yup.object().nullable(),
+    fieldSupervisorAssignment: lasdEventFields ? yup.object().shape({
+      shifts: yup.array().of(
+        yup.object().shape({
+          user: yup.object().required(),
+        })
+      ).min(1, 'At least one shift with a user is required'),
+    }).required() : yup.object().nullable(),
     venue: yup.object().shape({
       name: yup.string().required(),
     }),
@@ -81,8 +96,8 @@ export default function KioskOpenDialog({
     }
     return {
       link: paths.dashboard.admin.overtime.eventDetail.replace(':eventId', eventId),
-      text: 'Open Event Dashboard',
-      color: 'error',
+      text: 'Edit Event',
+      color: 'primary',
     };
   }, [isEventValid, eventId]);
 

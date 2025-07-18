@@ -10,6 +10,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Tooltip from '@mui/material/Tooltip';
 // components
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -27,12 +28,14 @@ type SlotData = {
 
 type Props = {
   name: string;
+  isSupervisorAssignment: boolean;
   allDisabled: boolean;
   isComplete: boolean;
 };
 
 export default function RHFAssignmentShiftSlots({
   name,
+  isSupervisorAssignment,
   allDisabled,
   isComplete,
 }: Props) {
@@ -109,8 +112,11 @@ export default function RHFAssignmentShiftSlots({
       button: {
         text: 'Add Slot',
         icon: 'ic:baseline-add',
-        disabled: allDisabled || isComplete,
-        onClick: handleOpenSlotModal
+        disabled: allDisabled || isComplete || (isSupervisorAssignment && fields.length >= 1),
+        onClick: handleOpenSlotModal,
+        tooltip: (isSupervisorAssignment && fields.length >= 1) 
+          ? "Supervisor assignments can only have one shift slot" 
+          : undefined
       }
     },
     table: {
@@ -149,9 +155,7 @@ export default function RHFAssignmentShiftSlots({
       { id: '', width: '10%', columnType: 'action', label: '' },
     ],
     filters: []
-  }), [allDisabled, handleEditSlot, isComplete, openDeleteConfirm, slotsData]);
-
-  let view = (<GQLTable config={config} />);
+    }), [allDisabled, handleEditSlot, isComplete, openDeleteConfirm, slotsData, isSupervisorAssignment, fields.length]);  let view = (<GQLTable config={config} />);
 
   // Render empty state if no slots
   if (!fields.length) {
@@ -160,15 +164,26 @@ export default function RHFAssignmentShiftSlots({
         <Typography variant="body1" color="text.secondary" gutterBottom>
           No shift slots defined yet.
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleOpenSlotModal}
-          startIcon={<Iconify icon="ic:baseline-add" />}
-          disabled={allDisabled || isComplete}
+        <Tooltip 
+          title={
+            (isSupervisorAssignment && fields.length >= 1) 
+              ? "Supervisor assignments can only have one shift slot" 
+              : ""
+          }
+          arrow
         >
-          Add Shift Slot
-        </Button>
+          <span>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleOpenSlotModal}
+              startIcon={<Iconify icon="ic:baseline-add" />}
+              disabled={allDisabled || isComplete || (isSupervisorAssignment && fields.length >= 1)}
+            >
+              Add Shift Slot
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
     );
   }
@@ -186,6 +201,7 @@ export default function RHFAssignmentShiftSlots({
             margin="dense"
             label="Total Shifts"
             type="number"
+            disabled={isSupervisorAssignment}
             fullWidth
             value={slotCount}
             onChange={(e) => setSlotCount(Number(e.target.value))}

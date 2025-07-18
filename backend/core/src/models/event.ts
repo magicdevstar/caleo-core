@@ -59,6 +59,12 @@ export interface IEvent extends Omit<
   'lieutenantId' |
   'requiredSkills' |
   'requiredSkillIds' |
+  'supervisorAssignmentId' |
+  'supervisorAssignment' |
+  'lieutenantAssignmentId' |
+  'lieutenantAssignment' |
+  'fieldSupervisorAssignmentId' |
+  'fieldSupervisorAssignment' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -72,6 +78,9 @@ export interface IEvent extends Omit<
 
   supervisorId?: ObjectId;
   lieutenantId?: ObjectId;
+  supervisorAssignmentId?: ObjectId;
+  lieutenantAssignmentId?: ObjectId;
+  fieldSupervisorAssignmentId?: ObjectId;
 
   requestDetails?: IEventRequestDetails;
   referenceId?: number;
@@ -354,10 +363,11 @@ export class EventModel extends BaseMongo<IEvent> {
     return this.document.getDownloadUrl(attachmentPath);
   };
 
-  async addAssignmentIds(
+  async updateEventPostAssignmentCreate(
     id: ObjectId,
     assignmentIds: ObjectId[],
     modifiedById?: ObjectId,
+    otherSetValues: Record<string, any> = {},
   ) {
     await this.collection.updateOne({
       _id: id,
@@ -365,6 +375,7 @@ export class EventModel extends BaseMongo<IEvent> {
       $set: {
         updatedAt: new Date(),
         modifiedById,
+        ...otherSetValues,
       },
       $push: {
         assignmentIds: {$each: assignmentIds},

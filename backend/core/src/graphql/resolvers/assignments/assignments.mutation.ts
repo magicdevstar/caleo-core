@@ -86,10 +86,11 @@ export const Mutation = {
     });
 
     if (!assignment.id) {
-      await events.addAssignmentIds(
+      await events.updateEventPostAssignmentCreate(
         event._id!,
         [updatedAssignment._id!],
-        new ObjectId(user!.id)
+        new ObjectId(user!.id),
+        {}
       );
     }
 

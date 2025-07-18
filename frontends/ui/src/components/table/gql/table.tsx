@@ -11,6 +11,7 @@ import TableBody from "@mui/material/TableBody";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Tooltip from "@mui/material/Tooltip";
 import Stack from "@mui/material/Stack";
 import { alpha } from "@mui/material/styles";
 // Types
@@ -156,13 +157,19 @@ export default function GQLTable({
           }}>
             <Typography variant="h4"> { config.header.title } </Typography>
             <Stack direction="row" spacing={2}>
-              {config.header.button && <LoadingButton
-                loading={config.header.button.loading}
-                variant="contained"
-                disabled={config.header.button.disabled}
-                startIcon={<Iconify icon={config.header.button.icon}/>}
-                onClick={config.header.button.onClick}
-              >{config.header.button.text}</LoadingButton>}
+              {config.header.button && (
+                <Tooltip title={config.header.button.tooltip || ''}>
+                  <span>
+                    <LoadingButton
+                      loading={config.header.button.loading}
+                      variant="contained"
+                      disabled={config.header.button.disabled}
+                      startIcon={<Iconify icon={config.header.button.icon}/>}
+                      onClick={config.header.button.onClick}
+                    >{config.header.button.text}</LoadingButton>
+                  </span>
+                </Tooltip>
+              )}
               {config.header.buttons &&
                 config.header.buttons.map((buttonConfig) => (
                   buttonConfig.render ? buttonConfig.render(buttonConfig) :

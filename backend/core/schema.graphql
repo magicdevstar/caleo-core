@@ -451,6 +451,7 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    overtimeNarrative: String
 
     # Incident only fields
     requiredSkillIds: [String]
@@ -835,6 +836,7 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    overtimeNarrative: String
 
     # Incident only field! This will only be accepted when the event status is INCIDENT
     startTime: String

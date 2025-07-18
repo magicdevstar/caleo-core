@@ -298,7 +298,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'automaticDetails')?.tabId,
               tabLabel: "automaticDetails",
-              value: `Worked ${event.name} @ ${venue.address || 'ADDRESS'} ${venue.city || 'CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`,
+              value: `${event.overtimeNarrative}\n${lastLineExplainer}`,
             }
           ]
         }
@@ -410,7 +410,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'budgetActivityCode') {
         res[tab.tabLabel] = event.budgetActivityCode || 'DN6S';
       } else if (tab.tabLabel === 'automaticDetails') {
-        res[tab.tabLabel] = `Worked ${event.name} @ ${venue.address || 'UNKNOWN VENUE'} ${venue.city || 'UNKNOWN CITY'} in the ${venue.contract?.name || 'N/A'}.\nSpecial Event Contract: ${venue.contract?.name || 'N/A'}.\n${lastLineExplainer}`;
+        res[tab.tabLabel] = `${event.overtimeNarrative}\n${lastLineExplainer}`;
       } else if (tab.tabLabel === 'callSignLabel') {
         res[tab.tabLabel] = 'Call Sign: ';
       } else if (tab.tabLabel === 'callSign') {

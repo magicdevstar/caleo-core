@@ -46,6 +46,7 @@ import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } 
 import { GET_VENUE_LIST } from 'src/api/venues';
 // components
 import { useSnackbar } from 'src/components/snackbar';
+import { LASDDetails } from 'src/components/events/lasd-details';
 import FormProvider, {
   RHFEditor,
   RHFTextField,
@@ -110,6 +111,7 @@ const NewEventSchema = Yup.object().shape({
   lieutenantAssignment: Yup.object().nullable(),
   fieldSupervisorAssignment: Yup.object().nullable(),
   interestListAutoAssignCutoff: Yup.string().nullable(),
+  overtimeNarrative: Yup.string().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -294,6 +296,7 @@ export default function EditEvent({
       startTime: currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date(),
       endTime: currentEvent?.endTime ? new Date(currentEvent.endTime) : undefined,
       requiredSkills: currentEvent?.requiredSkills || [],
+      overtimeNarrative: currentEvent?.overtimeNarrative || '',
     }),
     [
       currentEvent,
@@ -496,6 +499,7 @@ export default function EditEvent({
             budgetActivityCode: formData?.budgetActivityCode,
             supervisorAssignmentId: formData?.supervisorAssignment?.id,
             lieutenantAssignmentId: formData?.lieutenantAssignment?.id,
+            overtimeNarrative: formData?.overtimeNarrative,
             fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
             assignmentIds: formData?.assignments?.map(
@@ -583,63 +587,6 @@ export default function EditEvent({
                 </RHFSelect>
               )
             }
-
-            {lasdEventFields && (
-              <Stack>
-                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                  <RHFTextField
-                    name="ocn"
-                    label="OCN"
-                    disabled={allDisabled}
-                  />
-                  <RHFTextField
-                    name="outsideOrgCode"
-                    label="Outside Org Code"
-                    defaultValue="15778"
-                    disabled={allDisabled}
-                  />
-                </Stack>
-                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                  <RHFTextField
-                    name="overtimeReasonCode"
-                    label="Overtime Reason Code"
-                    disabled={allDisabled}
-                  />
-                  <RHFTextField
-                    name="budgetActivityCode"
-                    label="Budget activity code"
-                    disabled={allDisabled}
-                  />
-                </Stack>
-                {
-                  !isIncident && (
-                    <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                      <RHFSigningAuthorityAutocomplete
-                        eventId={currentEvent?.id}
-                        name="supervisorAssignment"
-                        label='Pre-Approval Supervisor'
-                        disabled={allDisabled}
-                        helperText="Supervisor assignment that oversees the event and will be included on all shift documents"
-                      />
-                      <RHFSigningAuthorityAutocomplete
-                        eventId={currentEvent?.id}
-                        name="lieutenantAssignment"
-                        label='Signing Supervisor'
-                        disabled={allDisabled}
-                        helperText="Supervisor assignment that will sign off all shift confirmation documents."
-                      />
-                      <RHFSigningAuthorityAutocomplete
-                        eventId={currentEvent?.id}
-                        name="fieldSupervisorAssignment"
-                        label='Field Supervisor'
-                        disabled={allDisabled}
-                        helperText="Field Supervisor assignment."
-                      />
-                    </Stack>
-                  )
-                }
-              </Stack>
-            )}
 
             {
               isIncident && (
@@ -1069,6 +1016,8 @@ export default function EditEvent({
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
         {renderDetails}
+
+        {lasdEventFields && <LASDDetails currentEvent={currentEvent} allDisabled={allDisabled} isIncident={isIncident} />}
 
         {!isIncident && renderAssignments}
 

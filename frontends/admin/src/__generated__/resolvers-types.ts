@@ -469,6 +469,7 @@ export type Event = {
   org: Organization;
   orgId: Scalars['String']['output'];
   outsideOrgCode?: Maybe<Scalars['String']['output']>;
+  overtimeNarrative?: Maybe<Scalars['String']['output']>;
   overtimeReasonCode?: Maybe<Scalars['String']['output']>;
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
@@ -2730,6 +2731,7 @@ export type UpsertEvent = {
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   ocn?: InputMaybe<Scalars['String']['input']>;
   outsideOrgCode?: InputMaybe<Scalars['String']['input']>;
+  overtimeNarrative?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -3993,6 +3995,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   outsideOrgCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  overtimeNarrative?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   overtimeReasonCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

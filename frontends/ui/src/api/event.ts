@@ -396,6 +396,7 @@ export const GET_EVENT = gql`
       startTime
       endTime
       createdById
+      overtimeNarrative
 
       requestDetails {
         startTime

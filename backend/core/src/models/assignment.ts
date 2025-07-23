@@ -252,6 +252,9 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     user: IUser;
   }) {
     await this.remove(assignment.id!, { modifiedById: user._id });
+    // Omitting description incase it is too large to send to the mailer
+    // We don't need this information in the email.
+    const { description, ...assign } = assignment;
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
       InvocationType: 'Event',
@@ -259,7 +262,7 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
         action: Action.Email,
         template: MailerEvents.OfficerAssignmentRemoved,
         data: {
-          assignment,
+          assignment: assign,
           organization,
           modifiedById: user.id,
         },

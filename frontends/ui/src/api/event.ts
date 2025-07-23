@@ -471,6 +471,12 @@ export const GET_EVENT = gql`
         shiftSlots {
           id
           slotCount
+          slotDetails {
+            index
+            customId
+            callSign
+            locked
+          }
         }
 
         shifts {

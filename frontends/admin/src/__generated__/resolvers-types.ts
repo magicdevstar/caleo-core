@@ -120,6 +120,15 @@ export type AssignmentShiftSlot = {
   __typename?: 'AssignmentShiftSlot';
   id?: Maybe<Scalars['String']['output']>;
   slotCount?: Maybe<Scalars['Int']['output']>;
+  slotDetails?: Maybe<Array<Maybe<AssignmentSlotDetails>>>;
+};
+
+export type AssignmentSlotDetails = {
+  __typename?: 'AssignmentSlotDetails';
+  callSign?: Maybe<Scalars['String']['output']>;
+  customId?: Maybe<Scalars['String']['output']>;
+  index: Scalars['Int']['output'];
+  locked?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type AssignmentSummary = {
@@ -2685,6 +2694,14 @@ export type UpsertAssignment = {
 export type UpsertAssignmentShiftSlot = {
   id?: InputMaybe<Scalars['String']['input']>;
   slotCount?: InputMaybe<Scalars['Int']['input']>;
+  slotDetails?: InputMaybe<Array<InputMaybe<UpsertAssignmentSlotDetails>>>;
+};
+
+export type UpsertAssignmentSlotDetails = {
+  callSign?: InputMaybe<Scalars['String']['input']>;
+  customId?: InputMaybe<Scalars['String']['input']>;
+  index: Scalars['Int']['input'];
+  locked?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpsertCheckInOutSetting = {
@@ -3254,6 +3271,7 @@ export type ResolversTypes = ResolversObject<{
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: ResolverTypeWrapper<AssignmentSearchResult>;
   AssignmentShiftSlot: ResolverTypeWrapper<AssignmentShiftSlot>;
+  AssignmentSlotDetails: ResolverTypeWrapper<AssignmentSlotDetails>;
   AssignmentSummary: ResolverTypeWrapper<AssignmentSummary>;
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
@@ -3433,6 +3451,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
   UpsertAssignmentShiftSlot: UpsertAssignmentShiftSlot;
+  UpsertAssignmentSlotDetails: UpsertAssignmentSlotDetails;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertDivision: UpsertDivision;
   UpsertEquipment: UpsertEquipment;
@@ -3493,6 +3512,7 @@ export type ResolversParentTypes = ResolversObject<{
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: AssignmentSearchResult;
   AssignmentShiftSlot: AssignmentShiftSlot;
+  AssignmentSlotDetails: AssignmentSlotDetails;
   AssignmentSummary: AssignmentSummary;
   AvailabilityTime: AvailabilityTime;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
@@ -3655,6 +3675,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
   UpsertAssignmentShiftSlot: UpsertAssignmentShiftSlot;
+  UpsertAssignmentSlotDetails: UpsertAssignmentSlotDetails;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertDivision: UpsertDivision;
   UpsertEquipment: UpsertEquipment;
@@ -3774,6 +3795,15 @@ export type AssignmentSearchResultResolvers<ContextType = any, ParentType extend
 export type AssignmentShiftSlotResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentShiftSlot'] = ResolversParentTypes['AssignmentShiftSlot']> = ResolversObject<{
   id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   slotCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  slotDetails?: Resolver<Maybe<Array<Maybe<ResolversTypes['AssignmentSlotDetails']>>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentSlotDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentSlotDetails'] = ResolversParentTypes['AssignmentSlotDetails']> = ResolversObject<{
+  callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  customId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  locked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -5153,6 +5183,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Assignment?: AssignmentResolvers<ContextType>;
   AssignmentSearchResult?: AssignmentSearchResultResolvers<ContextType>;
   AssignmentShiftSlot?: AssignmentShiftSlotResolvers<ContextType>;
+  AssignmentSlotDetails?: AssignmentSlotDetailsResolvers<ContextType>;
   AssignmentSummary?: AssignmentSummaryResolvers<ContextType>;
   AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
   BrowserNotificationKeys?: BrowserNotificationKeysResolvers<ContextType>;

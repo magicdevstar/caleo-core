@@ -1,7 +1,7 @@
 import { Db, ObjectId, PullOperator } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import uniq from 'lodash.uniq';
-import { Assignment, DocType } from '../__generated__/resolvers-types';
+import { Assignment, AssignmentSlotDetails, DocType } from '../__generated__/resolvers-types';
 import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
@@ -13,7 +13,7 @@ import { IEvent } from './event';
 const lambda = new LambdaClient({});
 
 type IAssignmentSlotMap = Record<string, IShiftSlot[]>;
-interface IShiftSlot { id: string; slotCount: number };
+interface IShiftSlot { id: string; slotCount: number, slotDetails: AssignmentSlotDetails[] };
 
 export interface IAssignment extends Omit<
   Assignment,
@@ -97,7 +97,7 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
 
     const result: IAssignmentSlotMap = {};
 
-    for (const shift of shifts) {
+    shifts.forEach((shift) => {
       const { assignmentId: aId, shiftId } = shift;
       const assignmentId = aId.toString();
 
@@ -108,11 +108,28 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       const existingShift = result[assignmentId].find(s => s.id === shiftId);
 
       if (existingShift) {
+        existingShift.slotDetails.push({
+          index: existingShift.slotCount,
+          callSign: shift.callSign,
+          customId: shift.customId,
+          locked: shift.locked,
+        });
         existingShift.slotCount += 1;
       } else {
-        result[assignmentId].push({ id: shiftId, slotCount: 1 });
+        result[assignmentId].push({
+          id: shiftId,
+          slotCount: 1,
+          slotDetails: [
+            {
+              index: 0,
+              callSign: shift.callSign,
+              customId: shift.customId,
+              locked: shift.locked,
+            }
+          ],
+        });
       }
-    }
+    });
 
     const idMap: Record<string, ObjectId> = {};
     // Create a map of original assignment IDs to new ObjectIds

@@ -539,6 +539,14 @@
   type AssignmentShiftSlot {
     id: String
     slotCount: Int
+    slotDetails: [AssignmentSlotDetails]
+  }
+
+  type AssignmentSlotDetails {
+    index: Int!
+    callSign: String
+    customId: String
+    locked: Boolean
   }
 
   enum ShiftStatus {
@@ -903,6 +911,14 @@
   input UpsertAssignmentShiftSlot {
     id: String
     slotCount: Int
+    slotDetails: [UpsertAssignmentSlotDetails]
+  }
+
+  input UpsertAssignmentSlotDetails {
+    index: Int!
+    callSign: String
+    customId: String
+    locked: Boolean
   }
 
   input UpsertShift {

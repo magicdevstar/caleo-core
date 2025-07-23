@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from 'react';
+import omitDeep from 'omit-deep';
 import * as Yup from 'yup';
 import { useMutation, useQuery } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -115,6 +116,14 @@ export default function EditAssignment({
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
+        slotDetails: Yup.array().of(
+          Yup.object().shape({
+            index: Yup.number(),
+            callSign: Yup.string().nullable(),
+            customId: Yup.string().nullable(),
+            locked: Yup.boolean().default(false),
+          })
+        ).nullable(),
       }).nullable()
     ).nullable() as any,
   });
@@ -140,6 +149,7 @@ export default function EditAssignment({
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
+        slotDetails: slot!.slotDetails ? omitDeep(JSON.parse(JSON.stringify(slot!.slotDetails)), ['__typename']) : null,
       })),
     }),
     [currentAssignment, eventId]

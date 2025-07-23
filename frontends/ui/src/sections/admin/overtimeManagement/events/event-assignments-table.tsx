@@ -20,6 +20,7 @@ import { GET_ALL_ASSIGNMENT, REMOVE_ASSIGNMENT } from 'src/api/assignment';
 import GQLTable from 'src/components/table/gql/table';
 import { TableConfig } from 'src/components/table/table-config';
 import PopulateShiftSlots from 'src/components/shifts/populate-shift-slots';
+import PopulateAllShiftSlots from 'src/components/shifts/populate-all-shift-slots';
 
 type EventAssignmentsTableProps = {
   currentEvent?: Event;
@@ -49,6 +50,7 @@ export default function EventAssignmentsTable({
   const { enqueueSnackbar } = useSnackbar();
   const deleteConfirm = useBoolean();
   const shiftSlotsDialog = useBoolean();
+  const allShiftSlotsDialog = useBoolean();
   
   const [removeAssignment, { loading: removeAssignmentLoading }] = useMutation(REMOVE_ASSIGNMENT, {
     refetchQueries: [GET_ALL_EVENTS, {
@@ -93,31 +95,63 @@ export default function EventAssignmentsTable({
     // This is already handled by the mutation in the PopulateShiftSlots component
   }, []);
 
+  const handleOpenAllShiftSlotsDialog = useCallback(async () => {
+    await onSaveEvent(false);
+    allShiftSlotsDialog.onTrue();
+  }, [allShiftSlotsDialog, onSaveEvent]);
+
+  const handleCloseAllShiftSlotsDialog = useCallback(() => {
+    allShiftSlotsDialog.onFalse();
+  }, [allShiftSlotsDialog]);
+
+  // Get assignments that require shift slot updates
+  const assignmentsRequiringUpdates = useMemo(() => 
+    (currentEvent?.assignments || []).filter(assignment => 
+      requiresShiftSlotUpdate(!eventTemplateView, assignment as Assignment)
+    ).map(assignment => ({
+      assignmentId: assignment!.id,
+      assignmentName: assignment!.name,
+      shiftSlots: (assignment!.shiftSlots || []) as any[]
+    })),
+  [currentEvent?.assignments, eventTemplateView]);
+
   const config: TableConfig<Assignment> = useMemo(() => ({
     header: {
       title: 'Assignments',
-      button: {
-        text: 'Add Assignment',
-        icon: 'ic:baseline-add',
-        loading: upsertEventLoading,
-        disabled: (!currentEvent?.id && !isValid) || allDisabled || isComplete,
-        onClick: async () => {
-          let eventId = currentEvent?.id;
-          if (!eventId) {
-            eventId = await onSaveEvent(false);
+      buttons: [
+        // Only show "Populate Shift Slots" button if there are assignments requiring updates
+        ...(assignmentsRequiringUpdates.length > 0 ? [{
+          key: 'populate-all-shifts',
+          text: 'Populate Shift Slots',
+          icon: 'mdi:calendar-edit',
+          loading: upsertEventLoading,
+          disabled: allDisabled || isComplete,
+          onClick: handleOpenAllShiftSlotsDialog,
+        }] : []),
+        {
+          key: 'add',
+          text: 'Add Assignment',
+          icon: 'ic:baseline-add',
+          loading: upsertEventLoading,
+          disabled: (!currentEvent?.id && !isValid) || allDisabled || isComplete,
+          onClick: async () => {
+            let eventId = currentEvent?.id;
+            if (!eventId) {
+              eventId = await onSaveEvent(false);
+              if (eventId) {
+                enqueueSnackbar('Created Event!');
+              }
+            }
             if (eventId) {
-              enqueueSnackbar('Created Event!');
+              router.push(
+                basePath.eventAssignmentDetail
+                  .replace(':eventId', eventId!)
+                  .replace(':assignmentId', 'new')
+              );
             }
           }
-          if (eventId) {
-            router.push(
-              basePath.eventAssignmentDetail
-              .replace(':eventId', eventId!)
-              .replace(':assignmentId', 'new')
-            );
-          }
         }
-      }
+      ],
     },
     table: {
       sx: {
@@ -293,6 +327,8 @@ export default function EventAssignmentsTable({
     isComplete,
     eventTemplateView,
     basePath,
+    assignmentsRequiringUpdates,
+    handleOpenAllShiftSlotsDialog,
   ]);
 
   return (
@@ -318,6 +354,16 @@ export default function EventAssignmentsTable({
           eventId={currentEvent?.id || ''}
           assignmentId={selectedAssignment.id}
           shiftSlots={(selectedAssignment.shiftSlots || []) as any[]}
+          onSuccess={handleShiftSlotsSuccess}
+        />
+      )}
+
+      {assignmentsRequiringUpdates.length > 0 && (
+        <PopulateAllShiftSlots
+          open={allShiftSlotsDialog.value}
+          onClose={handleCloseAllShiftSlotsDialog}
+          eventId={currentEvent?.id || ''}
+          assignments={assignmentsRequiringUpdates}
           onSuccess={handleShiftSlotsSuccess}
         />
       )}

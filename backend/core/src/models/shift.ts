@@ -5,6 +5,7 @@ import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, 
 import logger from '../utils/logger';
 import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
+import groupBy from 'lodash.groupby';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
 import { LotteryCounterModel } from './lotteryCounter';
 import { userIsAdmin } from '../utils/access';
@@ -1333,22 +1334,33 @@ export class ShiftModel extends BaseMongo<IShift> {
   }
 
   async generateSlotsFromAssignment(assignmentId: ObjectId) {
-    const pipeline = [
-      {
-        $match: { assignmentId }
-      },
-      {
-        $group: {
-          _id: "$shiftId",
-          slotCount: { $count: {} }
-        }
-      }
-    ];
-    const result = await this.collection.aggregate<{_id: string; slotCount: number; }>(pipeline).toArray();
-    return result.map(({ slotCount }) => ({
-      id: new ObjectId(),
-      slotCount,
-    })) as IAssignmentShiftSlots[];
+    const slots = await this.collection.find<IShift>({
+      assignmentId,
+      removedAt: { $exists: false },
+    }).toArray();
+    
+    if (slots.length === 0) {
+      return [];
+    }
+
+    const groupedByShiftId = groupBy(slots, 'shiftId');
+
+    return Object.entries(groupedByShiftId).map(([shiftId, shifts]) => {
+      const slotCount = (shifts as IShift[]).length;
+
+      const details = (shifts as IShift[]).map((shift, index) => ({
+        index,
+        callSign: shift.callSign,
+        customId: shift.customId,
+        locked: !!shift.locked,
+      }));
+
+      return {
+        id: new ObjectId(),
+        slotCount,
+        slotDetails: details,
+      } as IAssignmentShiftSlots;
+    });
   }
 
   canRelinquishShift({

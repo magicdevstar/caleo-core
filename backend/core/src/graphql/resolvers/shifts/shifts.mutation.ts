@@ -410,7 +410,7 @@ export const Mutation = {
       }
       if (!shift.refNumber) {
         rest.refNumber = typeof highestRefNumber === 'number' ? ++highestRefNumber : (index + 1);
-        rest.customId = `${rest.refNumber}`;
+        rest.customId = rest.customId || `${rest.refNumber}`;
       }
       return {
         ...rest,

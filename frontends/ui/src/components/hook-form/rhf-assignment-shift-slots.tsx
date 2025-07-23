@@ -3,11 +3,6 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
@@ -18,10 +13,13 @@ import Iconify from 'src/components/iconify/iconify';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { GET_ALL_SHIFTS } from 'src/api/shifts';
+import { AssignmentShiftSlot, AssignmentSlotDetails } from 'src/__generated__/resolvers-types';
+import AssignmentShiftSlotDialog from '../assignments/assignment-shift-slot-dialog';
 
 // ----------------------------------------------------------------------
 
 type SlotData = {
+  slotDetails?: AssignmentSlotDetails[];
   slotCount: number;
   id?: string; // Optional ID for existing entries
 };
@@ -42,7 +40,7 @@ export default function RHFAssignmentShiftSlots({
   const { control } = useFormContext();
   const [slotModalOpen, setSlotModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [slotCount, setSlotCount] = useState<number>(1);
+
   const deleteConfirm = useBoolean();
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   
@@ -54,32 +52,29 @@ export default function RHFAssignmentShiftSlots({
 
   const handleOpenSlotModal = () => {
     setEditingIndex(null);
-    setSlotCount(1);
     setSlotModalOpen(true);
   };
 
   const handleEditSlot = useCallback((index: number) => {
-    const slot = fields[index] as SlotData;
     setEditingIndex(index);
-    setSlotCount(slot.slotCount);
     setSlotModalOpen(true);
-  }, [fields]);
+  }, []);
 
   const handleCloseSlotModal = () => {
     setSlotModalOpen(false);
   };
 
-  const handleSaveSlot = () => {
-    if (slotCount <= 0) {
+  const handleSaveSlot = (slotData: AssignmentShiftSlot, eIndex?: number | null) => {
+    if (slotData.slotCount! <= 0) {
       return;
     }
 
-    if (editingIndex !== null) {
+    if (typeof eIndex === 'number') {
       // Update existing slot
-      update(editingIndex, { slotCount });
+      update(eIndex, slotData);
     } else {
       // Add new slot
-      append({ slotCount });
+      append(slotData);
     }
     
     setSlotModalOpen(false);
@@ -99,11 +94,19 @@ export default function RHFAssignmentShiftSlots({
 
   // Transform the field data to match the expected GQLTable format
   const slotsData = useMemo(() => 
-    fields.map((field, index) => ({
-      id: field.id,
-      index, // Store the index for actions
-      slotCount: (field as SlotData).slotCount,
-    })),
+    fields.map((field, index) => {
+      const slotData = field as SlotData;
+      const hasDetails = slotData.slotDetails && slotData.slotDetails.length > 0;
+      const detailsCount = hasDetails ? slotData.slotDetails!.filter(d => d.callSign || d.customId || d.locked).length : 0;
+      
+      return {
+        id: field.id,
+        index, // Store the index for actions
+        slotCount: slotData.slotCount,
+        detailsConfigured: detailsCount,
+        hasDetails,
+      };
+    }),
   [fields]);
 
   const config: TableConfig<any> = useMemo(() => ({
@@ -155,7 +158,9 @@ export default function RHFAssignmentShiftSlots({
       { id: '', width: '10%', columnType: 'action', label: '' },
     ],
     filters: []
-    }), [allDisabled, handleEditSlot, isComplete, openDeleteConfirm, slotsData, isSupervisorAssignment, fields.length]);  let view = (<GQLTable config={config} />);
+  }), [allDisabled, handleEditSlot, isComplete, openDeleteConfirm, slotsData, isSupervisorAssignment, fields.length]);
+    
+  let view = (<GQLTable config={config} />);
 
   // Render empty state if no slots
   if (!fields.length) {
@@ -193,27 +198,14 @@ export default function RHFAssignmentShiftSlots({
       {view}
       
       {/* Slot count modal */}
-      <Dialog open={slotModalOpen} onClose={handleCloseSlotModal}>
-        <DialogTitle>{editingIndex !== null ? 'Edit Shift Slot' : 'Add Shift Slot'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Total Shifts"
-            type="number"
-            disabled={isSupervisorAssignment}
-            fullWidth
-            value={slotCount}
-            onChange={(e) => setSlotCount(Number(e.target.value))}
-            inputProps={{ min: 1 }}
-            sx={{ mt: 2, minWidth: 300 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSlotModal}>Cancel</Button>
-          <Button variant='contained' onClick={handleSaveSlot} color="primary">Save</Button>
-        </DialogActions>
-      </Dialog>
+      <AssignmentShiftSlotDialog
+        editingIndex={editingIndex}
+        editingSlot={typeof editingIndex === 'number' ? fields[editingIndex] as AssignmentShiftSlot : undefined}
+        slotModelOpen={slotModalOpen}
+        isSupervisorAssignment={isSupervisorAssignment}
+        handleCloseSlotModal={handleCloseSlotModal}
+        handleSaveSlot={handleSaveSlot}
+      />
       
       {/* Delete confirmation dialog */}
       <ConfirmDialog

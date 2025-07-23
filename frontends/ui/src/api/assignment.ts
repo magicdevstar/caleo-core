@@ -84,6 +84,12 @@ export const GET_ASSIGNMENT = gql`
       shiftSlots {
         id
         slotCount
+        slotDetails {
+          index
+          callSign
+          customId
+          locked
+        }
       }
 
       supervisorAssignment {

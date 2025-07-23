@@ -23,10 +23,12 @@ import { useAuthContext } from 'src/auth/hooks';
 import { convertDate, useDateFormats, getNow } from 'src/hooks/use-datejs';
 import { GET_EVENT } from 'src/api/event';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
+import { AssignmentSlotDetails } from 'src/__generated__/resolvers-types';
 
 type ShiftSlot = {
   id: string;
   slotCount: number;
+  slotDetails?: AssignmentSlotDetails[];
   startDate?: string | null;
   endDate?: string | null;
 };
@@ -48,6 +50,17 @@ export default function PopulateShiftSlots({
   shiftSlots,
   onSuccess
 }: PopulateShiftSlotsProps) {
+  const mappedShiftSlots = useMemo(() => 
+    (shiftSlots || []).reduce((acc, slot) => {
+      slot.slotDetails?.forEach(details => {
+        acc[details.index] = {
+          locked: !!details.locked,
+          customId: details.customId ? details.customId : undefined,
+          callSign: details.callSign ? details.callSign : undefined,
+        };
+      });
+      return acc;
+    }, {} as Record<string, { locked: boolean, customId?: string, callSign?: string }>), [shiftSlots]);
   const { user } = useAuthContext();
   const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
@@ -192,11 +205,15 @@ export default function PopulateShiftSlots({
           shiftId: slot.shiftId,
           assignmentId,
           eventId,
-        })).flat(),
+        })).flat().map((shift, index) => ({
+          ...shift,
+          ...mappedShiftSlots[index],
+          ...(mappedShiftSlots[index]?.locked && { status: 'LOCKED' }),
+        })),
         removeSlots: true
       }
     });
-  }, [validateDateRanges, dateRanges, shiftSlots, updateShiftSlotDates, eventId, assignmentId]);
+  }, [mappedShiftSlots, validateDateRanges, dateRanges, shiftSlots, updateShiftSlotDates, eventId, assignmentId]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

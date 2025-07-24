@@ -21,7 +21,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Toolbar from '@mui/material/Toolbar';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { UPSERT_SHIFTS } from 'src/api/shifts';
 import { useSnackbar } from 'src/components/snackbar';
@@ -96,7 +95,7 @@ export default function PopulateAllShiftSlots({
   const assignmentIds = useMemo(() => assignments.map(a => a.assignmentId), [assignments]);
 
   // Initialize mutation
-  const [updateShiftSlotDates, { loading }] = useMutation(UPSERT_SHIFTS, {
+  const [updateShiftSlotDates] = useMutation(UPSERT_SHIFTS, {
     refetchQueries: [
       {
         query: GET_EVENT,
@@ -473,7 +472,6 @@ export default function PopulateAllShiftSlots({
                     onChange={setBulkStartTime}
                     timezone={user?.member?.org?.timezone || undefined}
                     format={dateTimeFormat}
-                    maxDateTime={bulkEndTime || undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -489,7 +487,6 @@ export default function PopulateAllShiftSlots({
                     onChange={setBulkEndTime}
                     timezone={user?.member?.org?.timezone || undefined}
                     format={dateTimeFormat}
-                    minDateTime={bulkStartTime || undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -591,7 +588,6 @@ export default function PopulateAllShiftSlots({
                                       timezone={user?.member?.org?.timezone || undefined}
                                       format={dateTimeFormat}
                                       disabled={bulkEditMode}
-                                      maxDateTime={assignmentRanges[slot.id]?.[1] || undefined}
                                       slotProps={{
                                         textField: {
                                           fullWidth: true,
@@ -609,7 +605,6 @@ export default function PopulateAllShiftSlots({
                                       timezone={user?.member?.org?.timezone || undefined}
                                       format={dateTimeFormat}
                                       disabled={bulkEditMode}
-                                      minDateTime={assignmentRanges[slot.id]?.[0] || undefined}
                                       slotProps={{
                                         textField: {
                                           fullWidth: true,

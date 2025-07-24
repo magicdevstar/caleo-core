@@ -14,7 +14,6 @@ import { IEvent } from './event';
 import { IUser } from '../types/common';
 import { IRank } from './rank';
 import { IUnit } from './unit';
-import { IIVenue } from './venue';
 import { docusignDates } from '../utils/date.helpers';
 import { OrganizationRepo } from './organizations/organization.repository';
 import { IOrganization } from './organizations/organization.entity';
@@ -153,7 +152,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org,
     shift,
     event,
-    venue,
     user,
     userRank,
     unit,
@@ -169,7 +167,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org: IOrganization;
     shift: IShift;
     user: IUser;
-    venue: IIVenue;
     userRank: IRank;
     unit: IUnit;
     supervisor: IUser;
@@ -316,7 +313,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     shift,
     event,
     assignment,
-    venue,
     user,
     userRank,
     unit,
@@ -326,7 +322,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org: IOrganization;
     shift: IShift;
     user: IUser;
-    venue: IIVenue;
     userRank: IRank;
     unit: IUnit;
     supervisor: IUser;
@@ -426,7 +421,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     shift,
     assignment,
     event,
-    venue,
     user,
     userRank,
     unit,
@@ -439,7 +433,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org: IOrganization;
     shift: IShift;
     user: IUser;
-    venue: IIVenue;
     userRank: IRank;
     unit: IUnit;
     supervisor: IUser;
@@ -532,7 +525,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       org,
       shift,
       event,
-      venue,
       user,
       userRank,
       unit,

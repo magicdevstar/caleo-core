@@ -228,7 +228,6 @@ export const InAppTemplates = {
   }),
   [MailerEvents.OfficerInterestListClosing]: ({
     eventName,
-    interestClosingTime,
   }) => ({
     title: `Last chance to show your interest in working ${eventName}!`,
     body: `You can now express your interest in working ${eventName}.`,

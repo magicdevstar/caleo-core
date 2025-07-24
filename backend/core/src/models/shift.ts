@@ -1345,7 +1345,7 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     const groupedByShiftId = groupBy(slots, 'shiftId');
 
-    return Object.entries(groupedByShiftId).map(([shiftId, shifts]) => {
+    return Object.entries(groupedByShiftId).map(([_shiftId, shifts]) => { // eslint-disable-line @typescript-eslint/no-unused-vars
       const slotCount = (shifts as IShift[]).length;
 
       const details = (shifts as IShift[]).map((shift, index) => ({

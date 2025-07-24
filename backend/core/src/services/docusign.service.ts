@@ -319,7 +319,6 @@ export class Docusign {
       const assignment = await this.assignments.get(shift.assignmentId);
       const unit = await this.units.get(user.member.unitId!);
       const rank = await this.ranks.get(user.member.rankId!);
-      const venue = await this.venues.get(event.venueId!);
 
       // Get lieutenant and supervisor from assignment or event
       const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
@@ -336,7 +335,6 @@ export class Docusign {
         shift,
         user,
         assignment: assignment!,
-        venue: venue!,
         userRank: rank!,
         unit: unit!,
         event: event!,
@@ -379,7 +377,6 @@ export class Docusign {
           }
           const unit = await this.units.get(user.member.unitId!);
           const rank = await this.ranks.get(user.member.rankId!);
-          const venue = await this.venues.get(event.venueId!);
           const assignment = await this.assignments.get(shift.assignmentId);
 
           // Get lieutenant and supervisor from assignment or event
@@ -407,7 +404,6 @@ export class Docusign {
             assignment,
             shift,
             user,
-            venue: venue!,
             userRank: rank!,
             unit: unit!,
             event: event!,
@@ -456,7 +452,6 @@ export class Docusign {
         }
         const unit = await this.units.get(user.member.unitId!);
         const rank = await this.ranks.get(user.member.rankId!);
-        const venue = await this.venues.get(event.venueId!);
         const assignment = await this.assignments.get(shift.assignmentId!);
 
         // Get lieutenant and supervisor from assignment or event
@@ -484,7 +479,6 @@ export class Docusign {
           assignment,
           shift,
           user,
-          venue: venue!,
           userRank: rank!,
           unit: unit!,
           event: event!,

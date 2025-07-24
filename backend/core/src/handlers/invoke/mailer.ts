@@ -19,7 +19,7 @@ import { IShift, IShiftExpanded } from "../../models/shift";
 import { IInAppNotificationMeta } from "../../models/inAppNotifications";
 import { IUser } from "../../types/common";
 import { IEvent } from "../../models/event";
-import { IIVenue, IVenue } from "../../models/venue";
+import { IIVenue } from "../../models/venue";
 import { IAssignmentUpdates, IEventUpdates, IShiftUpdates } from "../../types/notifications";
 
 const pinpoint = new PinpointClient({});
@@ -2226,9 +2226,6 @@ const sendEmail = async (input: MailerEvent) => {
       const uniqShiftIds = uniq(shiftIds.map((s) => s.shiftId)) as string[];
       const uniqRanksIds = uniq(assignmentDetails.map((a) => a.rankIds).flat()) as ObjectId[];
 
-      const interestStartTime = convertDate(event.scheduledInterestList!, organization);
-      const interestClosingTime = convertDate(event.endTime!, organization);
-
       const allUsers = await context.users.collection.find<IUser>({
         'member.orgId': new ObjectId(organization.id),
         'member.status': MemberStatus.Active,
@@ -2287,7 +2284,6 @@ const sendEmail = async (input: MailerEvent) => {
           
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
-            interestClosingTime,
           });
           await sendInAppNotification({
             context,

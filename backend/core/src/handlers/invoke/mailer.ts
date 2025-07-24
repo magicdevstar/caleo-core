@@ -169,7 +169,7 @@ const sendEmail = async (input: MailerEvent) => {
     if (input.template === MailerEvents.OfficerEventRemoved) {
       const { event, organization, modifiedById } = input.data;
       fromEmail = organization.fromEmail;
-      const allShifts = context.shifts.collection.aggregate<IShiftExpanded>(JSON.parse(JSON.stringify([
+      const allShifts = context.shifts.collection.aggregate<IShiftExpanded>([
         {
           $match: {
             eventId: new ObjectId(event.id),
@@ -210,7 +210,7 @@ const sendEmail = async (input: MailerEvent) => {
             'assignment.removedAt': { $exists: false },
           }
         }
-      ])));
+      ]);
 
       Addresses = {};
       let shift: IShiftExpanded | null;

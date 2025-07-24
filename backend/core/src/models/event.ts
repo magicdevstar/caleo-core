@@ -192,6 +192,7 @@ export class EventModel extends BaseMongo<IEvent> {
       status: EventStatus.Removed,
     });
 
+    const { notes, ...e } = event;
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA,
       InvocationType: 'Event',
@@ -199,7 +200,7 @@ export class EventModel extends BaseMongo<IEvent> {
         action: Action.Email,
         template: MailerEvents.OfficerEventRemoved,
         data: {
-          event,
+          event: e,
           organization,
           modifiedById,
         }

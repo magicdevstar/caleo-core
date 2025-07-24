@@ -149,7 +149,12 @@ export default function EditAssignment({
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
-        slotDetails: slot!.slotDetails ? omitDeep(JSON.parse(JSON.stringify(slot!.slotDetails)), ['__typename']) : null,
+        slotDetails: slot!.slotDetails ? omitDeep(JSON.parse(JSON.stringify(slot!.slotDetails)), ['__typename']) : new Array(slot!.slotCount || 1).fill({
+          index: 0,
+          callSign: null,
+          customId: null,
+          locked: false,
+        }).map((detail, index) => ({ ...detail, index })),
       })),
     }),
     [currentAssignment, eventId]

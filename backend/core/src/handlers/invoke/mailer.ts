@@ -19,7 +19,7 @@ import { IShift, IShiftExpanded } from "../../models/shift";
 import { IInAppNotificationMeta } from "../../models/inAppNotifications";
 import { IUser } from "../../types/common";
 import { IEvent } from "../../models/event";
-import { IIVenue } from "../../models/venue";
+import { IIVenue, IVenue } from "../../models/venue";
 import { IAssignmentUpdates, IEventUpdates, IShiftUpdates } from "../../types/notifications";
 
 const pinpoint = new PinpointClient({});
@@ -1157,6 +1157,11 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
+      let venue: IIVenue | null = null;
+      if (event.venueId) {
+        venue = await context.venues.get(event.venueId);
+      }
+
       // Ignore if the scratched if the current time is before interestListAutoAssignCutoff
       const zonedNow = toZonedTime(new Date(), organization?.timezone || 'America/Los_Angeles' as any).getTime();
       const autoAssignEndDate = toZonedTime(
@@ -1236,6 +1241,28 @@ const sendEmail = async (input: MailerEvent) => {
             } as AddressConfiguration,
           };
         }, {} as Record<string, AddressConfiguration>);
+
+      // Only for LASD for now :shrug:
+      if (venue?.contact?.email && organization.name === 'Los Angeles Sheriff Department') {
+        Addresses[venue.contact.email] = {
+          ChannelType: 'EMAIL',
+          Substitutions: {
+            "user.first_name": [user.firstName],
+            "user.last_name": [user.lastName],
+            "shift.name": [assignment.name],
+            "event.name": [event.name],
+            "admin.first_name": [venue?.contact?.firstName || venue?.name || ''],
+            "event.reference_number": [`${event.referenceId}`],
+            "shift.start_date": [shiftStart.date],
+            "shift.start_time": [shiftStart.time],
+            "shift.end_date": [shiftEnd.date],
+            "shift.end_time": [shiftEnd.time],
+            "relinquish_reason": [shift.relinquishNote || ''],
+            "system.metro_name": [organization.name],
+            "shift.reference_number": [`${shift.refNumber}`],
+          },
+        } as AddressConfiguration
+      }
 
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerAssignmentRemoved) {
@@ -2261,7 +2288,6 @@ const sendEmail = async (input: MailerEvent) => {
           const { title, body } = InAppTemplates[input.template]({
             eventName: event.name,
             interestClosingTime,
-            interestStartTime,
           });
           await sendInAppNotification({
             context,

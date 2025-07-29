@@ -416,7 +416,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'callSignLabel') {
         res[tab.tabLabel] = 'Call Sign: ';
       } else if (tab.tabLabel === 'callSign') {
-        res[tab.tabLabel] = shift.callSign || assignment.callSign || 'N/A';
+        res[tab.tabLabel] = shift.callSign || assignment.callSign || '';
       }
     }
 

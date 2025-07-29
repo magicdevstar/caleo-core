@@ -364,6 +364,7 @@ export class Docusign {
         if (docusignEvent) {
           await this.docusign.voidEnvelope({
             envelopeId: docusignEvent.envelopeId,
+            currentStatus: docusignEvent.status,
             org: organization,
           });
 

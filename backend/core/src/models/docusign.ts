@@ -124,15 +124,22 @@ export class DocusignModel extends BaseMongo<IDocusign> {
 
   async voidEnvelope({
     envAPI,
+    currentStatus,
     tokenRecord,
     envelopeId,
     org,
   }: {
     tokenRecord?: ITokenRecord;
     envAPI?: ds.EnvelopesApi,
+    currentStatus: string;
     envelopeId: string;
     org: IOrganization;
   }) {
+    const validStatuses = ['completed', 'created', 'delivered', 'sent', 'signed'];
+    if (!validStatuses.includes(currentStatus)) {
+      return;
+    }
+
     if (!envAPI || !tokenRecord) {
       const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
         org,

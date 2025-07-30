@@ -20,7 +20,7 @@ export const Mutation = {
   ): Promise<string> => {
     adminOnly(user);
 
-    const assignment = await assignments.get(id);
+    const assignment = await assignments.get(id, { removed: true });
     if (!assignment) {
       throw new GraphQLError("Assignment not found");
     }

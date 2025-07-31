@@ -204,11 +204,11 @@ export const IncidentForm = async (event: IIncidentInput) => {
       recipientId: reviewerId,
       tabLabel: 'reviewerSignature',
     });
-    const reviewerInitialHere = (ds as any).InitialHere.constructFromObject({
+    const reviewerSignHere2 = (ds as any).SignHere.constructFromObject({
       anchorString: '{OTRIn}',
       documentId: document.documentId,
       recipientId: reviewerId,
-      tabLabel: 'reviewerInitial',
+      tabLabel: 'reviewerSignature2',
     });
     const supervisorInitialHere = (ds as any).InitialHere.constructFromObject({
       anchorString: '{OTSIn}',
@@ -233,10 +233,9 @@ export const IncidentForm = async (event: IIncidentInput) => {
         initialHereTabs: [],
       },
       reviewerTabs: {
-        signHereTabs: [reviewerSignHere],
+        signHereTabs: [reviewerSignHere, reviewerSignHere2],
         dateSignedTabs: [reviewerDateSigned],
         initialHereTabs: [
-          reviewerInitialHere,
           ...(event.isReserve ? [supervisorInitialHere] : []),
         ],
       },

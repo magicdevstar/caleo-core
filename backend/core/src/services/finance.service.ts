@@ -272,8 +272,8 @@ export class FinanceService {
       const { formattedDiff } = docusignDates({
         startTime: shift.shiftCheckInOut?.checkInTime ? shift.shiftCheckInOut.checkInTime : shift.startTime,
         endTime: shift.shiftCheckInOut?.checkOutTime ? shift.shiftCheckInOut.checkOutTime : shift.endTime,
-        startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime || new Date(0),
-        endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime || new Date(0),
+        startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
+        endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,
         timezone: org.timezone as any,
       });
       return {

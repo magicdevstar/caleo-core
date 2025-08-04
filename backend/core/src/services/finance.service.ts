@@ -80,7 +80,7 @@ export class FinanceService {
         },
         {
           $match: {
-            'docusignEvent.status': {$nin: ['voided', 'declined']},
+            'docusignEvent.status': 'completed',
           },
         },
         {
@@ -171,6 +171,7 @@ export class FinanceService {
       {
         $match: {
           eventId,
+          docusignEnvelopeId: { $exists: true },
           userId: { $exists: true },
           removedAt: { $exists: false }
         }

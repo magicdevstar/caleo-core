@@ -271,7 +271,7 @@ export default function IncidentFormStepper({
       const submitData = {
         ...otherData,
         timekeeping,
-        reviewer: reviewer?.id, // Use reviewer ID for submission
+        reviewer: reviewer?.id || null, // Use reviewer ID for submission
         vehicleInformation: {
           ...otherData.vehicleInformation,
           vehicleNumber: otherData.vehicleInformation.hasVehicle === 'yes' ? otherData.vehicleInformation.vehicleNumber : 'N/A',
@@ -563,7 +563,7 @@ export default function IncidentFormStepper({
               const { reviewer, ...otherData } = data;
               const submitData = {
                 ...otherData,
-                reviewer: reviewer?.id, // Use reviewer ID for submission
+                reviewer: reviewer?.id || null, // Use reviewer ID for submission
                 timekeeping: {
                   ...otherData.timekeeping,
                   // Remove display fields - backend only expects numeric values

@@ -113,7 +113,7 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
   const invoiceService = new InvoiceService();
 
   const orgRepo = new OrganizationRepo(db);
-  const organizations = new OrganizationService(orgRepo, new SchedulerModel());
+  const organizations = new OrganizationService(orgRepo, new SchedulerModel(), document);
 
   const vehicleCategories = new VehicleCategoriesModel(db);
   const shiftInterestRequests = new ShiftInterestRequestModel(db);

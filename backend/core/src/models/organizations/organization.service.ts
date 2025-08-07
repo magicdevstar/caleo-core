@@ -1,6 +1,6 @@
 import { format, getDay, parseISO } from "date-fns";
-
-import { DayOfWeek, OrganizationSearchInput } from '../../__generated__/resolvers-types';
+import { randomUUID as uuid } from 'crypto';
+import { DayOfWeek, OrganizationSearchInput, OrganizationEventSettingsUpload } from '../../__generated__/resolvers-types';
 import { ScheduleEvent } from "../scheduler";
 import { toZonedTime } from 'date-fns-tz';
 import { dayMap } from '../../utils/dayMap';
@@ -10,13 +10,20 @@ import { ObjectId } from "mongodb";
 import { IOrganization } from "./organization.entity";
 import DataLoader from "dataloader";
 import { SearchResults } from "../../utils/common.resolvers";
+import { DocumentModel } from "../document";
 
 export class OrganizationService {
   public loader: DataLoader<string, IOrganization | undefined, string>;
 
+  public defaultEventThumbnailLoader = new DataLoader(async (keys: readonly string[]) => {
+    const url = await this.documents.getDownloadUrl(keys[0]);
+    return keys.map((key) => url);
+  });
+
   constructor(
     private organizationRepo: OrganizationRepo,
     private scheduler: SchedulerModel,
+    private documents: DocumentModel,
   ) {
     this.loader = organizationRepo.loader;
   }
@@ -61,6 +68,19 @@ export class OrganizationService {
     return this.organizationRepo.collection.find<IOrganization>({
       'features.eventCheckIn': true,
     }).toArray();
+  }
+
+  async getDefaultEventThumbnailUploadUrl(orgId: string): Promise<OrganizationEventSettingsUpload> {
+    const imagePath = `${orgId}/eventThumbnails/${uuid()}`;
+    const uploadUrl = await this.documents.getUploadUrl(imagePath);
+    return {
+      imagePath,
+      uploadUrl,
+    };
+  }
+
+  getDefaultEventThumbnail(path: string): Promise<string | null> {
+    return this.documents.getDownloadUrl(path);
   }
 
   async search(input: OrganizationSearchInput): Promise<SearchResults<IOrganization>> {

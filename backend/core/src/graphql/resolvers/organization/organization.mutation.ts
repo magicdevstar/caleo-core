@@ -27,6 +27,9 @@ export const Mutation = {
       ...org,
       settings: {
         ...settings,
+        eventSettings: {
+          allowThumbnail: org.settings?.eventSettings?.allowThumbnail || false,
+        },
         ...(org.settings || {}),
       },
       features: {
@@ -64,6 +67,9 @@ export const Mutation = {
       if (!mergedOrg.settings) {
         mergedOrg.settings = settings;
       }
+      if (!mergedOrg.settings.eventSettings) {
+        mergedOrg.settings.eventSettings = settings.eventSettings;
+      }
       if (!mergedOrg.features) {
         mergedOrg.features = features as unknown as OrganizationFeatures;
       }
@@ -85,5 +91,20 @@ export const Mutation = {
     await organizations.scheduleLotteryEvents(orgId!, mergedOrg);
 
     return res;
+  },
+  defaultEventThumbnailUploadUrl: async (
+    _parent: unknown,
+    _args: unknown,
+    { organizations, user }: Context
+  ): Promise<{ imagePath: string; uploadUrl: string }> => {
+    adminOnly(user);
+
+    const org = await organizations.get(user.member.orgId.toString());
+
+    if (!org) {
+      throw new Error("Organization not found");
+    }
+
+    return organizations.getDefaultEventThumbnailUploadUrl(org.id);
   },
 };

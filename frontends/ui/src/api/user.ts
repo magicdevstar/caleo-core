@@ -92,6 +92,10 @@ const userDetailProperties = `
       settings {
         shiftsPerWeek
         hoursPerMonth
+        eventSettings {
+          allowThumbnail
+          defaultThumbnail
+        }
         interestList {
           defaultHoursBeforeShift
           defaultHoursBeforeShift

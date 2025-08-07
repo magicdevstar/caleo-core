@@ -2,10 +2,15 @@ import { OrganizationFeatures } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
 
 export interface IOrganizationFeatures extends OrganizationFeatures {
+  enabledEventThumbnail: boolean;
 }
 
 export const useFeatures = (): IOrganizationFeatures => {
   const { user } = useAuthContext();
 
-  return user?.member?.org?.features! || {};
+  return {
+    ...(user?.member?.org?.features! || {}),
+    enabledEventThumbnail: ('allowThumbnail' in (user?.member?.org?.settings?.eventSettings || {})) ?
+      user?.member?.org?.settings?.eventSettings?.allowThumbnail! : false,
+  };
 }

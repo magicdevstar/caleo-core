@@ -38,5 +38,14 @@ export const fields = {
       if (!item.docusignEnvelopeId) return null;
       return context.docusign.loadEventsByEventId((item.id?.toString() || item._id?.toString())!);
     },
+    thumbnailUrl: (item: IEvent, _, { events, organization, organizations }: Context) => {
+      if (item.thumbnail) {
+        return events.getDownloadUrl(item.thumbnail);
+      }
+      if (organization.settings?.eventSettings?.defaultThumbnail) {
+        return organizations.defaultEventThumbnailLoader.load(organization.settings.eventSettings.defaultThumbnail);
+      }
+      return null;
+    }
   },
 };

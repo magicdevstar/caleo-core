@@ -139,6 +139,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           scheduledCloseInterestList
           scheduledFirstComeFirstServe
           lotteryNumber
+          thumbnailUrl
           lotteryCounter {
             start
           }
@@ -248,6 +249,7 @@ export const GET_LOTTERY_SHIFTS = gql`
           name
           attachments
           notes
+          thumbnailUrl
           venue {
             id
             name
@@ -306,6 +308,7 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
             name
             attachments
             notes
+            thumbnailUrl
             venue {
               id
               name
@@ -356,6 +359,7 @@ export const GET_ALL_SHIFTS = gql`
           name
           attachments
           notes
+          thumbnailUrl
           venue {
             id
             name

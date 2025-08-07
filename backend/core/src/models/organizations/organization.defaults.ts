@@ -131,4 +131,7 @@ export const settings = {
   userRelinquishShift,
   shiftReminder,
   secondaryShiftReminder,
+  eventSettings: {
+    allowThumbnail: false,
+  },
 };

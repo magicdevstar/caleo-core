@@ -1,4 +1,6 @@
 import { GraphQLError } from "graphql";
+import { ObjectId } from "mongodb";
+import { format, addMinutes, isAfter } from "date-fns";
 import { Context } from "../../../utils/createContext";
 import {
   EventStatus,
@@ -9,14 +11,21 @@ import {
 } from "../../../__generated__/resolvers-types";
 import { adminOnly } from "../../../utils/access";
 import logger from "../../../utils/logger";
-import { format, addMinutes, isAfter } from "date-fns";
 import { ScheduleEvent, Timezone } from "../../../models/scheduler";
 import { MailerEvents } from "../../../types/mailer";
 import { IEvent, IUpsertEvent } from "../../../models/event";
-import { ObjectId } from "mongodb";
 import { truncateToMinute } from "../../../utils/date.helpers";
 
 export const Mutation = {
+  removeEventThumbnail: async (
+    _parent: unknown,
+    { eventId }: { eventId: string },
+    { events, user }: Context
+  ): Promise<boolean> => {
+    adminOnly(user);
+    await events.removeEventThumbnail(eventId, user._id!);
+    return true;
+  },
   generateInvoice: async (
     _parent: unknown,
     { eventId }: { eventId: string },

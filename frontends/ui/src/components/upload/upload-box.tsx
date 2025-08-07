@@ -4,18 +4,28 @@ import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 //
 import Iconify from '../iconify';
+import Image from '../image';
 //
-import { UploadProps } from './types';
+import { UploadProps, CustomFile } from './types';
 
 // ----------------------------------------------------------------------
 
-export default function UploadBox({ placeholder, error, disabled, sx, ...other }: UploadProps) {
+export default function UploadBox({ placeholder, error, disabled, file, files, sx, ...other }: UploadProps) {
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     disabled,
     ...other,
   });
 
   const hasError = isDragReject || error;
+  
+  // Check if we have a file to display (either single file or first file from files array)
+  const fileToDisplay = file || (files && files.length > 0 ? files[0] : null);
+  const hasFile = !!fileToDisplay;
+  
+  // Get the preview URL
+  const previewUrl = typeof fileToDisplay === 'string' 
+    ? fileToDisplay 
+    : (fileToDisplay as CustomFile)?.preview || (fileToDisplay ? URL.createObjectURL(fileToDisplay as File) : null);
 
   return (
     <Box
@@ -33,6 +43,8 @@ export default function UploadBox({ placeholder, error, disabled, sx, ...other }
         justifyContent: 'center',
         bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
         border: (theme) => `dashed 1px ${alpha(theme.palette.grey[500], 0.16)}`,
+        position: 'relative',
+        overflow: 'hidden',
         ...(isDragActive && {
           opacity: 0.72,
         }),
@@ -45,6 +57,10 @@ export default function UploadBox({ placeholder, error, disabled, sx, ...other }
           bgcolor: 'error.lighter',
           borderColor: 'error.light',
         }),
+        ...(hasFile && {
+          border: 'none',
+          bgcolor: 'transparent',
+        }),
         '&:hover': {
           opacity: 0.72,
         },
@@ -53,7 +69,20 @@ export default function UploadBox({ placeholder, error, disabled, sx, ...other }
     >
       <input {...getInputProps()} />
 
-      {placeholder || <Iconify icon="eva:cloud-upload-fill" width={28} />}
+      {hasFile && previewUrl ? (
+        <Image
+          alt="uploaded file"
+          src={previewUrl}
+          objectFit="contain"
+          sx={{
+            width: 1,
+            height: 1,
+            borderRadius: 1,
+          }}
+        />
+      ) : (
+        placeholder || <Iconify icon="eva:cloud-upload-fill" width={28} />
+      )}
     </Box>
   );
 }

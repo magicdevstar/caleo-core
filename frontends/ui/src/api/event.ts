@@ -45,6 +45,12 @@ export const EVENT_UPLOAD_URL = gql`
   }
 `;
 
+export const RESET_EVENT_THUMBNAIL = gql`
+  mutation ResetEventThumbnail($eventId: String!) {
+    removeEventThumbnail(eventId: $eventId)
+  }
+`;
+
 export const NOTIFY_OF_EVENT = gql`
   mutation NotifyOfEvent($eventId: String!) {
     notifyUsersOfEvent(eventId: $eventId)
@@ -397,6 +403,7 @@ export const GET_EVENT = gql`
       endTime
       createdById
       overtimeNarrative
+      thumbnailUrl
 
       requestDetails {
         startTime

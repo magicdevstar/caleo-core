@@ -496,6 +496,7 @@ export type Event = {
   supervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: Maybe<Scalars['String']['output']>;
+  thumbnailUrl?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['String']['output'];
   venue?: Maybe<Venue>;
@@ -1065,6 +1066,7 @@ export type Mutation = {
   checkOut: ShiftCheckOutResponse;
   cloneEvent?: Maybe<Event>;
   createOrganization?: Maybe<Organization>;
+  defaultEventThumbnailUploadUrl: OrganizationEventSettingsUpload;
   division?: Maybe<Division>;
   editCheckInOut: Shift;
   equipment?: Maybe<Equipment>;
@@ -1093,6 +1095,7 @@ export type Mutation = {
   removeDivision: Scalars['ID']['output'];
   removeEquipment: Scalars['ID']['output'];
   removeEvent: Scalars['ID']['output'];
+  removeEventThumbnail?: Maybe<Scalars['Boolean']['output']>;
   removeInAppNotifications?: Maybe<Scalars['Boolean']['output']>;
   removeIncidentForm: Scalars['ID']['output'];
   removeNotification: Scalars['ID']['output'];
@@ -1320,6 +1323,11 @@ export type MutationRemoveEquipmentArgs = {
 
 export type MutationRemoveEventArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveEventThumbnailArgs = {
+  eventId: Scalars['String']['input'];
 };
 
 
@@ -1665,6 +1673,18 @@ export type OrganizationDateFormats = {
   time: Scalars['String']['output'];
 };
 
+export type OrganizationEventSettings = {
+  __typename?: 'OrganizationEventSettings';
+  allowThumbnail: Scalars['Boolean']['output'];
+  defaultThumbnail?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrganizationEventSettingsUpload = {
+  __typename?: 'OrganizationEventSettingsUpload';
+  imagePath: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
+};
+
 export type OrganizationFeatureOptions = {
   __typename?: 'OrganizationFeatureOptions';
   label: Scalars['String']['output'];
@@ -1711,6 +1731,7 @@ export type OrganizationFeatures = {
 export type OrganizationOvertimeSettings = {
   __typename?: 'OrganizationOvertimeSettings';
   checkInOut?: Maybe<CheckInOutSetting>;
+  eventSettings?: Maybe<OrganizationEventSettings>;
   hoursPerMonth: Scalars['Int']['output'];
   interestList?: Maybe<InterestListSetting>;
   lottery: LotterySettings;
@@ -2759,6 +2780,7 @@ export type UpsertEvent = {
   status?: InputMaybe<EventStatus>;
   supervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   supervisorId?: InputMaybe<Scalars['String']['input']>;
+  thumbnail?: InputMaybe<Scalars['String']['input']>;
   venueId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2848,6 +2870,11 @@ export type UpsertOrganizationCustomizationsTiers = {
   TIER_4: UpsertOrganizationCustomizationsTier;
 };
 
+export type UpsertOrganizationEventSettings = {
+  allowThumbnail: Scalars['Boolean']['input'];
+  defaultThumbnail?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpsertOrganizationFeatures = {
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2886,6 +2913,7 @@ export type UpsertOrganizationFeatures = {
 
 export type UpsertOrganizationOvertimeSettings = {
   checkInOut?: InputMaybe<UpsertCheckInOutSetting>;
+  eventSettings?: InputMaybe<UpsertOrganizationEventSettings>;
   hoursPerMonth?: InputMaybe<Scalars['Int']['input']>;
   interestList?: InputMaybe<UpsertInterestListSetting>;
   lottery: UpsertLotterySettings;
@@ -3383,6 +3411,8 @@ export type ResolversTypes = ResolversObject<{
   OrganizationCustomizationsTier: ResolverTypeWrapper<OrganizationCustomizationsTier>;
   OrganizationCustomizationsTiers: ResolverTypeWrapper<OrganizationCustomizationsTiers>;
   OrganizationDateFormats: ResolverTypeWrapper<OrganizationDateFormats>;
+  OrganizationEventSettings: ResolverTypeWrapper<OrganizationEventSettings>;
+  OrganizationEventSettingsUpload: ResolverTypeWrapper<OrganizationEventSettingsUpload>;
   OrganizationFeatureOptions: ResolverTypeWrapper<OrganizationFeatureOptions>;
   OrganizationFeatures: ResolverTypeWrapper<OrganizationFeatures>;
   OrganizationOvertimeSettings: ResolverTypeWrapper<OrganizationOvertimeSettings>;
@@ -3467,6 +3497,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertOrganizationCustomizations: UpsertOrganizationCustomizations;
   UpsertOrganizationCustomizationsTier: UpsertOrganizationCustomizationsTier;
   UpsertOrganizationCustomizationsTiers: UpsertOrganizationCustomizationsTiers;
+  UpsertOrganizationEventSettings: UpsertOrganizationEventSettings;
   UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
@@ -3614,6 +3645,8 @@ export type ResolversParentTypes = ResolversObject<{
   OrganizationCustomizationsTier: OrganizationCustomizationsTier;
   OrganizationCustomizationsTiers: OrganizationCustomizationsTiers;
   OrganizationDateFormats: OrganizationDateFormats;
+  OrganizationEventSettings: OrganizationEventSettings;
+  OrganizationEventSettingsUpload: OrganizationEventSettingsUpload;
   OrganizationFeatureOptions: OrganizationFeatureOptions;
   OrganizationFeatures: OrganizationFeatures;
   OrganizationOvertimeSettings: OrganizationOvertimeSettings;
@@ -3691,6 +3724,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertOrganizationCustomizations: UpsertOrganizationCustomizations;
   UpsertOrganizationCustomizationsTier: UpsertOrganizationCustomizationsTier;
   UpsertOrganizationCustomizationsTiers: UpsertOrganizationCustomizationsTiers;
+  UpsertOrganizationEventSettings: UpsertOrganizationEventSettings;
   UpsertOrganizationFeatures: UpsertOrganizationFeatures;
   UpsertOrganizationOvertimeSettings: UpsertOrganizationOvertimeSettings;
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
@@ -4042,6 +4076,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   supervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
   supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  thumbnailUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType>;
@@ -4376,6 +4411,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   checkOut?: Resolver<ResolversTypes['ShiftCheckOutResponse'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
   cloneEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationCloneEventArgs, 'id'>>;
   createOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationCreateOrganizationArgs, 'organization'>>;
+  defaultEventThumbnailUploadUrl?: Resolver<ResolversTypes['OrganizationEventSettingsUpload'], ParentType, ContextType>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<MutationDivisionArgs, 'division'>>;
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<MutationEquipmentArgs, 'equipment'>>;
@@ -4404,6 +4440,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeDivision?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveDivisionArgs, 'id'>>;
   removeEquipment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEquipmentArgs, 'id'>>;
   removeEvent?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEventArgs, 'id'>>;
+  removeEventThumbnail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveEventThumbnailArgs, 'eventId'>>;
   removeInAppNotifications?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveInAppNotificationsArgs>>;
   removeIncidentForm?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveIncidentFormArgs, 'id'>>;
   removeNotification?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveNotificationArgs, 'id'>>;
@@ -4545,6 +4582,18 @@ export type OrganizationDateFormatsResolvers<ContextType = any, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type OrganizationEventSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationEventSettings'] = ResolversParentTypes['OrganizationEventSettings']> = ResolversObject<{
+  allowThumbnail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  defaultThumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type OrganizationEventSettingsUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationEventSettingsUpload'] = ResolversParentTypes['OrganizationEventSettingsUpload']> = ResolversObject<{
+  imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatureOptions'] = ResolversParentTypes['OrganizationFeatureOptions']> = ResolversObject<{
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4590,6 +4639,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
 
 export type OrganizationOvertimeSettingsResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationOvertimeSettings'] = ResolversParentTypes['OrganizationOvertimeSettings']> = ResolversObject<{
   checkInOut?: Resolver<Maybe<ResolversTypes['CheckInOutSetting']>, ParentType, ContextType>;
+  eventSettings?: Resolver<Maybe<ResolversTypes['OrganizationEventSettings']>, ParentType, ContextType>;
   hoursPerMonth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   interestList?: Resolver<Maybe<ResolversTypes['InterestListSetting']>, ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['LotterySettings'], ParentType, ContextType>;
@@ -5243,6 +5293,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   OrganizationCustomizationsTier?: OrganizationCustomizationsTierResolvers<ContextType>;
   OrganizationCustomizationsTiers?: OrganizationCustomizationsTiersResolvers<ContextType>;
   OrganizationDateFormats?: OrganizationDateFormatsResolvers<ContextType>;
+  OrganizationEventSettings?: OrganizationEventSettingsResolvers<ContextType>;
+  OrganizationEventSettingsUpload?: OrganizationEventSettingsUploadResolvers<ContextType>;
   OrganizationFeatureOptions?: OrganizationFeatureOptionsResolvers<ContextType>;
   OrganizationFeatures?: OrganizationFeaturesResolvers<ContextType>;
   OrganizationOvertimeSettings?: OrganizationOvertimeSettingsResolvers<ContextType>;

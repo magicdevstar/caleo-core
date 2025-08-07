@@ -25,9 +25,14 @@ import FormProvider, { FormFooter, RHFSelect, RHFSwitch, RHFTextField } from 'sr
 import { useFeatures } from 'src/hooks/use-features';
 // Components
 import { useResponsive } from 'src/hooks/use-responsive';
-import { ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
-import { DayOfWeek, Organization, OrganizationOvertimeSettings, ShiftReminderUnit } from 'src/__generated__/resolvers-types';
+import { DefaultEventThumbnail } from 'src/components/events';
+import { CREATE_DEFAULT_EVENT_THUMBNAIL_UPLOAD_URL, ORGANIZATION, UPDATE_ORGANIZATION } from 'src/api/organization';
+import { DayOfWeek, Organization, OrganizationEventSettingsUpload, OrganizationOvertimeSettings, ShiftReminderUnit } from 'src/__generated__/resolvers-types';
 import { useTiers } from 'src/hooks/use-tiers';
+import { ME } from 'src/api/user';
+import { useAuthContext } from 'src/auth/hooks';
+import { maxThumbnailSize } from 'src/utils/event.utils';
+import { fData } from 'src/utils/format-number';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -45,11 +50,13 @@ export default function Overtime({
     lottery,
     weeklyMaxShifts,
   } = useFeatures();
+  const { reInitialize } = useAuthContext();
   const { tierNames, enabledTiers } = useTiers();
   const mdUp = useResponsive('up', 'md');
 
+  const [createUploadLink] = useMutation<{defaultEventThumbnailUploadUrl: OrganizationEventSettingsUpload}>(CREATE_DEFAULT_EVENT_THUMBNAIL_UPLOAD_URL);
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION, {
-    refetchQueries: [ORGANIZATION],
+    refetchQueries: [ORGANIZATION, ME],
   });
 
   const { enqueueSnackbar } = useSnackbar();
@@ -60,6 +67,10 @@ export default function Overtime({
     settings: Yup.object().shape({
       shiftsPerWeek: Yup.number().required(),
       hoursPerMonth: Yup.number().required(),
+      eventSettings: Yup.object().shape({
+        allowThumbnail: Yup.boolean().required(),
+        defaultThumbnail: Yup.mixed<any>().nullable(),
+      }),
       interestList: Yup.object().shape({
         defaultHoursBeforeShift: Yup.number(),
         defaultNotificationTime: Yup.number(),
@@ -108,7 +119,7 @@ export default function Overtime({
     }),
   });
 
-  const defaultValues = useMemo(
+  const defaultValues: any = useMemo(
     () => {
       const settings = omitDeep(JSON.parse(JSON.stringify(organization.settings)), ['__typename']) as OrganizationOvertimeSettings;
       return {
@@ -142,38 +153,65 @@ export default function Overtime({
   } = methods;
 
   const secondaryShiftReminderUnit = watch('settings.secondaryShiftReminder.unit');
+  const allowThumbnail = watch('settings.eventSettings.allowThumbnail');
   const values = getValues();
 
   const onSubmit = handleSubmit(async (formData) => {
     try {
+      // Handle thumbnail - if it's a file object with existing=true, don't send it
+      // If it's a new file, it would need to be uploaded to S3 first (similar to account-general.tsx)
+      const settingsToSend = { ...formData.settings };
+      
+      // If the thumbnail is a file object, we need to handle it differently
+      if (settingsToSend.eventSettings?.defaultThumbnail && 
+          typeof settingsToSend.eventSettings.defaultThumbnail === 'object') {
+        if (settingsToSend.eventSettings.defaultThumbnail.existing) {
+          // Don't send file objects for existing thumbnails - keep the original URL
+          delete settingsToSend.eventSettings.defaultThumbnail;
+        } else {
+          const res = await createUploadLink();
+          if (res.data) {
+            await fetch(res.data.defaultEventThumbnailUploadUrl.uploadUrl, {
+              method: 'PUT',
+              body: settingsToSend.eventSettings.defaultThumbnail,
+              headers: {
+                'Content-Type': settingsToSend.eventSettings.defaultThumbnail.type,
+              },
+            });
+            settingsToSend.eventSettings.defaultThumbnail = res.data?.defaultEventThumbnailUploadUrl.imagePath;
+          }
+        }
+      }
+
       await updateOrganization({
         variables: {
           organization: {
             id: formData.id,
             name: formData.name,
             settings: {
-              ...formData.settings,
+              ...settingsToSend,
               checkInOut: {
-                ...formData.settings.checkInOut,
+                ...settingsToSend.checkInOut,
               },
               interestList: {
-                ...formData.settings.interestList,
+                ...settingsToSend.interestList,
               },
               lottery: {
-                ...formData.settings.lottery,
+                ...settingsToSend.lottery,
                 open: {
-                  ...formData.settings.lottery.open,
-                  time: dayjs(formData.settings.lottery.open.time).toDate().toISOString(),
+                  ...settingsToSend.lottery.open,
+                  time: dayjs(settingsToSend.lottery.open.time).toDate().toISOString(),
                 },
                 close: {
-                  ...formData.settings.lottery.close,
-                  time: dayjs(formData.settings.lottery.close.time).toDate().toISOString(),
+                  ...settingsToSend.lottery.close,
+                  time: dayjs(settingsToSend.lottery.close.time).toDate().toISOString(),
                 },
               },
             },
           },
         },
       });
+      await reInitialize();
       enqueueSnackbar('Update success!');
     } catch (error) {
       console.error(error);
@@ -183,6 +221,38 @@ export default function Overtime({
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
+        {mdUp && (
+          <Grid md={4}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>
+              Event Settings
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Allow thumbnail for events, etc.
+            </Typography>
+          </Grid>
+        )}
+        <Grid xs={12} md={8} sx={{ mb: 2 }}>
+          <Card>
+            {!mdUp && <CardHeader title="Event Settings" />}
+            <Stack spacing={3} sx={{ p: 3 }}>
+              <RHFSwitch
+                name="settings.eventSettings.allowThumbnail"
+                label="Allow Thumbnail"
+                helperText="Allow a thumbnail upload for events that will be displayed to all Caleo users"
+              />
+              {
+                allowThumbnail && (
+                  <DefaultEventThumbnail
+                    name="settings.eventSettings.defaultThumbnail"
+                    thumbnailUrl={organization.settings?.eventSettings?.defaultThumbnail}
+                    maxSize={maxThumbnailSize}
+                    helperText={`Upload a default thumbnail image that will be used for events when no custom thumbnail is provided. Max size of ${fData(maxThumbnailSize)}. Suggested size is 250x175px.`}
+                  />
+                )
+              }
+            </Stack>
+          </Card>
+        </Grid>
         {mdUp && (weeklyMaxShifts || monthlyMaxHours) && (
           <Grid md={4}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>

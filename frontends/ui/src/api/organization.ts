@@ -79,6 +79,10 @@ query ORGANIZATION {
     settings {
       shiftsPerWeek
       hoursPerMonth
+      eventSettings {
+        allowThumbnail
+        defaultThumbnail
+      }
       interestList {
         defaultHoursBeforeShift
         defaultAutoHireCutoff
@@ -128,6 +132,15 @@ query ORGANIZATION {
     }
   }
 }
+`;
+
+export const CREATE_DEFAULT_EVENT_THUMBNAIL_UPLOAD_URL = gql`
+  mutation CreateDefaultEventThumbnailUploadUrl {
+    defaultEventThumbnailUploadUrl {
+      imagePath
+      uploadUrl
+    }
+  }
 `;
 
 export const UPDATE_ORGANIZATION = gql`

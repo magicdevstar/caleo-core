@@ -6,7 +6,7 @@ import uniq from 'lodash.uniq';
 import { injectLambdaContext } from "@aws-lambda-powertools/logger/middleware";
 import { AddressConfiguration, PinpointClient, SendMessagesCommand } from "@aws-sdk/client-pinpoint";
 import { toZonedTime } from "date-fns-tz";
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../../types/mailer";
@@ -27,6 +27,7 @@ const pinpoint = new PinpointClient({});
 const convertDate = (unixDate: number | Date, organization: IOrganization) => {
   const zonedDate = toZonedTime(new Date(unixDate), organization?.timezone || 'America/Los_Angeles' as any);
   return {
+    zonedDate,
     date: format(zonedDate, 'MM/dd/yyyy'),
     time: format(zonedDate, 'HH:mm'),
   };
@@ -1353,7 +1354,7 @@ const sendEmail = async (input: MailerEvent) => {
         logger.error('Failed to remove shifts by assignment', { error, input });
       }
     } else if (input.template === MailerEvents.OfficerShiftStartingNotification) {
-      templateVersion = '2';
+      templateVersion = '3';
       const shiftId = input.data.shiftId;
       let { userId } = input.data;
       const shift = await context.shifts.get(shiftId);
@@ -1388,8 +1389,13 @@ const sendEmail = async (input: MailerEvent) => {
         return;
       }
 
+      const now = convertDate(new Date(), organization);
       const shiftStart = convertDate(shift.startTime as any, organization);
       const shiftEnd = convertDate(shift.endTime as any, organization);
+      const durationTilShift = formatDistance(
+        shiftStart.zonedDate,
+        now.zonedDate,
+      )
       const hoursTilShift = organization.settings?.shiftReminder.time;
 
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
@@ -1407,7 +1413,7 @@ const sendEmail = async (input: MailerEvent) => {
               "system.metro_name": [organization.name],
               "system.login_url": [process.env.LOGIN_URL || ''],
               "shift.start_date": [shiftStart.date],
-              "hoursTilShift": [`${hoursTilShift}`],
+              "durationTilShift": [`${durationTilShift}`],
             },
           },
         };

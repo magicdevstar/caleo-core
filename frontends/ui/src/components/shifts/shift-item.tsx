@@ -12,6 +12,8 @@ import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import { SxProps } from "@mui/material";
+// components
+import Image from "src/components/image";
 // types
 import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
@@ -103,7 +105,7 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const { user } = useAuthContext();
-  const { eventCheckIn, eventCheckOut, lasdEventFields, callSign } = useFeatures();
+  const { eventCheckIn, eventCheckOut, lasdEventFields, callSign, enabledEventThumbnail } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
@@ -389,9 +391,33 @@ export default function ShiftItem({
           }
         }}
         component={Card}
-        direction="row"
+        direction={{ sm: 'column', md: 'row' }}
         sx={{ cursor, width: '100%', height: '100%' }}
       >
+        {enabledEventThumbnail && shift.event.thumbnailUrl && (
+          <Box
+            sx={{
+              width: { sm: '100%', md: 250 },
+              height: 175,
+              flexShrink: 0,
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Image
+              src={shift.event.thumbnailUrl}
+              alt={`${shift.event.name} thumbnail`}
+              objectFit="contain"
+              sx={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 1,
+              }}
+            />
+          </Box>
+        )}
         <Stack
           sx={{
             width: '100%',

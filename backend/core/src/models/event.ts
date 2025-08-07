@@ -75,6 +75,7 @@ export interface IEvent extends Omit<
   assignmentIds?: ObjectId[];
   createdById?: ObjectId;
   requiredSkillIds?: ObjectId[];
+  thumbnail?: string;
 
   supervisorId?: ObjectId;
   lieutenantId?: ObjectId;
@@ -345,6 +346,21 @@ export class EventModel extends BaseMongo<IEvent> {
       }
     }
     return true;
+  }
+
+  removeEventThumbnail(eventId: string, modifiedById: ObjectId) {
+    return this.collection.updateOne(
+      { _id: new ObjectId(eventId) },
+      {
+        $unset: {
+          thumbnail: '',
+        },
+        $set: {
+          updatedAt: new Date(),
+          modifiedById,
+        },
+      }
+    );
   }
 
   async getUploadUrl({

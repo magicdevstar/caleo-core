@@ -30,6 +30,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { useLotteryCounterOptions } from 'src/hooks/use-lottery-counter-options';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import useDebounceText from 'src/hooks/use-debounce-text';
+import { fData } from 'src/utils/format-number';
 // routes
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -41,9 +42,19 @@ import {
   Skill,
   Venue,
   VenueStatus,
+  EventAttachmentUpload,
 } from 'src/__generated__/resolvers-types';
-import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT, UPSERT_EVENT } from 'src/api/event';
+import {
+  APPROVE_EVENT,
+  GET_ALL_EVENTS,
+  GET_EVENT,
+  REJECT_EVENT,
+  UPSERT_EVENT,
+  EVENT_UPLOAD_URL,
+  RESET_EVENT_THUMBNAIL,
+} from 'src/api/event';
 import { GET_VENUE_LIST } from 'src/api/venues';
+import { maxThumbnailSize } from 'src/utils/event.utils';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import { LASDDetails } from 'src/components/events/lasd-details';
@@ -55,12 +66,12 @@ import FormProvider, {
   RHFSwitch,
   RHFAutocomplete,
   RHFDateTimePicker,
-  RHFSigningAuthorityAutocomplete,
   RHFSkillAutocomplete,
 } from 'src/components/hook-form';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
+import { DefaultEventThumbnail } from 'src/components/events';
 import { client } from 'src/utils/apollo';
 import { useFeatures } from 'src/hooks/use-features';
 import EventAssignmentsTable from './event-assignments-table';
@@ -112,6 +123,7 @@ const NewEventSchema = Yup.object().shape({
   fieldSupervisorAssignment: Yup.object().nullable(),
   interestListAutoAssignCutoff: Yup.string().nullable(),
   overtimeNarrative: Yup.string().nullable(),
+  thumbnail: Yup.mixed().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -140,7 +152,20 @@ export default function EditEvent({
     externalEventRequests,
     lasdEventFields,
     incidentEvents,
+    enabledEventThumbnail,
   } = useFeatures();
+  const [createUploadLink] = useMutation<{eventAttachmentUploadUrl: EventAttachmentUpload}>(EVENT_UPLOAD_URL);
+  const [resetThumbnail, { loading: resetThumbnailLoading }] = useMutation(RESET_EVENT_THUMBNAIL, {
+    variables: {
+      eventId: currentEvent?.id || '',
+    },
+    refetchQueries: [{
+      query: GET_EVENT,
+      variables: {
+        id: currentEvent?.id,
+      },
+    }],
+  });
 
   const eventStatuses = useMemo(() => {
     const statuses = [
@@ -297,6 +322,7 @@ export default function EditEvent({
       endTime: currentEvent?.endTime ? new Date(currentEvent.endTime) : undefined,
       requiredSkills: currentEvent?.requiredSkills || [],
       overtimeNarrative: currentEvent?.overtimeNarrative || '',
+      thumbnail: currentEvent?.thumbnailUrl || null,
     }),
     [
       currentEvent,
@@ -470,6 +496,21 @@ export default function EditEvent({
         }));
       }
 
+      let thumbnail;
+      if (formData?.thumbnail && !formData?.thumbnail?.existing) {
+        const res = await createUploadLink();
+        if (res.data) {
+          await fetch(res.data.eventAttachmentUploadUrl.uploadUrl, {
+            method: 'PUT',
+            body: formData.thumbnail,
+            headers: {
+              'Content-Type': formData.thumbnail.type,
+            },
+          });
+          thumbnail = res.data.eventAttachmentUploadUrl.attachmentPath;
+        }
+      }
+
       const res = await upsertEvent({
         variables: {
           input: {
@@ -505,6 +546,7 @@ export default function EditEvent({
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
             ),
+            thumbnail,
           },
         },
       });
@@ -540,7 +582,7 @@ export default function EditEvent({
       console.error(error);
       return '';
     }
-  }, [upsertEvent, enqueueSnackbar, autoHireEndTime, router, currentEvent, basePath]);
+  }, [upsertEvent, createUploadLink, enqueueSnackbar, autoHireEndTime, router, currentEvent, basePath]);
 
   const onSubmit = handleSubmit(async (formData: any) => {
     await formSubmit(formData);
@@ -929,7 +971,30 @@ export default function EditEvent({
                 <Typography variant="subtitle2" sx={{ml: 0.5}}>Notes</Typography>
                 <RHFEditor readOnly={allDisabled} simple name="notes" />
               </Stack>
-              <Stack spacing={1.5}>
+              {
+                enabledEventThumbnail && (
+                  <>
+                    <DefaultEventThumbnail
+                      name="thumbnail"
+                      label="Thumbnail"
+                      helperText={`Max size of ${fData(maxThumbnailSize)}. Suggested size is 250x175px.`}
+                      thumbnailUrl={currentEvent?.thumbnailUrl}
+                      maxSize={maxThumbnailSize}
+                    />
+                    <LoadingButton
+                      variant="contained"
+                      size="small"
+                      color="error"
+                      loading={resetThumbnailLoading}
+                      onClick={() => resetThumbnail()}
+                      sx={{ mt: 1 }}
+                    >
+                      Reset Thumbnail
+                    </LoadingButton>
+                  </>
+                )
+              }
+              <Stack spacing={1.5} sx={{ mt: 2 }}>
                 <Typography variant="subtitle2" sx={{ml: 0.5}}>Attachments</Typography>
                 <RHFUpload
                   multiple

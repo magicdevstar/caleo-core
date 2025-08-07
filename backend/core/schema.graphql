@@ -472,6 +472,7 @@
     lieutenantAssignment: Assignment
     fieldSupervisorAssignment: Assignment
     docusignEvent: DocusignEvent
+    thumbnailUrl: String
   }
 
   type EventInvoiceResponse {
@@ -830,6 +831,7 @@
     requestDetails: InputEventRequestDetails
     notes: String
     venueId: String
+    thumbnail: String
     notifyWhenFullyStaffed: Boolean
     assignmentIds: [String]!
     createdById: String
@@ -1474,6 +1476,7 @@ type DocusignSignerDetailsData {
   }
 
   type OrganizationOvertimeSettings {
+    eventSettings: OrganizationEventSettings
     shiftsPerWeek: Int!
     hoursPerMonth: Int!
     lottery: LotterySettings!
@@ -1483,6 +1486,16 @@ type DocusignSignerDetailsData {
     secondaryShiftReminder: ShiftReminder
     checkInOut: CheckInOutSetting
     interestList: InterestListSetting
+  }
+
+  type OrganizationEventSettings {
+    allowThumbnail: Boolean!
+    defaultThumbnail: String
+  }
+
+  type OrganizationEventSettingsUpload {
+    imagePath: String!
+    uploadUrl: String!
   }
 
   type InterestListSetting {
@@ -1619,6 +1632,7 @@ type DocusignSignerDetailsData {
   }
 
   input UpsertOrganizationOvertimeSettings {
+    eventSettings: UpsertOrganizationEventSettings
     shiftsPerWeek: Int!
     hoursPerMonth: Int
     lottery: UpsertLotterySettings!
@@ -1628,6 +1642,11 @@ type DocusignSignerDetailsData {
     secondaryShiftReminder: UpsertShiftReminder
     checkInOut: UpsertCheckInOutSetting
     interestList: UpsertInterestListSetting
+  }
+
+  input UpsertOrganizationEventSettings {
+    allowThumbnail: Boolean!
+    defaultThumbnail: String
   }
 
   input UpsertOrganizationSSOSettings {
@@ -2520,6 +2539,8 @@ type Query {
 type Mutation {
   createOrganization(organization: CreateOrganization! ): Organization
   organization(organization: UpsertOrganization!): Organization
+  defaultEventThumbnailUploadUrl: OrganizationEventSettingsUpload!
+  removeEventThumbnail(eventId: String!): Boolean
 
   newUser(user: NewUser!): User
   user(user: UpdateUser!): User

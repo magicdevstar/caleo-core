@@ -7,6 +7,7 @@ import {
 import { commonResolvers } from "../../../utils/common.resolvers";
 import { IOrganization } from "../../../models/organizations/organization.entity";
 import { customizations, featureDefinitions } from "../../../models/organizations/organization.defaults";
+import { Context } from "../../../utils/createContext";
 
 export const fields = {
   Organization: {
@@ -40,6 +41,10 @@ export const fields = {
         minutesBeforeShiftStart,
       };
     },
+  },
+  OrganizationEventSettings: {
+    allowThumbnail: (parent: any) => ('allowThumbnail' in (parent || {})) ? parent.allowThumbnail : false,
+    defaultThumbnail: (parent: any, _: unknown, context: Context) => parent.defaultThumbnail ?  context.organizations.getDefaultEventThumbnail(parent.defaultThumbnail) : null,
   },
   InterestListSetting: {
     // This is the number of hours before event start that the interest list begins

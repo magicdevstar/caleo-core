@@ -67,14 +67,20 @@ const IncidentFormSchema = Yup.object().shape({
     straightHoursDisplay: Yup.string().nullable().matches(/^\d+.\d{2}$/, 'Must be in format H.MM'),
     timeIn: Yup.date().nullable().when('rdo', {
       is: 'no',
-      then: (schema) => schema.required('Time In is required'),
+      then: (schema) => schema.required('Straight time In is required'),
     }),
     timeOut: Yup.date().nullable().when('rdo', {
       is: 'no',
-      then: (schema) => schema.required('Time Out is required'),
+      then: (schema) => schema.required('Straight time Out is required'),
     }),
-    overtimeTimeIn: Yup.date().nullable().required('Overtime Time In is required'),
-    overtimeTimeOut: Yup.date().nullable().required('Overtime Time Out is required'),
+    overtimeTimeIn: Yup.date().nullable().when('rdo', {
+      is: 'yes',
+      then: (schema) => schema.required('Overtime In is required'),
+    }),
+    overtimeTimeOut: Yup.date().nullable().when('rdo', {
+      is: 'yes',
+      then: (schema) => schema.required('Overtime Out is required'),
+    }),
     minTimeIn: Yup.date().nullable(),
   }),
   shiftDetails: Yup.object().shape({
@@ -317,7 +323,20 @@ export default function IncidentFormStepper({
       stepFields = ['operationalPeriod.date'];
     } else if (step === 1) {
       // Validate timekeeping fields based on RDO selection
-      stepFields = ['timekeeping.rdo', 'timekeeping.timeIn', 'timekeeping.timeOut'];
+      stepFields = ['timekeeping.rdo'];
+      const rdoValue = getValues('timekeeping.rdo');
+      if (rdoValue === 'no') {
+        stepFields.push(
+          'timekeeping.timeIn',
+          'timekeeping.timeOut',
+        );
+      }
+      if (rdoValue === 'yes') {
+        stepFields.push(
+          'timekeeping.overtimeTimeIn',
+          'timekeeping.overtimeTimeOut',
+        );
+      }
     } else if (step === 2) {
       // Shift details are all optional, so we can proceed without validation
       return true;

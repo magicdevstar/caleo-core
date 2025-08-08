@@ -1,4 +1,4 @@
-import { Stack, Typography } from '@mui/material';
+import { Stack } from '@mui/material';
 import { GET_OUTSIDE_USERS } from 'src/api/outsideUser';
 
 // components

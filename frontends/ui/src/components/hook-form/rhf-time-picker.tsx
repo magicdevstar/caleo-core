@@ -1,6 +1,6 @@
 import { useFormContext, Controller } from 'react-hook-form';
 // @mui
-import { TimePicker, TimePickerProps } from '@mui/x-date-pickers';
+import { DesktopTimePicker, TimePickerProps } from '@mui/x-date-pickers';
 import { TextFieldProps } from '@mui/material/TextField';
 import dayjs from 'dayjs';
 
@@ -25,7 +25,7 @@ export default function RHFTimePicker({
       name={name}
       control={control}
       render={({ field: { value, onChange, ref, ...RHFProps }, fieldState: { error } }) => (
-        <TimePicker
+        <DesktopTimePicker
           onChange={(newValue) => newValue ? onChange(newValue.toDate()) : onChange(null)}
           value={value == null ? null : dayjs(value)} // keeps field empty if value is null or undefined
           inputRef={ref}

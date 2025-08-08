@@ -1,4 +1,3 @@
-import addDays from 'date-fns/addDays';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import { useWatch, useFormContext } from 'react-hook-form';
@@ -13,12 +12,33 @@ export enum TimekeepingType {
 
 // Helper function to round up to nearest 15 minutes and format in decimal hours
 const calculateAndFormatHours = (startTime: Date, endTime: Date) => {
-  if (startTime.getTime() >= endTime.getTime()) {
-    endTime = addDays(endTime, 1);
+  // Normalize dates to be within 24 hours while preserving time
+  const normalizedStartTime = new Date(startTime);
+  const normalizedEndTime = new Date(endTime);
+  
+  // If end time is before start time (next day scenario), add a day to end time
+  if (normalizedEndTime.getTime() <= normalizedStartTime.getTime()) {
+    normalizedEndTime.setDate(normalizedEndTime.getDate() + 1);
+  }
+  
+  // If the difference is more than 24 hours, adjust the end time to be within 24 hours
+  const diffInMs = normalizedEndTime.getTime() - normalizedStartTime.getTime();
+  const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+  
+  if (diffInMs > twentyFourHoursInMs) {
+    // Set end time to be on the same day as start time but preserve the time
+    normalizedEndTime.setFullYear(normalizedStartTime.getFullYear());
+    normalizedEndTime.setMonth(normalizedStartTime.getMonth());
+    normalizedEndTime.setDate(normalizedStartTime.getDate());
+    
+    // If this makes end time before start time, add a day
+    if (normalizedEndTime.getTime() <= normalizedStartTime.getTime()) {
+      normalizedEndTime.setDate(normalizedEndTime.getDate() + 1);
+    }
   }
 
-  const diffInMs = endTime.getTime() - startTime.getTime();
-  const diffInMinutes = Math.max(0, diffInMs / (1000 * 60));
+  const finalDiffInMs = normalizedEndTime.getTime() - normalizedStartTime.getTime();
+  const diffInMinutes = Math.max(0, finalDiffInMs / (1000 * 60));
   
   // Round up to nearest 15 minutes
   const roundedMinutes = Math.ceil(diffInMinutes / 15) * 15;
@@ -61,7 +81,36 @@ export default function TimekeepingStep() {
     if (timeIn && timeOut) {
       const timeInDate = new Date(timeIn);
       const timeOutDate = new Date(timeOut);
-      const result = calculateAndFormatHours(timeInDate, timeOutDate);
+      
+      // Normalize dates to be within 24 hours while preserving time
+      const normalizedTimeIn = new Date(timeInDate);
+      const normalizedTimeOut = new Date(timeOutDate);
+      
+      // If end time is before start time (next day scenario), add a day to end time
+      if (normalizedTimeOut.getTime() <= normalizedTimeIn.getTime()) {
+        normalizedTimeOut.setDate(normalizedTimeOut.getDate() + 1);
+      }
+      
+      // If the difference is more than 24 hours, adjust the end time to be within 24 hours
+      const diffInMs = normalizedTimeOut.getTime() - normalizedTimeIn.getTime();
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+      
+      if (diffInMs > twentyFourHoursInMs) {
+        // Set end time to be on the same day as start time but preserve the time
+        normalizedTimeOut.setFullYear(normalizedTimeIn.getFullYear());
+        normalizedTimeOut.setMonth(normalizedTimeIn.getMonth());
+        normalizedTimeOut.setDate(normalizedTimeIn.getDate());
+        
+        // If this makes end time before start time, add a day
+        if (normalizedTimeOut.getTime() <= normalizedTimeIn.getTime()) {
+          normalizedTimeOut.setDate(normalizedTimeOut.getDate() + 1);
+        }
+        
+        // Update the form with normalized dates
+        setValue('timekeeping.timeOut', normalizedTimeOut);
+      }
+      
+      const result = calculateAndFormatHours(normalizedTimeIn, normalizedTimeOut);
       setValue('timekeeping.straightHours', result.numeric); // Store numeric for backend
       setValue('timekeeping.straightHoursDisplay', result.formatted); // Store formatted for display
     } else {
@@ -75,7 +124,36 @@ export default function TimekeepingStep() {
     if (overtimeTimeIn && overtimeTimeOut) {
       const overtimeTimeInDate = new Date(overtimeTimeIn);
       const overtimeTimeOutDate = new Date(overtimeTimeOut);
-      const result = calculateAndFormatHours(overtimeTimeInDate, overtimeTimeOutDate);
+      
+      // Normalize dates to be within 24 hours while preserving time
+      const normalizedOvertimeTimeIn = new Date(overtimeTimeInDate);
+      const normalizedOvertimeTimeOut = new Date(overtimeTimeOutDate);
+      
+      // If end time is before start time (next day scenario), add a day to end time
+      if (normalizedOvertimeTimeOut.getTime() <= normalizedOvertimeTimeIn.getTime()) {
+        normalizedOvertimeTimeOut.setDate(normalizedOvertimeTimeOut.getDate() + 1);
+      }
+      
+      // If the difference is more than 24 hours, adjust the end time to be within 24 hours
+      const diffInMs = normalizedOvertimeTimeOut.getTime() - normalizedOvertimeTimeIn.getTime();
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+      
+      if (diffInMs > twentyFourHoursInMs) {
+        // Set end time to be on the same day as start time but preserve the time
+        normalizedOvertimeTimeOut.setFullYear(normalizedOvertimeTimeIn.getFullYear());
+        normalizedOvertimeTimeOut.setMonth(normalizedOvertimeTimeIn.getMonth());
+        normalizedOvertimeTimeOut.setDate(normalizedOvertimeTimeIn.getDate());
+        
+        // If this makes end time before start time, add a day
+        if (normalizedOvertimeTimeOut.getTime() <= normalizedOvertimeTimeIn.getTime()) {
+          normalizedOvertimeTimeOut.setDate(normalizedOvertimeTimeOut.getDate() + 1);
+        }
+        
+        // Update the form with normalized dates
+        setValue('timekeeping.overtimeTimeOut', normalizedOvertimeTimeOut);
+      }
+      
+      const result = calculateAndFormatHours(normalizedOvertimeTimeIn, normalizedOvertimeTimeOut);
       setValue('timekeeping.overtimeHours', result.numeric); // Store numeric for backend
       setValue('timekeeping.overtimeHoursDisplay', result.formatted); // Store formatted for display
     } else {

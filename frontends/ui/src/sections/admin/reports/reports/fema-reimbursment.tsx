@@ -54,6 +54,7 @@ export function FEMAReimbursementReport() {
       const { data: res } = await client.query({
         query: GET_INCIDENT_SUBMISSIONS_DOC_DOWNLOAD,
         variables: {
+          report: true,
           input: {
             eventId: values.event?.id,
             userId: values.user?.id,

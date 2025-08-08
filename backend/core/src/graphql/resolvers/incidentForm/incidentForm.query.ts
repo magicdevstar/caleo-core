@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import { IncidentFormSearchInput } from '../../../__generated__/resolvers-types';
 import { IIncidentForm } from '../../../models/incidentForm';
 import { userIsAdmin } from '../../../utils/access';
@@ -19,11 +20,11 @@ export const Query = {
           $gte: submittedDate.gte,
         }
       }
-    } 
+    }
 
     return incidentSubmissionModel.search({
       ...input,
-      userId,
+      ...(userId && { userId }),
     });
   },
 };

@@ -30,13 +30,14 @@ export const useIncidentSummary = () => {
       const { data: res } = await client.query({
         query: GET_INCIDENT_SUBMISSIONS_FOR_REPORT,
         variables: {
+          report: true,
           input: {
             eventId: values.event?.id,
             userId: values.user?.id,
-            submittedDate: {
+            submittedDate: values.dateRange ? {
               gte: values.dateRange?.[0]?.toDate?.()?.toISOString?.(),
               lte: values.dateRange?.[1]?.toDate?.()?.toISOString?.(),
-            },
+            } : undefined,
           },
         },
       });

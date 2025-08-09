@@ -95,7 +95,7 @@ export const generateFilledPDF = async ({
   const page = pages[0];
   
   // Load tabs data
-  const tabURL = `https://caleo-assets-${stage}.s3.us-west-2.amazonaws.com/${pdfPath}/tabs.json`;
+  const tabURL = `https://caleo-assets-${stage}.s3.us-west-2.amazonaws.com/${pdfPath}/tabs.json?v3`;
   const tabsData: Record<string, any>[] = await fetch(tabURL).then(res => res.json());
   
   // Draw text at positions defined in tabs.json

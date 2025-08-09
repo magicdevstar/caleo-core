@@ -292,12 +292,12 @@ export class DocusignModel extends BaseMongo<IDocusign> {
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'overtimeReasonCode')?.tabId,
               tabLabel: "overtimeReasonCode",
-              value: event.overtimeReasonCode || '301'
+              value: event.overtimeReasonCode || ''
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'budgetActivityCode')?.tabId,
               tabLabel: "budgetActivityCode",
-              value: event.budgetActivityCode || 'DN6S'
+              value: event.budgetActivityCode || ''
             },
             {
               tabId: tabs.textTabs?.find((x) => x.tabLabel === 'automaticDetails')?.tabId,
@@ -408,9 +408,9 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       } else if (tab.tabLabel === 'shiftId') {
         res[tab.tabLabel] = shift._id!.toString();
       } else if (tab.tabLabel === 'overtimeReasonCode') {
-        res[tab.tabLabel] = event.overtimeReasonCode || '301';
+        res[tab.tabLabel] = event.overtimeReasonCode || '';
       } else if (tab.tabLabel === 'budgetActivityCode') {
-        res[tab.tabLabel] = event.budgetActivityCode || 'DN6S';
+        res[tab.tabLabel] = event.budgetActivityCode || '';
       } else if (tab.tabLabel === 'automaticDetails') {
         res[tab.tabLabel] = `${event.overtimeNarrative}\n${lastLineExplainer}`;
       } else if (tab.tabLabel === 'callSignLabel') {

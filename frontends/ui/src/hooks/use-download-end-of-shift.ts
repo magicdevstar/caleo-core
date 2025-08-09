@@ -5,6 +5,7 @@ import { Assignment, Shift } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENT_SHIFTS } from "src/api/event";
 import { GET_SHIFT_TABS } from "src/api/shifts";
 import { generateFilledPDF } from "src/utils/generate-files/end-of-shift";
+import dayjs from "dayjs";
 
 export const useEndOfShiftDownload = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -19,12 +20,20 @@ export const useEndOfShiftDownload = () => {
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
   });
 
-  const downloadEndOfShiftPDF = async (shiftId: string, openTab: boolean = true) => {
+  const downloadEndOfShiftPDF = async (shift: Shift, openTab: boolean = true) => {
     try {
       const { data: { shiftTabs } } = await getTabs({
-        variables: { id: shiftId },
+        variables: { id: shift.id },
       });
       const tabData: Record<string, any> = JSON.parse(shiftTabs.data);
+      const now = dayjs().format('MM/DD/YYYY');
+      tabData.DateSigned1 = now;
+      tabData.DateSigned2 = now;
+      if (!shift.shiftCheckInOut?.checkInTime || !shift.shiftCheckInOut?.checkOutTime) {
+        tabData.checkinTime = '';
+        tabData.checkoutTime = '';
+        tabData.shiftHours = '';
+      }
 
       const res = await generateFilledPDF({
         data: tabData,
@@ -63,7 +72,7 @@ export const useEndOfShiftDownload = () => {
       const mergedPdf = await PDFDocument.create();
       const pages: {pdf: PDFDocument, name: string}[] = [];
       await Promise.allSettled(shifts.map(async (shift: Shift, index: number) => {
-        const pdf = await downloadEndOfShiftPDF(shift.id, false);
+        const pdf = await downloadEndOfShiftPDF(shift, false);
         if (pdf) {
           pages.push({ pdf, name: `${shift.user?.lastName}, ${shift.user?.firstName}` });
         }

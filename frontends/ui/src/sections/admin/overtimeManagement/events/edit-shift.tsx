@@ -464,7 +464,7 @@ export default function EditShift({
         getName: () => 'Download End of Shift PDF',
         getDisabled: (row: Shift) => !row.shiftCheckInOut?.checkOutTime,
         getIcon: () => 'ic:round-downloading',
-        onClick: (row: Shift) => downloadEndOfShiftPDF(row.id),
+        onClick: (row: Shift) => downloadEndOfShiftPDF(row),
       }] : []),
     ].filter(Boolean) as any,
     columns: [

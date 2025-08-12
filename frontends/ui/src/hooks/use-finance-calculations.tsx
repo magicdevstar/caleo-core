@@ -36,7 +36,7 @@ export const useFinanceCalculations = (data: FinanceShift[]) => {
 
     data.forEach((shift) => {
       // Personnel Cost calculation
-      const overtimeCost = new BigNumber(shift.totalOvertimeHours || 0).multipliedBy(shift.user?.member?.incidentHourlyRate || shift.rank?.incidentHourlyRate || 0);
+      const overtimeCost = new BigNumber(shift.totalOvertimeHours || 0).multipliedBy(shift.user?.member?.incidentHourlyRate || shift.rank?.incidentHourlyRate || 0).multipliedBy(1.5);
       const straightCost = new BigNumber(shift.totalStraightHours || 0).multipliedBy(shift.user?.member?.hourlyRate || shift.rank?.hourlyRate || 0);
       const shiftPersonnelCost = overtimeCost.plus(straightCost);
       

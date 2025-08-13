@@ -133,7 +133,6 @@ export const GET_AVAILABLE_SHIFTS = gql`
           referenceId
           name
           attachments
-          notes
           status
           scheduledInterestList
           scheduledCloseInterestList
@@ -163,7 +162,6 @@ export const GET_AVAILABLE_SHIFTS = gql`
           id
           name
           bwNeeded
-          description
           reportingLocation
           requiredSkills {
             id

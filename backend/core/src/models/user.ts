@@ -434,7 +434,6 @@ export class UserModel extends BaseMongo<IUser> {
     }
 
     const sorted = onlyAvailableShifts.sort((a: any, b: any) => a.startTime - b.startTime);
-    logger.info('Only available', { onlyAvailableShifts, sorted });
 
     return {
       total: sorted.length,

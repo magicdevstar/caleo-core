@@ -17,6 +17,18 @@ const mongodbChangeStream = async (event: IChangeStreamEvent) => {
       case ChangeStreamCollection.ASSIGNMENTS:
         await changeStream.handleAssignment(event);
         break;
+      case ChangeStreamCollection.SHIFTS:
+        await changeStream.handleShiftEvent(event);
+        break;
+      case ChangeStreamCollection.INCIDENT_SUBMISSIONS:
+        await changeStream.handleIncidentForm(event);
+        break;
+      case ChangeStreamCollection.SHIFT_INTEREST_REQUESTS:
+        await changeStream.handleShiftInterestRequest(event);
+        break;
+      case ChangeStreamCollection.SHIFT_LOTTERY_REQUESTS:
+        await changeStream.handleShiftLotteryRequest(event);
+        break;
       default:
         logger.warn('MongoDB collection not supported', { collection });
         return;

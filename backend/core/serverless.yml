@@ -26,6 +26,9 @@ params:
     docusignBase: https://account-d.docusign.com
     eventsChangeStreamId: 68239689ef62a3d84d50d85e
     assignmentsChangeStreamId: 68240731e108a8235a5da7f3
+    shiftsChangeStreamId: 689d5730ce8933a3acc79465
+    shiftsInterestChangeStreamId: 689d57cace8933a3acc8d970
+    incidentSubmissionChangeStreamId: 689d5842689eb9090abbddb9
   local:
     mongoURI: mongodb://localhost:27017
     dbName: caleo-prod
@@ -52,7 +55,9 @@ params:
     docusignBase: https://account.docusign.com
     eventsChangeStreamId: 6824d2ee5ee2e85fd3942eb0
     assignmentsChangeStreamId: 6824d3860030512c8df3fe66
-
+    shiftsChangeStreamId: 689d66cf9cc89b4819491b8a
+    shiftsInterestChangeStreamId: 689d670fce8933a3ace88c53
+    incidentSubmissionChangeStreamId: 689d6760ce8933a3ace924aa
 provider:
   name: aws
   runtime: nodejs20.x
@@ -269,6 +274,21 @@ functions:
           pattern:
             source:
               - aws.partner/mongodb.com/stitch.trigger/${param:assignmentsChangeStreamId}
+      - eventBridge:
+          eventBus: arn:aws:events:${aws:region}::event-source/aws.partner/mongodb.com/stitch.trigger/${param:shiftsChangeStreamId}
+          pattern:
+            source:
+              - aws.partner/mongodb.com/stitch.trigger/${param:shiftsChangeStreamId}
+      - eventBridge:
+          eventBus: arn:aws:events:${aws:region}::event-source/aws.partner/mongodb.com/stitch.trigger/${param:shiftsInterestChangeStreamId}
+          pattern:
+            source:
+              - aws.partner/mongodb.com/stitch.trigger/${param:shiftsInterestChangeStreamId}
+      - eventBridge:
+          eventBus: arn:aws:events:${aws:region}::event-source/aws.partner/mongodb.com/stitch.trigger/${param:incidentSubmissionChangeStreamId}
+          pattern:
+            source:
+              - aws.partner/mongodb.com/stitch.trigger/${param:incidentSubmissionChangeStreamId}
 
   # Lotto Step Function
   fetchShifts:

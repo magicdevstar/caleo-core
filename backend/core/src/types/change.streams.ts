@@ -39,6 +39,9 @@ export enum ChangeStreamCollection {
   EVENTS = 'events',
   ASSIGNMENTS = 'assignments',
   SHIFTS = 'shifts',
+  SHIFT_INTEREST_REQUESTS = 'shiftInterestRequests',
+  SHIFT_LOTTERY_REQUESTS = 'shiftLotteryRequests',
+  INCIDENT_SUBMISSIONS = 'incidentSubmissions',
 }
 
 export interface INS {

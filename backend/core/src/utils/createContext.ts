@@ -44,6 +44,8 @@ import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { OutsideUserRepo } from "../models/outsideUsers/outsideUser.repository";
 import { IncidentSubmissionModel } from "../models/incidentForm";
 import { FinanceService } from "../services/finance.service";
+import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
+import { EventUserActionRepo } from "../models/eventUserActions/eventUserAction.repository";
 
 let db: Db;
 
@@ -97,6 +99,7 @@ export interface Context {
   outsideUsers: OutsideUserService;
   finance: FinanceService;
   organization: IOrganization;
+  eventUserActions: EventUserActionService;
   user: IUser;
   originalUser?: IUser;
   lambdaEvent: any;
@@ -183,12 +186,22 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
 
   const rankGroups = new RankGroupRepo(db);
 
+  const eventUserActionRepo = new EventUserActionRepo(db);
+  const eventUserActions = new EventUserActionService(
+    shifts,
+    shiftInterestRequests,
+    incidentSubmissionModel,
+    shiftLotteryRequests,
+    eventUserActionRepo,
+  );
+
   const changesModel = new ChangesModel(db);
   const changeStream = new ChangeStreamService(
     events,
     assignments,
     notificationService,
     changesModel,
+    eventUserActions,
   );
 
   const finance = new FinanceService(
@@ -236,5 +249,6 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     docusignModel,
     incidentSubmissionModel,
     finance,
+    eventUserActions,
   };
 };

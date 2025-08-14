@@ -226,7 +226,6 @@ export const GET_LOTTERY_SHIFTS = gql`
           id
           name
           bwNeeded
-          description
           reportingLocation
           requiredSkills {
             id
@@ -246,7 +245,6 @@ export const GET_LOTTERY_SHIFTS = gql`
           referenceId
           name
           attachments
-          notes
           thumbnailUrl
           venue {
             id
@@ -286,7 +284,6 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
             id
             name
             bwNeeded
-            description
             requiredSkills {
               id
               name
@@ -305,7 +302,6 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
             referenceId
             name
             attachments
-            notes
             thumbnailUrl
             venue {
               id
@@ -356,7 +352,6 @@ export const GET_ALL_SHIFTS = gql`
           referenceId
           name
           attachments
-          notes
           thumbnailUrl
           venue {
             id
@@ -379,7 +374,6 @@ export const GET_ALL_SHIFTS = gql`
           name
           callSign
           bwNeeded
-          description
           reportingLocation
           requiredEquipment {
             id
@@ -835,7 +829,6 @@ query GetShiftDetails($id: String!) {
       referenceId
       name
       attachments
-      notes
       venue {
         id
         name
@@ -921,7 +914,6 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
             referenceId
             name
             attachments
-            notes
             venue {
               id
               name
@@ -942,7 +934,6 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
             id
             name
             bwNeeded
-            description
             requiredSkills {
               id
               name

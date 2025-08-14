@@ -6,6 +6,15 @@ export const REMOVE_ASSIGNMENT = gql`
   }
 `;
 
+export const GET_ASSIGNMENT_DESCRIPTION = gql`
+  query GetAssignment($id: String!) {
+    assignment(id: $id) {
+      id
+      description
+    }
+  }
+`;
+
 export const GET_ALL_ASSIGNMENT = gql`
   query GetAllAssignments($input: SearchInput!) {
     assignments(input: $input) {

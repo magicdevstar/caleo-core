@@ -25,6 +25,9 @@ import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from "src/hooks/use-features";
+import { useLazyQuery } from "@apollo/client";
+import { GET_EVENT_NOTES } from "src/api/event";
+import { GET_ASSIGNMENT_DESCRIPTION } from "src/api/assignment";
 
 export type ShiftAction = {
   key: string;
@@ -87,6 +90,8 @@ export default function ShiftItem({
   sx?: SxProps,
 }) {
   const { dateTimeFormat } = useDateFormats();
+  const [fetchEventNotes, { data: eventNotes }] = useLazyQuery(GET_EVENT_NOTES);
+  const [fetchAssignmentNotes, { data: assignmentNotes }] = useLazyQuery(GET_ASSIGNMENT_DESCRIPTION);
   const labelComponent = useMemo(() => {
     if (inputShift.__typename === 'ShiftBufferRequest') {
       return (
@@ -109,6 +114,14 @@ export default function ShiftItem({
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
   const mdDown = useResponsive('down', 'md');
+
+  const openDetails = () => {
+    if (collapsible) {
+      fetchEventNotes({ variables: { id: shift.event.id } });
+      fetchAssignmentNotes({ variables: { id: shift.assignment.id } });
+      setDetailHeight((c) => c === '0px' ? '100%' : '0px');
+    }
+  };
 
   const requiredSkillRender = useMemo(() => {
     let value: any = (
@@ -385,11 +398,7 @@ export default function ShiftItem({
   return (
     <Grid item sm={12} sx={{ padding: 1, transition: 'all .15s ease-in-out', ...sx }}>
       <Stack
-        onClick={() => {
-          if (collapsible) {
-            setDetailHeight((c) => c === '0px' ? '100%' : '0px');
-          }
-        }}
+        onClick={openDetails}
         component={Card}
         direction={{ sm: 'column', md: 'row' }}
         sx={{ cursor, width: '100%', height: '100%' }}
@@ -577,7 +586,7 @@ export default function ShiftItem({
                     variant="soft"
                     color='default'
                   >
-                    { shift.event.notes && shift.event.notes.trim() !== '' ? reader(shift.event.notes || '') : 'N/A'}
+                    { eventNotes?.event?.notes && eventNotes?.event?.notes.trim() !== '' ? reader(eventNotes?.event?.notes || '') : 'N/A'}
                   </Label>
                 </Box>
               </Stack>
@@ -601,7 +610,7 @@ export default function ShiftItem({
                     variant="soft"
                     color='default'
                   >
-                    { shift.assignment?.description && shift.assignment?.description?.trim() !== '' ? reader(shift.assignment?.description || '') : 'N/A'}
+                    { assignmentNotes?.assignment?.description && assignmentNotes?.assignment?.description?.trim() !== '' ? reader(assignmentNotes?.assignment?.description || '') : 'N/A'}
                   </Label>
                 </Box>
               </Stack>

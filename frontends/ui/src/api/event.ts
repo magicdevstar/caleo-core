@@ -6,6 +6,15 @@ export const REMOVE_EVENT = gql`
   }
 `;
 
+export const GET_EVENT_NOTES = gql`
+  query GetEventNotes($id: String!) {
+    event(id: $id) {
+      id
+      notes
+    }
+  }
+`;
+
 export const GENERATE_INVOICE = gql`
   mutation GenerateInvoice($eventId: String!) {
     generateInvoice(eventId: $eventId)

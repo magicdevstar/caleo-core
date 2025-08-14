@@ -1,6 +1,6 @@
-import { IIncidentForm, IncidentSubmissionModel } from '../incidentForm';
-import { IShift, ShiftModel } from '../shift';
-import { IShiftInterestRequest, ShiftInterestRequestModel } from '../shiftInterestRequest';
+import { IncidentSubmissionModel } from '../incidentForm';
+import { ShiftModel } from '../shift';
+import { ShiftInterestRequestModel } from '../shiftInterestRequest';
 import { ShiftLotteryRequestModel } from '../shiftLotteryRequest';
 import { EventUserActionRepo } from './eventUserAction.repository';
 

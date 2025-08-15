@@ -26,7 +26,7 @@ export default function DashboardsTable() {
     search: {
       defaultTableConfig: {
         defaultOrderBy: 'startTime',
-        defaultOrder: 'asc',
+        defaultOrder: 'desc',
         defaultRowsPerPage: 10,
       },
       query: GET_ALL_EVENTS,
@@ -96,7 +96,7 @@ export default function DashboardsTable() {
       },
       {
         id: 'status',
-        label: 'Type',
+        label: 'Status',
         width: 180,
         columnType: 'string',
         renderValue: (eventStatus: any) => {
@@ -187,6 +187,7 @@ export default function DashboardsTable() {
         defaultValue: [
           EventStatus.FirstComeFirstServe,
           EventStatus.InterestList,
+          EventStatus.Complete,
         ],
       },
       {

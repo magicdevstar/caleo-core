@@ -45,13 +45,13 @@ export const docusignDates = ({
       endEquipmentTime,
     }
   });
-  const zonedStartTime = utcToZonedTime(startTime, timezone);
-  const zonedEndTime = utcToZonedTime(endTime, timezone);
+  const zonedStartTime = truncateToMinute(utcToZonedTime(startTime, timezone));
+  const zonedEndTime = truncateToMinute(utcToZonedTime(endTime, timezone));
 
   let totalEquipmentTime = 0;
   let additionalStartTime = 0;
   if (startEquipmentTime) {
-    const zonedStartEquipmentTime = utcToZonedTime(startEquipmentTime, timezone);
+    const zonedStartEquipmentTime = truncateToMinute(utcToZonedTime(startEquipmentTime, timezone));
     additionalStartTime = differenceInHours(zonedStartTime, zonedStartEquipmentTime, { roundingMethod: 'ceil' });
     // Ensure no negative time
     if (additionalStartTime < 0) {
@@ -63,7 +63,7 @@ export const docusignDates = ({
   // The 1 extra hour is for drive time if no equipment time is set
   let additionalEndTime = 1;
   if (endEquipmentTime) {
-    const zonedEndEquipmentTime = utcToZonedTime(endEquipmentTime, timezone);
+    const zonedEndEquipmentTime = truncateToMinute(utcToZonedTime(endEquipmentTime, timezone));
     additionalEndTime = differenceInHours(zonedEndEquipmentTime, zonedEndTime, { roundingMethod: 'ceil' });
     totalEquipmentTime += additionalEndTime;
     // Ensure at least 1 hour for drive time
@@ -73,14 +73,14 @@ export const docusignDates = ({
   }
 
   const zoneStartTime = roundToNearestMinutes(
-    subHours(utcToZonedTime(startTime, timezone), additionalStartTime),
+    subHours(zonedStartTime, additionalStartTime),
     {
       nearestTo: 15,
       roundingMethod: 'floor',
     }
   );
   const zoneEndTime = roundToNearestMinutes(
-    addHours(utcToZonedTime(endTime, timezone), additionalEndTime),
+    addHours(zonedEndTime, additionalEndTime),
     {
       nearestTo: 15,
       roundingMethod: 'ceil',

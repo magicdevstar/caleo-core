@@ -89,6 +89,10 @@ export class Docusign {
     return this.docusignEvent.loadByShiftId.load(id);
   }
 
+  async loadAllEventsByShiftId(id: string) {
+    return this.docusignEvent.loadAllByShiftId.load(id);
+  }
+
   async loadEventsByEventId(id: string) {
     return this.docusignEvent.loadByEventId.load(id);
   }

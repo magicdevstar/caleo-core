@@ -9,6 +9,7 @@ import { NotificationService } from "./notification.service";
 import { ChangesModel, ChangeType } from "../models/changes";
 import { ObjectId } from "mongodb";
 import { IEventUpdates } from "../types/notifications";
+import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
 
 export class ChangeStreamService {
   constructor(
@@ -16,6 +17,7 @@ export class ChangeStreamService {
     private assignments: AssignmentModel,
     private notifications: NotificationService,
     private changes: ChangesModel,
+    private eventUserActions: EventUserActionService,
   ) {}
 
   private getUpdates({
@@ -37,6 +39,22 @@ export class ChangeStreamService {
       return acc;
     }, {} as Record<string, IChangeData>);
     return changes;
+  }
+
+  handleIncidentForm(event: IChangeStreamEvent) {
+    return this.eventUserActions.createFromIncidentForm(event.detail.documentKey._id);
+  }
+
+  handleShiftInterestRequest(event: IChangeStreamEvent) {
+    return this.eventUserActions.createFromShiftInterestRequest(event.detail.documentKey._id);
+  }
+
+  handleShiftLotteryRequest(event: IChangeStreamEvent) {
+    return this.eventUserActions.createFromShiftLotteryRequest(event.detail.documentKey._id);
+  }
+
+  handleShiftEvent(event: IChangeStreamEvent) {
+    return this.eventUserActions.createFromShift(event.detail.documentKey._id);
   }
 
   async handleShift({

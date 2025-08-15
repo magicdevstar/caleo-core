@@ -34,6 +34,9 @@ export const fields = {
       if (!item.docusignEnvelopeId) return null;
       return context.docusign.loadEventsByShiftId((item.id?.toString() || item._id?.toString())!);
     },
+    docusignEvents: (item: IShift, _, context: Context) => {
+      return context.docusign.loadAllEventsByShiftId((item.id?.toString() || item._id?.toString())!);
+    },
   },
   ShiftCheckInOut: {
     checkInTime: (item: IShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,

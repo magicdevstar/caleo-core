@@ -140,6 +140,10 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       return;
     }
 
+    if (currentStatus === 'completed') {
+      return;
+    }
+
     if (!envAPI || !tokenRecord) {
       const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
         org,

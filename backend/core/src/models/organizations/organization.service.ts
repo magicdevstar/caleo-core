@@ -17,7 +17,7 @@ export class OrganizationService {
 
   public defaultEventThumbnailLoader = new DataLoader(async (keys: readonly string[]) => {
     const url = await this.documents.getDownloadUrl(keys[0]);
-    return keys.map((key) => url);
+    return keys.map(() => url);
   });
 
   constructor(

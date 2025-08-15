@@ -147,7 +147,6 @@ export default function CheckInOutConfirm({
               <DesktopDateTimePicker
                 timezone={user.member.org?.timezone}
                 ampm={false}
-                minDate={checkInOutConfirm?.startTime ? dayjs(checkInOutConfirm?.startTime) : null}
                 maxDate={dayjs()}
                 timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 label={isCheckout ? 'Equipment return time' : 'Equipment pickup time'}

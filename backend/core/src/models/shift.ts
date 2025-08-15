@@ -447,6 +447,7 @@ export class ShiftModel extends BaseMongo<IShift> {
   }
 
   async checkIn({
+    shift,
     id,
     coords,
     time,
@@ -456,6 +457,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     user
   } : {
     id: string,
+    shift: IShift,
     coords?: ShiftCheckInOutCoordinates,
     time?: Date,
     checkInNote?: string,
@@ -463,13 +465,20 @@ export class ShiftModel extends BaseMongo<IShift> {
     equipmentTime?: string,
     user: IUser,
   }) {
+    let checkInTime = time;
+    if (!checkInTime) {
+      const now = new Date();
+      checkInTime = isAfter(shift.startTime, now) ? shift.startTime : now;
+    }
+
+
     await this.collection.updateOne({
       _id: new ObjectId(id),
     }, {
       $set: {
         modifiedById: user._id!,
         updatedAt: new Date(),
-        'shiftCheckInOut.checkInTime': time || new Date(),
+        'shiftCheckInOut.checkInTime': checkInTime,
         ...(checkInNote ? { 'shiftCheckInOut.checkInNote': checkInNote } : {}),
         ...(adminNotes ? { 'shiftCheckInOut.adminNotes': adminNotes } : {}),
         ...(coords ? { 'shiftCheckInOut.checkInCoords': coords } : {}),

@@ -108,6 +108,7 @@ export const Mutation = {
 
     await shifts.checkIn({
       id,
+      shift: shift!,
       coords: coords || undefined,
       time: finalTime,
       checkInNote,

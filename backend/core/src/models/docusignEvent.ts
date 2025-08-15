@@ -58,6 +58,23 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     return keys.map((key) => res.find((item) => item.shiftId?.toString() === key));
   });
 
+  public loadAllByShiftId = new DataLoader(async (keys: readonly string[]) => {
+    const ids = keys.map((key) => new ObjectId(key));
+    const res = await this.collection.find<IDocusignEvent>({
+      shiftId: { $in: ids },
+    }).toArray();
+    const shiftsMap = res.reduce((acc, item) => {
+      if (!item.shiftId) return acc;
+      const shiftId = item.shiftId.toString();
+      if (!acc[shiftId]) {
+        acc[shiftId] = [];
+      }
+      acc[shiftId].push(item);
+      return acc;
+    }, {} as Record<string, IDocusignEvent[]>);
+    return keys.map((key) => shiftsMap[key] || []);
+  });
+
   public loadByEventId = new DataLoader(async (keys: readonly string[]) => {
     const ids = keys.map((key) => new ObjectId(key));
     const res = await this.collection.find<IDocusignEvent>({

@@ -753,6 +753,7 @@
     createdBy: User
     modifiedBy: User
     docusignEvent: DocusignEvent
+    docusignEvents: [DocusignEvent!]
   }
 
   enum EventUserActionType {

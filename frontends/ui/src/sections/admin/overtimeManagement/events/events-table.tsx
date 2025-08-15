@@ -426,7 +426,7 @@ export default function EventsTable() {
       }) as any,
       {
         id: 'status',
-        label: 'Type',
+        label: 'Status',
         width: 180,
         columnType: 'string',
         renderValue: (eventStatus: any) => {

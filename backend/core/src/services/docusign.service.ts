@@ -362,11 +362,15 @@ export class Docusign {
       try {
         const docusignEvent = await this.docusignEvent.findByShiftId(shift._id!);
         if (docusignEvent) {
-          await this.docusign.voidEnvelope({
-            envelopeId: docusignEvent.envelopeId,
-            currentStatus: docusignEvent.status,
-            org: organization,
-          });
+          if (docusignEvent.status === 'completed') {
+            await this.docusignEvent.markCompletedEventAsVoid(docusignEvent._id!);
+          } else {
+            await this.docusign.voidEnvelope({
+              envelopeId: docusignEvent.envelopeId,
+              currentStatus: docusignEvent.status,
+              org: organization,
+            });
+          }
 
           const user = await this.users.get(shift.userId!);
           if (!user) {

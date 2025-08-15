@@ -52,6 +52,8 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     const res = await this.collection.find<IDocusignEvent>({
       shiftId: { $in: ids },
       status: { $nin: ['voided', 'declined'] },
+    }, {
+      sort: { _id: -1 },
     }).toArray();
     return keys.map((key) => res.find((item) => item.shiftId?.toString() === key));
   });
@@ -104,7 +106,26 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
   async findByShiftId(shiftId: ObjectId) {
     return this.collection.findOne<IDocusignEvent>({
       shiftId,
+    }, {
+      sort: { _id: -1 },
     });
+  }
+
+  async markCompletedEventAsVoid(_id: ObjectId) {
+    return this.collection.updateOne(
+      {
+        _id,
+      },
+      {
+        $set: {
+          status: 'voided',
+          updatedAt: new Date(),
+        },
+        $setOnInsert: {
+          createdAt: new Date(),
+        },
+      }
+    );
   }
 
   async upsertEvent(item: Omit<IDocusignEvent, 'createdAt' | 'updatedAt'>) {

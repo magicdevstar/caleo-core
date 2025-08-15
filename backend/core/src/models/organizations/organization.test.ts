@@ -9,6 +9,7 @@ import {
 import { OrganizationService } from './organization.service';
 import { OrganizationRepo } from './organization.repository';
 import { SchedulerModel } from '../scheduler';
+import { DocumentModel } from '../document';
 
 const config = {
   timezone: 'America/Los_Angeles',
@@ -35,6 +36,7 @@ describe('organization service', () => {
   const model = new OrganizationService(
     {} as unknown as OrganizationRepo,
     {} as unknown as SchedulerModel,
+    {} as unknown as DocumentModel,
   );
 
   describe('activeLottery - Close day before open day', () => {

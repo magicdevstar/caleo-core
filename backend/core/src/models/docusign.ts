@@ -140,6 +140,10 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       return;
     }
 
+    if (currentStatus === 'completed') {
+      return;
+    }
+
     if (!envAPI || !tokenRecord) {
       const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
         org,
@@ -459,7 +463,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     const isReserve = userRank.name.toLowerCase().includes('deputy, reserve');
     const templateId = isReserve ? org.docusign.reserveTemplateId : org.docusign.templateId;
 
-    const baseEmailSubject = `Overtime Worked Report - ${event.name}`;
+    const emailSubject = `Overtime Worked Report: ${event.name} - ${user.lastName}, ${user.firstName}`;
 
     const templateRoles: TemplateRole[] = [
       {
@@ -467,9 +471,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         routingOrder: '1',
         email: user.member.contactInfo?.primaryEmail.address,
         name: user.name,
-        emailNotification: {
-          emailSubject: `${baseEmailSubject} - ${user.name}`,
-        },
         ...(signNow && { clientUserId }),
         tabs: {
           textTabs: [
@@ -489,9 +490,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         routingOrder: '2',
         email: lieutenant.member.contactInfo?.primaryEmail.address,
         name: lieutenant.name,
-        emailNotification: {
-          emailSubject: `${baseEmailSubject} - ${lieutenant.name}`,
-        }
       },
       ...(isReserve ? [
         {
@@ -499,9 +497,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
           routingOrder: '3',
           email: supervisor.member.contactInfo?.primaryEmail.address,
           name: supervisor.name,
-          emailNotification: {
-            emailSubject: `${baseEmailSubject} - ${supervisor.name}`,
-          }
         }
       ] : []),
     ];
@@ -510,7 +505,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       expireEnabled: 'false',
       status: 'created',
       templateRoles,
-      emailSubject: `Overtime Worked Report - ${event.name}`,
+      emailSubject,
       customFields: {
         textCustomFields: [
           {

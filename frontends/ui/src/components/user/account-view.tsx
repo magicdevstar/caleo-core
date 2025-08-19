@@ -79,7 +79,7 @@ export default function MainAccountView({
   adminViewer: boolean;
   excludePassword?: boolean;
 }) {
-  const [currentTab, setCurrentTab] = useState('eventActivity');
+  const [currentTab, setCurrentTab] = useState('general');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setCurrentTab(newValue);

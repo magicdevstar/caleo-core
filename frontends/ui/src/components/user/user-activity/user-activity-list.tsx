@@ -37,7 +37,10 @@ export function UserActivityList({ items, emptyMessage = "No items found" }: Use
           <ListItemAvatar sx={{ minWidth: 80 }}>
             <Label color={item.labelColor as any}>{item.status}</Label>
           </ListItemAvatar>
-          <ListItemText primary={item.date.format(dateTimeFormat)} />
+          <ListItemText 
+            primary={item.title}
+            secondary={item.date.format(dateTimeFormat)}
+          />
         </ListItem>
       ))}
     </List>

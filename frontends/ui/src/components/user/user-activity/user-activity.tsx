@@ -2,7 +2,6 @@ import { memo, useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 // @mui
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Timeline from '@mui/lab/Timeline';
 import TimelineItem from '@mui/lab/TimelineItem';
 import TimelineSeparator from '@mui/lab/TimelineSeparator';
@@ -37,7 +36,7 @@ function UserActivity({ userId }: UserActivityProps) {
   const [allActivities, setAllActivities] = useState<EventUserAction[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const { data, loading, error, refetch, fetchMore } = useQuery(GET_USER_ACTIVITY, {
+  const { loading, error, refetch, fetchMore } = useQuery(GET_USER_ACTIVITY, {
     variables: {
       input: {
         userId: targetUserId,

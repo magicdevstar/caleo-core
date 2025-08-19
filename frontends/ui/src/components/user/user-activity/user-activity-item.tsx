@@ -10,7 +10,6 @@ import { EventUserAction, EventUserActionType } from 'src/__generated__/resolver
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 // components
-import { UserActivityDocusign } from './user-activity-docusign';
 import { UserActivityList } from './user-activity-list';
 import { useUserActivity } from './hooks/use-user-activity';
 
@@ -22,7 +21,7 @@ interface UserActivityItemProps {
 function UserActivityItem({ activity }: UserActivityItemProps) {
   const { dateTimeFormat, dateFormat } = useDateFormats();
   const { user } = useAuthContext();
-  const { docusignEvents, interestRequests, shifts } = useUserActivity(activity);
+  const { activity: aggregatedActivity } = useUserActivity(activity);
 
   const labels = useMemo(() => {
     let eventType = '';
@@ -61,22 +60,8 @@ function UserActivityItem({ activity }: UserActivityItemProps) {
           {labels.subtitle}
         </Typography>
 
-        { activity.actionType === EventUserActionType.Shift && interestRequests.length > 0 && (
-          <>
-            <Divider>Interest Request Activity</Divider>
-            <UserActivityList items={interestRequests} emptyMessage="No interest requests found" />
-          </>
-        )}
-
-        { activity.actionType === EventUserActionType.Shift && shifts.length > 0 && (
-          <>
-            <Divider>Shift Activity</Divider>
-            <UserActivityList items={shifts} emptyMessage="No shifts found" />
-          </>
-        )}
-
-        <Divider>Docusign Activity</Divider>
-        <UserActivityDocusign docusignEvents={docusignEvents} />
+        <Divider>Activity</Divider>
+        <UserActivityList items={aggregatedActivity} emptyMessage="No activity found" />
       </CardContent>
     </Card>
   );

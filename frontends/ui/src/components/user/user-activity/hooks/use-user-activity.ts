@@ -4,12 +4,20 @@ import { DocusignEvent, EventUserAction, EventUserActionType, Shift, ShiftIntere
 import { useAuthContext } from "src/auth/hooks";
 import { convertDate } from "src/hooks/use-datejs";
 import { getShiftStatus } from "src/utils/shiftStatus";
+import { docusignStatusColor, docusignStatusLabel } from "src/utils/docusign";
+
+export enum UserActivityItemType {
+  DocusignEnvelope = 'Docusign Envelope',
+  InterestRequest = 'Interest Request',
+  ShiftAssignment = 'Shift Assignment',
+}
 
 export interface UserActivityItem {
   id: string;
   status: string;
   date: dayjs.Dayjs;
   labelColor: string;
+  title: UserActivityItemType;
 }
 
 export const useUserActivity = (activity: EventUserAction) => {
@@ -29,8 +37,25 @@ export const useUserActivity = (activity: EventUserAction) => {
       }, [] as DocusignEvent[]);
       events.push(...res);
     }
-    return events.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-  }, [activity]);
+    
+    return events
+      .map((event: DocusignEvent): UserActivityItem => ({
+        id: event.id,
+        status: docusignStatusLabel(event.status),
+        date: convertDate({ date: event.updatedAt, user }),
+        labelColor: docusignStatusColor(event.status),
+        title: UserActivityItemType.DocusignEnvelope,
+      }))
+      .sort((a, b) => {
+        if (a.date.isBefore(b.date)) {
+          return 1;
+        }
+        if (a.date.isAfter(b.date)) {
+          return -1;
+        }
+        return 0;
+      });
+  }, [activity, user]);
 
   const interestRequests = useMemo(() =>
     (activity.shiftInterestRequests || [])
@@ -73,6 +98,7 @@ export const useUserActivity = (activity: EventUserAction) => {
         status,
         date: convertDate({ date: request.updatedAt, user }),
         labelColor,
+        title: UserActivityItemType.InterestRequest,
       }
     })
     .sort((a, b) => {
@@ -112,7 +138,7 @@ export const useUserActivity = (activity: EventUserAction) => {
     let date = convertDate({ date: shift.updatedAt, user })
 
     if (shift.status === ShiftStatus.Relinquished) {
-      date = convertDate({ date: shift.createdAt, user });
+      date = convertDate({ date: shift.updatedAt, user });
     }
 
     return {
@@ -120,6 +146,7 @@ export const useUserActivity = (activity: EventUserAction) => {
       status,
       date,
       labelColor,
+      title: UserActivityItemType.ShiftAssignment,
     }
     })
     .sort((a, b) => {
@@ -132,9 +159,23 @@ export const useUserActivity = (activity: EventUserAction) => {
       return 0;
     }), [activity.shifts, user]);
 
+  const aggregatedActivity = useMemo(() => {
+    const allItems = [...docusignEvents, ...interestRequests, ...shifts];
+    return allItems.sort((a, b) => {
+      if (a.date.isBefore(b.date)) {
+        return 1;
+      }
+      if (a.date.isAfter(b.date)) {
+        return -1;
+      }
+      return 0;
+    });
+  }, [docusignEvents, interestRequests, shifts]);
+
   return {
     docusignEvents,
     interestRequests,
     shifts,
+    activity: aggregatedActivity,
   };
 };

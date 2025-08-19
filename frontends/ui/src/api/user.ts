@@ -450,6 +450,69 @@ export const UPDATE_USER = gql`
   }
 `;
 
+export const GET_USER_ACTIVITY = gql`
+  query GetUserActivity($input: EventUserActionSearchInput!) {
+    eventUserActions(input: $input) {
+      total
+      items {
+        id
+        actionType
+        updatedAt
+        shiftGroupId
+        incidentFormId
+
+        event {
+          id
+          name
+        }
+
+        shifts {
+          id
+          status
+          startTime
+          endTime
+          updatedAt
+          createdAt
+          removedAt
+
+          assignment {
+            id
+            name
+          }
+
+          docusignEvents {
+            id
+            status
+            documentUrl
+            updatedAt
+          }
+        }
+
+        shiftInterestRequests {
+          id
+          status
+          updatedAt
+          createdAt
+        }
+
+        incidentForm {
+          id
+          status
+          operationalPeriod {
+            date
+          }
+          docusignEvent {
+            id
+            status
+            documentUrl
+            updatedAt
+          }
+        }
+      }
+    }
+  }
+`;
+
 export interface FrontendUser extends User {
   displayName: string;
   email: string;

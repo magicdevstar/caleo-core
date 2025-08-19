@@ -13,6 +13,10 @@ export class EventUserActionService {
     private eventUserAction: EventUserActionRepo
   ) {}
 
+  async search(input) {
+    return this.eventUserAction.search(input);
+  }
+
   async createFromShift(id: string) {
     const shift = await this.shifts.get(id, { removed: true });
     if (!shift || !shift.userId) {

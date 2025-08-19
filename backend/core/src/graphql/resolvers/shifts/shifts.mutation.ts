@@ -562,6 +562,7 @@ export const Mutation = {
       // Remove interest if user relinquished shift
       if (status === ShiftStatus.Relinquished) {
         await interestList.removeInterest({
+          modifiedById: user._id!,
           userId: user._id!,
           shiftGroupId: shift.shiftId,
           orgId: user.member.orgId,

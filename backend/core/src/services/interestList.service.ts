@@ -9,7 +9,7 @@ import { isBefore } from "date-fns/isBefore";
 import { subHours } from "date-fns/subHours";
 import { InvocationType, InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 
-import { EventStatus } from "../__generated__/resolvers-types";
+import { EventStatus, ShiftInterestRequestStatus } from "../__generated__/resolvers-types";
 import { EventModel, IEvent } from "../models/event";
 import { ScheduleEvent, SchedulerModel, Timezone } from "../models/scheduler";
 import { IOrganization } from "../models/organizations/organization.entity";
@@ -95,15 +95,23 @@ export class InterestListService {
     userId,
     shiftGroupId,
     orgId,
+    modifiedById,
   } : {
+    modifiedById: ObjectId,
     userId: ObjectId,
     shiftGroupId: string,
     orgId: ObjectId,
   }) {
-    return this.shiftInterestRequests.collection.deleteOne({
+    return this.shiftInterestRequests.collection.updateOne({
       userId,
       orgId,
       shiftGroupId,
+    }, {
+      $set: {
+        status: ShiftInterestRequestStatus.Removed,
+        removedAt: new Date(),
+        modifiedById,
+      }
     });
   }
 

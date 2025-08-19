@@ -3,7 +3,6 @@ import { useState, useCallback, useMemo } from 'react';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 // types
-import { useFeatures } from 'src/hooks/use-features';
 import { get } from 'lodash';
 import { FrontendUser } from 'src/api/user';
 import { MemberStatus } from 'src/__generated__/resolvers-types';
@@ -16,7 +15,7 @@ import AccountChangePassword from './account-change-password';
 import AccountNewPassword from './account-new-password';
 import AccountLotteryAnalytics from './account-lottery-analytics';
 import AccountEquipments from './account-equiptment';
-import AccountDocusign from './account-docusign';
+import UserActivity from './user-activity/user-activity';
 
 // ----------------------------------------------------------------------
 
@@ -48,10 +47,9 @@ const TABS = [
     icon: <Iconify icon="ic:baseline-directions-car" width={24} />,
   },
   {
-    value: 'docusignEvents',
-    label: 'Docusign Events',
-    visible: (canView = true) => canView,
-    userKey: 'member.org.features.docusign',
+    value: 'eventActivity',
+    label: 'Event Activity',
+    visible: () => true,
     icon: <Iconify icon="ic:round-insert-drive-file" width={24} />,
   },
   {
@@ -81,8 +79,7 @@ export default function MainAccountView({
   adminViewer: boolean;
   excludePassword?: boolean;
 }) {
-  const { docusignCheckout } = useFeatures();
-  const [currentTab, setCurrentTab] = useState('general');
+  const [currentTab, setCurrentTab] = useState('eventActivity');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setCurrentTab(newValue);
@@ -108,12 +105,8 @@ export default function MainAccountView({
         }}
       >
         {TABS
-          .filter(({value, userKey, visible}) => {
-            if (value === 'docusignEvents' && !docusignCheckout) {
-              return false;
-            }
-            return userKey ? visible(get(user, userKey)) : visible(adminViewer)
-          })
+          .filter(({value, userKey, visible}) =>
+            userKey ? visible(get(user, userKey)) : visible(adminViewer))
           .map((tab) => (
             <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
           ))
@@ -129,8 +122,8 @@ export default function MainAccountView({
       {currentTab === 'equipment' && <AccountEquipments adminViewer={adminViewer} user={user} allDisabled={allDisabled} />}
       
       {currentTab === 'lottoAnalytics' && <AccountLotteryAnalytics user={user} />}
-      
-      {currentTab === 'docusignEvents' && <AccountDocusign user={user} />}
+
+      {currentTab === 'eventActivity' && <UserActivity userId={user?.id} />}
 
       {securityTab}
     </>

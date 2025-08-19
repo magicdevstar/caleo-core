@@ -130,6 +130,36 @@ export class ShiftModel extends BaseMongo<IShift> {
   eventsCollection: Collection;
   lottoShiftRequestCollection: Collection;
 
+  public loadUserShiftsByGroupId = new DataLoader(async (groupKeys: readonly { userId: string; shiftId: string; }[]) => {
+    const res = await this.collection.find<IShift>({
+      $or: groupKeys.map(({ userId, shiftId }) => ({
+        userId: new ObjectId(userId),
+        shiftId,
+      })),
+    }).toArray();
+    logger.info("LOADING SHIFTS BY GROUP ID", {
+      res,
+      query: {
+        $or: groupKeys.map(({ userId, shiftId }) => ({
+          userId: new ObjectId(userId),
+          shiftId,
+        })),
+      },
+    });
+
+    const allShiftsByGroupId = res.reduce((acc, shift) => {
+      if ((acc[shift.shiftId] || []).some((item) => item._id === shift._id)) {
+        return acc;
+      }
+      acc[shift.shiftId] = acc[shift.shiftId] || [];
+      shift.id = shift._id!.toString();
+      acc[shift.shiftId].push(shift);
+      return acc;
+    }, {} as Record<string, IShift[]>);
+
+    return groupKeys.map((key) => allShiftsByGroupId[key.shiftId] || []);
+  });
+
   public loadOneShiftFromGroup = new DataLoader(async (groupKeys: readonly string[]) => {
     const res = await this.collection.aggregate(JSON.parse(JSON.stringify([
       {

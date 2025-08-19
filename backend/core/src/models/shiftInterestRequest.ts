@@ -64,6 +64,28 @@ export class ShiftInterestRequestModel extends BaseMongo<IShiftInterestRequest> 
     return keys.map(({ shiftGroupId }) => res.find((item) => item.shiftGroupId === shiftGroupId));
   });
 
+  public loadAll = new DataLoader(async (keys: readonly {userId: string; orgId: string; shiftGroupId: string}[]) => {
+    const userId = new ObjectId(keys[0].userId);
+    const groupIds = keys.map((key) => key.shiftGroupId);
+    const res = await this.collection.find({
+      userId,
+      shiftGroupId: {
+        $in: groupIds,
+      },
+    }).toArray();
+
+    const groupByShiftGroupId = new Map<string, IShiftInterestRequest[]>();
+    for (const item of res) {
+      const key = item.shiftGroupId;
+      if (!groupByShiftGroupId.has(key)) {
+        groupByShiftGroupId.set(key, []);
+      }
+      groupByShiftGroupId.get(key)?.push(item as IShiftInterestRequest);
+    }
+
+    return keys.map(({ shiftGroupId }) => groupByShiftGroupId.get(shiftGroupId) || []);
+  });
+
   constructor(db: Db) {
     super(db, DocType.ShiftInterestRequest, 'shiftInterestRequests');
   }

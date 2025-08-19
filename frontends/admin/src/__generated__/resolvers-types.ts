@@ -333,7 +333,7 @@ export type DocusignEvent = {
   signerDetails?: Maybe<Array<DocusignSignerDetails>>;
   status: Scalars['String']['output'];
   supervisorId?: Maybe<Scalars['String']['output']>;
-  updatedAt: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   userId: Scalars['String']['output'];
 };
 
@@ -565,20 +565,37 @@ export enum EventStatus {
 export type EventUserAction = {
   __typename?: 'EventUserAction';
   actionType: EventUserActionType;
-  createdAt: Scalars['Date']['output'];
+  createdAt: Scalars['DateTime']['output'];
   event: Event;
   eventId: Scalars['ObjectId']['output'];
   id: Scalars['ObjectId']['output'];
   incidentForm?: Maybe<IncidentForm>;
   incidentFormId?: Maybe<Scalars['ObjectId']['output']>;
-  removedAt?: Maybe<Scalars['Date']['output']>;
+  removedAt?: Maybe<Scalars['DateTime']['output']>;
   shiftGroupId?: Maybe<Scalars['String']['output']>;
   shiftInterestRequests?: Maybe<Array<ShiftInterestRequest>>;
   shiftLotteryRequests?: Maybe<Array<ShiftLotteryRequest>>;
   shifts?: Maybe<Array<Shift>>;
-  updatedAt: Scalars['Date']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   user: User;
   userId: Scalars['ObjectId']['output'];
+};
+
+export type EventUserActionSearchInput = {
+  cursor?: InputMaybe<Scalars['ObjectId']['input']>;
+  eventIds?: InputMaybe<Array<InputMaybe<Scalars['ObjectId']['input']>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  userId?: InputMaybe<Scalars['ObjectId']['input']>;
+};
+
+export type EventUserActionSearchResult = {
+  __typename?: 'EventUserActionSearchResult';
+  items?: Maybe<Array<EventUserAction>>;
+  total: Scalars['Int']['output'];
 };
 
 export enum EventUserActionType {
@@ -1837,6 +1854,7 @@ export type Query = {
   equipment?: Maybe<Equipment>;
   equipments?: Maybe<EquipmentSearchResult>;
   event?: Maybe<Event>;
+  eventUserActions?: Maybe<EventUserActionSearchResult>;
   events?: Maybe<EventSearchResult>;
   financeShifts?: Maybe<Array<Maybe<FinanceShift>>>;
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
@@ -1935,6 +1953,11 @@ export type QueryEquipmentsArgs = {
 
 export type QueryEventArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryEventUserActionsArgs = {
+  input: EventUserActionSearchInput;
 };
 
 
@@ -2228,6 +2251,7 @@ export type Shift = {
   customId: Scalars['String']['output'];
   docType: DocType;
   docusignEvent?: Maybe<DocusignEvent>;
+  docusignEvents?: Maybe<Array<DocusignEvent>>;
   endTime: Scalars['String']['output'];
   event: Event;
   eventId: Scalars['String']['output'];
@@ -3366,6 +3390,8 @@ export type ResolversTypes = ResolversObject<{
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
   EventUserAction: ResolverTypeWrapper<EventUserAction>;
+  EventUserActionSearchInput: EventUserActionSearchInput;
+  EventUserActionSearchResult: ResolverTypeWrapper<EventUserActionSearchResult>;
   EventUserActionType: EventUserActionType;
   FinanceShift: ResolverTypeWrapper<FinanceShift>;
   FinanceShiftSearchInput: FinanceShiftSearchInput;
@@ -3607,6 +3633,8 @@ export type ResolversParentTypes = ResolversObject<{
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
   EventUserAction: EventUserAction;
+  EventUserActionSearchInput: EventUserActionSearchInput;
+  EventUserActionSearchResult: EventUserActionSearchResult;
   FinanceShift: FinanceShift;
   FinanceShiftSearchInput: FinanceShiftSearchInput;
   Float: Scalars['Float']['output'];
@@ -3978,7 +4006,7 @@ export type DocusignEventResolvers<ContextType = any, ParentType extends Resolve
   signerDetails?: Resolver<Maybe<Array<ResolversTypes['DocusignSignerDetails']>>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -4142,20 +4170,26 @@ export type EventSearchResultResolvers<ContextType = any, ParentType extends Res
 
 export type EventUserActionResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventUserAction'] = ResolversParentTypes['EventUserAction']> = ResolversObject<{
   actionType?: Resolver<ResolversTypes['EventUserActionType'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   incidentForm?: Resolver<Maybe<ResolversTypes['IncidentForm']>, ParentType, ContextType>;
   incidentFormId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
-  removedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   shiftGroupId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftInterestRequests?: Resolver<Maybe<Array<ResolversTypes['ShiftInterestRequest']>>, ParentType, ContextType>;
   shiftLotteryRequests?: Resolver<Maybe<Array<ResolversTypes['ShiftLotteryRequest']>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<ResolversTypes['Shift']>>, ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventUserActionSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventUserActionSearchResult'] = ResolversParentTypes['EventUserActionSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<ResolversTypes['EventUserAction']>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4757,6 +4791,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<QueryEquipmentArgs, 'id'>>;
   equipments?: Resolver<Maybe<ResolversTypes['EquipmentSearchResult']>, ParentType, ContextType, Partial<QueryEquipmentsArgs>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventArgs, 'id'>>;
+  eventUserActions?: Resolver<Maybe<ResolversTypes['EventUserActionSearchResult']>, ParentType, ContextType, RequireFields<QueryEventUserActionsArgs, 'input'>>;
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
   financeShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['FinanceShift']>>>, ParentType, ContextType, RequireFields<QueryFinanceShiftsArgs, 'eventId'>>;
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
@@ -4860,6 +4895,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   customId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
+  docusignEvents?: Resolver<Maybe<Array<ResolversTypes['DocusignEvent']>>, ParentType, ContextType>;
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -5307,6 +5343,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   EventRequestDetails?: EventRequestDetailsResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   EventUserAction?: EventUserActionResolvers<ContextType>;
+  EventUserActionSearchResult?: EventUserActionSearchResultResolvers<ContextType>;
   FinanceShift?: FinanceShiftResolvers<ContextType>;
   InAppNotificationMeta?: InAppNotificationMetaResolvers<ContextType>;
   InAppNotificationSearchResult?: InAppNotificationSearchResultResolvers<ContextType>;

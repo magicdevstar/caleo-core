@@ -765,9 +765,9 @@
     id: ObjectId!
     userId: ObjectId!
     eventId: ObjectId!
-    createdAt: Date!
-    updatedAt: Date!
-    removedAt: Date
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    removedAt: DateTime
     
     # If this action is from a shift/interest request this will be populated 
     shiftGroupId: String
@@ -993,7 +993,7 @@ type DocusignEvent {
   lieutenantId: String
 
   createdAt: String!
-  updatedAt: String!
+  updatedAt: DateTime!
   removedAt: String
 
   event: Event
@@ -2069,6 +2069,22 @@ type DocusignSignerDetailsData {
     order: String
   }
 
+  input EventUserActionSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    orderBy: String
+    order: String
+    userId: ObjectId
+    eventIds: [ObjectId]
+    cursor: ObjectId
+  }
+
+  type EventUserActionSearchResult {
+    items: [EventUserAction!]
+    total: Int!
+  }
+
   input FinanceShiftSearchInput {
     eventId: ObjectId!
   }
@@ -2509,6 +2525,7 @@ type Query {
   user(id: String!, shiftStart: String, timezoneOffset: Int): User
   docusignEvents(input: DocusignEventSearchInput!): DocusignEventSearchResult
   signingAuthorityAssignments(eventId: ObjectId!): AssignmentSearchResult
+  eventUserActions(input: EventUserActionSearchInput!): EventUserActionSearchResult
 
   rank(id: String!): Rank
   ranks(input: RankSearchInput): RankSearchResult

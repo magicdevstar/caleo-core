@@ -493,6 +493,10 @@ export const GET_USER_ACTIVITY = gql`
           status
           updatedAt
           createdAt
+          assignment {
+            id
+            name
+          }
         }
 
         incidentForm {

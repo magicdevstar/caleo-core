@@ -27,7 +27,7 @@ function UserActivityItem({ activity }: UserActivityItemProps) {
     let eventType = '';
     let subtitle = '';
     if (activity.actionType === EventUserActionType.Shift) {
-      eventType = `: ${activity.shifts?.[0]?.assignment?.name || ''}`;
+      eventType = `: ${activity.shifts?.[0]?.assignment?.name || activity.shiftInterestRequests?.[0]?.assignment?.name || ''}`;
       if (activity.shifts?.[0]?.startTime && activity.shifts?.[0]?.endTime) {
         const start = convertDate({ date: activity.shifts?.[0]?.startTime, user }).format(dateTimeFormat);
         const end = convertDate({ date: activity.shifts?.[0]?.endTime, user }).format(dateTimeFormat);

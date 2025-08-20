@@ -175,6 +175,21 @@ export const IncidentForm = async (event: IIncidentInput) => {
     officerId: string,
     reviewerId: string
   ) => {
+    if (event.incidentFormDetails.totalTime === '') {
+      return {
+        document: null,
+        officerTabs: {
+          signHereTabs: [],
+          dateSignedTabs: [],
+          initialHereTabs: [],
+        },
+        reviewerTabs: {
+          signHereTabs: [],
+          dateSignedTabs: [],
+          initialHereTabs: [],
+        },
+      };
+    }
     const document = new Document() as unknown as Document;
     document.documentBase64 = Buffer.from(overtimePDFBytes).toString('base64');
     document.name = 'overtime-form';
@@ -242,7 +257,7 @@ export const IncidentForm = async (event: IIncidentInput) => {
     };
   };
 
-  const submitToDocusgin = async ({
+  const submitToDocusign = async ({
     incidentPDFBytes,
     overtimePDFBytes,
   }:{
@@ -314,7 +329,10 @@ export const IncidentForm = async (event: IIncidentInput) => {
   
       const envelopeDefinition: EnvelopeDefinition = new (ds as any).EnvelopeDefinition();
       envelopeDefinition.emailSubject = `Incident Form Submission: ${event.incidentFormDetails.eventName} - ${event.user.lastName}, ${event.user.firstName}`;
-      envelopeDefinition.documents = [incidentDocument, overtimeDocument];
+      envelopeDefinition.documents = [incidentDocument];
+      if (overtimeDocument) {
+        envelopeDefinition.documents.push(overtimeDocument);
+      }
       envelopeDefinition.recipients = (ds as any).Recipients.constructFromObject({
         signers: [officer, reviewerSigner],
       });
@@ -387,7 +405,7 @@ export const IncidentForm = async (event: IIncidentInput) => {
     const incidentPDFBytes = await incidentFormGen();
     const overtimePDFBytes = await overtimeSlipFormGen();
 
-    return submitToDocusgin({
+    return submitToDocusign({
       incidentPDFBytes,
       overtimePDFBytes,
     });

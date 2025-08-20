@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import BigNumber from "bignumber.js";
 import { FinanceShift } from "src/__generated__/resolvers-types";
+import { useAuthContext } from "src/auth/hooks";
+import { convertDate } from "src/hooks/use-datejs";
+import { FrontendUser } from "src/api/user";
 
 export interface TimeBucket {
   label: string;
@@ -60,7 +63,7 @@ export function calculateOptimalBuckets(oldestDate: Date, newestDate: Date): Buc
 /**
  * Generates time buckets based on the provided options
  */
-export function generateTimeBuckets(options: BucketingOptions): TimeBucket[] {
+export function generateTimeBuckets(options: BucketingOptions, user: FrontendUser): TimeBucket[] {
   const { bucketType, bucketCount, startDate } = options;
   const buckets: TimeBucket[] = [];
 
@@ -71,43 +74,43 @@ export function generateTimeBuckets(options: BucketingOptions): TimeBucket[] {
 
     switch (bucketType) {
       case 'day':
-        bucketStart = new Date(startDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
         bucketStart.setDate(startDate.getDate() + i);
-        bucketEnd = new Date(bucketStart);
+        bucketEnd = convertDate({ date: new Date(bucketStart), user }).toDate();
         bucketEnd.setDate(bucketStart.getDate() + 1);
         bucketLabel = bucketStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         break;
       case 'week':
-        bucketStart = new Date(startDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
         bucketStart.setDate(startDate.getDate() + (i * 7));
-        bucketEnd = new Date(bucketStart);
+        bucketEnd = convertDate({ date: new Date(bucketStart), user }).toDate();
         bucketEnd.setDate(bucketStart.getDate() + 7);
         bucketLabel = `Week ${i + 1}`;
         break;
       case 'month':
-        bucketStart = new Date(startDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
         bucketStart.setMonth(startDate.getMonth() + i);
-        bucketEnd = new Date(bucketStart);
+        bucketEnd = convertDate({ date: new Date(bucketStart), user }).toDate();
         bucketEnd.setMonth(bucketStart.getMonth() + 1);
         bucketLabel = bucketStart.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
         break;
       case 'quarter':
-        bucketStart = new Date(startDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
         bucketStart.setMonth(startDate.getMonth() + (i * 3));
-        bucketEnd = new Date(bucketStart);
+        bucketEnd = convertDate({ date: new Date(bucketStart), user }).toDate();
         bucketEnd.setMonth(bucketStart.getMonth() + 3);
         bucketLabel = `Q${Math.floor(bucketStart.getMonth() / 3) + 1} ${bucketStart.getFullYear()}`;
         break;
       case 'year':
-        bucketStart = new Date(startDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
         bucketStart.setFullYear(startDate.getFullYear() + i);
-        bucketEnd = new Date(bucketStart);
+        bucketEnd = convertDate({ date: new Date(bucketStart), user }).toDate();
         bucketEnd.setFullYear(bucketStart.getFullYear() + 1);
         bucketLabel = bucketStart.getFullYear().toString();
         break;
       default:
-        bucketStart = new Date(startDate);
-        bucketEnd = new Date(options.endDate);
+        bucketStart = convertDate({ date: new Date(startDate), user }).toDate();
+        bucketEnd = convertDate({ date: new Date(options.endDate), user }).toDate();
         bucketLabel = 'All Time';
     }
 
@@ -137,12 +140,12 @@ export function calculateShiftCost(shift: FinanceShift): number {
 /**
  * Groups shifts into time buckets
  */
-export function groupShiftsIntoBuckets(shifts: FinanceShift[], buckets: TimeBucket[]): TimeBucket[] {
+export function groupShiftsIntoBuckets(shifts: FinanceShift[], buckets: TimeBucket[], user: FrontendUser): TimeBucket[] {
   const result = buckets.map(bucket => ({ ...bucket })); // Create a copy
 
   shifts.forEach((shift) => {
     if (shift.startTime) {
-      const shiftDate = new Date(shift.startTime);
+      const shiftDate = convertDate({ date: new Date(shift.startTime), user }).toDate();
       const shiftCost = calculateShiftCost(shift);
 
       // Find the appropriate bucket for this shift
@@ -161,6 +164,8 @@ export function groupShiftsIntoBuckets(shifts: FinanceShift[], buckets: TimeBuck
 }
 
 export const useShiftsByDate = (data: FinanceShift[]) => {
+  const { user } = useAuthContext();
+
   const res = useMemo(() => {
     if (data.length === 0) {
       return {
@@ -172,7 +177,7 @@ export const useShiftsByDate = (data: FinanceShift[]) => {
     // Find the oldest and newest shift dates
     const allDates = data
       .filter(shift => shift.startTime)
-      .map(shift => new Date(shift.startTime!))
+      .map(shift => convertDate({ date: new Date(shift.startTime!), user }).toDate())
       .sort((a, b) => a.getTime() - b.getTime());
 
     if (allDates.length === 0) {
@@ -189,10 +194,10 @@ export const useShiftsByDate = (data: FinanceShift[]) => {
     const bucketingOptions = calculateOptimalBuckets(oldestDate, newestDate);
     
     // Generate time buckets
-    const timeBuckets = generateTimeBuckets(bucketingOptions);
+    const timeBuckets = generateTimeBuckets(bucketingOptions, user);
     
     // Group shifts into buckets
-    const populatedBuckets = groupShiftsIntoBuckets(data, timeBuckets);
+    const populatedBuckets = groupShiftsIntoBuckets(data, timeBuckets, user);
 
     // Create series data for LineChart
     const categories = populatedBuckets.map(bucket => bucket.label);
@@ -210,7 +215,7 @@ export const useShiftsByDate = (data: FinanceShift[]) => {
       categories,
       series,
     };
-  }, [data]);
+  }, [data, user]);
 
   return res;
 };

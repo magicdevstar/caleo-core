@@ -139,6 +139,8 @@ export const GET_AVAILABLE_SHIFTS = gql`
           scheduledFirstComeFirstServe
           lotteryNumber
           thumbnailUrl
+          startTime
+          endTime
           lotteryCounter {
             start
           }
@@ -163,6 +165,10 @@ export const GET_AVAILABLE_SHIFTS = gql`
           name
           bwNeeded
           reportingLocation
+          requiredEquipment {
+            id
+            name
+          }
           requiredSkills {
             id
             name
@@ -347,12 +353,22 @@ export const GET_ALL_SHIFTS = gql`
           status
           documentUrl
         }
+        org {
+          settings {
+            userRelinquishShift {
+              enabled
+              numberOfHoursBeforeShift
+            }
+          }
+        }
         event {
           id
           referenceId
           name
           attachments
           thumbnailUrl
+          startTime
+          endTime
           venue {
             id
             name
@@ -905,6 +921,14 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         createdAt
         startTime
         endTime
+        org {
+          settings {
+            userRelinquishShift {
+              enabled
+              numberOfHoursBeforeShift
+            }
+          }
+        }
         shift {
           id
           startTime
@@ -914,6 +938,8 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
             referenceId
             name
             attachments
+            startTime
+            endTime
             venue {
               id
               name

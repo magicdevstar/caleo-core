@@ -27,8 +27,8 @@ export function useBoolean<T>({
   }, []);
 
   const onFalse = useCallback(() => {
-    setAttribute(undefined);
     setValue(false);
+    setTimeout(() => setAttribute(undefined), 250);
   }, []);
 
   const onToggle = useCallback((a?: T) => {

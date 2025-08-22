@@ -4,6 +4,7 @@ import { MemberStatus } from "src/__generated__/resolvers-types";
 export interface TableConfig<T> {
   header: {
     title: string;
+    titleVariant?: string;
     buttons?: {
       key: string;
       text?: string;

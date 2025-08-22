@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { useAuthContext } from "src/auth/hooks";
 // types
-import { EventStatus, Shift } from "src/__generated__/resolvers-types";
+import { EventStatus, Shift, ShiftBufferRequest } from "src/__generated__/resolvers-types";
 import { LabelVariant } from "src/components/label";
 // hooks
 import { useLotteryCounterOptions } from "./use-lottery-counter-options";
@@ -22,7 +22,7 @@ export const useUpcomingOvertimeLabels = () => {
         border: 'none',
         background: 'none',
       },
-      getHidden: (shift: Shift) =>
+      getHidden: (shift: Shift | ShiftBufferRequest) =>
         ![
           EventStatus.ReadyForLottery,
           EventStatus.FirstComeFirstServe,
@@ -30,7 +30,7 @@ export const useUpcomingOvertimeLabels = () => {
         ].includes(
           shift?.event?.status
         ),
-      getLabel: (shift: Shift) => {
+      getLabel: (shift: Shift | ShiftBufferRequest) => {
         if (shift?.event?.status === EventStatus.ReadyForLottery) {
           const foundCounter = lotteryCounterOptions.find(
             (c) => c.counter === shift?.event?.lotteryNumber
@@ -60,7 +60,7 @@ export const useUpcomingOvertimeLabels = () => {
     {
       key: 'shift-event-status',
       variant: 'soft' as LabelVariant,
-      getHidden: (shift: Shift) =>
+      getHidden: (shift: Shift | ShiftBufferRequest) =>
         ![
           EventStatus.ReadyForLottery,
           EventStatus.FirstComeFirstServe,
@@ -68,7 +68,7 @@ export const useUpcomingOvertimeLabels = () => {
         ].includes(
           shift?.event?.status
         ),
-      getColor: (shift: Shift) => {
+      getColor: (shift: Shift | ShiftBufferRequest) => {
         if (shift?.event?.status === EventStatus.ReadyForLottery) {
           return 'success';
         }
@@ -80,7 +80,7 @@ export const useUpcomingOvertimeLabels = () => {
         }
         return 'default';
       },
-      getLabel: (shift: Shift) => {
+      getLabel: (shift: Shift | ShiftBufferRequest) => {
         if (shift?.event?.status === EventStatus.ReadyForLottery) {
           return 'Pre-Lottery';
         }

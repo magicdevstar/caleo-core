@@ -1,6 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { isAfter, isBefore, subHours } from 'date-fns';
+import { useCallback, useState } from 'react';
 // @mui
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -13,76 +11,20 @@ import { alpha, useTheme } from '@mui/material/styles';
 // components
 import { useSettingsContext } from 'src/components/settings';
 // types
-import { GET_ALL_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
 import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
-import { useResponsive } from 'src/hooks/use-responsive';
 // local imports
-import ShiftItems from 'src/components/shifts/shift-items';
-import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, ShiftStatus } from 'src/__generated__/resolvers-types';
-import { ORGANIZATION } from 'src/api/organization';
-import { useBoolean } from 'src/hooks/use-boolean';
 import CheckInOut from 'src/components/shifts/check-in-out';
-import RelinquishDialog from 'src/sections/dashboard/dashboard/overtime-shifts/relinquish-dialog';
 import { useFeatures } from 'src/hooks/use-features';
+import MyOvertimeList from '../myOvertime/my-overtime-list';
+import MyOvertimeGroupedByEvent from '../myOvertime/my-overtime-grouped-by-event';
 
 // ----------------------------------------------------------------------
-
-const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferRequest) => {
-  if (shift.__typename === 'ShiftBufferRequest') {
-    return {
-      icon: 'mdi:close-thick',
-      title: 'Cancel Buffer Request',
-      disabled: false,
-    };
-  }
-
-  if (!organization?.settings?.userRelinquishShift?.enabled) {
-    return {
-      icon: 'mdi:check',
-      title: 'Secured',
-      disabled: true,
-    };
-  }
-  const startDate = new Date(shift.startTime);
-  const endDate = new Date(shift.endTime);
-  const numberOfHoursBeforeShift = organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-  const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-  const now = new Date();
-  const disabled = isAfter(now, disableDate);
-
-  if (isAfter(now, startDate) && isBefore(now, endDate)) {
-    return {
-      icon: 'mdi:clock-alert',
-      title: 'In Progress',
-      disabled,
-    }
-  }
-  if (isAfter(now, endDate)) {
-    return {
-      icon: 'mdi:check',
-      title: 'Secured',
-      disabled,
-    }
-  }
-  if ((shift as Shift).locked || shift.status === ShiftStatus.Locked) {
-    return {
-      icon: 'mdi:lock',
-      title: 'Locked',
-      disabled: true,
-    }
-  }
-  return {
-    icon: 'mdi:close-thick',
-    title: 'Scratch',
-    disabled,
-  };
-};
 
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
   const theme = useTheme();
-  const { officerCheckInOut } = useFeatures();
+  const { officerCheckInOut, showShiftsByEvent } = useFeatures();
   const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -98,55 +40,6 @@ export default function MyOvertimeView() {
     startTime: new Date().toISOString(),
   });
   const settings = useSettingsContext();
-  const mdDown = useResponsive('down', 'md');
-
-  const { data: organizationData } = useQuery(ORGANIZATION, {
-    fetchPolicy: 'no-cache', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-  });
-  const organization = organizationData?.organization;
-
-  const [editShift, setEditShift] = useState<Shift | ShiftBufferRequest | null>(null);
-
-  const relinquishNoteRequired = organization?.settings?.userRelinquishShift?.enabled && organization?.settings?.userRelinquishShift?.requireNoteWhenRelinquishing;
-  const relinquishConfirm = useBoolean();
-
-  const { data, loading } = useQuery(GET_ALL_SHIFTS, {
-    fetchPolicy: 'no-cache', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {
-        ...filters
-      },
-    }
-  });
-
-  const { data: shiftBufferRequests, loading: loadingShiftBuffers } = useQuery(GET_SHIFT_BUFFER_REQUESTS, {
-    fetchPolicy: 'no-cache', // Used for first execution
-    nextFetchPolicy: 'cache-first', // Used for subsequent executions
-    variables: {
-      input: {
-        ...filters,
-        status: ShiftBufferRequestStatus.Pending,
-      },
-    }
-  });
-
-  const { shifts: { items, total } } = data || { shifts: { items: [], total: 0 } };
-  const { shiftBufferRequests: { items: bufferItems } } = shiftBufferRequests || { shiftBufferRequests: { items: [] } };
-
-
-  const listData = useMemo(() => {
-    if (!items || !bufferItems) return [];
-    return [
-      ...items,
-      ...bufferItems,
-    ].sort((a: any, b: any) => {
-      const aStart = new Date(a.startTime);
-      const bStart = new Date(b.startTime);
-      return bStart.getTime() - aStart.getTime();
-    });
-  }, [items, bufferItems]);
 
   const handleTabChange = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
@@ -173,32 +66,6 @@ export default function MyOvertimeView() {
     },
     [setFilters]
   );
-
-  const closeRelinquish = useCallback(
-    () => {
-      setEditShift(null);
-      relinquishConfirm.onFalse();
-    },
-    [relinquishConfirm, setEditShift]
-  );
-
-  const shiftActions = [
-    {
-      key: 'relinquish',
-      color: 'error',
-      disabled: (shift: any) => getButtonInfo(organization, shift).disabled,
-      onClick: (shift: any) => {
-        if (shift.__typename === 'ShiftBufferRequest') {
-          setEditShift(shift);
-        } else {
-          setEditShift(shift);
-        }
-        relinquishConfirm.onTrue();
-      },
-      getIcon: (shift: any) => getButtonInfo(organization, shift).icon,
-      getName: (shift: any) => getButtonInfo(organization, shift).title,
-    }
-  ]
 
   return (
     <Container sx={{
@@ -230,44 +97,21 @@ export default function MyOvertimeView() {
             ))}
           </Tabs>
 
-          <ShiftItems
-            emptyMessage='No Overtime'
-            compact={mdDown}
-            total={total}
-            pageSize={table.rowsPerPage}
-            setPage={(page: number) => {
-              table.onChangePage(null, page - 1);
-              setFilters((c: any) => ({
-                ...c,
-                skip: (page - 1) * table.rowsPerPage,
-              }));
-            }}
-            currentPage={table.page + 1}
-            shifts={listData.map((rawShift: any) => {
-              const shift = JSON.parse(JSON.stringify(rawShift));
-              if (shift.locked) {
-                shift.disabled = true;
-              } else {
-                const startDate = new Date(shift.startTime);
-                const numberOfHoursBeforeShift = shift.organization?.settings?.userRelinquishShift?.numberOfHoursBeforeShift;
-                const disableDate = subHours(startDate, numberOfHoursBeforeShift || 0);
-                const now = new Date();
-                shift.disabled = isAfter(now, disableDate);
-              }
-
-              return shift;
-            })}
-            shiftActions={shiftActions}
-            loading={loading || loadingShiftBuffers}
-          />
+          {showShiftsByEvent ? (
+            <MyOvertimeGroupedByEvent
+              table={table}
+              setFilters={setFilters}
+              filters={filters}
+            />
+          ) : (
+            <MyOvertimeList
+              table={table}
+              setFilters={setFilters}
+              filters={filters}
+            />
+          )}
         </CardContent>
       </Card>
-      <RelinquishDialog
-        open={relinquishConfirm.value}
-        onClose={closeRelinquish}
-        editShift={editShift}
-        relinquishNoteRequired={relinquishNoteRequired}
-      />
     </Container>
   );
 }

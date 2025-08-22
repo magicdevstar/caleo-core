@@ -61,6 +61,7 @@ const userDetailProperties = `
         outsideUserList
         signingAuthorityAssignment
         financeUnit
+        showShiftsByEvent
       }
       customizations {
         pNumber
@@ -95,6 +96,10 @@ const userDetailProperties = `
         eventSettings {
           allowThumbnail
           defaultThumbnail
+        }
+        userRelinquishShift {
+          enabled
+          numberOfHoursBeforeShift
         }
         interestList {
           defaultHoursBeforeShift

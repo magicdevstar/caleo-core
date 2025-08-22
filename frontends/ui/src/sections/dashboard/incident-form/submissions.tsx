@@ -158,7 +158,6 @@ export default function Submissions({ eventId, onSelectSubmission }: Submissions
       
       refetch();
 
-      console.log('New submission:', res.data?.incidentForm);
       if (res.data?.incidentForm?.incidentForm) {
         handleSelectSubmission(res.data?.incidentForm?.incidentForm);
       }

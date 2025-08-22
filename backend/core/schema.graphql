@@ -1493,6 +1493,7 @@ type DocusignSignerDetailsData {
     outsideUserList: Boolean!
     signingAuthorityAssignment: Boolean!
     financeUnit: Boolean!
+    showShiftsByEvent: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1720,6 +1721,7 @@ type DocusignSignerDetailsData {
     outsideUserList: Boolean
     signingAuthorityAssignment: Boolean
     financeUnit: Boolean
+    showShiftsByEvent: Boolean
   }
 
   input UpsertInterestListSetting {

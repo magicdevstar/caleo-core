@@ -15,20 +15,21 @@ import {
   REMOVE_SHIFT_BUFFER_REQUEST,
 } from 'src/api/shifts';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { UseBooleanReturnType } from 'src/hooks/use-boolean';
 
 type RelinquishDialogProps = {
-  open: boolean;
-  editShift: Shift | ShiftBufferRequest | null;
+  confirm: UseBooleanReturnType<Shift | ShiftBufferRequest>;
   relinquishNoteRequired: boolean;
-  onClose: VoidFunction;
+  onClose?: () => void;
 };
 
 export default function RelinquishDialog({
-  open,
-  editShift,
+  confirm,
   relinquishNoteRequired = false,
   onClose,
 }: RelinquishDialogProps) {
+  const open = confirm.value;
+  const editShift = useMemo(() => confirm.attribute, [confirm]);
   const { enqueueSnackbar } = useSnackbar();
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
 
@@ -51,8 +52,9 @@ export default function RelinquishDialog({
 
   const closeDialog = useCallback(() => {
     setRelinquishNote(undefined);
-    onClose();
-  }, [setRelinquishNote, onClose]);
+    confirm.onFalse();
+    onClose?.();
+  }, [setRelinquishNote, confirm, onClose]);
 
   const handleRelinquish = useCallback(async () => {
     try {

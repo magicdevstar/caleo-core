@@ -16,6 +16,8 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { useUpcomingOvertimeLabels } from 'src/hooks/use-upcoming-overtime-labels';
 import { useAvailableOvertimeLabels } from 'src/hooks/use-available-overtime-labels';
 import { useLocalStorage } from 'src/hooks/use-local-storage';
+import { useTable } from 'src/components/table';
+import { useFeatures } from 'src/hooks/use-features';
 // types
 import Label, { LabelColor } from 'src/components/label';
 import { EventStatus, Shift, ShiftBufferRequest } from 'src/__generated__/resolvers-types';
@@ -23,17 +25,17 @@ import { ORGANIZATION } from 'src/api/organization';
 import { DayMap } from 'src/types/day';
 import { CalendarShift } from 'src/types/calendar';
 // components
-import { useTable } from 'src/components/table';
+import { EventCardsView } from 'src/components/shifts/groupedByEvent/event-cards-view';
+import ShiftAssignmentConfirmation from 'src/components/shifts/confirmations/shift-assignment-confirmation';
 import ShiftItems from 'src/components/shifts/shift-items';
 import Iconify from 'src/components/iconify';
 import ShiftCalendar from 'src/components/shift-calendar/shift-calendar';
+import InterestDialog from 'src/components/shifts/confirmations/interest-dialog';
 import { getButtonInfo } from './get-button-info';
 import RelinquishDialog from './relinquish-dialog';
-import SignUpDialog from './sign-up-dialog';
 import ShiftFilters, { ShiftFilterValues } from './shift-filters';
 import ShiftFilterResults from './shift-filter-results';
 import ShiftDialog from './shift-dialog';
-import InterestDialog from './interest-dialog';
 
 const defaultUIFilters: ShiftFilterValues = {
   range: [null, null],
@@ -47,6 +49,7 @@ enum ShiftViewType {
 
 export default function OvertimeShifts() {
   const { user } = useAuthContext();
+  const { showShiftsByEvent } = useFeatures();
   const { labels: upcomingOvertimeLabels } = useUpcomingOvertimeLabels();
   const { labels: availableOvertimeLabels } = useAvailableOvertimeLabels();
   const mdDown = useResponsive('down', 'md');
@@ -68,7 +71,6 @@ export default function OvertimeShifts() {
     [table]
   );
   const [uiFilters, setUIFilters] = useState(defaultUIFilters);
-  const [editShift, setEditShift] = useState<Shift | ShiftBufferRequest | null>(null);
   const [selectedDialogShift, setSelectedDialogShift] = useState<Shift | ShiftBufferRequest | null>(null);
 
   const canReset = useMemo(() => !isEqual(defaultUIFilters, uiFilters), [uiFilters]);
@@ -83,43 +85,25 @@ export default function OvertimeShifts() {
   }, [showDialogShift]);
 
   // assigned and secured properties
-  const relinquishConfirm = useBoolean();
+  const relinquishConfirm = useBoolean<Shift | ShiftBufferRequest>();
   const closeRelinquish = useCallback(() => {
-    setTimeout(() => {
-      setEditShift(null);
-    }, 200);
-    relinquishConfirm.onFalse();
     if (showDialogShift.value) {
       closeShiftDialog();
     }
-  }, [relinquishConfirm, setEditShift, showDialogShift, closeShiftDialog]);
+  }, [showDialogShift, closeShiftDialog]);
 
   // available properties
-  const assignConfirm = useBoolean();
-  const closeAssign = useCallback(() => {
-    setTimeout(() => {
-      setEditShift(null);
-    }, 200);
-    assignConfirm.onFalse();
-    if (showDialogShift.value) {
-      closeShiftDialog();
-    }
-  }, [assignConfirm, setEditShift, showDialogShift, closeShiftDialog]);
-
+  const assignConfirm = useBoolean<Shift>();
   // interest properties
-  const interestConfirm = useBoolean();
-  const closeInterest = useCallback(() => {
-    setTimeout(() => {
-      setEditShift(null);
-    }, 200);
-    interestConfirm.onFalse();
-  }, [interestConfirm, setEditShift]);
+  const interestConfirm = useBoolean<Shift>();
 
   const {
     allCurrentShifts,
     currentShifts,
     loading: currentShiftsLoading,
     shiftTotals,
+    pagedGroupedShifts,
+    totalGroupedEvents,
   } = useCurrentShifts({
     type: currentTab,
     ...filters,
@@ -185,14 +169,7 @@ export default function OvertimeShifts() {
       key: 'relinquish',
       color: 'error',
       disabled: (shift: any) => getButtonInfo(organizationData?.organization, shift).disabled,
-      onClick: (shift: any) => {
-        if (shift.__typename === 'ShiftBufferRequest') {
-          setEditShift(shift);
-        } else {
-          setEditShift(shift);
-        }
-        relinquishConfirm.onTrue();
-      },
+      onClick: (shift: any) => relinquishConfirm.onTrue(shift),
       getIcon: (shift: any) => getButtonInfo(organizationData?.organization, shift).icon,
       getName: (shift: any) => getButtonInfo(organizationData?.organization, shift).title,
     }];
@@ -203,11 +180,10 @@ export default function OvertimeShifts() {
         color: (shift: Shift) =>
           shift.shiftInterestRequest?.id ? 'error' : 'info',
         onClick: (shift: Shift) => {
-          setEditShift(shift);
           if (shift.event.status === EventStatus.InterestList) {
-            interestConfirm.onTrue();
+            interestConfirm.onTrue(shift);
           } else {
-            assignConfirm.onTrue();
+            assignConfirm.onTrue(shift);
           }
         },
         getIcon: (shift: Shift) => {
@@ -283,6 +259,21 @@ export default function OvertimeShifts() {
   const currentView = useMemo(() => {
     switch (shiftView) {
       case ShiftViewType.List:
+        if (showShiftsByEvent) {
+          return (
+            <EventCardsView
+              loading={currentShiftsLoading}
+              groupedShifts={pagedGroupedShifts}
+              emptyMessage={`No ${capitalize(currentTab.toLowerCase())} Shifts`}
+              total={totalGroupedEvents}
+              pageSize={table.rowsPerPage}
+              currentPage={table.page + 1}
+              setPage={(page: number) => {
+                table.onChangePage(null, page - 1);
+              }}
+            />
+          )
+        }
         return (
           <ShiftItems
             emptyMessage={`No ${capitalize(currentTab.toLowerCase())} Shifts`}
@@ -334,9 +325,12 @@ export default function OvertimeShifts() {
   }, [
     currentShiftActions,
     currentShiftLabels,
+    showShiftsByEvent,
     currentShifts,
     allCurrentShifts,
     currentShiftsLoading,
+    pagedGroupedShifts,
+    totalGroupedEvents,
     currentTab,
     mdDown,
     shiftView,
@@ -433,25 +427,14 @@ export default function OvertimeShifts() {
         {currentView}
       </Stack>
       <RelinquishDialog
-        open={relinquishConfirm.value}
+        confirm={relinquishConfirm}
         onClose={closeRelinquish}
-        editShift={editShift}
         relinquishNoteRequired={
           userRelinquishShift?.enabled && userRelinquishShift?.requireNoteWhenRelinquishing
         }
       />
-      <InterestDialog
-        open={interestConfirm.value}
-        onClose={closeInterest}
-        editShift={editShift as Shift}
-        user={user}
-      />
-      <SignUpDialog
-        open={assignConfirm.value}
-        onClose={closeAssign}
-        editShift={editShift as Shift}
-        user={user}
-      />
+      <InterestDialog confirm={interestConfirm} />
+      <ShiftAssignmentConfirmation confirm={assignConfirm} />
       <ShiftDialog
         open={showDialogShift.value}
         onClose={closeShiftDialog}

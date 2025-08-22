@@ -236,7 +236,7 @@ export default function PopulateAllShiftSlots({
   }, [dateRanges, assignments]);
 
   // Generate unique slot keys for selection
-  const getSlotKey = useCallback((assignmentId: string, slotId: string) => `${assignmentId}-${slotId}`, []);
+  const getSlotKey = useCallback((assignmentId: string, slotId: string) => `${assignmentId}|${slotId}`, []);
 
   // Get all slots for bulk operations
   const allSlots = useMemo(() => {
@@ -281,7 +281,8 @@ export default function PopulateAllShiftSlots({
     // Initialize bulk times with the first selected slot's times
     if (selectedSlots.size > 0) {
       const firstSlotKey = Array.from(selectedSlots)[0];
-      const [assignmentId, slotId] = firstSlotKey.split('-');
+      // Split by pipe separator
+      const [assignmentId, slotId] = firstSlotKey.split('|');
       const range = dateRanges[assignmentId]?.[slotId];
       setBulkStartTime(range?.[0] || null);
       setBulkEndTime(range?.[1] || null);
@@ -294,7 +295,8 @@ export default function PopulateAllShiftSlots({
     setDateRanges(prev => {
       const newRanges = { ...prev };
       selectedSlots.forEach(slotKey => {
-        const [assignmentId, slotId] = slotKey.split('-');
+        // Split by pipe separator
+        const [assignmentId, slotId] = slotKey.split('|');
         if (!newRanges[assignmentId]) {
           newRanges[assignmentId] = {};
         }
@@ -307,7 +309,8 @@ export default function PopulateAllShiftSlots({
     setErrors(prev => {
       const newErrors = { ...prev };
       selectedSlots.forEach(slotKey => {
-        const [assignmentId, slotId] = slotKey.split('-');
+        // Split by pipe separator
+        const [assignmentId, slotId] = slotKey.split('|');
         if (newErrors[assignmentId]?.[slotId]) {
           delete newErrors[assignmentId][slotId];
           if (Object.keys(newErrors[assignmentId]).length === 0) {

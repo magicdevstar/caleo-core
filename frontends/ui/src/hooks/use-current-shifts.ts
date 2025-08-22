@@ -4,6 +4,7 @@ import { Dayjs } from 'dayjs';
 import { useTheme } from '@mui/material/styles';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import { groupShiftsByEvent } from 'src/utils/shifts';
 // types
 import { EventStatus, Shift, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
@@ -15,7 +16,7 @@ export enum CurrentShiftType {
   Available = 'AVAILABLE',
   Upcoming = 'UPCOMING',
   Secured = 'SECURED',
-}
+};
 
 type CurrentShiftProps = {
   type?: CurrentShiftType;
@@ -347,13 +348,29 @@ export function useCurrentShifts({
     theme
   ]);
 
+  const groupedShifts = useMemo(() => 
+    groupShiftsByEvent(shiftList), [shiftList]);
+
   // Paged Shifts
   const currentShifts = useMemo(() => shiftList.slice(skip, skip + limit), [shiftList, skip, limit]);
+
+  // Paged grouped shifts
+  const pagedGroupedShifts = useMemo(() => {
+    const pageData: Record<string, Shift[]> = {}
+    Object.entries(groupedShifts).forEach(([eventId, shifts], index) => {
+      if (index >= skip && Object.keys(pageData).length < limit) {
+        pageData[eventId] = shifts;
+      }
+    });
+    return pageData;
+  }, [groupedShifts, skip, limit]);
 
   return {
     allCurrentShifts: shiftList, // All currently loaded shifts without paging
     currentShifts, // paged shifts (if paging is enabled)
     shiftTotals, // length of all currently loaded shifts since filters are local
+    totalGroupedEvents: Object.keys(groupedShifts).length,
+    pagedGroupedShifts,
     loading: currentShiftsLoading,
     error: currentShiftsError,
     refetch: refetchCurrentShifts,

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation } from '@apollo/client';
 // @mui
 import Typography from '@mui/material/Typography';
@@ -6,6 +6,8 @@ import LoadingButton from '@mui/lab/LoadingButton';
 // hooks
 import { useWeeklyShifts } from 'src/hooks/use-weekly-shift-count';
 import { useSnackbar } from 'src/components/snackbar';
+import { UseBooleanReturnType } from 'src/hooks/use-boolean';
+import { useAuthContext } from 'src/auth/hooks';
 // types
 import { Shift } from 'src/__generated__/resolvers-types';
 import {
@@ -14,25 +16,20 @@ import {
   REMOVE_SHIFT_INTEREST_REQUEST,
   SHIFT_INTEREST_REQUEST,
 } from 'src/api/shifts';
-import { FrontendUser } from 'src/api/user';
 import { client } from 'src/utils/apollo';
 // components
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 
 type SignUpDialogProps = {
-  open: boolean;
-  onClose: VoidFunction;
-  editShift: Shift;
-  user: FrontendUser;
+  confirm: UseBooleanReturnType<Shift>;
 };
 
 export default function InterestDialog({
-  open,
-  onClose,
-  editShift,
-  user
+  confirm,
 }: SignUpDialogProps) {
+  const { user } = useAuthContext();
+  const editShift = useMemo(() => confirm.attribute, [confirm]);
   const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
@@ -49,10 +46,6 @@ export default function InterestDialog({
     userId: user?.id,
     date: editShift?.startTime,
   });
-
-  const closeDialog = useCallback(() => {
-    onClose();
-  }, [onClose]);
 
   const handleAssign = useCallback(async () => {
     try {
@@ -85,14 +78,14 @@ export default function InterestDialog({
         message,
         { variant: 'success' }
       );
-      closeDialog();
+      confirm.onFalse();
     } catch (error) {
       if (/You already have a pending request for this shift/.test(error.message)) {
         enqueueSnackbar(
           'You already have a pending request for this shift.',
           { variant: 'error', autoHideDuration: 5000 }
         );
-        closeDialog();
+        confirm.onFalse();
         await client.refetchQueries({
           include: [GET_AVAILABLE_SHIFTS],
         });
@@ -101,7 +94,7 @@ export default function InterestDialog({
           'This shift overlaps with another shift. Please try selecting another shift.',
           { variant: 'error', autoHideDuration: 5000 }
         );
-        closeDialog();
+        confirm.onFalse();
         await client.refetchQueries({
           include: [GET_AVAILABLE_SHIFTS],
         });
@@ -110,7 +103,7 @@ export default function InterestDialog({
           variant: 'error',
           autoHideDuration: 5000,
         });
-        closeDialog();
+        confirm.onFalse();
         await client.refetchQueries({
           include: [GET_AVAILABLE_SHIFTS],
         });
@@ -119,7 +112,7 @@ export default function InterestDialog({
           variant: 'error',
           autoHideDuration: 5000,
         });
-        closeDialog();
+        confirm.onFalse();
         await client.refetchQueries({
           include: [GET_AVAILABLE_SHIFTS],
         });
@@ -128,7 +121,7 @@ export default function InterestDialog({
           variant: 'error',
           autoHideDuration: 5000,
         });
-        closeDialog();
+        confirm.onFalse();
         await client.refetchQueries({
           include: [GET_AVAILABLE_SHIFTS],
         });
@@ -141,19 +134,19 @@ export default function InterestDialog({
       setLoading(false);
     }
   }, [
-    editShift,
     existingInterest,
     removeInterestRequest,
     interestRequest,
     user?.id,
-    closeDialog,
+    confirm,
+    editShift,
     enqueueSnackbar
   ]);
 
   return (
     <ConfirmDialog
-      open={open}
-      onClose={closeDialog}
+      open={confirm.value}
+      onClose={confirm.onFalse}
       title={existingInterest ? "Remove Interest" : "Show Interest"}
       content={
         <>

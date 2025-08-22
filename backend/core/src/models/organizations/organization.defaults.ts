@@ -68,6 +68,7 @@ export const featureDefinitions = [
   { value: 'outsideUserList', label: 'CSV Upload for outside users', defaultEnabled: false },
   { value: 'signingAuthorityAssignment', label: 'Signing Authority Assignment', defaultEnabled: false },
   { value: 'financeUnit', label: 'Finance Unit', defaultEnabled: false },
+  { value: 'showShiftsByEvent', label: 'Show Shifts By Event', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

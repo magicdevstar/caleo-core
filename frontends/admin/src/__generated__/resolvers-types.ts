@@ -1763,6 +1763,7 @@ export type OrganizationFeatures = {
   profileTenor: Scalars['Boolean']['output'];
   rankGrouping: Scalars['Boolean']['output'];
   rankHourlyRate: Scalars['Boolean']['output'];
+  showShiftsByEvent: Scalars['Boolean']['output'];
   signingAuthorityAssignment: Scalars['Boolean']['output'];
   sso: Scalars['Boolean']['output'];
   vehicleCategories: Scalars['Boolean']['output'];
@@ -2953,6 +2954,7 @@ export type UpsertOrganizationFeatures = {
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankGrouping?: InputMaybe<Scalars['Boolean']['input']>;
   rankHourlyRate?: InputMaybe<Scalars['Boolean']['input']>;
+  showShiftsByEvent?: InputMaybe<Scalars['Boolean']['input']>;
   signingAuthorityAssignment?: InputMaybe<Scalars['Boolean']['input']>;
   sso?: InputMaybe<Scalars['Boolean']['input']>;
   vehicleCategories?: InputMaybe<Scalars['Boolean']['input']>;
@@ -4710,6 +4712,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankGrouping?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankHourlyRate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  showShiftsByEvent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   signingAuthorityAssignment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   sso?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   vehicleCategories?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

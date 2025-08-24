@@ -17,14 +17,13 @@ import { useAuthContext } from 'src/auth/hooks';
 import CheckInOut from 'src/components/shifts/check-in-out';
 import { useFeatures } from 'src/hooks/use-features';
 import MyOvertimeList from '../myOvertime/my-overtime-list';
-import MyOvertimeGroupedByEvent from '../myOvertime/my-overtime-grouped-by-event';
 
 // ----------------------------------------------------------------------
 
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
   const theme = useTheme();
-  const { officerCheckInOut, showShiftsByEvent } = useFeatures();
+  const { officerCheckInOut } = useFeatures();
   const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -97,19 +96,11 @@ export default function MyOvertimeView() {
             ))}
           </Tabs>
 
-          {showShiftsByEvent ? (
-            <MyOvertimeGroupedByEvent
-              table={table}
-              setFilters={setFilters}
-              filters={filters}
-            />
-          ) : (
-            <MyOvertimeList
-              table={table}
-              setFilters={setFilters}
-              filters={filters}
-            />
-          )}
+          <MyOvertimeList
+            table={table}
+            setFilters={setFilters}
+            filters={filters}
+          />
         </CardContent>
       </Card>
     </Container>

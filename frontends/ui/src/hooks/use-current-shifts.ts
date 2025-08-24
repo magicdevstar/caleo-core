@@ -6,9 +6,10 @@ import { useTheme } from '@mui/material/styles';
 import { useAuthContext } from 'src/auth/hooks';
 import { groupShiftsByEvent } from 'src/utils/shifts';
 // types
-import { EventStatus, Shift, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
+import { EventStatus, Shift, ShiftBufferRequest, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_BUFFER_REQUESTS } from 'src/api/shifts';
 import { useAvailableOvertimeLabels } from './use-available-overtime-labels';
+import { useFeatures } from './use-features';
 
 export enum CurrentShiftType {
   Overview = 'OVERVIEW',
@@ -38,6 +39,7 @@ export function useCurrentShifts({
   range,
 }: CurrentShiftProps = {}) {
   const { user } = useAuthContext();
+  const { showShiftsByEvent } = useFeatures();
   const { labels } = useAvailableOvertimeLabels();
   const theme = useTheme();
   const [shiftTotals, setShiftTotals] = useState({
@@ -291,14 +293,41 @@ export function useCurrentShifts({
       prefixColor: 'primary',
     }));
 
-    const results = [
-      ...([CurrentShiftType.Overview, CurrentShiftType.Assigned].includes(type)
+    const assignedTab = [CurrentShiftType.Overview, CurrentShiftType.Assigned].includes(type);
+    const availableTab = [CurrentShiftType.Overview, CurrentShiftType.Available].includes(type);
+
+    let results = [
+      ...(assignedTab || (showShiftsByEvent && availableTab)
         ? [...assignedShifts, ...shiftBufferRequests]
         : []),
       ...([CurrentShiftType.Overview, CurrentShiftType.Secured].includes(type) ? pastAssignedShifts : []),
-      ...([CurrentShiftType.Overview, CurrentShiftType.Available].includes(type) ? availableShifts : []),
+      ...(availableTab ? availableShifts : []),
       ...([CurrentShiftType.Overview, CurrentShiftType.Upcoming].includes(type) ? upcomingShifts : []),
     ];
+
+    // Since we are combining queries we need to de-dupe if on the overview or available tab
+    if (availableTab) {
+      // Create a Map to handle duplicates with priority order
+      const shiftsMap = new Map();
+      
+      // Add available shifts first (lowest priority)
+      (availableShifts || []).forEach((shift: Shift) => {
+        shiftsMap.set(shift.shiftId, shift);
+      });
+      
+      // Add shift buffer requests (medium priority) - will overwrite available shifts
+      (shiftBufferRequests || []).forEach((shift: ShiftBufferRequest) => {
+        shiftsMap.set(shift.shiftGroupId, {...shift, prefixText: 'Assigned'});
+      });
+      
+      // Add assigned shifts (highest priority) - will overwrite any previous entries
+      (assignedShifts || []).forEach((shift: Shift) => {
+        shiftsMap.set(shift.shiftId, {...shift, prefixText: 'Assigned'});
+      });
+      
+      // Convert Map back to array
+      results = Array.from(shiftsMap.values());
+    }
 
     if (orderBy === 'startTime') {
       results.sort((a: any, b: any) => {
@@ -345,7 +374,8 @@ export function useCurrentShifts({
     orderBy,
     skillIds,
     dateRange,
-    theme
+    theme,
+    showShiftsByEvent
   ]);
 
   const groupedShifts = useMemo(() => 

@@ -169,7 +169,7 @@ export function EventCard({ shifts, isUpcoming = false, myOvertime = false }: Pr
               {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
             </Typography>
           </Stack>
-          <EventNotes eventId={shifts[0]?.event?.id} />
+          <EventNotes eventId={shifts[0]?.event?.id} attachments={event?.attachments || []} />
         </Stack>
       </Stack>
       <EventCardShifts shifts={shifts} isUpcoming={isUpcoming} myOvertime={myOvertime} />

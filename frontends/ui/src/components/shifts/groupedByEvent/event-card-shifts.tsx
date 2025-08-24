@@ -167,10 +167,20 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
       ...(myOvertime ? [] : [
         {
           id: 'status',
-          label: 'status',
+          label: 'Status',
           columnType: 'string',
-          renderValue: (_v: any, _i: any, shift: any) => myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '') ? null : shiftLabels.getLabel(shift as Shift),
-          getLabelColor: (shift: any) => myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '') ? '' : shiftLabels.getColor(shift as Shift),
+          renderValue: (_v: any, _i: any, shift: any) => {
+            if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
+              return 'Assigned';
+            }
+            return shiftLabels.getLabel(shift as Shift);
+          },
+          getLabelColor: (shift: any) => {
+            if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
+              return 'success';
+            }
+            return shiftLabels.getColor(shift as Shift);
+          },
           width: '10%'
         },
       ]) as any,

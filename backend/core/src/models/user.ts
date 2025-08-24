@@ -5,6 +5,7 @@ import {
   AdminUpdateUserAttributesCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import { randomUUID as uuid } from 'crypto';
+import { isAfter } from 'date-fns/isAfter';
 import difference from 'lodash.difference';
 import {
   DocType,
@@ -292,6 +293,10 @@ export class UserModel extends BaseMongo<IUser> {
       includeAssigned: true,
       includeLocked: true,
     });
+    const mappedInterestShifts = interestListShifts.reduce((acc, shift) => ({
+      ...acc,
+      [shift._id!.toString()]: true,
+    }), {} as Record<string, boolean>);
     const otherShifts = await this.shifts.findShiftsByEventIds({
       eventIds: otherEventIds,
       includeAssigned: false,
@@ -417,6 +422,12 @@ export class UserModel extends BaseMongo<IUser> {
       });
       if (hasMaxShifts || hasMaxHours) {
         logger.info('Skipping shift due to max hours or shifts', { shift, hasMaxHours, hasMaxShifts });
+        continue;
+      }
+      // Add interest list shifts automatically so they
+      // can request interest at any time
+      if (mappedInterestShifts[shift._id!.toString()] && isAfter(shift.endTime, now)) {
+        onlyAvailableShifts.push(shift);
         continue;
       }
       const res = await this.shifts.canSignUpForShift({

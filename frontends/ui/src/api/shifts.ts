@@ -339,6 +339,7 @@ export const GET_ALL_SHIFTS = gql`
         startTime
         endTime
         status
+        shiftId
         customId
         refNumber
         userId

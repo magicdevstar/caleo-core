@@ -1506,4 +1506,33 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     return this.collection.aggregate<IShiftWithAssignment>(pipeline).toArray();
   }
+
+  async activityShifts(userId: ObjectId, cursor?: ObjectId) {
+    const pipeline = [
+      {
+        $match: {
+          userId,
+          ...(cursor && {
+            _id: {
+              $gt: cursor,
+            },
+          }),
+        },
+      },
+      { $sort: { startTime: -1 } },
+    ];
+    const [{ total }] = await this.collection.aggregate<{ total: number }>([
+      ...pipeline,
+      { $count: "total" }
+    ]).toArray();
+    const items = await this.collection.aggregate<IShift>([
+      ...pipeline,
+      { $limit: 20000 }
+    ]).toArray();
+
+    return {
+      total,
+      items,
+    }
+  }
 };

@@ -8,6 +8,8 @@ import {
 import { toZonedTime } from "date-fns-tz";
 import { Context } from "../../../utils/createContext";
 import {
+  EventUserActionLogAction,
+  EventUserActionLogSource,
   MemberRole,
   ShiftAdminCheckInOutEvent,
   ShiftCheckInOutEvent,
@@ -91,7 +93,7 @@ export const Mutation = {
         equipmentDateTime,
       }
     }: { input: ShiftCheckInOutEvent },
-    { shifts, user }: Context
+    { shifts, eventUserActions, user }: Context
   ): Promise<IShift> => {
     const shift = await shifts.get(id);
     if (!shift) {
@@ -116,8 +118,20 @@ export const Mutation = {
       user: user!,
       equipmentTime: equipmentDateTime || undefined,
     });
+    const updatedShift = await shifts.get(id);
 
-    return (await shifts.get(id))!;
+    await eventUserActions.createItem({
+      userId: updatedShift!.userId!,
+      eventId: updatedShift!.eventId,
+      shiftGroupId: updatedShift!.shiftId,
+      source: EventUserActionLogSource.Shift,
+      modifiedById: user._id!,
+      timestamp: updatedShift!.shiftCheckInOut?.checkInTime || new Date(),
+      action: EventUserActionLogAction.CheckIn,
+      notes: checkInNote,
+    });
+
+    return updatedShift!;
   },
   checkOut: async (
     _parent: unknown,
@@ -133,7 +147,7 @@ export const Mutation = {
         signNow
       }
     }: { input: ShiftCheckInOutEvent },
-    { shifts, docusign, organization, user }: Context
+    { shifts, docusign, eventUserActions, organization, user }: Context
   ): Promise<{shift: IShift, signingUrl?: string}> => {
     const shift = await shifts.get(id);
     if (!shift) {
@@ -163,6 +177,27 @@ export const Mutation = {
       shift: updatedShift!,
       organization: organization!,
       signNow: !!signNow,
+    });
+
+    await eventUserActions.createItem({
+      userId: updatedShift!.userId!,
+      eventId: updatedShift!.eventId,
+      shiftGroupId: updatedShift!.shiftId,
+      source: EventUserActionLogSource.Shift,
+      modifiedById: user._id!,
+      timestamp: updatedShift!.shiftCheckInOut?.checkOutTime || new Date(),
+      action: EventUserActionLogAction.CheckOut,
+      notes: checkOutNote,
+    });
+
+    await eventUserActions.createItem({
+      userId: updatedShift!.userId!,
+      eventId: updatedShift!.eventId,
+      shiftGroupId: updatedShift!.shiftId,
+      source: EventUserActionLogSource.Docusign,
+      modifiedById: user._id!,
+      timestamp: new Date((updatedShift!.shiftCheckInOut?.checkOutTime || new Date()).getTime() + 1),
+      action: EventUserActionLogAction.Submitted,
     });
 
     return {
@@ -477,6 +512,7 @@ export const Mutation = {
       organization,
       interestList,
       notificationService,
+      eventUserActions,
     }: Context
   ): Promise<IShift> => {
     if (userId) {
@@ -574,6 +610,7 @@ export const Mutation = {
       ...(userId && { userId: new ObjectId(userId) }),
       status: finalStatus,
       modifiedById: user!._id!,
+      updatedAt: new Date(),
     };
     await shifts.collection.updateOne({
       _id: new ObjectId(id),
@@ -640,11 +677,34 @@ export const Mutation = {
       });
     }
 
-    if (removingShiftUser) {
+    if (removingShiftUser && removedShift) {
       await interestList.maybeTriggerNextAssignment({
         shift: updatedShift!,
         organization: organization!,
         relinquishId: removedShift?._id,
+      });
+
+      await eventUserActions.createItem({
+        userId: removedShift.userId!,
+        eventId: removedShift.eventId,
+        shiftGroupId: removedShift.shiftId,
+        source: EventUserActionLogSource.Shift,
+        modifiedById: user._id!,
+        timestamp: removedShift.removedAt,
+        action: removedShift.status as any,
+        notes: removedShift.relinquishNote || undefined,
+      });
+    }
+
+    if (userId && !existingUserId) {
+      await eventUserActions.createItem({
+        userId: updatedShift.userId!,
+        eventId: updatedShift.eventId,
+        shiftGroupId: updatedShift.shiftId,
+        source: EventUserActionLogSource.Shift,
+        modifiedById: user._id!,
+        timestamp: updatedShift.updatedAt,
+        action: EventUserActionLogAction.Assigned,
       });
     }
 

@@ -157,6 +157,14 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
   const incidentSubmissionModel = new IncidentSubmissionModel(db);
   const outsideUserRepo = new OutsideUserRepo(db);
   const outsideUsers = new OutsideUserService(outsideUserRepo);
+  const eventUserActionRepo = new EventUserActionRepo(db);
+  const eventUserActions = new EventUserActionService(
+    shifts,
+    shiftInterestRequests,
+    incidentSubmissionModel,
+    shiftLotteryRequests,
+    eventUserActionRepo,
+  );
   const docusign = new Docusign(
     users,
     venues,
@@ -172,6 +180,7 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     invoiceService,
     outsideUsers,
     incidentSubmissionModel,
+    eventUserActions,
   );
   const interestList = new InterestListService(
     shifts,
@@ -186,14 +195,6 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
 
   const rankGroups = new RankGroupRepo(db);
 
-  const eventUserActionRepo = new EventUserActionRepo(db);
-  const eventUserActions = new EventUserActionService(
-    shifts,
-    shiftInterestRequests,
-    incidentSubmissionModel,
-    shiftLotteryRequests,
-    eventUserActionRepo,
-  );
 
   const changesModel = new ChangesModel(db);
   const changeStream = new ChangeStreamService(

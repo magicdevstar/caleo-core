@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { GraphQLError } from "graphql/error";
 import { Context } from "../../../utils/createContext";
 import { adminOnly, adminOrOwnerOnly } from "../../../utils/access";
-import { ShiftInterestRequestStatus, ShiftLotteryRequestStatus, ShiftStatus, UpsertShiftInterestRequest } from "../../../__generated__/resolvers-types";
+import { EventUserActionLogAction, EventUserActionLogSource, ShiftInterestRequestStatus, ShiftLotteryRequestStatus, ShiftStatus, UpsertShiftInterestRequest } from "../../../__generated__/resolvers-types";
 import { IUpsertShiftInterestRequest } from "../../../models/shiftInterestRequest";
 import { IShift } from "../../../models/shift";
 import { ShiftNotificationType } from "../../../services/notification.service";
@@ -12,7 +12,7 @@ export const Mutation = {
   removeShiftInterestRequest: async (
     _parent: unknown,
     { id }: { id: string },
-    { shiftInterestRequests, user }: Context
+    { shiftInterestRequests, eventUserActions, user }: Context
   ): Promise<string> => {
     const foundRequest = await shiftInterestRequests.get(id);
     if (!foundRequest) {
@@ -20,6 +20,17 @@ export const Mutation = {
     }
     adminOrOwnerOnly(foundRequest.userId.toString(), user);
     await shiftInterestRequests.remove(id, { modifiedById: user!._id!, status: ShiftLotteryRequestStatus.Removed });
+
+    await eventUserActions.createItem({
+      userId: foundRequest.userId!,
+      eventId: foundRequest.eventId!,
+      shiftGroupId: foundRequest.shiftGroupId,
+      source: EventUserActionLogSource.InterestRequest,
+      modifiedById: user._id!,
+      timestamp: new Date(),
+      action: EventUserActionLogAction.Removed,
+    });
+
     return id;
   },
   shiftInterestRequest: async (
@@ -33,6 +44,7 @@ export const Mutation = {
       interestList,
       organization,
       notificationService,
+      eventUserActions,
     }: Context
   ): Promise<IUpsertShiftInterestRequest> => {
     adminOrOwnerOnly(shiftInterestRequest.userId, user);
@@ -95,11 +107,30 @@ export const Mutation = {
               status: ShiftStatus.Assigned,
             };
 
-            await shifts.update({
+            const finalShift = await shifts.update({
               ...updatedShift,
               id: updatedShift.id!,
             });
             assignedShiftId = updatedShift._id!;
+
+            await eventUserActions.createItem({
+              userId: updatedShift.userId!,
+              eventId: updatedShift.eventId,
+              shiftGroupId: updatedShift.shiftId,
+              source: EventUserActionLogSource.Shift,
+              modifiedById: user._id!,
+              timestamp: finalShift.updatedAt,
+              action: EventUserActionLogAction.Assigned,
+            });
+            await eventUserActions.createItem({
+              userId: updatedShift.userId!,
+              eventId: updatedShift.eventId,
+              shiftGroupId: updatedShift.shiftId,
+              source: EventUserActionLogSource.InterestRequest,
+              modifiedById: user._id!,
+              timestamp: new Date(finalShift.updatedAt.getTime() - 1),
+              action: EventUserActionLogAction.Approved,
+            });
 
             notificationPayload = {
               organization,
@@ -157,12 +188,32 @@ export const Mutation = {
             removedAt: new Date(),
             userId: interestUser._id,
           });
+          const originalUserId = slot.userId;
           delete slot.userId;
-          await shifts.update<any>({
+          const finalShift = await shifts.update<any>({
             ...slot,
             id: _id.toString(),
             status: ShiftStatus.Available,
           }, { userId: '' });
+
+          await eventUserActions.createItem({
+            userId: originalUserId,
+            eventId: finalShift.eventId,
+            shiftGroupId: finalShift.shiftId,
+            source: EventUserActionLogSource.Shift,
+            modifiedById: user._id!,
+            timestamp: finalShift.updatedAt,
+            action: EventUserActionLogAction.Unassigned,
+          });
+          await eventUserActions.createItem({
+            userId: originalUserId,
+            eventId: finalShift.eventId,
+            shiftGroupId: finalShift.shiftId,
+            source: EventUserActionLogSource.InterestRequest,
+            modifiedById: user._id!,
+            timestamp: new Date(finalShift.updatedAt.getTime() - 1),
+            action: EventUserActionLogAction.Rejected,
+          });
         } catch(error) {
           logger.error('Failed to remove user from shift', { error, shiftInterestRequest });
           throw new GraphQLError('Cannot remove user from this shift');
@@ -187,6 +238,18 @@ export const Mutation = {
     logger.info('Sending notification', { notificationPayload });
     if (notificationPayload) {
       await notificationService.shiftAssignmentNotifications(notificationPayload);
+    }
+
+    if (!shiftInterestRequest.id) {
+      await eventUserActions.createItem({
+        userId: upsert.userId!,
+        eventId: upsert.eventId!,
+        shiftGroupId: upsert.shiftGroupId,
+        source: EventUserActionLogSource.InterestRequest,
+        modifiedById: user._id!,
+        timestamp: new Date(),
+        action: EventUserActionLogAction.Submitted,
+      });
     }
 
     await interestList.maybeTriggerNextAssignment({

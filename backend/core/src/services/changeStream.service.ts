@@ -41,22 +41,6 @@ export class ChangeStreamService {
     return changes;
   }
 
-  handleIncidentForm(event: IChangeStreamEvent) {
-    return this.eventUserActions.createFromIncidentForm(event.detail.documentKey._id);
-  }
-
-  handleShiftInterestRequest(event: IChangeStreamEvent) {
-    return this.eventUserActions.createFromShiftInterestRequest(event.detail.documentKey._id);
-  }
-
-  handleShiftLotteryRequest(event: IChangeStreamEvent) {
-    return this.eventUserActions.createFromShiftLotteryRequest(event.detail.documentKey._id);
-  }
-
-  handleShiftEvent(event: IChangeStreamEvent) {
-    return this.eventUserActions.createFromShift(event.detail.documentKey._id);
-  }
-
   async handleShift({
     shiftId,
     orgId,

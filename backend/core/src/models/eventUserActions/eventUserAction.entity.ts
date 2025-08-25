@@ -17,6 +17,8 @@ export interface IEventUserAction extends Omit<
   'shiftInterestRequests' |
   'shiftLotteryRequests' |
   'incidentForm' |
+  'modifiedById' |
+  'modifiedBy' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -24,6 +26,7 @@ export interface IEventUserAction extends Omit<
   userId: ObjectId;
   eventId: ObjectId;
   incidentFormId?: ObjectId;
+  modifiedById?: ObjectId;
 
   createdAt: Date;
   updatedAt: Date;

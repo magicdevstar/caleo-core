@@ -522,6 +522,30 @@ export const GET_USER_ACTIVITY = gql`
   }
 `;
 
+export const GET_USER_SHIFT_ACTIVITY = gql`
+  query GetUserActivity($input: EventUserActionSearchInput!) {
+    eventUserActions(input: $input) {
+      total
+      items {
+        id
+        actionType
+        updatedAt
+        shiftGroupId
+        incidentFormId
+
+        source        
+        modifiedBy {
+          id
+          name
+        }
+        timestamp
+        action
+        notes
+      }
+    }
+  }
+`;
+
 export interface FrontendUser extends User {
   displayName: string;
   email: string;

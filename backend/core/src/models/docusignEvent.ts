@@ -145,6 +145,12 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
     );
   }
 
+  async findByEnvelopeId(envelopeId: string) {
+    return this.collection.findOne<IDocusignEvent>({
+      envelopeId,
+    });
+  }
+
   async upsertEvent(item: Omit<IDocusignEvent, 'createdAt' | 'updatedAt'>) {
     return this.collection.updateOne(
       {
@@ -160,7 +166,6 @@ export class DocusignEventModel extends BaseMongo<IDocusignEvent> {
         },
       }, {
         upsert: true,
-        
       }
     );
   }

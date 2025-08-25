@@ -15,7 +15,7 @@ import AccountChangePassword from './account-change-password';
 import AccountNewPassword from './account-new-password';
 import AccountLotteryAnalytics from './account-lottery-analytics';
 import AccountEquipments from './account-equiptment';
-import UserActivity from './user-activity/user-activity';
+import EventActivity from './event-activity/event-activity';
 
 // ----------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ export default function MainAccountView({
       
       {currentTab === 'lottoAnalytics' && <AccountLotteryAnalytics user={user} />}
 
-      {currentTab === 'eventActivity' && <UserActivity userId={user?.id} />}
+      {currentTab === 'eventActivity' && <EventActivity userId={user?.id} />}
 
       {securityTab}
     </>

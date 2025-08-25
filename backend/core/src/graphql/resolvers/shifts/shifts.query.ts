@@ -6,13 +6,23 @@ import {
   ShiftSearchInput,
   ShiftTabResponse,
 } from "../../../__generated__/resolvers-types";
-import { adminOnly } from "../../../utils/access";
+import { adminOnly, userIsAdmin } from "../../../utils/access";
 import { SearchResults } from "../../../utils/common.resolvers";
 import { IUserSearchResult } from "../../../types/common";
 import { IShift } from "../../../models/shift";
 import { IFinanceShift } from "../../../services/finance.service";
 
 export const Query = {
+  activityShifts: async (
+    _parent: unknown,
+    { userId, cursor }: { userId: ObjectId, cursor?: ObjectId },
+    { shifts, user, users }: Context
+  ): Promise<SearchResults<IShift>> => {
+    if (!userIsAdmin(user)) {
+      userId = user._id!;
+    }
+    return shifts.activityShifts(userId, cursor);
+  },
   financeShifts: async (
     _parent: unknown,
     { eventId }: { eventId: ObjectId },

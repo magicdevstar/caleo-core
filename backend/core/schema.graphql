@@ -777,12 +777,47 @@
 
     actionType: EventUserActionType!
 
+    # Details about the action
+    source: EventUserActionLogSource!
+    modifiedById: ObjectId
+    timestamp: DateTime!
+    action: EventUserActionLogAction!
+    notes: String
+
     user: User!
+    modifiedBy: User
     event: Event!
     shifts: [Shift!]
     shiftInterestRequests: [ShiftInterestRequest!]
     shiftLotteryRequests: [ShiftLotteryRequest!]
     incidentForm: IncidentForm
+  }
+
+  enum EventUserActionLogSource {
+    INTEREST_REQUEST
+    SHIFT
+    DOCUSIGN
+  }
+
+  enum EventUserActionLogAction {
+    # Interest request actions
+    SUBMITTED
+    REMOVED
+    APPROVED
+    REJECTED
+
+    # Shift actions
+    ASSIGNED
+    RELINQUISHED
+    UNASSIGNED
+    # REMOVED COMMENTED OUT BECAUSE WE ALREADY HAVE A REMOVED ACTION
+    CHECK_IN
+    CHECK_OUT
+
+    # Docusign actions
+    # SUBMITTED COMMENTED OUT BECAUSE WE ALREADY HAVE A REMOVED ACTION
+    COMPLETED
+    VOIDED
   }
 
   # Normalized shift between an incident and a regular shift
@@ -2078,6 +2113,7 @@ type DocusignSignerDetailsData {
     orderBy: String
     order: String
     userId: ObjectId
+    shiftGroupId: String
     eventIds: [ObjectId]
     cursor: ObjectId
   }
@@ -2573,6 +2609,7 @@ type Query {
   shiftLottoRequests(input: ShiftLottoRequestsSearchInput!): ShiftLotteryRequestsSearchResult
   shiftInterestRequests(input: ShiftInterestRequestsSearchInput): ShiftInterestRequestsSearchResult
   financeShifts(eventId: ObjectId!): [FinanceShift]
+  activityShifts(userId: ObjectId!, cursor: ObjectId): ShiftSearchResult
 
   lotteryCounter(counter: Int): LotteryCounter
   lotteryCounters(input: SearchInput): LotteryCounterSearchResult

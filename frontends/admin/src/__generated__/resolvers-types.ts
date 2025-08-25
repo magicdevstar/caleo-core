@@ -564,6 +564,7 @@ export enum EventStatus {
 
 export type EventUserAction = {
   __typename?: 'EventUserAction';
+  action: EventUserActionLogAction;
   actionType: EventUserActionType;
   createdAt: Scalars['DateTime']['output'];
   event: Event;
@@ -571,15 +572,40 @@ export type EventUserAction = {
   id: Scalars['ObjectId']['output'];
   incidentForm?: Maybe<IncidentForm>;
   incidentFormId?: Maybe<Scalars['ObjectId']['output']>;
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['ObjectId']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
   removedAt?: Maybe<Scalars['DateTime']['output']>;
   shiftGroupId?: Maybe<Scalars['String']['output']>;
   shiftInterestRequests?: Maybe<Array<ShiftInterestRequest>>;
   shiftLotteryRequests?: Maybe<Array<ShiftLotteryRequest>>;
   shifts?: Maybe<Array<Shift>>;
+  source: EventUserActionLogSource;
+  timestamp: Scalars['DateTime']['output'];
   updatedAt: Scalars['DateTime']['output'];
   user: User;
   userId: Scalars['ObjectId']['output'];
 };
+
+export enum EventUserActionLogAction {
+  Approved = 'APPROVED',
+  Assigned = 'ASSIGNED',
+  CheckIn = 'CHECK_IN',
+  CheckOut = 'CHECK_OUT',
+  Completed = 'COMPLETED',
+  Rejected = 'REJECTED',
+  Relinquished = 'RELINQUISHED',
+  Removed = 'REMOVED',
+  Submitted = 'SUBMITTED',
+  Unassigned = 'UNASSIGNED',
+  Voided = 'VOIDED'
+}
+
+export enum EventUserActionLogSource {
+  Docusign = 'DOCUSIGN',
+  InterestRequest = 'INTEREST_REQUEST',
+  Shift = 'SHIFT'
+}
 
 export type EventUserActionSearchInput = {
   cursor?: InputMaybe<Scalars['ObjectId']['input']>;
@@ -588,6 +614,7 @@ export type EventUserActionSearchInput = {
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+  shiftGroupId?: InputMaybe<Scalars['String']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   userId?: InputMaybe<Scalars['ObjectId']['input']>;
 };
@@ -1845,6 +1872,7 @@ export type Query = {
   __typename?: 'Query';
   activeLottery?: Maybe<Scalars['Boolean']['output']>;
   activeNotifications?: Maybe<NotificationSearchResult>;
+  activityShifts?: Maybe<ShiftSearchResult>;
   allUsers?: Maybe<UserSearchResult>;
   assignment?: Maybe<Assignment>;
   assignments?: Maybe<AssignmentSearchResult>;
@@ -1904,6 +1932,12 @@ export type Query = {
 
 export type QueryActiveNotificationsArgs = {
   input?: InputMaybe<SearchInput>;
+};
+
+
+export type QueryActivityShiftsArgs = {
+  cursor?: InputMaybe<Scalars['ObjectId']['input']>;
+  userId: Scalars['ObjectId']['input'];
 };
 
 
@@ -3392,6 +3426,8 @@ export type ResolversTypes = ResolversObject<{
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
   EventStatus: EventStatus;
   EventUserAction: ResolverTypeWrapper<EventUserAction>;
+  EventUserActionLogAction: EventUserActionLogAction;
+  EventUserActionLogSource: EventUserActionLogSource;
   EventUserActionSearchInput: EventUserActionSearchInput;
   EventUserActionSearchResult: ResolverTypeWrapper<EventUserActionSearchResult>;
   EventUserActionType: EventUserActionType;
@@ -4171,6 +4207,7 @@ export type EventSearchResultResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type EventUserActionResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventUserAction'] = ResolversParentTypes['EventUserAction']> = ResolversObject<{
+  action?: Resolver<ResolversTypes['EventUserActionLogAction'], ParentType, ContextType>;
   actionType?: Resolver<ResolversTypes['EventUserActionType'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
@@ -4178,11 +4215,16 @@ export type EventUserActionResolvers<ContextType = any, ParentType extends Resol
   id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   incidentForm?: Resolver<Maybe<ResolversTypes['IncidentForm']>, ParentType, ContextType>;
   incidentFormId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   shiftGroupId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftInterestRequests?: Resolver<Maybe<Array<ResolversTypes['ShiftInterestRequest']>>, ParentType, ContextType>;
   shiftLotteryRequests?: Resolver<Maybe<Array<ResolversTypes['ShiftLotteryRequest']>>, ParentType, ContextType>;
   shifts?: Resolver<Maybe<Array<ResolversTypes['Shift']>>, ParentType, ContextType>;
+  source?: Resolver<ResolversTypes['EventUserActionLogSource'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
@@ -4784,6 +4826,7 @@ export type ProfilePhotoAttachmentUploadResolvers<ContextType = any, ParentType 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   activeLottery?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   activeNotifications?: Resolver<Maybe<ResolversTypes['NotificationSearchResult']>, ParentType, ContextType, Partial<QueryActiveNotificationsArgs>>;
+  activityShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, RequireFields<QueryActivityShiftsArgs, 'userId'>>;
   allUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryAllUsersArgs>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<QueryAssignmentArgs, 'id'>>;
   assignments?: Resolver<Maybe<ResolversTypes['AssignmentSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentsArgs>>;

@@ -14,7 +14,7 @@ import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { IIncidentForm as IncidentForm } from '../models/incidentForm';
-import { DocusignEventSearchInput, DocusignEventUserRole, IncidentFormResponse } from "../__generated__/resolvers-types";
+import { DocusignEventSearchInput, DocusignEventUserRole, EventUserActionLogAction, EventUserActionLogSource, EventUserActionType, IncidentFormResponse } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -24,6 +24,7 @@ import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { requestToPDFForm } from "../models/incidentForm/lasd";
 import { FormEntityType, IGenerateFormResponse, IIncidentInput, IncidentFormType } from "../types/incidentForm";
 import { buildDescription } from "../utils/formDetails";
+import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
 
 const lambda = new LambdaClient({});
 
@@ -42,7 +43,8 @@ export class Docusign {
     private equipments: EquipmentModel,
     private invoiceService: InvoiceService,
     private outsideUsers: OutsideUserService,
-    private incidentSubmission: IncidentSubmissionModel
+    private incidentSubmission: IncidentSubmissionModel,
+    private eventUserActions: EventUserActionService,
   ) {}
 
   async findEventsByUserId({
@@ -119,11 +121,17 @@ export class Docusign {
     let eventId: ObjectId;
     let userId: ObjectId;
     let otherDetails: any = {};
+    let eventUserActionType = EventUserActionType.Shift;
+    let eventUserActionKey = 'shiftGroupId';
+    let eventUserActionValue: ObjectId | string = '';
 
     if (incident) {
       eventId = incident.eventId;
       orgId = incident.orgId;
       userId = incident.userId;
+      eventUserActionValue = incident._id!;
+      eventUserActionType = EventUserActionType.IncidentSubmission;
+      eventUserActionKey = 'incidentFormId';
     } else if (shiftId) {
       const shift = await this.shifts.get(shiftId, { removed: true });
       if (!shift) {
@@ -137,6 +145,7 @@ export class Docusign {
       orgId = shift.orgId;
       eventId = shift.eventId;
       userId = shift.userId!;
+      eventUserActionValue = shift.shiftId;
       otherDetails = {
         assignmentId: shift.assignmentId,
         ...(event.lieutenantId && { lieutenantId: event.lieutenantId }),
@@ -147,8 +156,8 @@ export class Docusign {
       throw new Error('Either incident or shiftId must be provided');
     }
 
-
     // Save to collection
+    const previousStatus = await this.docusignEvent.findByEnvelopeId(envelopeId);
     await this.docusignEvent.upsertEvent({
       envelopeId,
       orgId,
@@ -185,6 +194,19 @@ export class Docusign {
         };
       }),
     });
+
+    // Save user action event if completed or void
+    if (['completed', 'voided'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
+      await this.eventUserActions.createItem({
+        userId: userId,
+        eventId: eventId,
+        [eventUserActionKey]: eventUserActionValue,
+        source: EventUserActionLogSource.Docusign,
+        modifiedById: userId,
+        timestamp: new Date(),
+        action: status.toLowerCase() === 'completed' ? EventUserActionLogAction.Completed : EventUserActionLogAction.Voided,
+      });
+    }
 
     // Save document to s3
     const document = await this.docusign.getDocument({
@@ -655,6 +677,16 @@ export class Docusign {
   
       // Save to mongo
       this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId);
+
+      await this.eventUserActions.createItem({
+        userId: user._id!,
+        eventId: event._id!,
+        incidentFormId: savedForm._id!,
+        source: EventUserActionLogSource.Docusign,
+        modifiedById: user._id!,
+        timestamp: new Date(),
+        action: EventUserActionLogAction.Submitted,
+      });
   
       return {
         ...res,

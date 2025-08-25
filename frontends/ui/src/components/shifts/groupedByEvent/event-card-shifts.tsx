@@ -1,4 +1,5 @@
 import { isAfter, isBefore, subHours } from 'date-fns';
+import capitalize from 'lodash/capitalize';
 import orderBy from 'lodash/orderBy';
 // @mui
 import Button from "@mui/material/Button";
@@ -23,6 +24,7 @@ import { AssignmentNotes } from "src/components/shifts/groupedByEvent/assignment
 import { EventStatus, Shift, ShiftBufferRequest, ShiftStatus } from "src/__generated__/resolvers-types";
 import { TableConfig } from "src/components/table/table-config";
 import { GET_AVAILABLE_SHIFTS } from "src/api/shifts";
+import { ShiftActivityDialog } from './shift-activitiy-dialog';
 
 export interface ExtendedShift extends Shift {
   prefixText?: string;
@@ -43,10 +45,18 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
     };
   }
 
+  if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+      return {
+        icon: 'mdi:close-thick',
+        title: capitalize(shift.status),
+        disabled: false,
+      };
+    }
+
   if (!shift?.org?.settings?.userRelinquishShift?.enabled) {
     return {
       icon: 'mdi:check',
-      title: 'Secured',
+      title: (shift as Shift)?.docusignEvent?.status === 'completed' ? 'Completed' : 'Secured',
       disabled: true,
     };
   }
@@ -67,7 +77,7 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
   if (isAfter(now, endDate)) {
     return {
       icon: 'mdi:check',
-      title: 'Secured',
+      title: (shift as Shift)?.docusignEvent?.status === 'completed' ? 'Completed' : 'Secured',
       disabled,
     }
   }
@@ -134,6 +144,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
   const relinquishConfirm = useBoolean<CombinedShift>();
   const menuOpen = useBoolean<CombinedShift>();
   const assignmentNotesOpen = useBoolean<CombinedShift>();
+  const activityDialogOpen = useBoolean<CombinedShift>();
 
   const config: TableConfig<CombinedShift> = {
     header: {
@@ -227,6 +238,9 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
                 startIcon={<Iconify icon={action.getIcon(shift as Shift)} />}
                 onClick={(e: any) => {
                   e.stopPropagation();
+                  if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+                    return;
+                  }
                   let confirm = assignConfirm;
                   if (shift.event.status === EventStatus.InterestList) {
                     confirm = interestConfirm;
@@ -299,18 +313,26 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
           <ListItemText>View Assignment Notes</ListItemText>
         </MenuItem>
 
-        <MenuItem disabled>
-          <ListItemIcon>
-            <Iconify icon="solar:history-bold" />
-          </ListItemIcon>
-          <ListItemText>View Activity (Coming soon)</ListItemText>
-        </MenuItem>
+        {
+          myOvertime || ['Assigned', 'Past'].includes(menuOpen.attribute?.prefixText || '') ? (
+            <MenuItem onClick={() => {
+              menuOpen.onFalse();
+              activityDialogOpen.onTrue(menuOpen.attribute)
+            }}>
+              <ListItemIcon>
+                <Iconify icon="solar:history-bold" />
+              </ListItemIcon>
+              <ListItemText>View Activity</ListItemText>
+            </MenuItem>
+          ) : null
+        }
       </Menu>
 
       <AssignmentNotes 
         opener={assignmentNotesOpen} 
         assignmentId={assignmentNotesOpen?.attribute?.assignment?.id} 
       />
+      <ShiftActivityDialog opener={activityDialogOpen} shift={menuOpen.attribute as any} />
     </>
   );
 }

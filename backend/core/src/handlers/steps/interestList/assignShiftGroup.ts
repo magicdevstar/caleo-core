@@ -8,7 +8,7 @@ import logger from '../../../utils/logger';
 import { createContext } from '../../../utils/createContext';
 import { IShift } from '../../../models/shift';
 import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../../../types/notifications';
-import { ShiftInterestRequestStatus, ShiftStatus } from '../../../__generated__/resolvers-types';
+import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType, ShiftInterestRequestStatus, ShiftStatus } from '../../../__generated__/resolvers-types';
 import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
 
 interface InputEvent {
@@ -31,6 +31,7 @@ const assignShiftGroup = async ({
     memberEquipments,
     shifts: shiftsModel,
     assignments,
+    eventUserActions,
   } = await createContext();
 
   const shifts = await shiftsModel.findAllUnassignedShiftsByGroupId({
@@ -61,6 +62,7 @@ const assignShiftGroup = async ({
   const assignmentEquipmentIds = (assignment?.requiredEquipmentIds || []).map((id) => id.toString());
 
   const shiftAssignments: any[] = [];
+  const eventUserActionEntries: any[] = [];
   const acceptedRequestUpdates: any[] = [];
 
   for(const request of requests) {
@@ -117,6 +119,28 @@ const assignShiftGroup = async ({
       // Remove shift from list
       const pendingShift = shifts.pop();
       if (pendingShift) {
+        eventUserActionEntries.push(
+          {
+            userId: new ObjectId(request.userId),
+            eventId: shifts[0].eventId,
+            shiftGroupId: shifts[0].shiftId,
+            actionType: EventUserActionType.Shift,
+            source: EventUserActionLogSource.InterestRequest,
+            modifiedById: new ObjectId(request.userId),
+            timestamp: new Date(Date.now() - 1),
+            action: EventUserActionLogAction.Approved,
+          },
+          {
+            userId: new ObjectId(request.userId),
+            eventId: shifts[0].eventId,
+            shiftGroupId: shifts[0].shiftId,
+            actionType: EventUserActionType.Shift,
+            source: EventUserActionLogSource.Shift,
+            modifiedById: new ObjectId(request.userId),
+            timestamp: new Date(),
+            action: EventUserActionLogAction.Assigned,
+          },
+        );
         shiftAssignments.push({
           updateOne: {
             filter: { _id: new ObjectId(pendingShift._id) },
@@ -171,6 +195,10 @@ const assignShiftGroup = async ({
         }
       } as MailerEvent),
     }));
+
+    if (eventUserActionEntries.length > 0) {
+      await eventUserActions.bulk(eventUserActionEntries);
+    }
 
     for(const assignment of shiftAssignments) {
       const id = assignment.updateOne.filter._id.toString();

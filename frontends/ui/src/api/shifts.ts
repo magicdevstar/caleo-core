@@ -331,6 +331,101 @@ export const GET_LOTTERY_SHIFT_REQUESTS = gql`
   }
 `;
 
+export const GET_ACTIVITY = gql`
+  query GetActivity($userId: ObjectId!, $cursor: ObjectId) {
+    activityShifts(userId: $userId, cursor: $cursor) {
+      items {
+        id
+        startTime
+        endTime
+        status
+        shiftId
+        customId
+        refNumber
+        userId
+        locked
+        callSign
+        shiftCheckInOut {
+          checkInTime
+          checkOutTime
+        }
+        docusignEvent {
+          id
+          status
+          documentUrl
+        }
+        org {
+          settings {
+            userRelinquishShift {
+              enabled
+              numberOfHoursBeforeShift
+            }
+          }
+        }
+        event {
+          id
+          referenceId
+          name
+          attachments
+          thumbnailUrl
+          startTime
+          endTime
+          venue {
+            id
+            name
+            address
+            city
+            state
+            zip
+            phone
+            contact {
+              firstName
+              lastName
+              email
+              phone
+            }
+          }
+        }
+        assignment {
+          id
+          name
+          callSign
+          bwNeeded
+          reportingLocation
+          requiredEquipment {
+            id
+            name
+            requiresEquipmentTime
+            requiresVehicleInformation
+          }
+          requiredSkills {
+            id
+            name
+          }
+          ranks {
+            id
+            name
+          }
+        }
+        otherShiftSlots {
+          id
+          customId
+          refNumber
+          user {
+            id
+            firstName
+            lastName
+            member {
+              pNumber
+            }
+          }
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const GET_ALL_SHIFTS = gql`
   query GetAllShifts($input: ShiftSearchInput!) {
     shifts(input: $input) {

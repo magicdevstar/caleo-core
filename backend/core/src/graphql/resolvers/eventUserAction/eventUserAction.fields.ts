@@ -1,7 +1,6 @@
 import { EventUserActionType } from "../../../__generated__/resolvers-types";
 import { IEventUserAction } from "../../../models/eventUserActions/eventUserAction.entity";
 import { Context } from "../../../utils/createContext";
-import logger from "../../../utils/logger";
 
 export const fields = {
   EventUserAction: {
@@ -12,6 +11,7 @@ export const fields = {
       return EventUserActionType.Shift;
     },
     user: (parent: IEventUserAction, _args, { users }: Context) => users.loader.load(parent.userId.toString()),
+    modifiedBy: (parent: IEventUserAction, _args, { users }: Context) => parent.modifiedById ? users.loader.load(parent.modifiedById.toString()) : null,
     event: (parent: IEventUserAction, _args, { events }: Context) => events.loader.load(parent.eventId.toString()),
     shifts: (parent: IEventUserAction, _args, { shifts }: Context) => {
       return parent.shiftGroupId ? shifts.loadUserShiftsByGroupId.load({

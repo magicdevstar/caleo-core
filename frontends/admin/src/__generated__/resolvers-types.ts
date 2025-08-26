@@ -807,7 +807,7 @@ export type IncidentFormResponse = {
 };
 
 export type IncidentFormSearchInput = {
-  eventId: Scalars['ObjectId']['input'];
+  eventId?: InputMaybe<Scalars['ObjectId']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;

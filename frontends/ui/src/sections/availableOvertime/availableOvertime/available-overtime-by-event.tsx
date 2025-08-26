@@ -124,7 +124,7 @@ export default function AvailableOvertimeByEvent() {
           <EmptyContent filled title='No Overtime Shifts Available - Check Back Later' sx={{ py: 10, mt: 2 }} />
         ) : (
           Object.entries(groupedShifts).map(([eventId, shifts]) => (
-            <EventCard key={eventId} shifts={shifts} />
+            <EventCard key={eventId} items={shifts} />
           ))
         )
       }

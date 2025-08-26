@@ -16,7 +16,7 @@ export const Query = {
   activityShifts: async (
     _parent: unknown,
     { userId, cursor }: { userId: ObjectId, cursor?: ObjectId },
-    { shifts, user, users }: Context
+    { shifts, user }: Context
   ): Promise<SearchResults<IShift>> => {
     if (!userIsAdmin(user)) {
       userId = user._id!;

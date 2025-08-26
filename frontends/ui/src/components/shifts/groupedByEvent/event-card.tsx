@@ -14,27 +14,31 @@ import { useUpcomingOvertimeLabels } from "src/hooks/use-upcoming-overtime-label
 import Image from "src/components/image";
 import Label from "src/components/label";
 // types
+import { EventStatus, IncidentForm } from "src/__generated__/resolvers-types";
 import { EventNotes } from "./event-notes";
 import { EventCardShifts, CombinedShift } from "./event-card-shifts";
+import { EventCardIncidents } from "./event-card-incidents";
+
+type Item = CombinedShift | IncidentForm;
 
 interface Props {
-  shifts: CombinedShift[];
+  items: Item[];
   isUpcoming?: boolean;
   myOvertime?: boolean;
 }
 
-export function EventCard({ shifts, isUpcoming = false, myOvertime = false }: Props) {
+export function EventCard({ items, isUpcoming = false, myOvertime = false }: Props) {
   const { labels: eventLabels } = useUpcomingOvertimeLabels();
   const { dateTimeFormat } = useDateFormats();
   const { user } = useAuthContext();
-  const { enabledEventThumbnail } = useFeatures();
+  const { enabledEventThumbnail, incidentEvents } = useFeatures();
 
   const event = useMemo(() => {
-    if (shifts.length === 0) return null;
+    if (items.length === 0) return null;
 
-    const firstShift = shifts[0];
+    const firstShift = items[0];
     return firstShift.event;
-  }, [shifts]);
+  }, [items]);
 
   const totalHours = useMemo(() => {
     const start = new Date(event?.startTime || new Date());
@@ -81,6 +85,48 @@ export function EventCard({ shifts, isUpcoming = false, myOvertime = false }: Pr
       user,
     }).format(dateTimeFormat),
   };
+
+  let label = null;
+  if (isUpcoming) {
+    label = (
+      <Stack
+        direction={{ xs: 'column-reverse', md: 'row' }}
+        spacing={1}
+        alignItems={{ xs: 'end', md: 'center' }}
+        justifyContent="space-between"
+      >
+        {
+          eventLabels.map((eventLabel) => !eventLabel.getHidden?.(items[0] as CombinedShift) && (
+            <Label
+              sx={eventLabel.sx}
+              key={eventLabel.key}
+              variant={eventLabel.variant}
+              color={eventLabel.getColor?.(items[0] as CombinedShift)}
+            >
+              {eventLabel.getLabel(items[0] as CombinedShift)}
+            </Label>
+          ))
+        }
+      </Stack>
+    );
+  }
+  if (incidentEvents) {
+    label = (
+      <Stack
+        direction={{ xs: 'column-reverse', md: 'row' }}
+        spacing={1}
+        alignItems={{ xs: 'end', md: 'center' }}
+        justifyContent="space-between"
+      >
+        <Label
+          variant='soft'
+          color='default'
+        >
+          { event.status === EventStatus.Incident ? 'Incident' : 'Pre Planned' }
+        </Label>
+      </Stack>
+    );
+  }
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -133,29 +179,7 @@ export function EventCard({ shifts, isUpcoming = false, myOvertime = false }: Pr
                 {event?.name}
               </Typography>
             </Stack>
-            {
-              (isUpcoming) && (
-                <Stack
-                  direction={{ xs: 'column-reverse', md: 'row' }}
-                  spacing={1}
-                  alignItems={{ xs: 'end', md: 'center' }}
-                  justifyContent="space-between"
-                >
-                  {
-                    eventLabels.map((eventLabel) => !eventLabel.getHidden?.(shifts[0]) && (
-                      <Label
-                        sx={eventLabel.sx}
-                        key={eventLabel.key}
-                        variant={eventLabel.variant}
-                        color={eventLabel.getColor?.(shifts[0])}
-                      >
-                        {eventLabel.getLabel(shifts[0])}
-                      </Label>
-                    ))
-                  }
-                </Stack>
-              )
-            }
+            {label}
           </Stack>
 
           <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>
@@ -169,10 +193,16 @@ export function EventCard({ shifts, isUpcoming = false, myOvertime = false }: Pr
               {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
             </Typography>
           </Stack>
-          <EventNotes eventId={shifts[0]?.event?.id} attachments={event?.attachments || []} />
+          <EventNotes eventId={event.id} attachments={event?.attachments || []} />
         </Stack>
       </Stack>
-      <EventCardShifts shifts={shifts} isUpcoming={isUpcoming} myOvertime={myOvertime} />
+      {
+        event.status === EventStatus.Incident ? (
+          <EventCardIncidents incidents={items as IncidentForm[]} />
+        ) : (
+          <EventCardShifts shifts={items as CombinedShift[]} isUpcoming={isUpcoming} myOvertime={myOvertime} />
+        )
+      }
     </Card>
   )
 }

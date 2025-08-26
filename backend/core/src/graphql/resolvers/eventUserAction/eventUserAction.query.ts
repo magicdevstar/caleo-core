@@ -9,7 +9,7 @@ export const Query = {
     { eventUserActions, user }: Context
   ) => {
     // Only allow admins to search by userId
-    let userId = user?._id!;
+    let userId = user._id!;
     if (userIsAdmin(user) && input.userId) {
       userId = input.userId;
     }

@@ -79,6 +79,51 @@ export const GET_INCIDENT_SUBMISSIONS = gql`
   }
 `;
 
+export const GET_SUBMITTED_INCIDENT_SUBMISSIONS = gql`
+  query IncidentForms($input: IncidentFormSearchInput!, $report: Boolean) {
+    incidentForms(input: $input, report: $report) {
+      items {
+        id
+        step
+        status
+        operationalPeriod {
+          date
+        }
+        docusignEvent {
+          id
+          status
+        }
+        event {
+          id
+          referenceId
+          name
+          attachments
+          thumbnailUrl
+          startTime
+          endTime
+          status
+          venue {
+            id
+            name
+            address
+            city
+            state
+            zip
+            phone
+            contact {
+              firstName
+              lastName
+              email
+              phone
+            }
+          }
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const UPSERT_INCIDENT_SUBMISSION = gql`
   mutation IncidentForm($input: IIncidentForm!, $saveOnly: Boolean) {
     incidentForm(input: $input, saveOnly: $saveOnly) {

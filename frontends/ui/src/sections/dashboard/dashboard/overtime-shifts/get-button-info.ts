@@ -3,7 +3,6 @@ import {
   Organization,
   Shift,
   ShiftBufferRequest,
-  ShiftStatus,
 } from 'src/__generated__/resolvers-types';
 
 export const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferRequest) => {

@@ -14,7 +14,7 @@ import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { IIncidentForm as IncidentForm } from '../models/incidentForm';
-import { DocusignEventSearchInput, DocusignEventUserRole, EventUserActionLogAction, EventUserActionLogSource, EventUserActionType, IncidentFormResponse } from "../__generated__/resolvers-types";
+import { DocusignEventSearchInput, DocusignEventUserRole, EventUserActionLogAction, EventUserActionLogSource, IncidentFormResponse } from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -121,7 +121,6 @@ export class Docusign {
     let eventId: ObjectId;
     let userId: ObjectId;
     let otherDetails: any = {};
-    let eventUserActionType = EventUserActionType.Shift;
     let eventUserActionKey = 'shiftGroupId';
     let eventUserActionValue: ObjectId | string = '';
 
@@ -130,7 +129,6 @@ export class Docusign {
       orgId = incident.orgId;
       userId = incident.userId;
       eventUserActionValue = incident._id!;
-      eventUserActionType = EventUserActionType.IncidentSubmission;
       eventUserActionKey = 'incidentFormId';
     } else if (shiftId) {
       const shift = await this.shifts.get(shiftId, { removed: true });

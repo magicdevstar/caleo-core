@@ -1,4 +1,4 @@
-import { IncidentFormSearchInput } from '../../../__generated__/resolvers-types';
+import { IncidentFormSearchInput, IncidentFormStatus } from '../../../__generated__/resolvers-types';
 import { IIncidentForm } from '../../../models/incidentForm';
 import { userIsAdmin } from '../../../utils/access';
 import { SearchResults } from '../../../utils/common.resolvers';
@@ -7,7 +7,7 @@ import { Context } from '../../../utils/createContext';
 export const Query = {
   incidentForms: async (
     _parent: any,
-    { input: { submittedDate, ...input }, report }: { input: IncidentFormSearchInput, report?: boolean },
+    { input: { submittedDate, status, ...input }, report }: { input: IncidentFormSearchInput, report?: boolean },
     { user, incidentSubmissionModel }: Context
   ): Promise<SearchResults<IIncidentForm>> => {
     let userId = user?._id;
@@ -23,6 +23,7 @@ export const Query = {
 
     return incidentSubmissionModel.search({
       ...input,
+      ...(status === IncidentFormStatus.Submitted ? { envelopeId: { $exists: true } } : {}),
       ...(userId && { userId }),
     });
   },

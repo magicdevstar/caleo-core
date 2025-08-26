@@ -325,7 +325,12 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         opener={assignmentNotesOpen} 
         assignmentId={assignmentNotesOpen?.attribute?.assignment?.id} 
       />
-      <ShiftActivityDialog opener={activityDialogOpen} shift={menuOpen.attribute as any} />
+      <ShiftActivityDialog
+        opener={activityDialogOpen}
+        userId={menuOpen.attribute?.userId}
+        entityKey='shiftGroupId'
+        entityId={menuOpen.attribute?.shiftId}
+      />
     </>
   );
 }

@@ -2136,7 +2136,7 @@ type DocusignSignerDetailsData {
     status: IncidentFormStatus
     userId: ObjectId
     submittedDate: SearchDateFilter
-    eventId: ObjectId!
+    eventId: ObjectId
   }
 
   type IncidentFormSearchResult {

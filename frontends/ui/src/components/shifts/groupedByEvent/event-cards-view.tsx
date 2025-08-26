@@ -59,7 +59,7 @@ export function EventCardsView({
         Object.entries(groupedShifts).map(([eventId, shifts]) => (
           <EventCard
             key={eventId}
-            shifts={shifts}
+            items={shifts}
             myOvertime={myOvertime}
             isUpcoming={isUpcoming || (shifts[0] as any).prefixText === 'Upcoming'}
           />

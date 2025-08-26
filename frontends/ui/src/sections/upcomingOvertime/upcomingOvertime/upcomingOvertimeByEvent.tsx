@@ -62,7 +62,7 @@ export default function UpcomingOvertimeByEvent() {
           <EmptyContent filled title='No Upcoming Overtime Shifts - Check Back Later' sx={{ py: 10, mt: 2 }} />
         ) : (
           Object.entries(groupedShifts).map(([eventId, shifts]) => (
-            <EventCard key={eventId} shifts={shifts} isUpcoming />
+            <EventCard key={eventId} items={shifts} isUpcoming />
           ))
         )
       }

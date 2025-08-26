@@ -75,16 +75,18 @@ export function EventCardIncidents({ incidents }: Props) {
         renderValue: (_v, _i, incident) => (
           <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
             <Button
+              disabled
+              // disabled={incident.docusignEvent?.status !== 'completed'}
               size="small"
-              disabled={incident.docusignEvent?.status !== 'completed'}
               startIcon={<Iconify icon="ic:baseline-arrow-circle-down" />}
               onClick={(e: any) => {
                 e.stopPropagation();
               }}
               sx={{ flex: '0 0 auto' }}
               variant="outlined"
-            >Download Document</Button>
+            >Download Document (COMING SOON)</Button>
             <Button
+              disabled
               size="small"
               startIcon={<Iconify icon="ic:baseline-view-timeline" />}
               onClick={(e: any) => {
@@ -93,7 +95,7 @@ export function EventCardIncidents({ incidents }: Props) {
               }}
               sx={{ flex: '0 0 auto' }}
               variant="outlined"
-            >View Activity</Button>
+            >View Activity (COMING SOON)</Button>
           </Stack>
         ),
       },

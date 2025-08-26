@@ -44,13 +44,6 @@ export const getButtonInfo = (organization: Organization, shift: Shift | ShiftBu
       disabled,
     };
   }
-  if ((shift as Shift).locked || shift.status === ShiftStatus.Locked) {
-    return {
-      icon: 'mdi:lock',
-      title: 'Locked',
-      disabled: true,
-    };
-  }
   return {
     icon: 'mdi:close-thick',
     title: 'Scratch',

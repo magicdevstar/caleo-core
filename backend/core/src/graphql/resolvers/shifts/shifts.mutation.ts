@@ -677,23 +677,25 @@ export const Mutation = {
       });
     }
 
-    if (removingShiftUser && removedShift) {
+    if (removingShiftUser) {
       await interestList.maybeTriggerNextAssignment({
         shift: updatedShift!,
         organization: organization!,
         relinquishId: removedShift?._id,
       });
 
-      await eventUserActions.createItem({
-        userId: removedShift.userId!,
-        eventId: removedShift.eventId,
-        shiftGroupId: removedShift.shiftId,
-        source: EventUserActionLogSource.Shift,
-        modifiedById: user._id!,
-        timestamp: removedShift.removedAt,
-        action: removedShift.status as any,
-        notes: removedShift.relinquishNote || undefined,
-      });
+      if (removedShift) {
+        await eventUserActions.createItem({
+          userId: removedShift.userId!,
+          eventId: removedShift.eventId,
+          shiftGroupId: removedShift.shiftId,
+          source: EventUserActionLogSource.Shift,
+          modifiedById: user._id!,
+          timestamp: removedShift.removedAt,
+          action: removedShift.status as any,
+          notes: removedShift.relinquishNote || undefined,
+        });
+      }
     }
 
     if (userId && !existingUserId) {

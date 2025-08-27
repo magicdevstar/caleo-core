@@ -352,7 +352,7 @@ export const GET_ACTIVITY = gql`
         docusignEvent {
           id
           status
-          documentUrl
+          documentUrls
         }
         org {
           settings {
@@ -827,6 +827,97 @@ export const SHIFT_INTEREST_REQUESTS = gql`
           member {
             tenor
             tier
+          }
+        }
+      }
+      total
+    }
+  }
+`;
+
+export const USER_SHIFT_INTEREST_REQUESTS = gql`
+  query GetUserShiftInterestRequests($input: UserShiftInterestRequestsSearchInput!) {
+    userShiftInterestRequests(input: $input) {
+      items {
+        id
+        shiftGroupId
+        eventId
+        assignmentId
+        status
+        createdAt
+
+        shift {
+          id
+          startTime
+          endTime
+          status
+          shiftId
+          customId
+          refNumber
+          userId
+          locked
+          callSign
+          shiftCheckInOut {
+            checkInTime
+            checkOutTime
+          }
+          docusignEvent {
+            id
+            status
+            documentUrls
+          }
+          org {
+            settings {
+              userRelinquishShift {
+                enabled
+                numberOfHoursBeforeShift
+              }
+            }
+          }
+          event {
+            id
+            referenceId
+            name
+            attachments
+            thumbnailUrl
+            startTime
+            endTime
+            venue {
+              id
+              name
+              address
+              city
+              state
+              zip
+              phone
+              contact {
+                firstName
+                lastName
+                email
+                phone
+              }
+            }
+          }
+          assignment {
+            id
+            name
+            callSign
+            bwNeeded
+            reportingLocation
+            requiredEquipment {
+              id
+              name
+              requiresEquipmentTime
+              requiresVehicleInformation
+            }
+            requiredSkills {
+              id
+              name
+            }
+            ranks {
+              id
+              name
+            }
           }
         }
       }

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { useQuery } from "@apollo/client";
 // components
 // types
-import { GET_ACTIVITY } from "src/api/shifts";
-import { IncidentForm, IncidentFormStatus, Shift } from "src/__generated__/resolvers-types";
+import { GET_ACTIVITY, USER_SHIFT_INTEREST_REQUESTS } from "src/api/shifts";
+import { EventStatus, IncidentForm, IncidentFormStatus, Shift, ShiftInterestRequest } from "src/__generated__/resolvers-types";
 // utils
 import { groupShiftsByEvent } from "src/utils/shifts";
 import { useTable } from "src/components/table";
@@ -29,6 +29,13 @@ interface IncidentQueryResponse {
   }
 };
 
+interface InterestQueryResponse {
+  userShiftInterestRequests: {
+    items: ShiftInterestRequest[];
+    total: number;
+  }
+};
+
 export default function EventActivity({
   userId
 }: Props) {
@@ -47,6 +54,17 @@ export default function EventActivity({
   });
   const { activityShifts: { items } } = cloneDeep(data || { activityShifts: { items: [], total: 0 } });
 
+  const { data: interestData, loading: loadingInterests } = useQuery<InterestQueryResponse>(USER_SHIFT_INTEREST_REQUESTS, {
+    fetchPolicy: 'no-cache', // Used for first execution
+    nextFetchPolicy: 'cache-first', // Used for subsequent executions
+    variables: {
+      input: {
+        userId,
+        limit: 1000,
+      },
+    }
+  })
+
   const { data: incidentData, loading: loadingIncidents } = useQuery<IncidentQueryResponse>(GET_SUBMITTED_INCIDENT_SUBMISSIONS, {
     fetchPolicy: 'no-cache', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions
@@ -61,7 +79,21 @@ export default function EventActivity({
   const { incidentForms: { items: incidentItems } } = cloneDeep(incidentData || { incidentForms: { items: [], total: 0 } });
 
   const groupedShifts = useMemo(() => {
-    const allItems = [...(items || []), ...(incidentItems || [])];
+    const interestRequestShifts: Shift[] = (interestData?.userShiftInterestRequests?.items || [])
+      .filter((interest) => interest.shift)
+      .map(interest => ({
+        ...(interest.shift || {}),
+        // This way the actions/labels know it's from an interest request
+        event: {
+          ...(interest.shift?.event || {}),
+          status: EventStatus.InterestList,
+        },
+        shiftInterestRequest: {
+          id: interest.id,
+        },
+        prefixText: 'UnfulfilledInterestRequest',
+      })) as any;
+    const allItems = [...(items || []), ...(incidentItems || []), ...(interestRequestShifts || [])];
     if (allItems.length === 0) return {} as Record<string, Shift[]>;
 
     // Create a Map to handle duplicates with priority order
@@ -80,7 +112,7 @@ export default function EventActivity({
     const finalItems = Array.from(shiftsMap.values());
 
     return groupShiftsByEvent(finalItems);
-  }, [items, incidentItems]);
+  }, [items, incidentItems, interestData]);
 
   const pagedGroupedShifts = useMemo(() => {
     const pageData: Record<string, Shift[]> = {}
@@ -96,7 +128,7 @@ export default function EventActivity({
 
   return (
     <EventCardsView
-      loading={loading || loadingIncidents}
+      loading={loading || loadingIncidents || loadingInterests}
       groupedShifts={pagedGroupedShifts}
       myOvertime
       emptyMessage='No Overtime'

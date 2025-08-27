@@ -92,6 +92,7 @@ export const GET_SUBMITTED_INCIDENT_SUBMISSIONS = gql`
         docusignEvent {
           id
           status
+          documentUrls
         }
         event {
           id

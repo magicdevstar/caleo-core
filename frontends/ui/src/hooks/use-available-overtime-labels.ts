@@ -1,10 +1,15 @@
+import { useMemo } from "react";
+import capitalize from "lodash/capitalize";
 import { useTheme, rgbToHex } from "@mui/material/styles";
-import { useMemo } from "react"
 // types
-import { EventStatus, Shift } from "src/__generated__/resolvers-types";
+import { EventStatus, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { LabelVariant } from "src/components/label";
 
 const getColor = (shift: Shift) => {
+  if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status)) {
+    return 'default';
+  }
+
   if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
     return 'success';
   }
@@ -34,6 +39,9 @@ export const useAvailableOvertimeLabels = () => {
       },
       getColor,
       getLabel: (shift: Shift) => {
+        if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+          return capitalize(shift.status);
+        }
         if (shift?.event?.status === EventStatus.FirstComeFirstServe) {
           return 'First Come First Serve';
         }

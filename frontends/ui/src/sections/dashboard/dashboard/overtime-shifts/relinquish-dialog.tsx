@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import { Shift, ShiftBufferRequest } from 'src/__generated__/resolvers-types';
 import {
   ASSIGN_SHIFT,
+  GET_ACTIVITY,
   GET_ALL_SHIFTS,
   GET_SHIFT_BUFFER_REQUESTS,
   REMOVE_SHIFT_BUFFER_REQUEST,
@@ -34,12 +35,12 @@ export default function RelinquishDialog({
   const [relinquishNote, setRelinquishNote] = useState<string | undefined>();
 
   const [assignShift, { loading: relinquishLoading }] = useMutation(ASSIGN_SHIFT, {
-    refetchQueries: [GET_ALL_SHIFTS],
+    refetchQueries: [GET_ALL_SHIFTS, GET_ACTIVITY],
   });
   const [removeShiftBuffer, { loading: removeShiftBufferLoading }] = useMutation(
     REMOVE_SHIFT_BUFFER_REQUEST,
     {
-      refetchQueries: [GET_SHIFT_BUFFER_REQUESTS],
+      refetchQueries: [GET_SHIFT_BUFFER_REQUESTS, GET_ACTIVITY],
     }
   );
 

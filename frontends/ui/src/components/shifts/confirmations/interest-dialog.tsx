@@ -15,6 +15,7 @@ import {
   GET_AVAILABLE_SHIFTS,
   REMOVE_SHIFT_INTEREST_REQUEST,
   SHIFT_INTEREST_REQUEST,
+  USER_SHIFT_INTEREST_REQUESTS,
 } from 'src/api/shifts';
 import { client } from 'src/utils/apollo';
 // components
@@ -71,7 +72,7 @@ export default function InterestDialog({
       }
 
       await client.refetchQueries({
-        include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS],
+        include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, USER_SHIFT_INTEREST_REQUESTS],
       });
 
       enqueueSnackbar(

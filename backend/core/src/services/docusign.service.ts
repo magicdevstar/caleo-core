@@ -679,7 +679,7 @@ export class Docusign {
       await this.eventUserActions.createItem({
         userId: user._id!,
         eventId: event._id!,
-        incidentFormId: savedForm._id!,
+        incidentFormId: new ObjectId(savedForm.id),
         source: EventUserActionLogSource.Docusign,
         modifiedById: user._id!,
         timestamp: new Date(),

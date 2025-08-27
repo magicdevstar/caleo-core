@@ -1,8 +1,11 @@
+import { useCallback } from 'react';
+import { PDFDocument } from "pdf-lib";
+import { useSnackbar } from 'notistack';
 import { isAfter, isBefore, subHours } from 'date-fns';
 import capitalize from 'lodash/capitalize';
 import orderBy from 'lodash/orderBy';
 // @mui
-import Button from "@mui/material/Button";
+import LoadingButton from '@mui/lab/LoadingButton';
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Menu from "@mui/material/Menu";
@@ -13,6 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { useAuthContext } from "src/auth/hooks";
 import { useAvailableOvertimeLabels } from "src/hooks/use-available-overtime-labels";
 import { useBoolean, UseBooleanReturnType } from "src/hooks/use-boolean";
+import { useDownloadPdf } from 'src/hooks/use-download-pdf';
 // components
 import GQLTable from "src/components/table/gql/table";
 import Iconify from "src/components/iconify";
@@ -37,6 +41,13 @@ export interface ExtendedShiftBufferRequest extends ShiftBufferRequest {
 export type CombinedShift = ExtendedShift | ExtendedShiftBufferRequest;
 
 const myOvertimeButtonInfo = (shift: CombinedShift) => {
+  if (shift.prefixText === 'UnfulfilledInterestRequest') {
+    return {
+      icon: 'ic:round-cancel',
+      title: 'Remove Interest',
+      disabled: false,
+    }
+  }
   if (shift.__typename === 'ShiftBufferRequest') {
     return {
       icon: 'mdi:close-thick',
@@ -46,18 +57,18 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
   }
 
   if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
-      return {
-        icon: 'mdi:close-thick',
-        title: capitalize(shift.status),
-        disabled: false,
-      };
-    }
+    return {
+      icon: 'mdi:close-thick',
+      title: capitalize(shift.status),
+      disabled: false,
+    };
+  }
 
   if (!shift?.org?.settings?.userRelinquishShift?.enabled) {
     return {
       icon: 'mdi:check',
-      title: (shift as Shift)?.docusignEvent?.status === 'completed' ? 'Completed' : 'Secured',
-      disabled: true,
+      title: ['completed', 'voided', 'declined'].includes((shift as Shift)?.docusignEvent?.status || '') ? 'Download Document' : 'Secured',
+      disabled: (shift as Shift)?.docusignEvent?.status !== 'completed',
     };
   }
   const startDate = new Date(shift.startTime);
@@ -77,8 +88,8 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
   if (isAfter(now, endDate)) {
     return {
       icon: 'mdi:check',
-      title: (shift as Shift)?.docusignEvent?.status === 'completed' ? 'Completed' : 'Secured',
-      disabled,
+      title: ['completed', 'voided', 'declined'].includes((shift as Shift)?.docusignEvent?.status || '') ? 'Download Document' : 'Secured',
+      disabled: (shift as Shift)?.docusignEvent?.status !== 'completed',
     }
   }
   return {
@@ -90,7 +101,7 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
 
 const myOvertimeShiftAction = {
   key: 'relinquish',
-  color: (shift: Shift) => 'error',
+  color: (shift: Shift) => ['completed', 'voided', 'declined'].includes(shift?.docusignEvent?.status || '') ? 'success' : 'error',
   disabled: (shift: CombinedShift) => myOvertimeButtonInfo(shift).disabled,
   onClick: (shift: CombinedShift, confirm: UseBooleanReturnType<CombinedShift>) => confirm.onTrue(shift),
   getIcon: (shift: CombinedShift) => myOvertimeButtonInfo(shift).icon,
@@ -100,8 +111,15 @@ const myOvertimeShiftAction = {
 const shiftAction = {
   key: 'signUp',
   disabled: (shift: CombinedShift) => false,
-  color: (shift: Shift): string =>
-    shift.shiftInterestRequest?.id ? 'error' : 'info',
+  color: (shift: Shift): string => {
+    if (['completed', 'voided', 'declined'].includes(shift?.docusignEvent?.status || '')) {
+      return 'success';
+    }
+    if (shift.shiftInterestRequest?.id) {
+      return 'error';
+    }
+    return 'info';
+  },
   onClick: (shift: Shift, confirm: UseBooleanReturnType<Shift>) => {
     confirm.onTrue(shift);
   },
@@ -129,15 +147,49 @@ interface Props {
 }
 
 export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false }: Props) {
+  const { enqueueSnackbar } = useSnackbar();
   const { labels: rawShiftLabels } = useAvailableOvertimeLabels();
   const shiftLabels = rawShiftLabels[0];
   const { user } = useAuthContext();
+  const downloadLoading = useBoolean<CombinedShift>();
   const assignConfirm = useBoolean<Shift>();
   const interestConfirm = useBoolean<Shift>();
   const relinquishConfirm = useBoolean<CombinedShift>();
   const menuOpen = useBoolean<CombinedShift>();
   const assignmentNotesOpen = useBoolean<CombinedShift>();
   const activityDialogOpen = useBoolean<CombinedShift>();
+  const { download } = useDownloadPdf({
+      fileName: 'end-of-shift-document',
+    });
+
+  const downloadDocuments = useCallback(async (shift: Shift) => {
+    try {
+      downloadLoading.onTrue(shift);
+      if (shift?.docusignEvent?.documentUrls) {
+        const pdfDoc = await PDFDocument.create();
+        // eslint-disable-next-line no-restricted-syntax
+        for (const url of shift?.docusignEvent?.documentUrls || []) {
+          // download overtime slip
+          const slipPdfBytes = await fetch(url as string).then(response => response.arrayBuffer()); // eslint-disable-line no-await-in-loop
+          // load/convert the slip into a PDFDocument object
+          const slipPdfDoc = await PDFDocument.load(slipPdfBytes); // eslint-disable-line no-await-in-loop
+          // iterate over slip's pages
+          const slipPages = await pdfDoc.copyPages(slipPdfDoc, slipPdfDoc.getPageIndices()); // eslint-disable-line no-await-in-loop
+          // add pages to main pdf
+          slipPages.forEach((page) => pdfDoc.addPage(page));
+        }
+
+        // convert pdf into file buffer
+        const pdfDocBuffer = await pdfDoc.save();
+
+        download(pdfDocBuffer, `${shift.event?.name || 'incident-submission'} - ${shift.assignment?.name || ''}`);
+      }
+    } catch(error) {
+      enqueueSnackbar('Failed to download document', { variant: 'error' });
+    } finally {
+      downloadLoading.onFalse();
+    }
+  }, [downloadLoading, enqueueSnackbar, download]);
 
   const config: TableConfig<CombinedShift> = {
     header: {
@@ -168,26 +220,30 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
     },
     rowActions: [],
     columns: [
-      ...(myOvertime ? [] : [
-        {
-          id: 'status',
-          label: 'Status',
-          columnType: 'string',
-          renderValue: (_v: any, _i: any, shift: any) => {
-            if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
-              return 'Assigned';
-            }
-            return shiftLabels.getLabel(shift as Shift);
-          },
-          getLabelColor: (shift: any) => {
-            if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
-              return 'success';
-            }
-            return shiftLabels.getColor(shift as Shift);
-          },
-          width: '10%'
+      {
+        id: 'status',
+        label: 'Status',
+        columnType: 'string',
+        renderValue: (_v: any, _i: any, shift: any) => {
+          if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+            return capitalize(shift.status);
+          }
+          if ((myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) && shift.prefixText !== 'UnfulfilledInterestRequest') {
+            return 'Assigned';
+          }
+          return shiftLabels.getLabel(shift as Shift);
         },
-      ]) as any,
+        getLabelColor: (shift: any) => {
+          if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+            return 'default';
+          }
+          if ((myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) && shift.prefixText !== 'UnfulfilledInterestRequest') {
+            return 'success';
+          }
+          return shiftLabels.getColor(shift as Shift);
+        },
+        width: '10%'
+      },
       {
         id: 'startTime',
         label: 'Start',
@@ -217,6 +273,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         renderValue: (_v, _i, shift) => {
           if (isUpcoming || shift.prefixText === 'Upcoming') return null;
 
+          const hideButton = [ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus);
           let action = shiftAction;
 
           if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
@@ -225,28 +282,35 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
 
           return (
             <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
-              <Button
-                size="small"
-                disabled={action.disabled(shift as Shift)}
-                startIcon={<Iconify icon={action.getIcon(shift as Shift)} />}
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
-                    return;
-                  }
-                  let confirm = assignConfirm;
-                  if (shift.event.status === EventStatus.InterestList) {
-                    confirm = interestConfirm;
-                  }
-                  if (myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) {
-                    confirm = relinquishConfirm as any;
-                  }
-                  action.onClick(shift as Shift, confirm);
-                }}
-                sx={{ flex: '0 0 auto' }}
-                color={typeof (action.color as any) === 'string' ? (action.color as any) : (action.color as any)?.(shift)}
-                variant="outlined"
-              >{action.getName(shift as Shift)}</Button>
+              { !hideButton && (
+                <LoadingButton
+                  loading={downloadLoading.value && downloadLoading.attribute?.id === shift.id}
+                  size="small"
+                  disabled={action.disabled(shift as Shift)}
+                  startIcon={<Iconify icon={action.getIcon(shift as Shift)} />}
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
+                      return;
+                    }
+                    let confirm = assignConfirm;
+                    if (shift.event.status === EventStatus.InterestList || shift.prefixText === 'UnfulfilledInterestRequest') {
+                      confirm = interestConfirm;
+                    }
+                    if ((myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) && shift.prefixText !== 'UnfulfilledInterestRequest') {
+                      if (['completed', 'voided', 'declined'].includes((shift as Shift)?.docusignEvent?.status || '')) {
+                        downloadDocuments(shift as Shift);
+                        return;
+                      }
+                      confirm = relinquishConfirm as any;
+                    }
+                    action.onClick(shift as Shift, confirm);
+                  }}
+                  sx={{ flex: '0 0 auto' }}
+                  color={typeof (action.color as any) === 'string' ? (action.color as any) : (action.color as any)?.(shift)}
+                  variant="outlined"
+                >{action.getName(shift as Shift)}</LoadingButton>
+              )}
               <IconButton
                 size="small"
                 id={`shift-actions-${shift.id}`}
@@ -327,9 +391,9 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
       />
       <ShiftActivityDialog
         opener={activityDialogOpen}
-        userId={menuOpen.attribute?.userId}
+        userId={activityDialogOpen.attribute?.userId}
         entityKey='shiftGroupId'
-        entityId={menuOpen.attribute?.shiftId}
+        entityId={activityDialogOpen.attribute?.shiftId}
       />
     </>
   );

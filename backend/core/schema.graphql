@@ -2114,6 +2114,7 @@ type DocusignSignerDetailsData {
     order: String
     userId: ObjectId
     shiftGroupId: String
+    incidentFormId: ObjectId
     eventIds: [ObjectId]
     cursor: ObjectId
   }
@@ -2435,6 +2436,14 @@ type DocusignSignerDetailsData {
     includeRemoved: Boolean
   }
 
+  input UserShiftInterestRequestsSearchInput {
+    limit: Int
+    skip: Int
+    orderBy: String
+    order: String
+    userId: ObjectId
+  }
+
   input ShiftLottoRequestsSearchInput {
     limit: Int
     skip: Int
@@ -2608,6 +2617,7 @@ type Query {
   shiftLotteryRequests(input: ShiftLotteryRequestsSearchInput): ShiftLotteryRequestsSearchResult
   shiftLottoRequests(input: ShiftLottoRequestsSearchInput!): ShiftLotteryRequestsSearchResult
   shiftInterestRequests(input: ShiftInterestRequestsSearchInput): ShiftInterestRequestsSearchResult
+  userShiftInterestRequests(input: UserShiftInterestRequestsSearchInput): ShiftInterestRequestsSearchResult
   financeShifts(eventId: ObjectId!): [FinanceShift]
   activityShifts(userId: ObjectId!, cursor: ObjectId): ShiftSearchResult
 

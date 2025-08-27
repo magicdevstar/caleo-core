@@ -14,7 +14,7 @@ import { useWeeklyShifts } from "src/hooks/use-weekly-shift-count";
 // types
 import { MemberRole, Shift } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
-import { ASSIGN_SHIFT, CREATE_SHIFT_BUFFER, GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS } from "src/api/shifts";
+import { ASSIGN_SHIFT, CREATE_SHIFT_BUFFER, GET_ACTIVITY, GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS } from "src/api/shifts";
 // utils
 import { client } from 'src/utils/apollo';
 
@@ -70,7 +70,7 @@ export default function ShiftAssignmentConfirmation({
         }
 
         client.refetchQueries({
-          include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS]
+          include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, GET_ACTIVITY]
         });
 
         enqueueSnackbar(`You successfully signed up for ${confirm.attribute?.event?.name} - ${confirm.attribute?.assignment?.name}.`, { variant: 'success' });

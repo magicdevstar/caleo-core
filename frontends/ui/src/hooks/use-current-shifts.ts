@@ -324,6 +324,16 @@ export function useCurrentShifts({
       (assignedShifts || []).forEach((shift: Shift) => {
         shiftsMap.set(shift.shiftId, {...shift, prefixText: 'Assigned'});
       });
+
+      if (type === CurrentShiftType.Overview) {
+        (pastAssignedShifts || []).forEach((shift: Shift) => {
+          shiftsMap.set(shift.shiftId, shift);
+        });
+
+        (upcomingShifts || []).forEach((shift: Shift) => {
+          shiftsMap.set(shift.shiftId, shift);
+        });
+      }
       
       // Convert Map back to array
       results = Array.from(shiftsMap.values());

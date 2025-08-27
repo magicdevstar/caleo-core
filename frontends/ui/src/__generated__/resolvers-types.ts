@@ -610,6 +610,7 @@ export enum EventUserActionLogSource {
 export type EventUserActionSearchInput = {
   cursor?: InputMaybe<Scalars['ObjectId']['input']>;
   eventIds?: InputMaybe<Array<InputMaybe<Scalars['ObjectId']['input']>>>;
+  incidentFormId?: InputMaybe<Scalars['ObjectId']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   order?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
@@ -1922,6 +1923,7 @@ export type Query = {
   unit?: Maybe<Unit>;
   units?: Maybe<UnitSearchResult>;
   user?: Maybe<User>;
+  userShiftInterestRequests?: Maybe<ShiftInterestRequestsSearchResult>;
   users?: Maybe<UserSearchResult>;
   vehicleCategories?: Maybe<VehicleCategoriesSearchResult>;
   vehicleCategory?: Maybe<Division>;
@@ -2157,6 +2159,11 @@ export type QueryUserArgs = {
   id: Scalars['String']['input'];
   shiftStart?: InputMaybe<Scalars['String']['input']>;
   timezoneOffset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryUserShiftInterestRequestsArgs = {
+  input?: InputMaybe<UserShiftInterestRequestsSearchInput>;
 };
 
 
@@ -3202,6 +3209,14 @@ export type UserSearchResult = {
   total: Scalars['Int']['output'];
 };
 
+export type UserShiftInterestRequestsSearchInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  userId?: InputMaybe<Scalars['ObjectId']['input']>;
+};
+
 export type VehicleCategories = {
   __typename?: 'VehicleCategories';
   active: Scalars['Boolean']['output'];
@@ -3612,6 +3627,7 @@ export type ResolversTypes = ResolversObject<{
   UserRelinquishShift: ResolverTypeWrapper<UserRelinquishShift>;
   UserSearchInput: UserSearchInput;
   UserSearchResult: ResolverTypeWrapper<UserSearchResult>;
+  UserShiftInterestRequestsSearchInput: UserShiftInterestRequestsSearchInput;
   VehicleCategories: ResolverTypeWrapper<VehicleCategories>;
   VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
   VehicleCategoriesSearchResult: ResolverTypeWrapper<VehicleCategoriesSearchResult>;
@@ -3842,6 +3858,7 @@ export type ResolversParentTypes = ResolversObject<{
   UserRelinquishShift: UserRelinquishShift;
   UserSearchInput: UserSearchInput;
   UserSearchResult: UserSearchResult;
+  UserShiftInterestRequestsSearchInput: UserShiftInterestRequestsSearchInput;
   VehicleCategories: VehicleCategories;
   VehicleCategoriesSearchInput: VehicleCategoriesSearchInput;
   VehicleCategoriesSearchResult: VehicleCategoriesSearchResult;
@@ -4876,6 +4893,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   unit?: Resolver<Maybe<ResolversTypes['Unit']>, ParentType, ContextType, RequireFields<QueryUnitArgs, 'id'>>;
   units?: Resolver<Maybe<ResolversTypes['UnitSearchResult']>, ParentType, ContextType, Partial<QueryUnitsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
+  userShiftInterestRequests?: Resolver<Maybe<ResolversTypes['ShiftInterestRequestsSearchResult']>, ParentType, ContextType, Partial<QueryUserShiftInterestRequestsArgs>>;
   users?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
   vehicleCategories?: Resolver<Maybe<ResolversTypes['VehicleCategoriesSearchResult']>, ParentType, ContextType, Partial<QueryVehicleCategoriesArgs>>;
   vehicleCategory?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<QueryVehicleCategoryArgs, 'id'>>;

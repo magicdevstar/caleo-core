@@ -10,20 +10,39 @@ import CardContent from '@mui/material/CardContent';
 import { alpha, useTheme } from '@mui/material/styles';
 // components
 import { useSettingsContext } from 'src/components/settings';
+import IncidentView from 'src/components/incidents/incident-view';
+import CheckInOut from 'src/components/shifts/check-in-out';
 // types
 import { useTable } from 'src/components/table';
 import { useAuthContext } from 'src/auth/hooks';
 // local imports
-import CheckInOut from 'src/components/shifts/check-in-out';
 import { useFeatures } from 'src/hooks/use-features';
 import MyOvertimeList from '../myOvertime/my-overtime-list';
 
 // ----------------------------------------------------------------------
 
+const tabs = [
+  {
+    value: 'assigned',
+    label: 'Assigned',
+    visible: () => true,
+  },
+  {
+    value: 'past',
+    label: 'Past',
+    visible: () => true,
+  },
+  {
+    value: 'incident',
+    label: 'Incident Submissions',
+    visible: (flag: boolean) => flag,
+  },
+]
+
 export default function MyOvertimeView() {
   const { user } = useAuthContext();
   const theme = useTheme();
-  const { officerCheckInOut } = useFeatures();
+  const { officerCheckInOut, incidentEvents } = useFeatures();
   const [currentTab, setCurrentTab] = useState('assigned');
   const table = useTable({
     defaultOrderBy: 'startTime',
@@ -85,22 +104,28 @@ export default function MyOvertimeView() {
             onChange={handleTabChange}
             sx={{mb: { xs: 3, md: 5 }}}
           >
-            {['assigned', 'past'].map((tab) => (
+            {tabs.filter((tab) => tab.visible(incidentEvents)).map((tab) => (
               <Tab
-                key={tab}
+                key={tab.value}
                 iconPosition="end"
-                value={tab}
-                label={tab}
+                value={tab.value}
+                label={tab.label}
                 sx={{ textTransform: 'capitalize' }}
               />
             ))}
           </Tabs>
 
-          <MyOvertimeList
-            table={table}
-            setFilters={setFilters}
-            filters={filters}
-          />
+          {
+            currentTab === 'incident' && incidentEvents ? (
+              <IncidentView />
+            ) : (
+              <MyOvertimeList
+                table={table}
+                setFilters={setFilters}
+                filters={filters}
+              />
+            )
+          }
         </CardContent>
       </Card>
     </Container>

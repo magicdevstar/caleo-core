@@ -194,7 +194,7 @@ export class Docusign {
     });
 
     // Save user action event if completed or void
-    if (['completed'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
+    if (['completed', 'voided'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
       await this.eventUserActions.createItem({
         userId: userId,
         eventId: eventId,
@@ -635,15 +635,6 @@ export class Docusign {
           envelopeId: existing.envelopeId!,
           currentStatus: existing.docusignEvent?.status || 'unknown',
           org,
-        });
-        await this.eventUserActions.createItem({
-          userId: user._id!,
-          eventId: existing.eventId,
-          incidentFormId: new ObjectId(savedForm.id),
-          source: EventUserActionLogSource.Docusign,
-          modifiedById: user._id!,
-          timestamp: new Date(),
-          action: EventUserActionLogAction.Voided,
         });
       }
 

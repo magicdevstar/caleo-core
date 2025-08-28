@@ -1994,6 +1994,7 @@ type DocusignSignerDetailsData {
     submittedDate: DateTime
 
     envelopeId: String
+    pastEnvelopeIds: [String]
     eventId: ObjectId!
     userId: ObjectId!
     orgId: ObjectId!
@@ -2602,6 +2603,7 @@ type Query {
   events(input: EventSearchInput): EventSearchResult
 
   incidentForms(input: IncidentFormSearchInput, report: Boolean): IncidentFormSearchResult
+  incidentForm(id: ObjectId!): IncidentForm
 
   assignment(id: String!): Assignment
   assignments(input: AssignmentSearchInput): AssignmentSearchResult
@@ -2697,7 +2699,7 @@ type Mutation {
   notifyUsersOfEvent(eventId: String!): Boolean
   
   # Returns signingUrl
-  incidentForm(input: IIncidentForm!, saveOnly: Boolean): IncidentFormResponse!
+  incidentForm(input: IIncidentForm!, saveOnly: Boolean, resubmit: Boolean): IncidentFormResponse!
   removeIncidentForm(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment

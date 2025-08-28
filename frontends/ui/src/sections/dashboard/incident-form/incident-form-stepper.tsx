@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import omitDeep from 'omit-deep';
 import { useMutation } from '@apollo/client';
 import { useSnackbar } from 'notistack';
@@ -24,7 +24,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 // import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // types
-import { Event } from 'src/__generated__/resolvers-types';
+import { Event, IncidentForm } from 'src/__generated__/resolvers-types';
 import { UPSERT_INCIDENT_SUBMISSION, GET_INCIDENT_SUBMISSIONS } from 'src/api/incidentForm';
 
 // components
@@ -233,8 +233,12 @@ const defaultValues: IncidentFormSchemaType = {
 };
 
 export default function IncidentFormStepper({
-  event
-}: { event: Event }) {
+  event,
+  inputSubmission,
+}: {
+  event: Event
+  inputSubmission?: IncidentForm;
+}) {
   const { enqueueSnackbar } = useSnackbar();
   const [submitIncidentForm, { loading }] = useMutation(UPSERT_INCIDENT_SUBMISSION, {
     refetchQueries: [
@@ -292,6 +296,7 @@ export default function IncidentFormStepper({
             eventId: event.id,
           }, ['__typename', 'straightHoursDisplay', 'overtimeHoursDisplay']),
           saveOnly: false,
+          resubmit: !!inputSubmission,
         },
       });
       enqueueSnackbar(
@@ -315,7 +320,7 @@ export default function IncidentFormStepper({
   };
 
   // Function to check if a specific step is valid
-  const validateStep = async (step: number): Promise<boolean> => {
+  const validateStep = useCallback(async (step: number): Promise<boolean> => {
     let stepFields: any[] = [];
     
     if (step === 0) {
@@ -373,10 +378,10 @@ export default function IncidentFormStepper({
     }
     
     return trigger(stepFields);
-  };
+  }, [getValues, trigger]);
 
   // Check all steps up to the current one when changing steps
-  const updateValidationState = async (newStep: number) => {
+  const updateValidationState = useCallback(async (newStep: number) => {
     const newValidationState = [...validationState];
     
     for (let i = 0; i < newStep; i += 1) {
@@ -384,7 +389,7 @@ export default function IncidentFormStepper({
     }
     
     setValidationState(newValidationState);
-  };
+  }, [validateStep, validationState]);
 
   const handleNext = async () => {
     const isStepValid = await validateStep(activeStep);
@@ -403,11 +408,11 @@ export default function IncidentFormStepper({
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleStepClick = (clickedStep: number) => {
+  const handleStepClick = useCallback((clickedStep: number) => {
     setActiveStep(clickedStep);
     // When clicking on a step, validate the current step
     updateValidationState(clickedStep);
-  };
+  }, [updateValidationState]);
 
   const handleReset = () => {
     setActiveStep(0);
@@ -415,7 +420,7 @@ export default function IncidentFormStepper({
   };
 
   // Handle selecting an in-progress submission
-  const handleSelectSubmission = (submission: any) => {
+  const handleSelectSubmission = useCallback((submission: any, skipNotification: boolean = false) => {
     // Helper function to convert numeric hours to H:MM format
     const formatHours = (hours: number): string => {
       const h = Math.floor(hours);
@@ -445,20 +450,28 @@ export default function IncidentFormStepper({
     // Resume step
     setActiveStep(submission.step);
     
-    // Set validation state based on submission data
-    updateValidationState(submission.step);
+    // Set validation state based on submission data - use a simple approach to avoid loops
+    setValidationState(prev => {
+      const newState = [...prev];
+      // Mark steps up to the submission step as valid since they have data
+      for (let i = 0; i <= submission.step; i += 1) {
+        newState[i] = true;
+      }
+      return newState;
+    });
     
+    if (skipNotification) return;
     // Show notification
     enqueueSnackbar('Previous submission loaded', { 
       variant: 'success', 
       autoHideDuration: 3000 
     });
-  };
+  }, [enqueueSnackbar, methods]);
 
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <OperationalPeriodStep event={event} />;
+        return <OperationalPeriodStep event={event} inputSubmission={inputSubmission} />;
       case 1:
         return <TimekeepingStep />;
       case 2:
@@ -475,6 +488,12 @@ export default function IncidentFormStepper({
         return null;
     }
   };
+
+  useEffect(() => {
+    if (inputSubmission) {
+      handleSelectSubmission(inputSubmission, true);
+    }
+  }, [handleSelectSubmission, inputSubmission]);
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -501,7 +520,7 @@ export default function IncidentFormStepper({
           </Box>
         )}
         
-        <Submissions eventId={event.id} onSelectSubmission={handleSelectSubmission} />
+        { !inputSubmission && (<Submissions eventId={event.id} onSelectSubmission={handleSelectSubmission} />) }
         
         <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
           {STEPS.map((label, index) => {
@@ -559,74 +578,80 @@ export default function IncidentFormStepper({
             </Button>
           </Paper>
         )}
+
+        {
+          !inputSubmission && (
+            <Box 
+              sx={{ 
+                mt: 3, 
+                pt: 2, 
+                display: 'flex', 
+                justifyContent: 'flex-end',
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                position: 'sticky',
+                bottom: 0,
+                bgcolor: 'background.paper',
+                zIndex: 1
+              }}
+            >
+              <LoadingButton
+                variant="outlined"
+                onClick={() => {
+                  const data = getValues();
+                  // Remove display fields before submission, keeping only numeric values for backend
+                  const { reviewer, ...otherData } = data;
+                  const submitData = {
+                    ...otherData,
+                    reviewer: reviewer?.id || null, // Use reviewer ID for submission
+                    timekeeping: {
+                      ...otherData.timekeeping,
+                      // Remove display fields - backend only expects numeric values
+                      straightHoursDisplay: undefined,
+                      overtimeHoursDisplay: undefined,
+                      minTimeIn: undefined,
+                    },
+                    vehicleInformation: {
+                      ...otherData.vehicleInformation,
+                      vehicleNumber: otherData.vehicleInformation.hasVehicle === 'yes' ? otherData.vehicleInformation.vehicleNumber : 'N/A',
+                    }
+                  };
+                  
+                  submitIncidentForm({
+                    variables: {
+                      input: omitDeep({
+                        ...submitData,
+                        step: activeStep,
+                        eventId: event.id,
+                      }, ['__typename', 'straightHoursDisplay', 'overtimeHoursDisplay', 'minTimeIn']),
+                      saveOnly: true,
+                      resubmit: false,
+                    },
+                  })
+                    .then(() => {
+                      enqueueSnackbar('Form saved successfully', { 
+                        variant: 'success', 
+                        autoHideDuration: 3000 
+                      });
+                    })
+                    .catch((error) => {
+                      console.error(error);
+                      enqueueSnackbar('Failed to save form', { 
+                        variant: 'error', 
+                        autoHideDuration: 3000 
+                      });
+                    });
+                }}
+                loading={loading}
+                disabled={validationState[0] !== true} // Disabled if Step 1 is not complete
+                startIcon={<Iconify icon="mdi:content-save-outline" />}
+              >
+                Save Progress
+              </LoadingButton>
+            </Box>
+          )
+        }
         
-        <Box 
-          sx={{ 
-            mt: 3, 
-            pt: 2, 
-            display: 'flex', 
-            justifyContent: 'flex-end',
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            position: 'sticky',
-            bottom: 0,
-            bgcolor: 'background.paper',
-            zIndex: 1
-          }}
-        >
-          <LoadingButton
-            variant="outlined"
-            onClick={() => {
-              const data = getValues();
-              // Remove display fields before submission, keeping only numeric values for backend
-              const { reviewer, ...otherData } = data;
-              const submitData = {
-                ...otherData,
-                reviewer: reviewer?.id || null, // Use reviewer ID for submission
-                timekeeping: {
-                  ...otherData.timekeeping,
-                  // Remove display fields - backend only expects numeric values
-                  straightHoursDisplay: undefined,
-                  overtimeHoursDisplay: undefined,
-                  minTimeIn: undefined,
-                },
-                vehicleInformation: {
-                  ...otherData.vehicleInformation,
-                  vehicleNumber: otherData.vehicleInformation.hasVehicle === 'yes' ? otherData.vehicleInformation.vehicleNumber : 'N/A',
-                }
-              };
-              
-              submitIncidentForm({
-                variables: {
-                  input: omitDeep({
-                    ...submitData,
-                    step: activeStep,
-                    eventId: event.id,
-                  }, ['__typename', 'straightHoursDisplay', 'overtimeHoursDisplay', 'minTimeIn']),
-                  saveOnly: true,
-                },
-              })
-                .then(() => {
-                  enqueueSnackbar('Form saved successfully', { 
-                    variant: 'success', 
-                    autoHideDuration: 3000 
-                  });
-                })
-                .catch((error) => {
-                  console.error(error);
-                  enqueueSnackbar('Failed to save form', { 
-                    variant: 'error', 
-                    autoHideDuration: 3000 
-                  });
-                });
-            }}
-            loading={loading}
-            disabled={validationState[0] !== true} // Disabled if Step 1 is not complete
-            startIcon={<Iconify icon="mdi:content-save-outline" />}
-          >
-            Save Progress
-          </LoadingButton>
-        </Box>
       </Paper>
     </FormProvider>
   );

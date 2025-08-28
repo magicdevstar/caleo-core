@@ -8,13 +8,13 @@ import { adminOrOwnerOnly } from '../../../utils/access';
 export const Mutation = {
   incidentForm: async (
     _: unknown,
-    { input, saveOnly }: { input: InputIncidentForm, saveOnly?: boolean },
+    { input, saveOnly, resubmit }: { input: InputIncidentForm, saveOnly?: boolean, resubmit: boolean },
     { user, organization, docusign }: Context,
   ): Promise<IncidentFormResponse> => {
     try {
-      logger.info('Processing incidentForm mutation', { input, saveOnly });
       const res = await docusign.submitIncidentForm({
         saveOnly: !!saveOnly,
+        resubmit,
         incidentForm: {
           ...input,
           modifiedById: user._id!,

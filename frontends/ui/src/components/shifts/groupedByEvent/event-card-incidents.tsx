@@ -13,10 +13,12 @@ import LoadingButton from '@mui/lab/LoadingButton';
 // hooks
 import { useBoolean } from "src/hooks/use-boolean";
 import { useDownloadPdf } from 'src/hooks/use-download-pdf';
+import { useRouter } from 'src/routes/hooks';
 // components
 import GQLTable from "src/components/table/gql/table";
 import Iconify from "src/components/iconify";
 // types
+import { paths } from 'src/routes/paths';
 import { IncidentForm } from "src/__generated__/resolvers-types";
 import { TableConfig } from "src/components/table/table-config";
 import { GET_INCIDENT_SUBMISSIONS } from 'src/api/incidentForm';
@@ -29,6 +31,7 @@ interface Props {
 
 export function EventCardIncidents({ incidents }: Props) {
   const { enqueueSnackbar } = useSnackbar();
+  const router = useRouter();
   const downloadLoading = useBoolean<IncidentForm>();
   const menuOpen = useBoolean<IncidentForm>();
   const activityDialogOpen = useBoolean<IncidentForm>();
@@ -172,15 +175,15 @@ export function EventCardIncidents({ incidents }: Props) {
         }}
       >
         <MenuItem
-          disabled
           onClick={() => {
+            router.push(`${paths.dashboard.incidents.form.replace(':id', menuOpen.attribute?.event?.id || '')}?submissionId=${menuOpen.attribute?.id}`);
             menuOpen.onFalse();
           }}
         >
           <ListItemIcon>
             <Iconify icon="solar:pen-2-bold-duotone" />
           </ListItemIcon>
-          <ListItemText>Modify Submission (COMING SOON)</ListItemText>
+          <ListItemText>Modify Submission</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={() => {

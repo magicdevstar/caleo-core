@@ -787,6 +787,7 @@ export type IncidentForm = {
   operationalPeriod: OperationalPeriod;
   org: Organization;
   orgId: Scalars['ObjectId']['output'];
+  pastEnvelopeIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
   reviewer?: Maybe<Scalars['ObjectId']['output']>;
   reviewerUser?: Maybe<OutsideUser>;
@@ -1297,6 +1298,7 @@ export type MutationImpersonateUserArgs = {
 
 export type MutationIncidentFormArgs = {
   input: IIncidentForm;
+  resubmit?: InputMaybe<Scalars['Boolean']['input']>;
   saveOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -1890,6 +1892,7 @@ export type Query = {
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
   inAppNotifications?: Maybe<InAppNotificationSearchResult>;
+  incidentForm?: Maybe<IncidentForm>;
   incidentForms?: Maybe<IncidentFormSearchResult>;
   lotteryCounter?: Maybe<LotteryCounter>;
   lotteryCounters?: Maybe<LotteryCounterSearchResult>;
@@ -2015,6 +2018,11 @@ export type QueryGroupedShiftsArgs = {
 
 export type QueryInAppNotificationsArgs = {
   input?: InputMaybe<InAppNotificationSearchInput>;
+};
+
+
+export type QueryIncidentFormArgs = {
+  id: Scalars['ObjectId']['input'];
 };
 
 
@@ -4319,6 +4327,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   operationalPeriod?: Resolver<ResolversTypes['OperationalPeriod'], ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  pastEnvelopeIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reviewer?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   reviewerUser?: Resolver<Maybe<ResolversTypes['OutsideUser']>, ParentType, ContextType>;
@@ -4860,6 +4869,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inAppNotifications?: Resolver<Maybe<ResolversTypes['InAppNotificationSearchResult']>, ParentType, ContextType, Partial<QueryInAppNotificationsArgs>>;
+  incidentForm?: Resolver<Maybe<ResolversTypes['IncidentForm']>, ParentType, ContextType, RequireFields<QueryIncidentFormArgs, 'id'>>;
   incidentForms?: Resolver<Maybe<ResolversTypes['IncidentFormSearchResult']>, ParentType, ContextType, Partial<QueryIncidentFormsArgs>>;
   lotteryCounter?: Resolver<Maybe<ResolversTypes['LotteryCounter']>, ParentType, ContextType, Partial<QueryLotteryCounterArgs>>;
   lotteryCounters?: Resolver<Maybe<ResolversTypes['LotteryCounterSearchResult']>, ParentType, ContextType, Partial<QueryLotteryCountersArgs>>;

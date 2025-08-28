@@ -1,17 +1,20 @@
 import { useMemo } from 'react';
+import { useQueryParam } from 'use-query-params';
 import { Container } from '@mui/material';
 import { useParams } from 'react-router';
 import { useQuery } from '@apollo/client';
 import { GET_EVENT } from 'src/api/event';
+import { GET_INCIDENT_SUBMISSION } from 'src/api/incidentForm';
 import { useAuthContext } from 'src/auth/hooks';
 import QueryView from 'src/components/query-view';
-import { Event } from 'src/__generated__/resolvers-types';
+import { Event, IncidentForm as IIncidentForm } from 'src/__generated__/resolvers-types';
 
 import IncidentFormStepper from './incident-form-stepper';
 import { NotSkilled } from './not-skilled';
 
 export default function IncidentForm() {
   const params = useParams();
+  const [submissionId] = useQueryParam('submissionId');
   const { user } = useAuthContext();
   const { data, refetch, loading, error } = useQuery(GET_EVENT, {
     fetchPolicy: 'network-only', // Used for first execution
@@ -19,6 +22,12 @@ export default function IncidentForm() {
     variables: {
       id: params.id,
     },
+  });
+  const { data: submissionData, loading: submissionLoading } = useQuery<{incidentForm: IIncidentForm}>(GET_INCIDENT_SUBMISSION, {
+    variables: {
+      id: submissionId,
+    },
+    skip: !submissionId,
   });
 
   const hasRequiredSkills = useMemo(() => {
@@ -48,7 +57,7 @@ export default function IncidentForm() {
   return (
     <Container>
       <QueryView
-        loading={loading}
+        loading={loading || submissionLoading}
         error={!!error}
         errorTitle='Failed to Load Event'
         errorDescription='There was an error loading Event details. Please try again.'
@@ -56,7 +65,7 @@ export default function IncidentForm() {
       >
         {
           hasRequiredSkills ? (
-            <IncidentFormStepper event={data?.event} />
+            <IncidentFormStepper event={data?.event} inputSubmission={submissionData?.incidentForm} />
           ) : (
             <NotSkilled />
           )

@@ -57,10 +57,13 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
     }).then((doc) => doc ? { ...doc, id: doc._id!.toHexString() } : null);
   }
 
-  saveEnvelopeId(_id: ObjectId, envelopeId: string) {
+  saveEnvelopeId(_id: ObjectId, envelopeId: string, pastEnvelopeId?: string) {
     return this.collection.updateOne(
       { _id },
-      { $set: { envelopeId, updatedAt: new Date() } },
+      {
+        $set: { envelopeId, updatedAt: new Date() },
+        ...(pastEnvelopeId ? { $addToSet: { pastEnvelopeIds: pastEnvelopeId } } : {}),
+      },
     );
   }
 
@@ -96,7 +99,17 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
 
   findByEnvelopeId(envelopeId: string) {
     return this.collection.findOne<IIncidentForm>({
-      envelopeId,
+      $or: [
+        { envelopeId },
+        { pastEnvelopeIds: envelopeId },
+      ],
+    }).then((doc) => doc ? { ...doc, id: doc._id!.toHexString() } : null);
+  }
+
+  findUserSubmission(userId: ObjectId, id: ObjectId) {
+    return this.collection.findOne<IIncidentForm>({
+      _id: id,
+      userId,
     }).then((doc) => doc ? { ...doc, id: doc._id!.toHexString() } : null);
   }
 };

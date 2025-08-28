@@ -34,7 +34,7 @@ export const paths = {
     upcomingOvertime: `${ROOTS.DASHBOARD}/upcoming/overtime`,
     rankOvertime: `${ROOTS.DASHBOARD}/rank/overtime`,
     incidents: {
-      form: `${ROOTS.DASHBOARD}/incidents/:id/form`,
+      form: `${ROOTS.DASHBOARD}/incident/:id/form`,
     },
     user: {
       root: `${ROOTS.DASHBOARD}/user`,

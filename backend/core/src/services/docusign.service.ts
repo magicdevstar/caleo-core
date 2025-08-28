@@ -194,7 +194,7 @@ export class Docusign {
     });
 
     // Save user action event if completed or void
-    if (['completed', 'voided'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
+    if (['completed'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
       await this.eventUserActions.createItem({
         userId: userId,
         eventId: eventId,
@@ -603,11 +603,13 @@ export class Docusign {
 
   async submitIncidentForm({
     saveOnly,
+    resubmit,
     incidentForm,
     org,
     user,
   }: {
     saveOnly: boolean;
+    resubmit: boolean;
     incidentForm: InputIncidentForm;
     org: IOrganization;
     user: IUser;
@@ -617,10 +619,34 @@ export class Docusign {
       ...(!saveOnly && { submittedDate: toZonedTime(new Date(), org.timezone || 'America/Los_Angeles') })
     });
     if (!saveOnly) {
-      const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
-      if (existing && existing?._id?.toHexString() !== savedForm.id && !['voided', 'declined'].includes(existing?.docusignEvent?.status)) {
-        throw new Error('An incident form already exists for this event and date');
+      let pastEnvelopeId;
+      if (!resubmit) {
+        const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
+        if (existing && existing?._id?.toHexString() !== savedForm.id && !['voided', 'declined'].includes(existing?.docusignEvent?.status)) {
+          throw new Error('An incident form already exists for this event and date');
+        }
+      } else {
+        const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
+        if (!existing) {
+          throw new Error('Could not find existing submission to resubmit');
+        }
+        pastEnvelopeId = existing.envelopeId;
+        await this.docusign.voidEnvelope({
+          envelopeId: existing.envelopeId!,
+          currentStatus: existing.docusignEvent?.status || 'unknown',
+          org,
+        });
+        await this.eventUserActions.createItem({
+          userId: user._id!,
+          eventId: existing.eventId,
+          incidentFormId: new ObjectId(savedForm.id),
+          source: EventUserActionLogSource.Docusign,
+          modifiedById: user._id!,
+          timestamp: new Date(),
+          action: EventUserActionLogAction.Voided,
+        });
       }
+
       const event = await this.events.get(incidentForm.eventId);
       if (!event) {
         throw new Error('Event not found');
@@ -674,7 +700,7 @@ export class Docusign {
       const res: IGenerateFormResponse = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload!));
   
       // Save to mongo
-      this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId);
+      this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId, pastEnvelopeId);
 
       await this.eventUserActions.createItem({
         userId: user._id!,

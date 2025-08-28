@@ -151,7 +151,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       envAPI = newEnvAPI;
       tokenRecord = newTokenRecord;
     }
-    await envAPI.update(tokenRecord.accountId, envelopeId!, {
+    return envAPI.update(tokenRecord.accountId, envelopeId!, {
       envelope: {
         status: 'voided',
         voidedReason: 'Resubmitting the envelope',

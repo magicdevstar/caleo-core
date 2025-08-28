@@ -46,6 +46,7 @@ const getLabelColor = (action: EventUserActionLogAction) => {
     case EventUserActionLogAction.Relinquished:
     case EventUserActionLogAction.Removed:
     case EventUserActionLogAction.Unassigned:
+    case EventUserActionLogAction.Voided:
       return 'error';
     case EventUserActionLogAction.CheckIn:
     case EventUserActionLogAction.CheckOut:

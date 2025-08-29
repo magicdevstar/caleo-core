@@ -12,9 +12,13 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: 'Stage to deploy to - for example, "dev" or "prod"'
+        type: choice
+        description: 'Select the target environment'
         required: true
-        default: 'dev'      
+        options:
+          - 'dev'
+          - 'prod'
+        default: 'dev'
 defaults:
   run:
     working-directory: ./frontends/admin
@@ -23,6 +27,7 @@ jobs:
   deploy:
     name: Deploy service
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -380,15 +380,19 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
           <ListItemText>View Assignment Notes</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => {
-          menuOpen.onFalse();
-          activityDialogOpen.onTrue(menuOpen.attribute)
-        }}>
-          <ListItemIcon>
-            <Iconify icon="solar:history-bold" />
-          </ListItemIcon>
-          <ListItemText>View Activity</ListItemText>
-        </MenuItem>
+        {
+          myOvertime || ['Assigned', 'Past'].includes(menuOpen.attribute?.prefixText || '') ? (
+            <MenuItem onClick={() => {
+              menuOpen.onFalse();
+              activityDialogOpen.onTrue(menuOpen.attribute)
+            }}>
+              <ListItemIcon>
+                <Iconify icon="solar:history-bold" />
+              </ListItemIcon>
+              <ListItemText>View Activity</ListItemText>
+            </MenuItem>
+          ) : null
+        }
       </Menu>
 
       <AssignmentNotes 

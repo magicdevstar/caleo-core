@@ -67,6 +67,7 @@ module "domains" {
   zone_name = each.value
 }
 
+# DELETE ME FOR SST :)
 module "amplify_domains" {
   source  = "../../modules/amplify-domain"
   app_id  = local.amplify_id

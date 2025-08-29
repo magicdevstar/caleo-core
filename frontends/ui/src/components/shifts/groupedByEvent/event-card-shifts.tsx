@@ -256,7 +256,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         columnType: 'string',
         width: '35%',
       },
-      (shifts?.[0] as Shift)?.otherShiftSlots ? {
+      ...(shifts?.[0] as Shift)?.otherShiftSlots ? [{
         id: 'otherShiftSlots',
         label: 'Remaining Slots',
         columnType: 'string',
@@ -265,7 +265,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
           if (slot.user?.id) return acc;
           return acc + 1;
         }, 0)
-      } as any : null,
+      }] as any : [],
       {
         id: 'assignment.requiredEquipment',
         label: 'Required Equipment',

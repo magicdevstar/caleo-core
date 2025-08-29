@@ -5,10 +5,6 @@
 
 declare module "sst" {
   export interface Resource {
-    "CaleoCoreUI": {
-      "type": "sst.aws.React"
-      "url": string
-    }
     "CoreUI": {
       "type": "sst.aws.StaticSite"
       "url": string

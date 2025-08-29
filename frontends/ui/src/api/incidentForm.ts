@@ -162,6 +162,7 @@ export const GET_SUBMITTED_INCIDENT_SUBMISSIONS = gql`
         id
         step
         status
+        userId
         operationalPeriod {
           date
         }

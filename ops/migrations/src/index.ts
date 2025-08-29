@@ -33,6 +33,7 @@ import { importEquipment } from './utils/import-equipment';
 import { importSkills } from "./utils/import-skills";
 import { correctEmails } from "./utils/correct-emails";
 import { importUnitsAndDivisions } from "./utils/import-units-and-divisions";
+import { activityMigrations } from "./utils/activity-migration";
 // import { wtf } from './utils/wtf';
 
 (async () => {
@@ -51,9 +52,11 @@ import { importUnitsAndDivisions } from "./utils/import-units-and-divisions";
     // await importSkills(mongoClientProd);
     // await importEquipment(mongoClientProd);
     // await importRank(mongoClientProd);
+
+    await activityMigrations(mongoClientProd);
     
     // await analysisLotto58(mongoClientProd);
-    await fixShiftAvailability(mongoClientProd);
+    // await fixShiftAvailability(mongoClientProd);
     // await lottoAnalysis(mongoClientProd, 57);
     // await removeOldShifts(mongoClientProd);
     // await migrateCollectionToV2(mongoClient.collection('memberNotifications'));

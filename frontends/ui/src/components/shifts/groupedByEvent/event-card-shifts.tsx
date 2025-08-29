@@ -261,7 +261,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         label: 'Remaining Slots',
         columnType: 'string',
         width: '10%',
-        renderValue: (v: Shift[]) => v.reduce((acc, slot) => {
+        renderValue: (v: Shift[]) => (v || [] as Shift[]).reduce((acc, slot) => {
           if (slot.user?.id) return acc;
           return acc + 1;
         }, 0)
@@ -380,19 +380,15 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
           <ListItemText>View Assignment Notes</ListItemText>
         </MenuItem>
 
-        {
-          myOvertime || ['Assigned', 'Past'].includes(menuOpen.attribute?.prefixText || '') ? (
-            <MenuItem onClick={() => {
-              menuOpen.onFalse();
-              activityDialogOpen.onTrue(menuOpen.attribute)
-            }}>
-              <ListItemIcon>
-                <Iconify icon="solar:history-bold" />
-              </ListItemIcon>
-              <ListItemText>View Activity</ListItemText>
-            </MenuItem>
-          ) : null
-        }
+        <MenuItem onClick={() => {
+          menuOpen.onFalse();
+          activityDialogOpen.onTrue(menuOpen.attribute)
+        }}>
+          <ListItemIcon>
+            <Iconify icon="solar:history-bold" />
+          </ListItemIcon>
+          <ListItemText>View Activity</ListItemText>
+        </MenuItem>
       </Menu>
 
       <AssignmentNotes 

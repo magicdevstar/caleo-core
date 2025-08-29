@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "frontends/ui/**"
+      - "frontends/admin/**"
       - ".github/workflows/admin.ui.yml"
   workflow_dispatch:
     inputs:

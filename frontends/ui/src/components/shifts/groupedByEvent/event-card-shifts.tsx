@@ -254,8 +254,18 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         id: 'assignment.name',
         label: 'Name',
         columnType: 'string',
-        width: '40%',
+        width: '35%',
       },
+      (shifts?.[0] as Shift)?.otherShiftSlots ? {
+        id: 'otherShiftSlots',
+        label: 'Remaining Slots',
+        columnType: 'string',
+        width: '10%',
+        renderValue: (v: Shift[]) => v.reduce((acc, slot) => {
+          if (slot.user?.id) return acc;
+          return acc + 1;
+        }, 0)
+      } as any : null,
       {
         id: 'assignment.requiredEquipment',
         label: 'Required Equipment',
@@ -267,7 +277,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
       },
       {
         id: '',
-        width: '20%',
+        width: '10%',
         columnType: 'action',
         label: '',
         renderValue: (_v, _i, shift) => {

@@ -48,3 +48,13 @@ jobs:
 
       - name: SST Deploy - ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
         run: yarn deploy --stage=${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }};
+        env:
+          REACT_APP_HOST_API: ${{ vars.REACT_APP_HOST_API }}
+          REACT_APP_ASSETS_API: ${{ vars.REACT_APP_ASSETS_API }}
+          REACT_APP_MAPBOX_API: ${{ vars.REACT_APP_MAPBOX_API }}
+          REACT_APP_APOLLO_API: ${{ vars.REACT_APP_APOLLO_API }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_ID: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_ID }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID }}
+          REACT_APP_AWS_AMPLIFY_REGION: ${{ vars.REACT_APP_AWS_AMPLIFY_REGION }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN }}
+          REACT_APP_VAPID_PUBLIC_KEY: ${{ vars.REACT_APP_VAPID_PUBLIC_KEY }}

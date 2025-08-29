@@ -203,7 +203,7 @@ export class ShiftModel extends BaseMongo<IShift> {
 
     return groupKeys
       .map((key) =>
-        groupedByShiftId[key]
+        (groupedByShiftId[key] || [])
           .map((item, index) => ({
             ...item,
             order: index + 1,

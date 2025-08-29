@@ -337,6 +337,7 @@ export const GET_ACTIVITY = gql`
       items {
         id
         startTime
+        shiftId
         endTime
         status
         shiftId

@@ -38,7 +38,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ github.event.inputs.stage == 'prod' && '707495320920' || '955644676078' }}:role/GithubActionsDeploymentRole
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile

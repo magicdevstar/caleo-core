@@ -1,14 +1,63 @@
-name: UI Deploy
-
+name: Core UI Deploy
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
 on:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "frontends/ui/**"
+  #     - ".github/workflows/ui.yml"
   workflow_dispatch:
+    inputs:
+      stage:
+        type: choice
+        description: 'Select the target environment'
+        required: true
+        options:
+          - 'dev'
+          - 'prod'
+        default: 'dev'
+defaults:
+  run:
+    working-directory: ./frontends/ui
 
 jobs:
   deploy:
-    name: Deploy UI
+    name: Deploy service
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
     steps:
       - uses: actions/checkout@v4
-      - name: Trigger UI Deploy
-        run: |
-          curl -X POST -d {} "https://webhooks.amplify.us-west-2.amazonaws.com/prod/webhooks?id=2f7c39f4-9867-43b3-b5b5-9ba3252f9caf&token=JQ4Gkms7Vn8sN5A2KpH5TN6x1y0k5LPydHo1u52XV2c&operation=startbuild" -H "Content-Type:application/json"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'yarn'
+          cache-dependency-path: |
+            **/yarn.lock
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ github.event.inputs.stage == 'prod' && '707495320920' || '955644676078' }}:role/GithubActionsDeploymentRole
+          aws-region: us-west-2
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: SST Deploy - ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
+        run: yarn deploy --stage=${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }};
+        env:
+          AWS_REGION: us-west-2
+          REACT_APP_HOST_API: ${{ vars.REACT_APP_HOST_API }}
+          REACT_APP_ASSETS_API: ${{ vars.REACT_APP_ASSETS_API }}
+          REACT_APP_MAPBOX_API: ${{ vars.REACT_APP_MAPBOX_API }}
+          REACT_APP_APOLLO_API: ${{ vars.REACT_APP_APOLLO_API }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_ID: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_ID }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_WEB_CLIENT_ID }}
+          REACT_APP_AWS_AMPLIFY_REGION: ${{ vars.REACT_APP_AWS_AMPLIFY_REGION }}
+          REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN: ${{ vars.REACT_APP_AWS_AMPLIFY_USER_POOL_DOMAIN }}
+          REACT_APP_VAPID_PUBLIC_KEY: ${{ vars.REACT_APP_VAPID_PUBLIC_KEY }}
+          DOMAIN_NAME: ${{ vars.ADMIN_DOMAIN_NAME }}
+          DOMAIN_ALIASES: ${{ vars.DOMAIN_ALIASES }}

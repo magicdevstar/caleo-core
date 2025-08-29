@@ -14,9 +14,13 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: 'Stage to deploy to - for example, "dev" or "prod"'
+        type: choice
+        description: 'Select the target environment'
         required: true
-        default: 'dev'      
+        options:
+          - 'dev'
+          - 'prod'
+        default: 'dev'
 defaults:
   run:
     working-directory: ./backend/core

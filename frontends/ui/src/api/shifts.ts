@@ -345,6 +345,7 @@ export const GET_ACTIVITY = gql`
         userId
         locked
         callSign
+        userId
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -845,6 +846,7 @@ export const USER_SHIFT_INTEREST_REQUESTS = gql`
         assignmentId
         status
         createdAt
+        userId
 
         shift {
           id

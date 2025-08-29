@@ -209,6 +209,7 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
         id
         step
         status
+        userId
         operationalPeriod {
           date
         }

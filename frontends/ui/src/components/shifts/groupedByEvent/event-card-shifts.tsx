@@ -59,7 +59,7 @@ const myOvertimeButtonInfo = (shift: CombinedShift) => {
   if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
     return {
       icon: 'mdi:close-thick',
-      title: capitalize(shift.status),
+      title: shift.status === ShiftStatus.Relinquished ? 'Scratched' : capitalize(shift.status),
       disabled: false,
     };
   }
@@ -226,7 +226,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         columnType: 'string',
         renderValue: (_v: any, _i: any, shift: any) => {
           if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
-            return capitalize(shift.status);
+            return shift.status === ShiftStatus.Relinquished ? 'Scratched' : capitalize(shift.status);
           }
           if ((myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) && shift.prefixText !== 'UnfulfilledInterestRequest') {
             return 'Assigned';
@@ -235,7 +235,7 @@ export function EventCardShifts({ shifts, isUpcoming = false, myOvertime = false
         },
         getLabelColor: (shift: any) => {
           if ([ShiftStatus.Relinquished, ShiftStatus.Unassigned, ShiftStatus.Removed].includes(shift.status as ShiftStatus)) {
-            return 'default';
+            return 'error';
           }
           if ((myOvertime || ['Assigned', 'Past'].includes(shift.prefixText || '')) && shift.prefixText !== 'UnfulfilledInterestRequest') {
             return 'success';

@@ -30,6 +30,7 @@ export class EventUserActionService {
     shiftGroupId,
     incidentFormId,
     source,
+    actionId,
     modifiedById,
     timestamp,
     action,
@@ -48,6 +49,7 @@ export class EventUserActionService {
     timestamp?: Date;
     action: EventUserActionLogAction;
     notes?: string;
+    actionId?: string;
   }) {
     await this.eventUserAction.create({
       userId,
@@ -59,7 +61,8 @@ export class EventUserActionService {
       modifiedById,
       timestamp,
       action,
-      notes
+      notes,
+      actionId,
     } as any);
   }
 

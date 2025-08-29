@@ -70,6 +70,7 @@ export const Mutation = {
       await docusign.resubmitEndOfShiftEnvelope({
         shift: response,
         organization: organization!,
+        modifiedBy: user,
       });
       await notificationService.shiftCheckInOutNotification({
         organization: organization!,
@@ -188,16 +189,6 @@ export const Mutation = {
       timestamp: updatedShift!.shiftCheckInOut?.checkOutTime || new Date(),
       action: EventUserActionLogAction.CheckOut,
       notes: checkOutNote,
-    });
-
-    await eventUserActions.createItem({
-      userId: updatedShift!.userId!,
-      eventId: updatedShift!.eventId,
-      shiftGroupId: updatedShift!.shiftId,
-      source: EventUserActionLogSource.Docusign,
-      modifiedById: user._id!,
-      timestamp: new Date((updatedShift!.shiftCheckInOut?.checkOutTime || new Date()).getTime() + 1),
-      action: EventUserActionLogAction.Submitted,
     });
 
     return {

@@ -533,6 +533,8 @@ export const GET_USER_SHIFT_ACTIVITY = gql`
         shiftGroupId
         incidentFormId
 
+        actionId
+
         source        
         modifiedBy {
           id

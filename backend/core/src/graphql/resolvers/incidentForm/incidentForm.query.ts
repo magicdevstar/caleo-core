@@ -22,8 +22,8 @@ export const Query = {
     { user, incidentSubmissionModel }: Context
   ): Promise<SearchResults<IIncidentForm>> => {
     let userId = user?._id;
-    if (report && userIsAdmin(user)) {
-      userId = input.userId;
+    if (userIsAdmin(user)) {
+      userId = input.userId || user?._id;
       if (submittedDate) {
         (input as any).submittedDate = {
           $lte: submittedDate.lte,

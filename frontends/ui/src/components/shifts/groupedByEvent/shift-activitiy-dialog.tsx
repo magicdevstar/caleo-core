@@ -47,6 +47,7 @@ const getLabelColor = (action: EventUserActionLogAction) => {
     case EventUserActionLogAction.Removed:
     case EventUserActionLogAction.Unassigned:
     case EventUserActionLogAction.Voided:
+      case EventUserActionLogAction.Declined:
       return 'error';
     case EventUserActionLogAction.CheckIn:
     case EventUserActionLogAction.CheckOut:
@@ -102,6 +103,13 @@ export function ShiftActivityDialog({ opener, userId, entityId, entityKey }: Pro
             <Typography variant="body2" color="text.secondary">
               Completed by: {activity.modifiedBy?.name || 'Unknown'}
             </Typography>
+            {
+              activity.actionId && (
+                <Typography variant="body2" color="text.secondary">
+                  ID: {activity.actionId}
+                </Typography>
+              )
+            }
             {activity.notes && (
               <Typography variant="body2" color="text.secondary">
                 Notes: {activity.notes}

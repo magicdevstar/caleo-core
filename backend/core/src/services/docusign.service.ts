@@ -109,13 +109,17 @@ export class Docusign {
     status,
     envelopeId,
     signers,
+    voidedReason,
+    createdDateTime,
   }: {
     incident?: IncidentForm;
     shiftId?: string;
     eventId?: string;
     status: string;
     envelopeId: string;
-    signers: Signer[]
+    signers: Signer[];
+    voidedReason?: string;
+    createdDateTime: string;
   }) {
     let orgId: ObjectId;
     let eventId: ObjectId;
@@ -193,16 +197,47 @@ export class Docusign {
       }),
     });
 
-    // Save user action event if completed or void
-    if (['completed', 'voided'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
+    if (!previousStatus?.status) {
       await this.eventUserActions.createItem({
         userId: userId,
         eventId: eventId,
         [eventUserActionKey]: eventUserActionValue,
         source: EventUserActionLogSource.Docusign,
+        actionId: envelopeId,
+        modifiedById: userId,
+        timestamp: new Date(createdDateTime),
+        action: EventUserActionLogAction.Submitted,
+      });
+    }
+    
+    if (['completed', 'declined', 'voided'].includes(status.toLowerCase()) && previousStatus?.status !== status) {
+      let action = EventUserActionLogAction.Completed;
+      let notes: string | undefined;
+      if (status.toLowerCase() === 'declined') {
+        action = EventUserActionLogAction.Declined;
+        for(const signer of signers) {
+          if (signer.declinedReason) {
+            notes = signer.declinedReason;
+            break;
+          }
+        }
+      }
+
+      if (status.toLowerCase() === 'voided') {
+        action = EventUserActionLogAction.Voided;
+        notes = voidedReason;
+      }
+
+      await this.eventUserActions.createItem({
+        userId: userId,
+        eventId: eventId,
+        [eventUserActionKey]: eventUserActionValue,
+        source: EventUserActionLogSource.Docusign,
+        actionId: envelopeId,
         modifiedById: userId,
         timestamp: new Date(),
-        action: status.toLowerCase() === 'completed' ? EventUserActionLogAction.Completed : EventUserActionLogAction.Voided,
+        notes,
+        action,
       });
     }
 
@@ -378,7 +413,9 @@ export class Docusign {
   async resubmitEndOfShiftEnvelope({
     shift,
     organization,
+    modifiedBy,
   }: {
+    modifiedBy: IUser;
     shift: IShift | null;
     organization: IOrganization;
   }) {
@@ -618,6 +655,17 @@ export class Docusign {
       ...incidentForm,
       ...(!saveOnly && { submittedDate: toZonedTime(new Date(), org.timezone || 'America/Los_Angeles') })
     });
+    if (!incidentForm.id) {
+      await this.eventUserActions.createItem({
+        userId: user._id!,
+        eventId: incidentForm.eventId,
+        incidentFormId: savedForm._id!,
+        source: EventUserActionLogSource.IncidentSubmission,
+        modifiedById: user._id!,
+        timestamp: new Date(),
+        action: EventUserActionLogAction.Drafted,
+      });
+    }
     if (!saveOnly) {
       let pastEnvelopeId;
       if (!resubmit) {
@@ -692,16 +740,6 @@ export class Docusign {
   
       // Save to mongo
       this.incidentSubmission.saveEnvelopeId(new ObjectId(savedForm.id), res.envelopeId, pastEnvelopeId);
-
-      await this.eventUserActions.createItem({
-        userId: user._id!,
-        eventId: event._id!,
-        incidentFormId: new ObjectId(savedForm.id),
-        source: EventUserActionLogSource.Docusign,
-        modifiedById: user._id!,
-        timestamp: new Date(),
-        action: EventUserActionLogAction.Submitted,
-      });
   
       return {
         ...res,

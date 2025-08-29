@@ -64,6 +64,8 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
         status: webhookData.data.envelopeSummary.status,
         envelopeId: webhookData.data.envelopeId,
         signers: webhookData.data.envelopeSummary.recipients.signers,
+        createdDateTime: webhookData.data.envelopeSummary.createdDateTime,
+        voidedReason: (webhookData.data.envelopeSummary as any).voidedReason,
       });
 
       return {
@@ -101,6 +103,8 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
       status: webhookData.data.envelopeSummary.status,
       envelopeId: webhookData.data.envelopeId,
       signers: webhookData.data.envelopeSummary.recipients.signers,
+      voidedReason: (webhookData.data.envelopeSummary as any).voidedReason,
+      createdDateTime: webhookData.data.envelopeSummary.createdDateTime,
     });
 
     return {

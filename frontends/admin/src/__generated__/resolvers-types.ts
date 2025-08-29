@@ -565,6 +565,7 @@ export enum EventStatus {
 export type EventUserAction = {
   __typename?: 'EventUserAction';
   action: EventUserActionLogAction;
+  actionId?: Maybe<Scalars['String']['output']>;
   actionType: EventUserActionType;
   createdAt: Scalars['DateTime']['output'];
   event: Event;
@@ -593,6 +594,8 @@ export enum EventUserActionLogAction {
   CheckIn = 'CHECK_IN',
   CheckOut = 'CHECK_OUT',
   Completed = 'COMPLETED',
+  Declined = 'DECLINED',
+  Drafted = 'DRAFTED',
   Rejected = 'REJECTED',
   Relinquished = 'RELINQUISHED',
   Removed = 'REMOVED',
@@ -603,6 +606,7 @@ export enum EventUserActionLogAction {
 
 export enum EventUserActionLogSource {
   Docusign = 'DOCUSIGN',
+  IncidentSubmission = 'INCIDENT_SUBMISSION',
   InterestRequest = 'INTEREST_REQUEST',
   Shift = 'SHIFT'
 }
@@ -4233,6 +4237,7 @@ export type EventSearchResultResolvers<ContextType = any, ParentType extends Res
 
 export type EventUserActionResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventUserAction'] = ResolversParentTypes['EventUserAction']> = ResolversObject<{
   action?: Resolver<ResolversTypes['EventUserActionLogAction'], ParentType, ContextType>;
+  actionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   actionType?: Resolver<ResolversTypes['EventUserActionType'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;

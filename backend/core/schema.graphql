@@ -783,6 +783,7 @@
     timestamp: DateTime!
     action: EventUserActionLogAction!
     notes: String
+    actionId: String
 
     user: User!
     modifiedBy: User
@@ -795,6 +796,7 @@
 
   enum EventUserActionLogSource {
     INTEREST_REQUEST
+    INCIDENT_SUBMISSION
     SHIFT
     DOCUSIGN
   }
@@ -814,10 +816,14 @@
     CHECK_IN
     CHECK_OUT
 
+    # Incident actions
+    DRAFTED
+
     # Docusign actions
     # SUBMITTED COMMENTED OUT BECAUSE WE ALREADY HAVE A REMOVED ACTION
     COMPLETED
     VOIDED
+    DECLINED
   }
 
   # Normalized shift between an incident and a regular shift

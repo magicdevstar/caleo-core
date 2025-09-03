@@ -4,11 +4,11 @@ permissions:
   contents: write
   pull-requests: write
 on:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "frontends/ui/**"
-  #     - ".github/workflows/ui.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontends/ui/**"
+      - ".github/workflows/ui.yml"
   workflow_dispatch:
     inputs:
       stage:

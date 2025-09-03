@@ -47,10 +47,9 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: SST Deploy - ${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }}
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
         run: yarn deploy --stage=${{ github.event.inputs.stage == '' && 'dev' || github.event.inputs.stage }};
         env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
           AWS_REGION: us-west-2
           REACT_APP_HOST_API: ${{ vars.REACT_APP_HOST_API }}
           REACT_APP_ASSETS_API: ${{ vars.REACT_APP_ASSETS_API }}

@@ -122,8 +122,8 @@ const assignShiftGroup = async ({
         eventUserActionEntries.push(
           {
             userId: new ObjectId(request.userId),
-            eventId: shifts[0].eventId,
-            shiftGroupId: shifts[0].shiftId,
+            eventId: pendingShift.eventId,
+            shiftGroupId: pendingShift.shiftId,
             actionType: EventUserActionType.Shift,
             source: EventUserActionLogSource.InterestRequest,
             modifiedById: new ObjectId(request.userId),
@@ -132,8 +132,8 @@ const assignShiftGroup = async ({
           },
           {
             userId: new ObjectId(request.userId),
-            eventId: shifts[0].eventId,
-            shiftGroupId: shifts[0].shiftId,
+            eventId: pendingShift.eventId,
+            shiftGroupId: pendingShift.shiftId,
             actionType: EventUserActionType.Shift,
             source: EventUserActionLogSource.Shift,
             modifiedById: new ObjectId(request.userId),

@@ -38,6 +38,7 @@ import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
 import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 import { useFeatures } from 'src/hooks/use-features';
 import RHFRankAutocomplete from 'src/components/ranks/rhf-rank';
+import { GeoFenceDefinition } from 'src/components/events/geo-fence-definition';
 import AssignmentShiftsTable from './assignment-shifts-table';
 
 // ----------------------------------------------------------------------
@@ -113,6 +114,8 @@ export default function EditAssignment({
     supervisorAssignment: Yup.object().nullable(),
     lieutenantAssignment: Yup.object().nullable(),
     fieldSupervisorAssignment: Yup.object().nullable(),
+    allowOfficerCheckIn: Yup.boolean().nullable(),
+    geoFence: Yup.array().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -146,6 +149,8 @@ export default function EditAssignment({
       lieutenantAssignment: currentAssignment?.lieutenantAssignment || null,
       fieldSupervisorAssignment: currentAssignment?.fieldSupervisorAssignment || null,
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
+      allowOfficerCheckIn: currentAssignment?.allowOfficerCheckIn || false,
+      geoFence: currentAssignment?.geoFence || null,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
@@ -207,6 +212,8 @@ export default function EditAssignment({
             lieutenantAssignmentId: formData?.lieutenantAssignment?.id,
             fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             isSigningAuthority: formData?.isSigningAuthority,
+            allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
+            geoFence: formData?.geoFence || null,
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
         },
@@ -361,6 +368,8 @@ export default function EditAssignment({
                 <RHFTextField disabled={allDisabled} name="reportingLocation" label="Reporting Location" />
               )
             }
+
+            <GeoFenceDefinition />
 
 
             <Stack direction="row" spacing={2}>

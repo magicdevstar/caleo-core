@@ -131,6 +131,7 @@ export default function CheckInOut({
       </Box>
 
       <CheckInOutConfirm
+        fromKiosk={false}
         confirm={confirm}
         checkInOutConfirm={checkInOutConfirm}
         onSuccess={onSuccess}

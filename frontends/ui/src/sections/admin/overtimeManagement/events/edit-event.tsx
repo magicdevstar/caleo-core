@@ -68,6 +68,7 @@ import FormProvider, {
   RHFDateTimePicker,
   RHFSkillAutocomplete,
 } from 'src/components/hook-form';
+import { GeoFenceDefinition } from 'src/components/events/geo-fence-definition';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
@@ -114,6 +115,8 @@ const NewEventSchema = Yup.object().shape({
   createdById: Yup.string(),
   assignments: Yup.array(),
   requiredSkills: Yup.array(),
+  allowOfficerCheckIn: Yup.boolean().nullable(),
+  geoFence: Yup.array().nullable(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
   outsideOrgCode: Yup.string().nullable(),
   overtimeReasonCode: Yup.string().nullable(),
@@ -152,7 +155,7 @@ export default function EditEvent({
     externalEventRequests,
     lasdEventFields,
     incidentEvents,
-    enabledEventThumbnail,
+    enabledEventThumbnail
   } = useFeatures();
   const [createUploadLink] = useMutation<{eventAttachmentUploadUrl: EventAttachmentUpload}>(EVENT_UPLOAD_URL);
   const [resetThumbnail, { loading: resetThumbnailLoading }] = useMutation(RESET_EVENT_THUMBNAIL, {
@@ -323,6 +326,8 @@ export default function EditEvent({
       requiredSkills: currentEvent?.requiredSkills || [],
       overtimeNarrative: currentEvent?.overtimeNarrative || '',
       thumbnail: currentEvent?.thumbnailUrl || null,
+      allowOfficerCheckIn: currentEvent?.allowOfficerCheckIn || false,
+      geoFence: currentEvent?.geoFence || null,
     }),
     [
       currentEvent,
@@ -519,6 +524,8 @@ export default function EditEvent({
             notes: formData?.notes,
             status: formData?.status,
             ocn: formData?.ocn,
+            geoFence: formData?.geoFence || [],
+            allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             autoAssignInterestList: formData?.autoAssignInterestList,
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
@@ -923,6 +930,8 @@ export default function EditEvent({
                 </Stack>
               </>
             }
+
+            <GeoFenceDefinition />
 
             { !eventTemplateView && !isIncident && (<RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />) }
           </Stack>

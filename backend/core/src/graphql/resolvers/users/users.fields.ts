@@ -96,5 +96,6 @@ export const fields = {
       logger.info('Member org', { member, result, orgId: member.orgId.toString() });
       return result;
     },
+    allowSelfCheckIn: (member: IMember) => 'allowSelfCheckIn' in member ? member.allowSelfCheckIn : true,
   },
 };

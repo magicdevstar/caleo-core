@@ -90,6 +90,9 @@ export const GET_ASSIGNMENT = gql`
       removedAt
       isSigningAuthority
 
+      geoFence
+      allowOfficerCheckIn
+
       shiftSlots {
         id
         slotCount

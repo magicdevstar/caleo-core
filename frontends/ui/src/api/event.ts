@@ -414,6 +414,9 @@ export const GET_EVENT = gql`
       overtimeNarrative
       thumbnailUrl
 
+      geoFence
+      allowOfficerCheckIn
+
       requestDetails {
         startTime
         endTime

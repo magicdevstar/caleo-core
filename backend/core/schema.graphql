@@ -185,6 +185,7 @@
     maxShifts: Int
     hourlyRate: Float
     incidentHourlyRate: Float
+    allowSelfCheckIn: Boolean
 
     availability: UserAvailability!
     rank: Rank
@@ -415,6 +416,9 @@
     docusignEnvelopeId: String
     docusignEnvelopeStatus: String
 
+    allowOfficerCheckIn: Boolean
+    geoFence: [[Float]]
+
     # For the St Pete Demo. This might move to a different place once we get feedback
     callSign: String @deprecated(reason: "Use the assignments callSign instead!")
 
@@ -516,6 +520,9 @@
     # If the assignment is a signing authority assignment
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
+
+    allowOfficerCheckIn: Boolean
+    geoFence: [[Float]]
     
     createdAt: String!
     updatedAt: String!
@@ -908,6 +915,9 @@
     assignmentIds: [String]!
     createdById: String
 
+    allowOfficerCheckIn: Boolean
+    geoFence: [[Float]]
+
     # LASD specific fields
     ocn: String
     outsideOrgCode: String
@@ -980,6 +990,8 @@
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
     isSigningAuthority: Boolean
+    allowOfficerCheckIn: Boolean
+    geoFence: [[Float]]
   }
 
   input UpsertAssignmentShiftSlot {

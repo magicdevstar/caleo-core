@@ -13,7 +13,7 @@ import { Shift } from 'src/__generated__/resolvers-types';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { UseBooleanReturnType } from "src/hooks/use-boolean"
 import { CHECK_IN, CHECK_OUT, GET_ALL_SHIFTS } from 'src/api/shifts';
-import { getLocation } from 'src/utils/get-location';
+import { getLocation, isWithinPolygon } from 'src/utils/get-location';
 import { client } from 'src/utils/apollo';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
@@ -26,10 +26,12 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function CheckInOutConfirm({
+  fromKiosk,
   checkInOutConfirm,
   confirm,
   onSuccess,
 }: {
+  fromKiosk: boolean;
   checkInOutConfirm: Shift | null;
   confirm: UseBooleanReturnType<unknown>;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
@@ -71,6 +73,18 @@ export default function CheckInOutConfirm({
       }
       setLoading(true);
       const location = await getLocation();
+
+      const coords = shift.assignment?.geoFence || shift.event?.geoFence;
+      const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
+      if (requiresSpecificLocation) {
+        if (!location) {
+          throw new Error('LOCATION_REQUIRED');
+        }
+        if (!isWithinPolygon(coords || [] as any, location)) {
+          throw new Error('LOCATION_NOT_WITHIN_GEOFENCE');
+        }
+      }
+
       const action = isCheckout ? checkOut : checkIn;
       const response = await action({
         variables: {
@@ -112,8 +126,13 @@ export default function CheckInOutConfirm({
         onSuccess?.(isCheckout ? CHECK_IN_OUT_STATUS.CHECKED_OUT : CHECK_IN_OUT_STATUS.CHECKED_IN);
       }
     } catch(error) {
-      enqueueSnackbar(`Failed to ${actionName}. Please try again.`, { variant: 'error' });
-      console.error(error);
+      if (error.message === 'LOCATION_REQUIRED') {
+        enqueueSnackbar(`Failed to ${actionName}. Location is required. Please enable location services.`, { variant: 'error' });
+      } else if (error.message === 'LOCATION_NOT_WITHIN_GEOFENCE') {
+        enqueueSnackbar(`Failed to ${actionName}. Location is not within the geofence. Please get closer to check ${actionName}.`, { variant: 'error' });
+      } else {
+        enqueueSnackbar(`Failed to ${actionName}. Please try again.`, { variant: 'error' });
+      }
     } finally {
       setLoading(false);
     }

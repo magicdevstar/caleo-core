@@ -52,9 +52,15 @@ export const useCheckInOut = ({
     const runningShifts = shifts.filter(({
       startTime,
       endTime,
-      shiftCheckInOut
+      shiftCheckInOut,
+      event,
+      assignment,
     }) => {
-      if (eventCheckIn || eventCheckOut) {
+      if (
+        (user.member.allowSelfCheckIn) &&
+        (eventCheckIn || eventCheckOut) &&
+        (event?.allowOfficerCheckIn || assignment?.allowOfficerCheckIn)
+      ) {
         // Check if the user has completed check-in/out or not
         let complete = true;
         if (eventCheckIn && !shiftCheckInOut?.checkInTime) {

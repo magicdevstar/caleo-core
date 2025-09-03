@@ -58,6 +58,7 @@ export type AllUsersSearchInput = {
 
 export type Assignment = {
   __typename?: 'Assignment';
+  allowOfficerCheckIn?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   bwNeeded: Scalars['Boolean']['output'];
   callSign?: Maybe<Scalars['String']['output']>;
@@ -68,6 +69,7 @@ export type Assignment = {
   eventId: Scalars['String']['output'];
   fieldSupervisorAssignment?: Maybe<Assignment>;
   fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
+  geoFence?: Maybe<Array<Maybe<Array<Maybe<Scalars['Float']['output']>>>>>;
   id: Scalars['ID']['output'];
   isSigningAuthority?: Maybe<Scalars['Boolean']['output']>;
   lieutenant?: Maybe<User>;
@@ -440,6 +442,7 @@ export enum EquipmentStatus {
 
 export type Event = {
   __typename?: 'Event';
+  allowOfficerCheckIn?: Maybe<Scalars['Boolean']['output']>;
   assignmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   assignments?: Maybe<Array<Assignment>>;
   attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -459,6 +462,7 @@ export type Event = {
   endTime?: Maybe<Scalars['String']['output']>;
   fieldSupervisorAssignment?: Maybe<Assignment>;
   fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
+  geoFence?: Maybe<Array<Maybe<Array<Maybe<Scalars['Float']['output']>>>>>;
   id: Scalars['ID']['output'];
   interestListAutoAssignCutoff?: Maybe<Scalars['String']['output']>;
   interestListTransition?: Maybe<EventStatus>;
@@ -973,6 +977,7 @@ export type LottoRequests = {
 export type Member = {
   __typename?: 'Member';
   adminNote?: Maybe<Scalars['String']['output']>;
+  allowSelfCheckIn?: Maybe<Scalars['Boolean']['output']>;
   availability: UserAvailability;
   contactInfo?: Maybe<ContactInfo>;
   deactivationNote?: Maybe<Scalars['String']['output']>;
@@ -2792,11 +2797,13 @@ export type UpsertAfterShiftRemove = {
 };
 
 export type UpsertAssignment = {
+  allowOfficerCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   bwNeeded?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
   fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
+  geoFence?: InputMaybe<Array<InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>>>;
   id?: InputMaybe<Scalars['String']['input']>;
   isSigningAuthority?: InputMaybe<Scalars['Boolean']['input']>;
   lieutenantAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
@@ -2851,6 +2858,7 @@ export type UpsertEquipment = {
 };
 
 export type UpsertEvent = {
+  allowOfficerCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2860,6 +2868,7 @@ export type UpsertEvent = {
   createdById?: InputMaybe<Scalars['String']['input']>;
   endTime?: InputMaybe<Scalars['String']['input']>;
   fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
+  geoFence?: InputMaybe<Array<InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>>>;
   id?: InputMaybe<Scalars['String']['input']>;
   interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
@@ -3901,6 +3910,7 @@ export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends Reso
 }>;
 
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
+  allowOfficerCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3911,6 +3921,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fieldSupervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
   fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  geoFence?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isSigningAuthority?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -4145,6 +4156,7 @@ export type EquipmentSearchResultResolvers<ContextType = any, ParentType extends
 }>;
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
+  allowOfficerCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   assignmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   assignments?: Resolver<Maybe<Array<ResolversTypes['Assignment']>>, ParentType, ContextType>;
   attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -4163,6 +4175,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   endTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fieldSupervisorAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;
   fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  geoFence?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interestListAutoAssignCutoff?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
@@ -4435,6 +4448,7 @@ export type LottoRequestsResolvers<ContextType = any, ParentType extends Resolve
 
 export type MemberResolvers<ContextType = any, ParentType extends ResolversParentTypes['Member'] = ResolversParentTypes['Member']> = ResolversObject<{
   adminNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allowSelfCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availability?: Resolver<ResolversTypes['UserAvailability'], ParentType, ContextType>;
   contactInfo?: Resolver<Maybe<ResolversTypes['ContactInfo']>, ParentType, ContextType>;
   deactivationNote?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

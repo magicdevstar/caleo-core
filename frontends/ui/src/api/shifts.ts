@@ -467,6 +467,8 @@ export const GET_ALL_SHIFTS = gql`
           thumbnailUrl
           startTime
           endTime
+          geoFence
+          allowOfficerCheckIn
           venue {
             id
             name
@@ -489,6 +491,8 @@ export const GET_ALL_SHIFTS = gql`
           callSign
           bwNeeded
           reportingLocation
+          geoFence
+          allowOfficerCheckIn
           requiredEquipment {
             id
             name

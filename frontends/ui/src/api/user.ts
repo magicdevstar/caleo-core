@@ -22,6 +22,7 @@ const userDetailProperties = `
     tenor
     hourlyRate
     incidentHourlyRate
+    allowSelfCheckIn
     org {
       id
       timezone

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 // @mui
 import ListItemText from '@mui/material/ListItemText';
 import Box from '@mui/material/Box';
@@ -9,16 +10,29 @@ import { useFeatures } from 'src/hooks/use-features';
 // components
 import Iconify from 'src/components/iconify';
 import { Shift } from 'src/__generated__/resolvers-types';
+import MapWithPolygon from 'src/components/map/map-bounding-box';
+import { SxProps } from '@mui/system';
+import { Theme } from '@mui/material/styles/createTheme';
 
 // ----------------------------------------------------------------------
 
 export type CheckInOutItemProps = {
   shift: Shift;
+  mapSx?: SxProps<Theme>;
   onClick: (shift: Shift) => void;
 };
 
-export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) {
+export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItemProps) {
   const { eventCheckIn } = useFeatures();
+  const geoDetails = useMemo(() => {
+    const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
+    const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
+
+    return {
+      coords,
+      requiresSpecificLocation,
+    };
+  }, [shift]);
   const isCheckOut = shift.shiftCheckInOut?.checkInTime || !eventCheckIn;
   const action = (
     <Stack
@@ -67,8 +81,8 @@ export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) 
           </Stack>
 
           <ListItemText
-            primary={isCheckOut ? 'Check Out' : 'Check In'}
-            secondary={`${shift?.event?.name} - ${shift?.assignment?.name}`}
+            primary={`${isCheckOut ? 'Check Out' : 'Check In'}: ${shift?.event?.name}`}
+            secondary={shift?.assignment?.name}
             secondaryTypographyProps={{
               component: 'span',
               typography: 'caption',
@@ -78,9 +92,19 @@ export default function CheckInOutItem({ shift, onClick }: CheckInOutItemProps) 
           />
         </Stack>
 
-        <Typography variant="body2" color="textSecondary" sx={{ m: 0 }}>
-          Are you ready to {isCheckOut ? 'check out' : 'check in'} of {shift?.event?.name} - {shift?.assignment?.name}
-        </Typography>
+        {
+          geoDetails.requiresSpecificLocation ? (
+            <MapWithPolygon
+              initialPolygon={geoDetails.coords as [number, number][]}
+              disabled
+              sx={mapSx || { height: 100, mt: 1 }}
+            />
+          ) : (
+            <Typography variant="body2" color="textSecondary" sx={{ m: 0 }}>
+              Are you ready to {isCheckOut ? 'check out' : 'check in'} of {shift?.event?.name} - {shift?.assignment?.name}
+            </Typography>
+          )
+        }
       </Box>
 
       {action}

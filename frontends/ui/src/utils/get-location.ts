@@ -1,3 +1,5 @@
+import { GeoLocationSensorState } from "react-use/lib/useGeolocation";
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const getLocationWithRequest = (): Promise<GeolocationPosition | null> => new Promise((resolve) => {
@@ -38,10 +40,8 @@ export const getLocation = async (): Promise<GeolocationPosition | null> => {
   return res;
 }
 
-export const isWithinPolygon = (coords: [number, number][], location: GeolocationPosition) => {
-  if (!coords || coords.length < 3) return false;
-
-  const { latitude, longitude } = location.coords;
+export const isWithinPolygon = (coords: [number, number][], { latitude, longitude }: GeoLocationSensorState) => {
+  if (!coords || coords.length < 3 || !latitude || !longitude) return false;
 
   let inside = false;
   // eslint-disable-next-line no-plusplus

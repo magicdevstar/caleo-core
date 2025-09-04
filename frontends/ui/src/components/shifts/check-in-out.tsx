@@ -1,11 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 // @mui
 import { useTheme, alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 // Types
 import { Shift } from "src/__generated__/resolvers-types";
 import { CHECK_IN_OUT_STATUS } from "src/types/checkinout";
@@ -17,6 +15,7 @@ import { useAuthContext } from "src/auth/hooks";
 import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 // Components
 import Iconify from "src/components/iconify";
+import CheckInOutItem from "src/sections/dashboard/dashboard/check-in-out/check-in-out-item";
 import CheckInOutConfirm from "./check-in-out-confirm";
 import { LoadingScreen } from "../loading-screen";
 
@@ -41,8 +40,7 @@ export default function CheckInOut({
     eventId,
     userId,
   });
-  const confirm = useBoolean();
-  const [checkInOutConfirm, setCheckInOutConfirm] = useState<Shift | null>(null);
+  const confirm = useBoolean<Shift>();
 
   const currentShiftsWithConfig = useMemo(() => currentShifts.map((shift) => {
     const customContent = {
@@ -107,24 +105,7 @@ export default function CheckInOut({
         {
           currentShiftsWithConfig.map((shift) => (
             <Card key={shift.id} sx={{ background: alpha(theme.palette.background.paper, 0.5) }}>
-              <CardContent>
-                <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>
-                  {shift.event.name}
-                </Typography>
-                <Typography variant="h5" component="div" sx={{ mb: 1, mt: 1 }}>
-                  {shift.assignment.name}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary', mb: 2 }}>{shift.customContent.timeDisplay}</Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    setCheckInOutConfirm(shift)
-                    confirm.onTrue();
-                  }}
-                  startIcon={shift.customContent.icon}
-                >{shift.customContent.name}</Button>
-              </CardContent>
+              <CheckInOutItem mapSx={{ mt: 1, height: 200 }} shift={shift} onClick={() => confirm.onTrue(shift)} />
             </Card>
           ))
         }
@@ -133,7 +114,7 @@ export default function CheckInOut({
       <CheckInOutConfirm
         fromKiosk={false}
         confirm={confirm}
-        checkInOutConfirm={checkInOutConfirm}
+        checkInOutConfirm={confirm.attribute as Shift}
         onSuccess={onSuccess}
       />
     </>

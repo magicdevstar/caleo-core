@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useGeolocation } from 'react-use';
 import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -13,7 +14,7 @@ import { Shift } from 'src/__generated__/resolvers-types';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { UseBooleanReturnType } from "src/hooks/use-boolean"
 import { CHECK_IN, CHECK_OUT, GET_ALL_SHIFTS } from 'src/api/shifts';
-import { getLocation, isWithinPolygon } from 'src/utils/get-location';
+import { isWithinPolygon } from 'src/utils/get-location';
 import { client } from 'src/utils/apollo';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { CHECK_IN_OUT_STATUS } from 'src/types/checkinout';
@@ -33,9 +34,10 @@ export default function CheckInOutConfirm({
 }: {
   fromKiosk: boolean;
   checkInOutConfirm: Shift | null;
-  confirm: UseBooleanReturnType<unknown>;
+  confirm: UseBooleanReturnType<any>;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
+  const geoLocation = useGeolocation();
   const { eventCheckIn, docusignCheckout, vehicleCategories } = useFeatures();
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -72,15 +74,14 @@ export default function CheckInOutConfirm({
         return;
       }
       setLoading(true);
-      const location = await getLocation();
 
-      const coords = shift.assignment?.geoFence || shift.event?.geoFence;
+      const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
       const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
-      if (requiresSpecificLocation) {
-        if (!location) {
+      if (requiresSpecificLocation && coords) {
+        if (!geoLocation || geoLocation.error?.message) {
           throw new Error('LOCATION_REQUIRED');
         }
-        if (!isWithinPolygon(coords || [] as any, location)) {
+        if (!isWithinPolygon(coords as any, geoLocation)) {
           throw new Error('LOCATION_NOT_WITHIN_GEOFENCE');
         }
       }
@@ -96,15 +97,15 @@ export default function CheckInOutConfirm({
             ...(requiredEquipmentTime && equipmentTime && {
               equipmentDateTime: equipmentTime.toISOString(),
             }),
-            ...(location && {
+            ...(geoLocation && {
               coords: {
-                accuracy: location.coords.accuracy,
-                altitude: location.coords.altitude,
-                altitudeAccuracy: location.coords.altitudeAccuracy,
-                heading: location.coords.heading,
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                speed: location.coords.speed,
+                accuracy: geoLocation.accuracy,
+                altitude: geoLocation.altitude,
+                altitudeAccuracy: geoLocation.altitudeAccuracy,
+                heading: geoLocation.heading,
+                latitude: geoLocation.latitude,
+                longitude: geoLocation.longitude,
+                speed: geoLocation.speed,
               }
             }),
           },
@@ -152,6 +153,7 @@ export default function CheckInOutConfirm({
     checkInOutNote,
     equipmentTime,
     signNow,
+    geoLocation,
   ]);
 
   return (

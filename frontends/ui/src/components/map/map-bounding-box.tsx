@@ -9,7 +9,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { styled } from "@mui/material/styles";
+import { styled, SxProps, Theme } from "@mui/material/styles";
 // components
 import { MapBoxProps, MapControl } from "src/components/map";
 import { MAPBOX_API } from 'src/config-global';
@@ -19,12 +19,16 @@ interface Props {
   mapProps?: MapBoxProps;
   onPolygonChange?: (polygon: number[][] | null) => void;
   initialPolygon?: number[][];
+  disabled?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 function MapWithPolygon({
   mapProps,
   onPolygonChange,
   initialPolygon,
+  disabled = false,
+  sx,
 }: Props) {
   const center = useMemo(() => initialPolygon ? getCenterOfPolygon(initialPolygon as any) : null, [initialPolygon]);
   const state = useGeolocation();
@@ -52,6 +56,7 @@ function MapWithPolygon({
   }, [onPolygonChange]);
 
   const handleDrawUpdate = useCallback((e: any) => {
+    if (disabled) return;
     const feature = e.features[0] as Feature<Polygon>;
     if (feature && feature.geometry.coordinates[0]) {
       const coords = feature.geometry.coordinates[0];
@@ -65,7 +70,7 @@ function MapWithPolygon({
       setPolygon(polygonCoords);
       onPolygonChange?.(polygonCoords);
     }
-  }, [onPolygonChange]);
+  }, [disabled, onPolygonChange]);
 
   const handleDrawDelete = useCallback(() => {
     setPolygon(null);
@@ -87,7 +92,11 @@ function MapWithPolygon({
       if (mapInstance && typeof mapInstance.addControl === 'function') {
         const draw = new MapboxDraw({
           displayControlsDefault: false,
-          controls: {
+          touchEnabled: !disabled,
+          boxSelect: !disabled,
+          keybindings: !disabled,
+          clickBuffer: disabled ? 0 : 2,
+          controls: disabled ? {} : {
             polygon: true,
             trash: true,
           },
@@ -109,8 +118,8 @@ function MapWithPolygon({
               'type': 'fill',
               'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
               'paint': {
-                'fill-color': '#fbb03b',
-                'fill-outline-color': '#fbb03b',
+                'fill-color': disabled ? '#3bb2d0' : '#fbb03b',
+                'fill-outline-color': disabled ? '#3bb2d0' : '#fbb03b',
                 'fill-opacity': 0.1
               }
             },
@@ -137,17 +146,17 @@ function MapWithPolygon({
                 'line-join': 'round'
               },
               'paint': {
-                'line-color': '#fbb03b',
+                'line-color': disabled ? '#3bb2d0' : '#fbb03b',
                 'line-width': 2
               }
             },
-            // Vertex points
+            // Vertex points (hidden when disabled)
             {
               'id': 'gl-draw-polygon-and-line-vertex-stroke-inactive',
               'type': 'circle',
               'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
               'paint': {
-                'circle-radius': 5,
+                'circle-radius': disabled ? 0 : 5,
                 'circle-color': '#fff'
               }
             },
@@ -156,7 +165,7 @@ function MapWithPolygon({
               'type': 'circle',
               'filter': ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point'], ['!=', 'mode', 'static']],
               'paint': {
-                'circle-radius': 3,
+                'circle-radius': disabled ? 0 : 3,
                 'circle-color': '#fbb03b'
               }
             }
@@ -185,9 +194,46 @@ function MapWithPolygon({
         }
 
         // Event listeners
-        mapInstance.on('draw.create', handleDrawCreate);
-        mapInstance.on('draw.update', handleDrawUpdate);
-        mapInstance.on('draw.delete', handleDrawDelete);
+        if (!disabled) {
+          mapInstance.on('draw.create', handleDrawCreate);
+          mapInstance.on('draw.update', handleDrawUpdate);
+          mapInstance.on('draw.delete', handleDrawDelete);
+        } else {
+          // When disabled, prevent any draw interactions
+          const preventDrawInteraction = (e: any) => {
+            if (drawRef.current) {
+              // Always keep in simple_select mode and clear selections
+              drawRef.current.changeMode('simple_select');
+              setTimeout(() => {
+                if (drawRef.current) {
+                  const selected = drawRef.current.getSelected();
+                  if (selected.features.length > 0) {
+                    selected.features.forEach((feature: any) => {
+                      drawRef.current?.changeMode('simple_select');
+                    });
+                  }
+                }
+              }, 0);
+            }
+          };
+          
+          // Prevent mouse interactions with draw features
+          // eslint-disable-next-line consistent-return
+          const preventMouseInteraction = (e: any) => {
+            // Check if the click is on a draw feature
+            const features = mapInstance.queryRenderedFeatures(e.point, {
+              layers: ['gl-draw-polygon-fill-inactive', 'gl-draw-polygon-stroke-inactive']
+            });
+            
+            if (features.length > 0) {
+              // If clicking on a draw feature, return false to prevent interaction
+              return false;
+            }
+          };
+          
+          mapInstance.on('draw.selectionchange', preventDrawInteraction);
+          mapInstance.on('mousedown', preventMouseInteraction);
+        }
       }
     }, 100);
 
@@ -200,11 +246,13 @@ function MapWithPolygon({
         mapInstance.off('draw.create', handleDrawCreate);
         mapInstance.off('draw.update', handleDrawUpdate);
         mapInstance.off('draw.delete', handleDrawDelete);
+        mapInstance.off('draw.selectionchange');
+        mapInstance.off('mousedown');
         mapInstance.removeControl(drawRef.current);
         drawRef.current = null;
       }
     };
-  }, [handleDrawCreate, handleDrawUpdate, handleDrawDelete, initialPolygon, mapLoaded]);
+  }, [handleDrawCreate, handleDrawUpdate, handleDrawDelete, initialPolygon, mapLoaded, disabled]);
 
   const startDrawing = useCallback(() => {
     if (drawRef.current) {
@@ -235,28 +283,30 @@ function MapWithPolygon({
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={startDrawing}
-          disabled={isDrawing}
-        >
-          {isDrawing ? 'Drawing...' : 'Draw Polygon'}
-        </Button>
-        {polygon && (
+      {!disabled && (
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Button
             variant="outlined"
-            color="error"
             size="small"
-            onClick={clearPolygon}
+            onClick={startDrawing}
+            disabled={isDrawing}
           >
-            Clear Area
+            {isDrawing ? 'Drawing...' : 'Draw Polygon'}
           </Button>
-        )}
-      </Box>
+          {polygon && (
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={clearPolygon}
+            >
+              Clear Area
+            </Button>
+          )}
+        </Box>
+      )}
 
-      <StyledMapContainer sx={{ mt: 2 }}>
+      <StyledMapContainer sx={{ mt: disabled ? 0 : 2, ...(sx || {}) }}>
         <Map
           ref={mapRef}
           onLoad={handleMapLoad}
@@ -270,7 +320,7 @@ function MapWithPolygon({
             ...baseSettings,
           })}
         >
-          <MapControl />
+          <MapControl hideScaleControl={disabled} hideNavigationnControl={disabled} />
         </Map>
       </StyledMapContainer>
     </>
@@ -319,12 +369,16 @@ interface RHFMapWithPolygonProps {
   name: string;
   mapProps?: MapBoxProps;
   helperText?: string;
+  disabled?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 export function RHFMapWithBoundingBox({
   name,
   mapProps,
   helperText,
+  disabled = false,
+  sx,
 }: RHFMapWithPolygonProps) {
   const { control } = useFormContext();
 
@@ -335,8 +389,10 @@ export function RHFMapWithBoundingBox({
       render={({ field, fieldState: { error } }) => (
         <Box>
           <MapWithPolygon
+            sx={sx}
             mapProps={mapProps}
             initialPolygon={field.value}
+            disabled={disabled}
             onPolygonChange={(polygon: number[][] | null) => {
               field.onChange(polygon);
             }}

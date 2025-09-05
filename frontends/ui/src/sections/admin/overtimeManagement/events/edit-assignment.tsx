@@ -38,7 +38,7 @@ import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
 import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 import { useFeatures } from 'src/hooks/use-features';
 import RHFRankAutocomplete from 'src/components/ranks/rhf-rank';
-import { GeoFenceDefinition } from 'src/components/events/geo-fence-definition';
+import { EditReportingLocation } from 'src/components/events/reporting-location/edit-reporting-location';
 import AssignmentShiftsTable from './assignment-shifts-table';
 
 // ----------------------------------------------------------------------
@@ -116,6 +116,9 @@ export default function EditAssignment({
     fieldSupervisorAssignment: Yup.object().nullable(),
     allowOfficerCheckIn: Yup.boolean().nullable(),
     geoFence: Yup.array().nullable(),
+    uniform: Yup.string().nullable(),
+    briefingTime: Yup.date().nullable(),
+    briefingLocation: Yup.string().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -151,6 +154,9 @@ export default function EditAssignment({
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       allowOfficerCheckIn: currentAssignment?.allowOfficerCheckIn || false,
       geoFence: currentAssignment?.geoFence || null,
+      uniform: currentAssignment?.uniform || '',
+      briefingTime: currentAssignment?.briefingTime ? new Date(currentAssignment?.briefingTime) : null,
+      briefingLocation: currentAssignment?.briefingLocation || '',
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
@@ -214,6 +220,10 @@ export default function EditAssignment({
             isSigningAuthority: formData?.isSigningAuthority,
             allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
             geoFence: formData?.geoFence || null,
+            uniform: formData?.uniform?.trim?.(),
+            briefingTime: formData?.briefingTime?.toISOString?.(),
+            briefingLocation: formData?.briefingLocation?.trim?.(),
+            // Only send shiftSlots if they exist to avoid overwriting existing slots with []
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
           },
         },
@@ -246,7 +256,7 @@ export default function EditAssignment({
   const renderDetails = (
     <>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Details
           </Typography>
@@ -256,7 +266,7 @@ export default function EditAssignment({
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title="Details" />}
 
@@ -369,8 +379,6 @@ export default function EditAssignment({
               )
             }
 
-            <GeoFenceDefinition />
-
 
             <Stack direction="row" spacing={2}>
               {
@@ -389,7 +397,7 @@ export default function EditAssignment({
   const renderShifts = (
     <>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {assignmentTemplateView ? 'Shift Slots' : 'Shifts'}
           </Typography>
@@ -401,7 +409,7 @@ export default function EditAssignment({
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title={assignmentTemplateView ? 'Shift Slots' : 'Shifts'} />}
           
@@ -432,8 +440,8 @@ export default function EditAssignment({
 
   const renderActions = (
     <>
-      {mdUp && <Grid md={4} />}
-      <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+      {mdUp && <Grid md={2} />}
+      <Grid xs={12} md={10} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <Button
           component={RouterLink}
           variant='outlined'
@@ -469,6 +477,8 @@ export default function EditAssignment({
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
         {renderDetails}
+
+        <EditReportingLocation/>
 
         {renderShifts}
 

@@ -68,7 +68,7 @@ import FormProvider, {
   RHFDateTimePicker,
   RHFSkillAutocomplete,
 } from 'src/components/hook-form';
-import { GeoFenceDefinition } from 'src/components/events/geo-fence-definition';
+import { EditReportingLocation } from 'src/components/events/reporting-location/edit-reporting-location';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import Markdown from 'src/components/markdown';
 import Iconify from 'src/components/iconify';
@@ -127,6 +127,9 @@ const NewEventSchema = Yup.object().shape({
   interestListAutoAssignCutoff: Yup.string().nullable(),
   overtimeNarrative: Yup.string().nullable(),
   thumbnail: Yup.mixed().nullable(),
+  uniform: Yup.string().nullable(),
+  briefingTime: Yup.date().nullable(),
+  briefingLocation: Yup.string().nullable(),
   ocn: Yup
     .string()
     .nullable()
@@ -328,6 +331,9 @@ export default function EditEvent({
       thumbnail: currentEvent?.thumbnailUrl || null,
       allowOfficerCheckIn: currentEvent?.allowOfficerCheckIn || false,
       geoFence: currentEvent?.geoFence || null,
+      uniform: currentEvent?.uniform || '',
+      briefingTime: currentEvent?.briefingTime ? new Date(currentEvent.briefingTime) : undefined,
+      briefingLocation: currentEvent?.briefingLocation || '',
     }),
     [
       currentEvent,
@@ -550,6 +556,9 @@ export default function EditEvent({
             overtimeNarrative: formData?.overtimeNarrative,
             fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             requiredSkillIds: formData?.requiredSkills?.map(({ id }: Skill) => id),
+            uniform: formData?.uniform,
+            briefingTime: formData?.briefingTime?.toISOString?.(),
+            briefingLocation: formData?.briefingLocation,
             assignmentIds: formData?.assignments?.map(
               (assignment: any) => assignment.id
             ),
@@ -931,8 +940,6 @@ export default function EditEvent({
               </>
             }
 
-            <GeoFenceDefinition />
-
             { !eventTemplateView && !isIncident && (<RHFSwitch disabled={allDisabled || isComplete} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />) }
           </Stack>
 
@@ -1090,6 +1097,8 @@ export default function EditEvent({
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
         {renderDetails}
+
+        <EditReportingLocation />
 
         {lasdEventFields && <LASDDetails currentEvent={currentEvent} allDisabled={allDisabled} isIncident={isIncident} />}
 

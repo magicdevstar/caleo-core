@@ -17,7 +17,7 @@ interface Props {
 export function GeoFenceDefinition({
   disabled,
   checkName = "allowOfficerCheckIn",
-  checkLabel = "Allow Officer Check-In",
+  checkLabel = "Allow Remote Check-In",
   geoName = "geoFence"
 }: Props) {
   const { officerCheckInOut } = useFeatures();

@@ -93,6 +93,10 @@ export const GET_ASSIGNMENT = gql`
       geoFence
       allowOfficerCheckIn
 
+      uniform
+      briefingTime
+      briefingLocation
+
       shiftSlots {
         id
         slotCount

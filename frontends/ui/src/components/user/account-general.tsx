@@ -122,7 +122,7 @@ export default function AccountGeneral({
 }) {
   const { user: currentUser, reInitialize } = useAuthContext();
   const { dateTimeFormat, dateFormat } = useDateFormats();
-  const { disabledTiers, disabledTierUntil, lasdUserFields, rankHourlyRate } = useFeatures();
+  const { disabledTiers, disabledTierUntil, lasdUserFields, rankHourlyRate, officerCheckInOut } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
@@ -183,6 +183,7 @@ export default function AccountGeneral({
     adminNote: Yup.string(),
     hourlyRate: Yup.number().nullable(),
     incidentHourlyRate: Yup.number().nullable(),
+    allowSelfCheckIn: Yup.boolean(),
   });
 
   const defaultValues = {
@@ -210,6 +211,7 @@ export default function AccountGeneral({
     adminNote: user?.member?.adminNote || '',
     hourlyRate: user?.member?.hourlyRate || null,
     incidentHourlyRate: user?.member?.incidentHourlyRate || null,
+    allowSelfCheckIn: user?.member?.allowSelfCheckIn || false,
   } as any;
 
   const methods = useForm({
@@ -312,6 +314,7 @@ export default function AccountGeneral({
                 tierUntil: d.tierUntil,
                 adminNote: d.adminNote,
                 status: d.status,
+                allowSelfCheckIn: d.allowSelfCheckIn,
               }),
               contactInfo: {
                 primaryEmail: {
@@ -600,6 +603,7 @@ export default function AccountGeneral({
                     name="adminNote"
                     label="Admin Notes"
                   />
+                  {officerCheckInOut && (<RHFSwitch disabled={allDisabled} name="allowSelfCheckIn" label="Allow check-in/out from their device" sx={{ mt: 1 }} />)}
                 </>
               )
             }

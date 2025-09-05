@@ -573,7 +573,7 @@ export default function EditShift({
   const renderShifts = (
     <>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Shift slots
           </Typography>
@@ -583,7 +583,7 @@ export default function EditShift({
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title="Shift slots" />}
 
@@ -605,8 +605,8 @@ export default function EditShift({
 
   const renderActions = (
     <>
-      {mdUp && <Grid md={4} />}
-      <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+      {mdUp && <Grid md={2} />}
+      <Grid xs={12} md={10} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <Tooltip title={notifyTooltip}>
           <span>
             <Button
@@ -647,7 +647,7 @@ export default function EditShift({
   return (
     <Grid container spacing={3}>
       {mdUp && (
-        <Grid md={4}>
+        <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             Shift time
           </Typography>
@@ -657,7 +657,7 @@ export default function EditShift({
         </Grid>
       )}
 
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={10}>
         <Card>
           {!mdUp && <CardHeader title="Details" />}
 

@@ -117,6 +117,6 @@ export const ActiveIncidentsTable = () => {
   };
 
   return (
-    <GQLTable config={config} />
+    <GQLTable sx={{ height: '100%' }} config={config} />
   )
 }

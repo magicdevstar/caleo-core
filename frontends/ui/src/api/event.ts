@@ -417,6 +417,10 @@ export const GET_EVENT = gql`
       geoFence
       allowOfficerCheckIn
 
+      uniform
+      briefingTime
+      briefingLocation
+
       requestDetails {
         startTime
         endTime

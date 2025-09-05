@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 // @mui
+import useMediaQuery from '@mui/material/useMediaQuery';
 import Container from '@mui/material/Container/Container';
 import Grid from '@mui/material/Unstable_Grid2';
+import { useTheme } from "@mui/material/styles";
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
 import { useSettingsContext } from 'src/components/settings';
@@ -16,6 +18,8 @@ import CheckInOut from '../dashboard/check-in-out/check-in-out';
 import { ActiveIncidentsTable } from '../dashboard/incidents/active-incidents-table';
 
 export default function DashboardView() {
+  const theme = useTheme();
+  const sxView = useMediaQuery(theme.breakpoints.down('md'));
   const { currentShifts } = useCheckInOut();
   const { user } = useAuthContext();
   const { officerCheckInOut, incidentEvents } = useFeatures();
@@ -37,15 +41,14 @@ export default function DashboardView() {
     }
     if (incidentEvents) {
       layout = {
-        // welcome: 4,
+        welcome: 4,
         incidents: 8,
-        notifications: 4,
+        // notifications: 4,
       };
       if (hasCheckInOutShifts) {
         layout = {
-          incidents: 4,
-          checkIn: 4,
-          notifications: 4,
+          incidents: 6,
+          checkIn: 6,
         };
       }
     }
@@ -56,7 +59,7 @@ export default function DashboardView() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ maxWidth: '100vw' }}>
       <Grid container spacing={3}>
         {
-          sizes.welcome && (
+          sizes.welcome && !sxView && (
             <Grid xs={12} md={sizes.welcome}>
               <AppWelcome title={`Welcome back 👋 \n ${user?.displayName}`} img={sizes.welcome > 4 ? <SeoIllustration /> : <span />} />
             </Grid>
@@ -66,7 +69,6 @@ export default function DashboardView() {
           sizes.incidents && (
             <Grid xs={12} md={sizes.incidents}>
               <ActiveIncidentsTable />
-              {/* <Incidents title="Active Incidents" /> */}
             </Grid>
           )
         }
@@ -77,9 +79,13 @@ export default function DashboardView() {
             </Grid>
           )
         }
-        <Grid xs={12} md={sizes.notifications}>
-          <RecentNotifications title="New Notifications" />
-        </Grid>
+        {
+          sizes.notifications && (
+            <Grid xs={12} md={sizes.notifications}>
+              <RecentNotifications title="New Notifications" />
+            </Grid>
+          )
+        }
         <Grid xs={12}>
           <OvertimeShifts />
         </Grid>

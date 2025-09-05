@@ -13,7 +13,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Tooltip from "@mui/material/Tooltip";
 import Stack from "@mui/material/Stack";
-import { alpha } from "@mui/material/styles";
+import { alpha, SxProps } from "@mui/material/styles";
 // Types
 import { TableConfig, resolveFilterValue } from "../table-config";
 // Hooks
@@ -31,8 +31,10 @@ import TableHeadCustom from "../table-head-custom";
 import GQLTableRow from "./row";
 
 export default function GQLTable({
+  sx,
   config,
 } : {
+  sx?: SxProps;
   config: TableConfig<any>;
 }) {
   const [currentTab, setCurrentTab] = useState(config?.tabs?.default || 'all');
@@ -144,7 +146,7 @@ export default function GQLTable({
   );
 
   return (
-    <Card>
+    <Card sx={sx}>
       {
         (!config.table?.noData?.hideHeader || hasData) && (
           <Box sx={{

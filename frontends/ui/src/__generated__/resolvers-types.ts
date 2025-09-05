@@ -60,6 +60,8 @@ export type Assignment = {
   __typename?: 'Assignment';
   allowOfficerCheckIn?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
+  briefingLocation?: Maybe<Scalars['String']['output']>;
+  briefingTime?: Maybe<Scalars['DateTime']['output']>;
   bwNeeded: Scalars['Boolean']['output'];
   callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
@@ -100,6 +102,7 @@ export type Assignment = {
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
+  uniform?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -449,6 +452,8 @@ export type Event = {
   attachments?: Maybe<Array<Scalars['String']['output']>>;
   autoAssignInterestList?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
+  briefingLocation?: Maybe<Scalars['String']['output']>;
+  briefingTime?: Maybe<Scalars['DateTime']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: Maybe<Scalars['String']['output']>;
@@ -503,6 +508,7 @@ export type Event = {
   supervisorId?: Maybe<Scalars['String']['output']>;
   thumbnailUrl?: Maybe<Scalars['String']['output']>;
   totalShifts?: Maybe<Scalars['Int']['output']>;
+  uniform?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
   venue?: Maybe<Venue>;
   venueId?: Maybe<Scalars['String']['output']>;
@@ -1607,6 +1613,7 @@ export type NewEmail = {
 
 export type NewMember = {
   adminNote?: InputMaybe<Scalars['String']['input']>;
+  allowSelfCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
   availability?: InputMaybe<InputUserAvailability>;
   contactInfo?: InputMaybe<NewContactInfo>;
   deactivationNote?: InputMaybe<Scalars['String']['input']>;
@@ -2798,6 +2805,8 @@ export type UpsertAfterShiftRemove = {
 
 export type UpsertAssignment = {
   allowOfficerCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  briefingLocation?: InputMaybe<Scalars['String']['input']>;
+  briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   bwNeeded?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -2820,6 +2829,7 @@ export type UpsertAssignment = {
   supervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: InputMaybe<Scalars['String']['input']>;
+  uniform?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertAssignmentShiftSlot = {
@@ -2862,6 +2872,8 @@ export type UpsertEvent = {
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
+  briefingLocation?: InputMaybe<Scalars['String']['input']>;
+  briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: InputMaybe<Scalars['String']['input']>;
@@ -2893,6 +2905,7 @@ export type UpsertEvent = {
   supervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   supervisorId?: InputMaybe<Scalars['String']['input']>;
   thumbnail?: InputMaybe<Scalars['String']['input']>;
+  uniform?: InputMaybe<Scalars['String']['input']>;
   venueId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3912,6 +3925,8 @@ export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends Reso
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
   allowOfficerCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3950,6 +3965,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   supervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  uniform?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -4163,6 +4179,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   autoAssignInterestList?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4214,6 +4232,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   supervisorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   thumbnailUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  uniform?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType>;
   venueId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

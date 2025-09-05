@@ -325,6 +325,7 @@
     availability: InputUserAvailability
     hourlyRate: Float
     incidentHourlyRate: Float
+    allowSelfCheckIn: Boolean
   }
 ###### END User ######
 
@@ -433,6 +434,10 @@
     # Boolean stating if we want the interest list to auto assign when it closes
     autoAssignInterestList: Boolean
 
+    uniform: String
+    briefingTime: DateTime
+    briefingLocation: String
+
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
     notifyWhenFullyStaffed: Boolean
@@ -523,6 +528,10 @@
 
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+
+    uniform: String
+    briefingTime: DateTime
+    briefingLocation: String
     
     createdAt: String!
     updatedAt: String!
@@ -930,6 +939,10 @@
     fieldSupervisorAssignmentId: ObjectId
     overtimeNarrative: String
 
+    uniform: String
+    briefingTime: DateTime
+    briefingLocation: String
+
     # Incident only field! This will only be accepted when the event status is INCIDENT
     startTime: String
     # Incident only field! This will only be accepted when the event status is INCIDENT
@@ -992,6 +1005,9 @@
     isSigningAuthority: Boolean
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+    uniform: String
+    briefingTime: DateTime
+    briefingLocation: String
   }
 
   input UpsertAssignmentShiftSlot {

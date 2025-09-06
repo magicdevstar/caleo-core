@@ -77,19 +77,76 @@ function MapWithPolygon({
     onPolygonChange?.(null);
   }, [onPolygonChange]);
 
-  const handleMapLoad = useCallback((event: any) => {
+  const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
   }, []);
 
-  // Initialize MapboxDraw
+  // Cleanup function to remove all draw-related sources and layers
+  const cleanupDrawSources = useCallback((mapInstance: any) => {
+    try {
+      // Remove any existing draw control first
+      const controls = mapInstance._controls || [];
+      controls.forEach((control: any) => {
+        if (control instanceof MapboxDraw) {
+          try {
+            mapInstance.removeControl(control);
+          } catch (error) {
+            console.warn('Error removing existing draw control:', error);
+          }
+        }
+      });
+
+      // Get all layers and remove draw-related ones
+      const style = mapInstance.getStyle();
+      if (style && style.layers) {
+        const layersToRemove: string[] = [];
+        style.layers.forEach((layer: any) => {
+          if (layer.source === 'mapbox-gl-draw-cold' || 
+              layer.source === 'mapbox-gl-draw-hot' ||
+              layer.id.includes('gl-draw')) {
+            layersToRemove.push(layer.id);
+          }
+        });
+        
+        layersToRemove.forEach(layerId => {
+          try {
+            if (mapInstance.getLayer(layerId)) {
+              mapInstance.removeLayer(layerId);
+            }
+          } catch (error) {
+            // Layer might not exist, continue
+          }
+        });
+      }
+
+      // Remove draw sources
+      ['mapbox-gl-draw-cold', 'mapbox-gl-draw-hot'].forEach(sourceId => {
+        try {
+          if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeSource(sourceId);
+          }
+        } catch (error) {
+          // Source might not exist, continue
+        }
+      });
+    } catch (error) {
+      console.warn('Error during draw cleanup:', error);
+    }
+  }, []);
+
+  // Initialize MapboxDraw with proper cleanup
   useEffect(() => {
-    if (!mapLoaded || drawRef.current) return;
-    
-    // Use a timeout to ensure the map is fully ready
-    const initializeTimeout = setTimeout(() => {
-      const mapInstance = mapRef.current?.getMap?.() || mapRef.current;
-      
-      if (mapInstance && typeof mapInstance.addControl === 'function') {
+    if (!mapLoaded) return;
+
+    const mapInstance = mapRef.current?.getMap?.() || mapRef.current;
+    if (!mapInstance || typeof mapInstance.addControl !== 'function') return;
+
+    // Always cleanup first to handle reuseMaps
+    cleanupDrawSources(mapInstance);
+
+    // Wait a bit for cleanup to complete
+    const initTimeout = setTimeout(() => {
+      try {
         const draw = new MapboxDraw({
           displayControlsDefault: false,
           touchEnabled: !disabled,
@@ -198,68 +255,35 @@ function MapWithPolygon({
           mapInstance.on('draw.create', handleDrawCreate);
           mapInstance.on('draw.update', handleDrawUpdate);
           mapInstance.on('draw.delete', handleDrawDelete);
-        } else {
-          // When disabled, prevent any draw interactions
-          const preventDrawInteraction = (e: any) => {
-            if (drawRef.current) {
-              // Always keep in simple_select mode and clear selections
-              drawRef.current.changeMode('simple_select');
-              setTimeout(() => {
-                if (drawRef.current) {
-                  const selected = drawRef.current.getSelected();
-                  if (selected.features.length > 0) {
-                    selected.features.forEach((feature: any) => {
-                      drawRef.current?.changeMode('simple_select');
-                    });
-                  }
-                }
-              }, 0);
-            }
-          };
-          
-          // Prevent mouse interactions with draw features
-          // eslint-disable-next-line consistent-return
-          const preventMouseInteraction = (e: any) => {
-            // Check if the click is on a draw feature
-            const features = mapInstance.queryRenderedFeatures(e.point, {
-              layers: ['gl-draw-polygon-fill-inactive', 'gl-draw-polygon-stroke-inactive']
-            });
-            
-            if (features.length > 0) {
-              // If clicking on a draw feature, return false to prevent interaction
-              return false;
-            }
-          };
-          
-          mapInstance.on('draw.selectionchange', preventDrawInteraction);
-          mapInstance.on('mousedown', preventMouseInteraction);
         }
+      } catch (error) {
+        console.error('Error initializing MapboxDraw:', error);
       }
-    }, 100);
+    }, 50);
 
     // eslint-disable-next-line consistent-return
     return () => {
-      clearTimeout(initializeTimeout);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      const mapInstance = mapRef.current?.getMap?.() || mapRef.current;
+      clearTimeout(initTimeout);
       if (mapInstance && drawRef.current) {
-        mapInstance.off('draw.create', handleDrawCreate);
-        mapInstance.off('draw.update', handleDrawUpdate);
-        mapInstance.off('draw.delete', handleDrawDelete);
-        mapInstance.off('draw.selectionchange');
-        mapInstance.off('mousedown');
-        mapInstance.removeControl(drawRef.current);
+        try {
+          mapInstance.off('draw.create', handleDrawCreate);
+          mapInstance.off('draw.update', handleDrawUpdate);
+          mapInstance.off('draw.delete', handleDrawDelete);
+          mapInstance.removeControl(drawRef.current);
+        } catch (error) {
+          console.warn('Error cleaning up draw control:', error);
+        }
         drawRef.current = null;
       }
     };
-  }, [handleDrawCreate, handleDrawUpdate, handleDrawDelete, initialPolygon, mapLoaded, disabled]);
+  }, [mapLoaded, disabled, initialPolygon, handleDrawCreate, handleDrawUpdate, handleDrawDelete, cleanupDrawSources]);
 
   const startDrawing = useCallback(() => {
     if (drawRef.current) {
       try {
         // Clear existing features
         drawRef.current.deleteAll();
-        // Change to polygon drawing mode for creating rectangular areas
+        // Change to polygon drawing mode
         drawRef.current.changeMode('draw_polygon');
         setIsDrawing(true);
       } catch (error) {
@@ -309,6 +333,7 @@ function MapWithPolygon({
       <StyledMapContainer sx={{ mt: disabled ? 0 : 2, ...(sx || {}) }}>
         <Map
           ref={mapRef}
+          reuseMaps
           onLoad={handleMapLoad}
           initialViewState={{
             zoom: 15,

@@ -18,6 +18,7 @@ interface Props extends MapBoxProps {
 function MapMarkersPopups({ data, ...other }: Props) {
   return (
     <Map
+      reuseMaps
       initialViewState={{
         zoom: 10,
       }}

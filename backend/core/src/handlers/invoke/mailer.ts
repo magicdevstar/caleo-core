@@ -1395,8 +1395,7 @@ const sendEmail = async (input: MailerEvent) => {
       const durationTilShift = formatDistance(
         shiftStart.zonedDate,
         now.zonedDate,
-      )
-      const hoursTilShift = organization.settings?.shiftReminder.time;
+      );
 
       if (user.member.contactInfo!.primaryEmail.receiveEmails) {
         Addresses = {
@@ -1422,7 +1421,7 @@ const sendEmail = async (input: MailerEvent) => {
       const { title, body } = InAppTemplates[input.template]({
         eventName: event.name,
         shiftName: assignment.name,
-        hoursTilShift,
+        durationTilShift,
       });
       await sendInAppNotification({
         context,

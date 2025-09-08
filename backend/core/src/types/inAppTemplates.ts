@@ -143,10 +143,10 @@ export const InAppTemplates = {
   [MailerEvents.OfficerShiftStartingNotification]: ({
     eventName,
     shiftName,
-    hoursTilShift,
+    durationTilShift,
   }) => ({
-    title: `Shift Starting in ${hoursTilShift} hours`,
-    body: `Your ${shiftName} shift for ${eventName} is starting in ${hoursTilShift} hours!`,
+    title: `Shift Starting in ${durationTilShift}`,
+    body: `Your ${shiftName} shift for ${eventName} is starting in ${durationTilShift}`,
   }),
   [MailerEvents.LotteryWindowClosing]: ({
     metroName,

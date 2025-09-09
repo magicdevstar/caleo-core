@@ -5,14 +5,14 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { SxProps } from '@mui/system';
+import { Theme } from '@mui/material/styles/createTheme';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
 // components
 import Iconify from 'src/components/iconify';
 import { Shift } from 'src/__generated__/resolvers-types';
-import MapWithPolygon from 'src/components/map/map-bounding-box';
-import { SxProps } from '@mui/system';
-import { Theme } from '@mui/material/styles/createTheme';
+import PolygonDrawMap from 'src/components/map/map-polygon';
 
 // ----------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItem
 
         {
           geoDetails.requiresSpecificLocation ? (
-            <MapWithPolygon
+            <PolygonDrawMap
               initialPolygon={geoDetails.coords as [number, number][]}
               disabled
               sx={mapSx || { height: 100, mt: 1 }}

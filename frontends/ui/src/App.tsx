@@ -5,7 +5,7 @@ import { ApolloProvider } from '@apollo/client';
 import 'simplebar-react/dist/simplebar.min.css';
 
 // map
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 // image
 import 'react-lazy-load-image-component/src/effects/blur.css';

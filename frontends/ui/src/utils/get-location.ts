@@ -55,7 +55,7 @@ export const isWithinPolygon = (coords: [number, number][], { latitude, longitud
 }
 
 export const getCenterOfPolygon = (coords: [number, number][]) => {
-  if (!coords || coords.length === 0) return null;
+  if (!coords || (coords || []).filter(Boolean).length === 0) return null;
 
   const sum = coords.reduce(([accX, accY], [x, y]) => [accX + x, accY + y], [0, 0]);
   return [sum[0] / coords.length, sum[1] / coords.length];

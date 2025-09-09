@@ -1,4 +1,4 @@
-import { PopupProps } from 'react-map-gl';
+import { PopupProps } from 'react-map-gl/maplibre';
 // @mui
 import { Theme, SxProps } from '@mui/material/styles';
 //

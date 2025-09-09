@@ -606,7 +606,11 @@ export default function AccountGeneral({
                 </>
               )
             }
-            <RHFSwitch disabled={!adminViewer || allDisabled} name="allowSelfCheckIn" label="Allow Remote Check In/out" sx={{ mt: 1 }} helperText="Contact EOB staff for questions" />
+            {
+              officerCheckInOut && (
+                <RHFSwitch disabled={!adminViewer || allDisabled} name="allowSelfCheckIn" label="Allow Remote Check In/out" sx={{ mt: 1 }} helperText="Contact EOB staff for questions" />
+              )
+            }
 
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>

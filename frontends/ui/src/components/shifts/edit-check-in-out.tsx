@@ -23,7 +23,6 @@ import { useFeatures } from 'src/hooks/use-features';
 // Types
 import { Shift } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
-import { MAPBOX_API } from 'src/config-global';
 import { convertDate } from 'src/hooks/use-datejs';
 import { EDIT_CHECK_IN_OUT } from 'src/api/shifts';
 import Iconify from '../iconify';
@@ -41,17 +40,7 @@ const StyledMapContainer = styled('div')(({ theme }) => ({
   },
 }));
 
-const THEMES = {
-  streets: 'mapbox://styles/mapbox/streets-v11',
-  outdoors: 'mapbox://styles/mapbox/outdoors-v11',
-  light: 'mapbox://styles/mapbox/light-v10',
-  dark: 'mapbox://styles/mapbox/dark-v10',
-  satellite: 'mapbox://styles/mapbox/satellite-v9',
-  satelliteStreets: 'mapbox://styles/mapbox/satellite-streets-v11',
-};
-
 const baseSettings = {
-  mapboxAccessToken: MAPBOX_API,
   minZoom: 1,
 };
 
@@ -315,7 +304,6 @@ export const EditCheckInOut = ({
                       longitude: shift?.shiftCheckInOut?.checkOutCoords?.longitude,
                     }] : []),
                   ]}
-                  mapStyle={THEMES.dark}
                 />
               </StyledMapContainer>
             )

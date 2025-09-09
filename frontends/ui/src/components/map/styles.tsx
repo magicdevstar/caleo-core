@@ -1,4 +1,4 @@
-import { Popup } from 'react-map-gl';
+import { Popup } from 'react-map-gl/maplibre';
 // @mui
 import { useTheme, styled } from '@mui/material/styles';
 import GlobalStyles from '@mui/material/GlobalStyles';
@@ -13,25 +13,25 @@ export function StyledMapControls() {
   const inputGlobalStyles = (
     <GlobalStyles
       styles={{
-        '.mapboxgl-ctrl.mapboxgl-ctrl-group': {
+        '.maplibregl-ctrl.maplibregl-ctrl-group': {
           borderRadius: '8px',
           boxShadow: theme.customShadows.z8,
         },
-        '.mapboxgl-ctrl-zoom-in': {
+        '.maplibregl-ctrl-zoom-in': {
           borderRadius: '8px 8px 0 0',
         },
-        '.mapboxgl-ctrl-compass': {
+        '.maplibregl-ctrl-compass': {
           borderRadius: '0 0 8px 8px',
         },
-        '.mapboxgl-ctrl-fullscreen': {
-          '.mapboxgl-ctrl-icon': {
+        '.maplibregl-ctrl-fullscreen': {
+          '.maplibregl-ctrl-icon': {
             transform: ' scale(0.75)',
           },
         },
-        '.mapboxgl-ctrl-group button+button': {
+        '.maplibregl-ctrl-group button+button': {
           borderTop: `1px solid ${theme.palette.divider}`,
         },
-        '.mapboxgl-ctrl.mapboxgl-ctrl-scale': {
+        '.maplibregl-ctrl.maplibregl-ctrl-scale': {
           border: 'none',
           lineHeight: '14px',
           borderRadius: '4px',
@@ -52,14 +52,14 @@ export const StyledPopup = styled(Popup)(({ theme }) => {
   const isRTL = theme.direction === 'rtl';
 
   return {
-    '& .mapboxgl-popup-content': {
+    '& .maplibregl-popup-content': {
       maxWidth: 180,
       padding: theme.spacing(1),
       boxShadow: theme.customShadows.z20,
       borderRadius: theme.shape.borderRadius,
       backgroundColor: theme.palette.grey[800],
     },
-    '& .mapboxgl-popup-close-button': {
+    '& .maplibregl-popup-close-button': {
       width: 24,
       height: 24,
       fontSize: 16,
@@ -74,19 +74,19 @@ export const StyledPopup = styled(Popup)(({ theme }) => {
         outline: 'none',
       },
     },
-    '&.mapboxgl-popup-anchor-top .mapboxgl-popup-tip': {
+    '&.maplibregl-popup-anchor-top .maplibregl-popup-tip': {
       marginBottom: -1,
       borderBottomColor: theme.palette.grey[800],
     },
-    '&.mapboxgl-popup-anchor-right .mapboxgl-popup-tip': {
+    '&.maplibregl-popup-anchor-right .maplibregl-popup-tip': {
       marginLeft: -1,
       borderLeftColor: theme.palette.grey[800],
     },
-    '&.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip': {
+    '&.maplibregl-popup-anchor-bottom .maplibregl-popup-tip': {
       marginTop: -1,
       borderTopColor: theme.palette.grey[800],
     },
-    '&.mapboxgl-popup-anchor-left .mapboxgl-popup-tip': {
+    '&.maplibregl-popup-anchor-left .maplibregl-popup-tip': {
       marginRight: -1,
       borderRightColor: theme.palette.grey[800],
     },

@@ -39,6 +39,7 @@ export const AUTH0_API = {
 };
 
 export const MAPBOX_API = process.env.REACT_APP_MAPBOX_API;
+export const DEFAULT_MAP_TILES = "https://tiles.openfreemap.org/styles/bright";
 
 export const APOLLO_API = process.env.REACT_APP_APOLLO_API;
 

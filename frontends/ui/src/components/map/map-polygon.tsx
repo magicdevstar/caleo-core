@@ -154,7 +154,6 @@ export default function PolygonDrawMap({
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<any>(null);
   const loadedRef = useRef(false);
-  const lastInitialPolyRef = useRef<string>(JSON.stringify(initialPolygon ?? null));
   const controlAddedRef = useRef<boolean>(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const disabledRef = useRef<boolean>(disabled);

@@ -38,11 +38,9 @@ export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItem
     <Stack
       spacing={1}
       direction="row"
-      justifyContent="space-between"
-      flexWrap="wrap"
-      alignItems="center"
     >
       <Button
+        sx={{ width: 150 }}
         onClick={() => {
           onClick?.(shift);
         }}
@@ -51,6 +49,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItem
       >
         {isCheckOut ? 'Check Out' : 'Check In'}
       </Button>
+      <Typography variant='caption' color="textSecondary" component="p">You can remotely check in now! Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
     </Stack>
   );
 

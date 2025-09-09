@@ -478,7 +478,7 @@ export default function EditAssignment({
       <Grid container spacing={3}>
         {renderDetails}
 
-        <EditReportingLocation/>
+        <EditReportingLocation checkLabel="Set Assignment-Specific Check-in/out Location" />
 
         {renderShifts}
 

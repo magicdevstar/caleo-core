@@ -59,6 +59,13 @@ export default function DashboardView() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ maxWidth: '100vw' }}>
       <Grid container spacing={3}>
         {
+          hasCheckInOutShifts && (
+            <Grid xs={12} md={sizes.checkIn}>
+              <CheckInOut title="Check in/out" currentShifts={currentShifts} sx={{ height: '100%' }} />
+            </Grid>
+          )
+        }
+        {
           sizes.welcome && !sxView && (
             <Grid xs={12} md={sizes.welcome}>
               <AppWelcome title={`Welcome back 👋 \n ${user?.displayName}`} img={sizes.welcome > 4 ? <SeoIllustration /> : <span />} />
@@ -69,13 +76,6 @@ export default function DashboardView() {
           sizes.incidents && (
             <Grid xs={12} md={sizes.incidents}>
               <ActiveIncidentsTable />
-            </Grid>
-          )
-        }
-        {
-          hasCheckInOutShifts && (
-            <Grid xs={12} md={sizes.checkIn}>
-              <CheckInOut title="Check in/out" currentShifts={currentShifts} sx={{ height: '100%' }} />
             </Grid>
           )
         }

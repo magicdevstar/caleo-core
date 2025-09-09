@@ -603,10 +603,10 @@ export default function AccountGeneral({
                     name="adminNote"
                     label="Admin Notes"
                   />
-                  {officerCheckInOut && (<RHFSwitch disabled={allDisabled} name="allowSelfCheckIn" label="Allow check-in/out from their device" sx={{ mt: 1 }} />)}
                 </>
               )
             }
+            <RHFSwitch disabled={!adminViewer || allDisabled} name="allowSelfCheckIn" label="Allow Remote Check In/out" sx={{ mt: 1 }} helperText="Contact EOB staff for questions" />
 
 
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>

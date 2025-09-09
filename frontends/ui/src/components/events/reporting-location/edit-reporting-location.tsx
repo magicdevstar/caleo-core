@@ -15,10 +15,12 @@ import { useFeatures } from 'src/hooks/use-features';
 
 interface Props {
   disabledInput?: boolean;
+  checkLabel?: string;
 }
 
 export const EditReportingLocation = ({
-  disabledInput
+  disabledInput,
+  checkLabel
 }: Props) => {
   const mdUp = useResponsive('up', 'md');
   const { officerCheckInOut, lasdEventFields } = useFeatures();
@@ -32,7 +34,7 @@ export const EditReportingLocation = ({
       {mdUp && (
         <Grid md={2}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Reporting Location
+            Reporting Details
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             Officer reporting details
@@ -42,10 +44,10 @@ export const EditReportingLocation = ({
 
       <Grid xs={12} md={10}>
         <Card>
-          {!mdUp && <CardHeader title="Reporting Location" />}
+          {!mdUp && <CardHeader title="Reporting Details" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <GeoFenceDefinition />
+            <GeoFenceDefinition checkLabel={checkLabel} />
 
             {lasdEventFields && (
               <>

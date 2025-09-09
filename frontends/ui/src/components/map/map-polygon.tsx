@@ -348,31 +348,33 @@ export default function PolygonDrawMap({
 
   // Respond to external initialPolygon changes after mount
   useEffect(() => {
-    const now = JSON.stringify(initialPolygon ?? null);
-    if (now === lastInitialPolyRef.current) return;
-    lastInitialPolyRef.current = now;
-    if (loadedRef.current) {
-      // If incoming polygon equals current polygon, do nothing
-      try {
-        const current = getCurrentPolygon();
-        if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
-      } catch {/* ignore */}
-      const id = upsertPolygonFromProp(initialPolygon);
-      const draw = drawRef.current;
-      if (!disabled) {
+    setTimeout(() => {
+      // const now = JSON.stringify(initialPolygon ?? null);
+      // if (now === lastInitialPolyRef.current) return;
+      // lastInitialPolyRef.current = now;
+      if (loadedRef.current) {
+        // If incoming polygon equals current polygon, do nothing
         try {
-          const featureId = id ?? (draw?.getAll().features.find((f: any) => f.geometry?.type === 'Polygon') as any)?.id;
-          if (featureId) {
-            draw.changeMode('simple_select');
-          } else {
-            // No polygon present: go to draw mode
-            draw.changeMode('draw_polygon');
-          }
+          const current = getCurrentPolygon();
+          if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
         } catch {/* ignore */}
-      } else {
-        try { draw?.changeMode('static'); } catch {/* ignore */}
+        const id = upsertPolygonFromProp(initialPolygon);
+        const draw = drawRef.current;
+        if (!disabled) {
+          try {
+            const featureId = id ?? (draw?.getAll().features.find((f: any) => f.geometry?.type === 'Polygon') as any)?.id;
+            if (featureId) {
+              draw.changeMode('simple_select');
+            } else {
+              // No polygon present: go to draw mode
+              draw.changeMode('draw_polygon');
+            }
+          } catch {/* ignore */}
+        } else {
+          try { draw?.changeMode('static'); } catch {/* ignore */}
+        }
       }
-    }
+    }, 250);
   }, [initialPolygon, disabled, getCurrentPolygon]);
 
   return (

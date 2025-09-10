@@ -5,7 +5,6 @@ import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 // @mui
-import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Stack from "@mui/material/Stack";
@@ -28,17 +27,7 @@ import { EDIT_CHECK_IN_OUT } from 'src/api/shifts';
 import Iconify from '../iconify';
 import { RHFVehicleCategoriesSelect } from '../hook-form/rhf-vehicle-categories-select';
 import ConfirmDialogWithForm from '../custom-dialog/confirm-dialog-with-form';
-
-const StyledMapContainer = styled('div')(({ theme }) => ({
-  zIndex: 0,
-  height: 400,
-  overflow: 'hidden',
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  '& .mapboxgl-ctrl-logo, .mapboxgl-ctrl-bottom-right': {
-    display: 'none',
-  },
-}));
+import { StyledMapContainer } from '../map';
 
 const baseSettings = {
   minZoom: 1,

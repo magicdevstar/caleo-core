@@ -89,6 +89,7 @@ export type Assignment = {
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
   reportingLocation?: Maybe<Scalars['String']['output']>;
+  reportingLocationDetails?: Maybe<ReportingLocation>;
   requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
   requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -492,6 +493,7 @@ export type Event = {
   overtimeReasonCode?: Maybe<Scalars['String']['output']>;
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
+  reportingLocation?: Maybe<ReportingLocation>;
   requestDetails?: Maybe<EventRequestDetails>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkills?: Maybe<Array<Maybe<Skill>>>;
@@ -1802,6 +1804,7 @@ export type OrganizationFeatures = {
   lasdEventFields: Scalars['Boolean']['output'];
   lasdUserFields: Scalars['Boolean']['output'];
   lottery: Scalars['Boolean']['output'];
+  mapboxReportingLocation: Scalars['Boolean']['output'];
   monthlyMaxHours: Scalars['Boolean']['output'];
   noShowReport: Scalars['Boolean']['output'];
   officerCheckInOut: Scalars['Boolean']['output'];
@@ -2277,6 +2280,12 @@ export type RankSearchResult = {
   __typename?: 'RankSearchResult';
   items?: Maybe<Array<Maybe<Rank>>>;
   total: Scalars['Int']['output'];
+};
+
+export type ReportingLocation = {
+  __typename?: 'ReportingLocation';
+  fullAddress?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<ShiftCheckInOutCoordinates>;
 };
 
 export type SearchDateFilter = {
@@ -2822,6 +2831,7 @@ export type UpsertAssignment = {
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   reportingLocation?: InputMaybe<Scalars['String']['input']>;
+  reportingLocationDetails?: InputMaybe<UpsertReportingLocation>;
   requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -2895,6 +2905,7 @@ export type UpsertEvent = {
   outsideOrgCode?: InputMaybe<Scalars['String']['input']>;
   overtimeNarrative?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
+  reportingLocation?: InputMaybe<UpsertReportingLocation>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -3022,6 +3033,7 @@ export type UpsertOrganizationFeatures = {
   lasdEventFields?: InputMaybe<Scalars['Boolean']['input']>;
   lasdUserFields?: InputMaybe<Scalars['Boolean']['input']>;
   lottery?: InputMaybe<Scalars['Boolean']['input']>;
+  mapboxReportingLocation?: InputMaybe<Scalars['Boolean']['input']>;
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   officerCheckInOut?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3069,6 +3081,11 @@ export type UpsertRankGroup = {
   id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpsertReportingLocation = {
+  fullAddress?: InputMaybe<Scalars['String']['input']>;
+  location?: InputMaybe<CheckInOutCoordinates>;
 };
 
 export type UpsertShift = {
@@ -3570,6 +3587,7 @@ export type ResolversTypes = ResolversObject<{
   RankGroupSearchResult: ResolverTypeWrapper<RankGroupSearchResult>;
   RankSearchInput: RankSearchInput;
   RankSearchResult: ResolverTypeWrapper<RankSearchResult>;
+  ReportingLocation: ResolverTypeWrapper<ReportingLocation>;
   SearchDateFilter: SearchDateFilter;
   SearchInput: SearchInput;
   SearchTimeFilter: SearchTimeFilter;
@@ -3643,6 +3661,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
   UpsertRankGroup: UpsertRankGroup;
+  UpsertReportingLocation: UpsertReportingLocation;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
@@ -3808,6 +3827,7 @@ export type ResolversParentTypes = ResolversObject<{
   RankGroupSearchResult: RankGroupSearchResult;
   RankSearchInput: RankSearchInput;
   RankSearchResult: RankSearchResult;
+  ReportingLocation: ReportingLocation;
   SearchDateFilter: SearchDateFilter;
   SearchInput: SearchInput;
   SearchTimeFilter: SearchTimeFilter;
@@ -3874,6 +3894,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertOrganizationSSOSettings: UpsertOrganizationSsoSettings;
   UpsertRank: UpsertRank;
   UpsertRankGroup: UpsertRankGroup;
+  UpsertReportingLocation: UpsertReportingLocation;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
@@ -3953,6 +3974,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reportingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  reportingLocationDetails?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
   requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
   requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -4217,6 +4239,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   overtimeReasonCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  reportingLocation?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
@@ -4811,6 +4834,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   lasdEventFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lasdUserFields?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lottery?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  mapboxReportingLocation?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   officerCheckInOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4993,6 +5017,12 @@ export type RankGroupSearchResultResolvers<ContextType = any, ParentType extends
 export type RankSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RankSearchResult'] = ResolversParentTypes['RankSearchResult']> = ResolversObject<{
   items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ReportingLocationResolvers<ContextType = any, ParentType extends ResolversParentTypes['ReportingLocation'] = ResolversParentTypes['ReportingLocation']> = ResolversObject<{
+  fullAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['ShiftCheckInOutCoordinates']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -5506,6 +5536,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   RankGroup?: RankGroupResolvers<ContextType>;
   RankGroupSearchResult?: RankGroupSearchResultResolvers<ContextType>;
   RankSearchResult?: RankSearchResultResolvers<ContextType>;
+  ReportingLocation?: ReportingLocationResolvers<ContextType>;
   Shift?: ShiftResolvers<ContextType>;
   ShiftAvailabilityTime?: ShiftAvailabilityTimeResolvers<ContextType>;
   ShiftBuffer?: ShiftBufferResolvers<ContextType>;

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+// @mui
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -12,6 +14,8 @@ import {
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from 'src/hooks/use-features';
+import RHFAutocompleteGeocode from 'src/components/hook-form/rhf-autocomplete-geocode';
+import { useFormContext } from 'react-hook-form';
 
 interface Props {
   disabledInput?: boolean;
@@ -22,6 +26,31 @@ export const EditReportingLocation = ({
   disabledInput,
   checkLabel
 }: Props) => {
+  const { mapboxReportingLocation } = useFeatures();
+  const { watch, setValue } = useFormContext();
+  const address = watch('reportingLocationAddress');
+  const reportingLocation = watch('reportingLocation');
+
+  useEffect(() => {
+    // Only set when the address is selected from mapbox
+    if (address?.geometry?.coordinates) {
+      const point = address.geometry.coordinates;
+      setValue('reportingLocation', address.place_name_en);
+      setValue('reportingLocationPosition', point);
+    }
+  }, [address, setValue]);
+
+  // Allow syncing to mapbox field if the feature is turned off :)
+  useEffect(() => {
+    if (!mapboxReportingLocation) {
+      setValue('reportingLocationAddress', {
+        id: reportingLocation,
+        place_name: reportingLocation,
+        place_name_en: reportingLocation,
+      });
+    }
+  }, [setValue, mapboxReportingLocation, reportingLocation]);
+
   const mdUp = useResponsive('up', 'md');
   const { officerCheckInOut, lasdEventFields } = useFeatures();
 
@@ -51,6 +80,13 @@ export const EditReportingLocation = ({
 
             {lasdEventFields && (
               <>
+                {
+                  mapboxReportingLocation ? (
+                    <RHFAutocompleteGeocode disabled={disabledInput} name="reportingLocationAddress" label="Reporting Location" />
+                  ) : (
+                    <RHFTextField disabled={disabledInput} name="reportingLocation" label="Reporting Location" />
+                  )
+                }
                 <RHFTextField disabled={disabledInput} name="uniform" label="Uniform" />
                 <RHFDateTimePicker disabled={disabledInput} name="briefingTime" label="Briefing Time" />
                 <RHFTextField disabled={disabledInput} name="briefingLocation" label="Briefing Location" />

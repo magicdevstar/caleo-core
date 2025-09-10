@@ -63,6 +63,7 @@ const userDetailProperties = `
         signingAuthorityAssignment
         financeUnit
         showShiftsByEvent
+        mapboxReportingLocation
       }
       customizations {
         pNumber

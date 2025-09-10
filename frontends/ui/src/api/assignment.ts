@@ -97,6 +97,14 @@ export const GET_ASSIGNMENT = gql`
       briefingTime
       briefingLocation
 
+      reportingLocationDetails {
+        fullAddress
+        location {
+          latitude
+          longitude
+        }
+      }
+
       shiftSlots {
         id
         slotCount

@@ -12,13 +12,15 @@ interface Props {
   checkLabel?: string;
   disabled?: boolean;
   geoName?: string;
+  reportingLocationName?: string;
 };
 
 export function GeoFenceDefinition({
   disabled,
   checkName = "allowOfficerCheckIn",
   checkLabel = "Allow Remote Check In/Out",
-  geoName = "geoFence"
+  geoName = "geoFence",
+  reportingLocationName = "reportingLocationPosition",
 }: Props) {
   const { officerCheckInOut } = useFeatures();
   
@@ -37,7 +39,7 @@ export function GeoFenceDefinition({
         label={checkLabel}
       />
 
-      {isEnabled && <RHFMapWithBoundingBox name={geoName} />}
+      {isEnabled && <RHFMapWithBoundingBox name={geoName} pinName={reportingLocationName} />}
     </Stack>
   );
 }

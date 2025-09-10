@@ -69,6 +69,7 @@ export const featureDefinitions = [
   { value: 'signingAuthorityAssignment', label: 'Signing Authority Assignment', defaultEnabled: false },
   { value: 'financeUnit', label: 'Finance Unit', defaultEnabled: false },
   { value: 'showShiftsByEvent', label: 'Show Shifts By Event', defaultEnabled: false },
+  { value: 'mapboxReportingLocation', label: 'Mapbox Reporting Location', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

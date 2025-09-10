@@ -1,4 +1,5 @@
 import { useFormContext, Controller } from 'react-hook-form';
+import { useCallback } from 'react';
 // @mui
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -10,6 +11,7 @@ import PolygonDrawMap from './map-polygon';
 
 interface RHFMapWithPolygonProps {
   name: string;
+  pinName?: string; // Optional pin field name
   helperText?: string;
   disabled?: boolean;
   sx?: SxProps<Theme>;
@@ -17,11 +19,20 @@ interface RHFMapWithPolygonProps {
 
 export function RHFMapWithBoundingBox({
   name,
+  pinName,
   helperText,
   disabled = false,
   sx,
 }: RHFMapWithPolygonProps) {
   const { control } = useFormContext();
+
+  const handlePolygonChange = useCallback((polygon: number[][] | null, onChange: (value: any) => void) => {
+    onChange(polygon);
+  }, []);
+
+  const handlePinChange = useCallback((pin: [number, number] | null, onChange: (value: any) => void) => {
+    onChange(pin);
+  }, []);
 
   return (
     <Controller
@@ -29,14 +40,35 @@ export function RHFMapWithBoundingBox({
       control={control}
       render={({ field, fieldState: { error } }) => (
         <Box>
-          <PolygonDrawMap
-            sx={sx}
-            initialPolygon={field.value}
-            disabled={disabled}
-            onPolygonChange={(polygon: number[][] | null) => {
-              field.onChange(polygon);
-            }}
-          />
+          {pinName ? (
+            <Controller
+              name={pinName}
+              control={control}
+              render={({ field: pinField }) => (
+                <PolygonDrawMap
+                  sx={sx}
+                  initialPolygon={field.value}
+                  initialPin={pinField.value}
+                  disabled={disabled}
+                  onPolygonChange={(polygon: number[][] | null) => {
+                    handlePolygonChange(polygon, field.onChange);
+                  }}
+                  onPinChange={(pin: [number, number] | null) => {
+                    handlePinChange(pin, pinField.onChange);
+                  }}
+                />
+              )}
+            />
+          ) : (
+            <PolygonDrawMap
+              sx={sx}
+              initialPolygon={field.value}
+              disabled={disabled}
+              onPolygonChange={(polygon: number[][] | null) => {
+                handlePolygonChange(polygon, field.onChange);
+              }}
+            />
+          )}
           {(error || helperText) && (
             <Typography
               variant="caption"

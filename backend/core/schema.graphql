@@ -419,6 +419,7 @@
 
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+    reportingLocation: ReportingLocation
 
     # For the St Pete Demo. This might move to a different place once we get feedback
     callSign: String @deprecated(reason: "Use the assignments callSign instead!")
@@ -485,6 +486,13 @@
     thumbnailUrl: String
   }
 
+  type ReportingLocation {
+    fullAddress: String
+    # The name of the type here is a bit misleading.
+    # The type just defines a location with lat/lng coords
+    location: ShiftCheckInOutCoordinates
+  }
+
   type EventInvoiceResponse {
     signingUrl: String!
   }
@@ -528,6 +536,7 @@
 
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+    reportingLocationDetails: ReportingLocation
 
     uniform: String
     briefingTime: DateTime
@@ -926,6 +935,9 @@
 
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+    # The name of the type here is a bit misleading.
+    # The type just defines a location with lat/lng coords
+    reportingLocation: UpsertReportingLocation
 
     # LASD specific fields
     ocn: String
@@ -950,6 +962,13 @@
 
     # Incident only field
     requiredSkillIds: [String]
+  }
+  
+  input UpsertReportingLocation {
+    fullAddress: String
+    # The name of the type here is a bit misleading.
+    # The type just defines a location with lat/lng coords
+    location: CheckInOutCoordinates
   }
 
   input InputEventRequestDetails {
@@ -1005,6 +1024,7 @@
     isSigningAuthority: Boolean
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
+    reportingLocationDetails: UpsertReportingLocation
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
@@ -1563,6 +1583,7 @@ type DocusignSignerDetailsData {
     signingAuthorityAssignment: Boolean!
     financeUnit: Boolean!
     showShiftsByEvent: Boolean!
+    mapboxReportingLocation: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1791,6 +1812,7 @@ type DocusignSignerDetailsData {
     signingAuthorityAssignment: Boolean
     financeUnit: Boolean
     showShiftsByEvent: Boolean
+    mapboxReportingLocation: Boolean
   }
 
   input UpsertInterestListSetting {

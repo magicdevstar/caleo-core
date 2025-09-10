@@ -105,3 +105,19 @@ export const StyledControlPanel = styled('div')(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
 }));
+
+export const StyledMapContainer = styled("div")(({ theme }) => ({
+  zIndex: 0,
+  height: 400,
+  overflow: "hidden",
+  position: "relative",
+  borderRadius: theme.shape.borderRadius,
+  ...(theme.palette.mode === "dark"
+    ? {
+        "& .maplibregl-canvas": {
+          filter:
+            "brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7)",
+        },
+      }
+    : {}),
+}));

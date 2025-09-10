@@ -103,7 +103,7 @@ export default function EditAssignment({
     callSign: Yup.string().nullable(),
     description: Yup.string(),
     eventId: Yup.string(),
-    reportingLocation: Yup.string(),
+    reportingLocation: Yup.string().nullable(),
     bwNeeded: Yup.boolean(),
     notifyWhenFullyStaffed: Yup.boolean(),
     requiredSkills: Yup.array(),
@@ -116,6 +116,8 @@ export default function EditAssignment({
     fieldSupervisorAssignment: Yup.object().nullable(),
     allowOfficerCheckIn: Yup.boolean().nullable(),
     geoFence: Yup.array().nullable(),
+    reportingLocationPosition: Yup.array().nullable(),
+    reportingLocationAddress: Yup.object().nullable(),
     uniform: Yup.string().nullable(),
     briefingTime: Yup.date().nullable(),
     briefingLocation: Yup.string().nullable(),
@@ -157,6 +159,12 @@ export default function EditAssignment({
       uniform: currentAssignment?.uniform || '',
       briefingTime: currentAssignment?.briefingTime ? new Date(currentAssignment?.briefingTime) : null,
       briefingLocation: currentAssignment?.briefingLocation || '',
+      reportingLocationPosition: currentAssignment?.reportingLocationDetails?.location?.latitude && currentAssignment?.reportingLocationDetails?.location?.longitude ? [currentAssignment?.reportingLocationDetails?.location?.longitude, currentAssignment?.reportingLocationDetails?.location?.latitude] : null,
+      reportingLocationAddress: currentAssignment?.reportingLocationDetails?.fullAddress ? {
+        id: currentAssignment?.reportingLocationDetails?.fullAddress,
+        place_name: currentAssignment?.reportingLocationDetails?.fullAddress,
+        place_name_en: currentAssignment?.reportingLocationDetails?.fullAddress,
+      } : null,
       shiftSlots: (currentAssignment?.shiftSlots || []).map((slot) => ({
         id: slot!.id,
         slotCount: slot!.slotCount,
@@ -225,6 +233,15 @@ export default function EditAssignment({
             briefingLocation: formData?.briefingLocation?.trim?.(),
             // Only send shiftSlots if they exist to avoid overwriting existing slots with []
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
+            reportingLocationDetails: formData?.reportingLocationPosition || formData?.reportingLocationAddress ? {
+              fullAddress: formData?.reportingLocationAddress?.place_name_en || '',
+              ...(formData?.reportingLocationPosition && {
+                location: {
+                  latitude: formData?.reportingLocationPosition[1],
+                  longitude: formData?.reportingLocationPosition[0],
+                }
+              })
+            } : null,
           },
         },
       });
@@ -370,12 +387,6 @@ export default function EditAssignment({
                     ))
                   }
                 />
-              )
-            }
-
-            {
-              lasdEventFields && (
-                <RHFTextField disabled={allDisabled} name="reportingLocation" label="Reporting Location" />
               )
             }
 

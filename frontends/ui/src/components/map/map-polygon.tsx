@@ -68,14 +68,12 @@ export default function PolygonDrawMap({
   const loadedRef = useRef(false);
   const controlAddedRef = useRef<boolean>(false);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [pinLoaded, setPinLoaded] = useState(false);
   const disabledRef = useRef<boolean>(disabled);
   const syncingRef = useRef<boolean>(false);
   const lastEmittedRef = useRef<string>(JSON.stringify(initialPolygon ?? null));
   const dialogOpen = useBoolean<any>();
   
   // Pin state
-  const [pin, setPin] = useState<[number, number] | null>(initialPin || null);
   const [pinMode, setPinMode] = useState(false);
 
   const handleOpenDialog = useCallback(() => {
@@ -89,22 +87,9 @@ export default function PolygonDrawMap({
 
   const handleDeletePin = useCallback(() => {
     if (disabled) return;
-    setPin(null);
+    onPinChange?.(null);
     setPinMode(false);
-  }, [disabled]);
-
-  // Effect to sync pin state with prop
-  useEffect(() => {
-    if (pinLoaded || JSON.stringify(initialPin) === JSON.stringify(pin)) return;
-    setPinLoaded(true);
-    setPin(initialPin || null);
-  }, [initialPin, pin, pinLoaded, setPinLoaded]);
-
-  // Effect to emit pin changes
-  useEffect(() => {
-    onPinChange?.(pin);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin]);
+  }, [disabled, onPinChange]);
 
   useEffect(() => {
     disabledRef.current = disabled;
@@ -343,17 +328,17 @@ export default function PolygonDrawMap({
     
     const { lngLat } = event;
     const newPin: [number, number] = [lngLat.lng, lngLat.lat];
-    setPin(newPin);
+    onPinChange?.(newPin);
     setPinMode(false); // Exit pin mode after placing pin
-  }, [pinMode, disabled]);
+  }, [pinMode, onPinChange, disabled]);
 
   // Handle pin drag
   const handlePinDrag = useCallback((event: any) => {
     if (disabled) return;
     const { lngLat } = event;
     const newPin: [number, number] = [lngLat.lng, lngLat.lat];
-    setPin(newPin);
-  }, [disabled]);
+    onPinChange?.(newPin);
+  }, [disabled, onPinChange]);
 
   // Respond to external initialPolygon changes after mount
   useEffect(() => {
@@ -422,13 +407,13 @@ export default function PolygonDrawMap({
               onAddPin={handlePinToggle} 
               onDeletePin={handleDeletePin}
               disabled={disabled} 
-              hasPin={!!pin}
+              hasPin={!!initialPin}
             />
           )}
-          {pin && (
+          {initialPin && (
             <MapMarker
-              longitude={pin[0]}
-              latitude={pin[1]}
+              longitude={initialPin[0]}
+              latitude={initialPin[1]}
               draggable={!disabled}
               onDrag={handlePinDrag}
               onDragEnd={handlePinDrag}

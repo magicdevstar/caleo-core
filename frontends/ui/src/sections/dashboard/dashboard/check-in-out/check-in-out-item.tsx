@@ -20,9 +20,10 @@ export type CheckInOutItemProps = {
   shift: Shift;
   mapSx?: SxProps<Theme>;
   onClick: (shift: Shift) => void;
+  ignoreGeoFence?: boolean;
 };
 
-export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItemProps) {
+export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence }: CheckInOutItemProps) {
   const { eventCheckIn } = useFeatures();
   const geoDetails = useMemo(() => {
     const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
@@ -40,12 +41,17 @@ export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItem
       direction="row"
     >
       <Button
-        sx={{ width: 150 }}
         onClick={() => {
           onClick?.(shift);
         }}
         size="small"
         variant="contained"
+        sx={{
+          flexShrink: 0,
+          minWidth: 'auto',
+          whiteSpace: 'nowrap',
+          px: 2,
+        }}
       >
         {isCheckOut ? 'Check Out' : 'Check In'}
       </Button>
@@ -92,10 +98,11 @@ export default function CheckInOutItem({ shift, mapSx, onClick }: CheckInOutItem
         </Stack>
 
         {
-          geoDetails.requiresSpecificLocation ? (
+          geoDetails.requiresSpecificLocation && !ignoreGeoFence ? (
             <PolygonDrawMap
               initialPolygon={geoDetails.coords as [number, number][]}
               disabled
+              hideAttributionControl
               sx={mapSx || { height: 100, mt: 1 }}
             />
           ) : (

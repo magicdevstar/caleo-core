@@ -25,11 +25,13 @@ export default function CheckInOut({
   emptyView,
   allowView = true,
   onSuccess,
+  ignoreGeoFence = false,
 } : {
   eventId?: string;
   userId?: string;
   emptyView?: JSX.Element;
   allowView?: boolean;
+  ignoreGeoFence?: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const { dateTimeFormat } = useDateFormats();
@@ -105,17 +107,22 @@ export default function CheckInOut({
         {
           currentShiftsWithConfig.map((shift) => (
             <Card key={shift.id} sx={{ background: alpha(theme.palette.background.paper, 0.5) }}>
-              <CheckInOutItem mapSx={{ mt: 1, height: 200 }} shift={shift} onClick={() => confirm.onTrue(shift)} />
+              <CheckInOutItem
+                mapSx={{ mt: 1, height: 200 }}
+                shift={shift}
+                onClick={() => confirm.onTrue(shift)}
+                ignoreGeoFence={ignoreGeoFence}
+              />
             </Card>
           ))
         }
       </Box>
 
       <CheckInOutConfirm
-        fromKiosk={false}
         confirm={confirm}
         checkInOutConfirm={confirm.attribute as Shift}
         onSuccess={onSuccess}
+        ignoreGeoFence={ignoreGeoFence}
       />
     </>
   );

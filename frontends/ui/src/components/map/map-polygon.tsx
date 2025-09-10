@@ -35,6 +35,7 @@ export type PolygonDrawMapProps = {
   /** Disable all editing & hide controls */
   disabled?: boolean;
   hideExpandControl?: boolean;
+  hideAttributionControl?: boolean;
   /** Container sizing */
   sx?: SxProps<Theme>;
 };
@@ -147,6 +148,7 @@ export default function PolygonDrawMap({
   initialViewState = DEFAULT_VIEW,
   disabled = false,
   hideExpandControl,
+  hideAttributionControl,
   sx,
 }: PolygonDrawMapProps) {
   const location = useGeolocation();
@@ -347,40 +349,34 @@ export default function PolygonDrawMap({
 
   // Respond to external initialPolygon changes after mount
   useEffect(() => {
-    setTimeout(() => {
-      // const now = JSON.stringify(initialPolygon ?? null);
-      // if (now === lastInitialPolyRef.current) return;
-      // lastInitialPolyRef.current = now;
-      if (loadedRef.current) {
-        // If incoming polygon equals current polygon, do nothing
+    if (mapLoaded) {
+      // If incoming polygon equals current polygon, do nothing
+      try {
+        const current = getCurrentPolygon();
+        if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
+      } catch {/* ignore */}
+      const id = upsertPolygonFromProp(initialPolygon);
+      const draw = drawRef.current;
+      if (!disabled) {
         try {
-          const current = getCurrentPolygon();
-          if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
+          const featureId = id ?? (draw?.getAll().features.find((f: any) => f.geometry?.type === 'Polygon') as any)?.id;
+          if (featureId) {
+            draw.changeMode('simple_select');
+          } else {
+            // No polygon present: go to draw mode
+            draw.changeMode('draw_polygon');
+          }
         } catch {/* ignore */}
-        const id = upsertPolygonFromProp(initialPolygon);
-        const draw = drawRef.current;
-        if (!disabled) {
-          try {
-            const featureId = id ?? (draw?.getAll().features.find((f: any) => f.geometry?.type === 'Polygon') as any)?.id;
-            if (featureId) {
-              draw.changeMode('simple_select');
-            } else {
-              // No polygon present: go to draw mode
-              draw.changeMode('draw_polygon');
-            }
-          } catch {/* ignore */}
-        } else {
-          try { draw?.changeMode('static'); } catch {/* ignore */}
-        }
+      } else {
+        try { draw?.changeMode('static'); } catch {/* ignore */}
       }
-    }, 250);
-  }, [initialPolygon, disabled, getCurrentPolygon]);
+    }
+  }, [initialPolygon, disabled, getCurrentPolygon, mapLoaded]);
 
   return (
     <>
       <StyledMapContainer data-disabled={disabled ? 'true' : 'false'} sx={{ mt: disabled ? 0 : 2, ...(sx || {}) }}>
         <Map
-          reuseMaps
           ref={mapRef}
           onLoad={() => setMapLoaded(true)}
           mapStyle={mapStyle}
@@ -390,6 +386,7 @@ export default function PolygonDrawMap({
             longitude: center?.[0] || location.longitude || initialViewState.longitude,
           }}
           style={{ width: "100%", height: "100%" }}
+          attributionControl={!hideAttributionControl as any}
         >
           <MapControl hideScaleControl={disabled} hideNavigationnControl={disabled} hideFullscreenControl />
           {!hideExpandControl && <ExpandMapControl onClick={handleOpenDialog} />}

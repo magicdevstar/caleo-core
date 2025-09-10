@@ -43,6 +43,7 @@ export default function EventUserKioskView() {
         ) : (
           <Stack spacing={2} direction="column" sx={{ width: '100%' }}>
             <CheckInOut
+              ignoreGeoFence
               userId={params.userId}
               eventId={params.eventId}
               onSuccess={(status) => completed.onTrue(status)}

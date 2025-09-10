@@ -27,14 +27,14 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function CheckInOutConfirm({
-  fromKiosk,
   checkInOutConfirm,
   confirm,
   onSuccess,
+  ignoreGeoFence,
 }: {
-  fromKiosk: boolean;
   checkInOutConfirm: Shift | null;
   confirm: UseBooleanReturnType<any>;
+  ignoreGeoFence?: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const geoLocation = useGeolocation();
@@ -77,7 +77,7 @@ export default function CheckInOutConfirm({
 
       const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
       const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
-      if (requiresSpecificLocation && coords) {
+      if (requiresSpecificLocation && coords && !ignoreGeoFence) {
         if (!geoLocation || geoLocation.error?.message) {
           throw new Error('LOCATION_REQUIRED');
         }
@@ -144,6 +144,7 @@ export default function CheckInOutConfirm({
     enqueueSnackbar,
     onSuccess,
     setEquipmentTime,
+    ignoreGeoFence,
     vehicleCategories,
     vehicleCategoryId,
     now,

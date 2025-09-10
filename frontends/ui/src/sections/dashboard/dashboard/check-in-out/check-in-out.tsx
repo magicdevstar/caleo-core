@@ -99,7 +99,6 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
       </Card>
 
       <CheckInOutConfirm
-        fromKiosk
         confirm={confirm}
         checkInOutConfirm={checkInOutConfirm}
       />

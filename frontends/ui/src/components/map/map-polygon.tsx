@@ -68,6 +68,7 @@ export default function PolygonDrawMap({
   const loadedRef = useRef(false);
   const controlAddedRef = useRef<boolean>(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [pinLoaded, setPinLoaded] = useState(false);
   const disabledRef = useRef<boolean>(disabled);
   const syncingRef = useRef<boolean>(false);
   const lastEmittedRef = useRef<string>(JSON.stringify(initialPolygon ?? null));
@@ -94,9 +95,10 @@ export default function PolygonDrawMap({
 
   // Effect to sync pin state with prop
   useEffect(() => {
-    if (JSON.stringify(initialPin) === JSON.stringify(pin)) return;
+    if (pinLoaded || JSON.stringify(initialPin) === JSON.stringify(pin)) return;
+    setPinLoaded(true);
     setPin(initialPin || null);
-  }, [initialPin, pin]);
+  }, [initialPin, pin, pinLoaded, setPinLoaded]);
 
   // Effect to emit pin changes
   useEffect(() => {

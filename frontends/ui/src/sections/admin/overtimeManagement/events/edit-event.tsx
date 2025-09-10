@@ -337,10 +337,10 @@ export default function EditEvent({
       briefingTime: currentEvent?.briefingTime ? new Date(currentEvent.briefingTime) : undefined,
       briefingLocation: currentEvent?.briefingLocation || '',
       reportingLocationPosition: currentEvent?.reportingLocation?.location?.latitude && currentEvent?.reportingLocation?.location?.longitude ? [currentEvent?.reportingLocation?.location?.longitude, currentEvent?.reportingLocation?.location?.latitude] : null,
-      reportingLocationAddress: currentEvent?.reportingLocationDetails?.fullAddress ? {
-        id: currentEvent?.reportingLocationDetails?.fullAddress,
-        place_name: currentEvent?.reportingLocationDetails?.fullAddress,
-        place_name_en: currentEvent?.reportingLocationDetails?.fullAddress,
+      reportingLocationAddress: currentEvent?.reportingLocation?.fullAddress ? {
+        id: currentEvent?.reportingLocation?.fullAddress,
+        place_name: currentEvent?.reportingLocation?.fullAddress,
+        place_name_en: currentEvent?.reportingLocation?.fullAddress,
       } : null,
     }),
     [

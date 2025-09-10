@@ -118,7 +118,7 @@ const NewEventSchema = Yup.object().shape({
   allowOfficerCheckIn: Yup.boolean().nullable(),
   geoFence: Yup.array().nullable(),
   reportingLocationPosition: Yup.array().nullable(),
-  reportingLocationAddress: Yup.string().nullable(),
+  reportingLocationAddress: Yup.object().nullable(),
   notifyOnFirstComeFirstServe: Yup.boolean(),
   outsideOrgCode: Yup.string().nullable(),
   overtimeReasonCode: Yup.string().nullable(),
@@ -337,7 +337,11 @@ export default function EditEvent({
       briefingTime: currentEvent?.briefingTime ? new Date(currentEvent.briefingTime) : undefined,
       briefingLocation: currentEvent?.briefingLocation || '',
       reportingLocationPosition: currentEvent?.reportingLocation?.location?.latitude && currentEvent?.reportingLocation?.location?.longitude ? [currentEvent?.reportingLocation?.location?.longitude, currentEvent?.reportingLocation?.location?.latitude] : null,
-      reportingLocationAddress: currentEvent?.reportingLocation?.fullAddress || null,
+      reportingLocationAddress: currentEvent?.reportingLocationDetails?.fullAddress ? {
+        id: currentEvent?.reportingLocationDetails?.fullAddress,
+        place_name: currentEvent?.reportingLocationDetails?.fullAddress,
+        place_name_en: currentEvent?.reportingLocationDetails?.fullAddress,
+      } : null,
     }),
     [
       currentEvent,

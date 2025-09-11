@@ -430,12 +430,12 @@ export default function AccountGeneral({
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField disabled={!adminViewer || allDisabled} name="firstName" label="First Name" />
-              <RHFTextField disabled={!adminViewer|| allDisabled} name="lastName" label="Last Name" />
+              <RHFTextField disabled={!adminViewer || allDisabled || lasdUserFields} name="firstName" label="First Name" />
+              <RHFTextField disabled={!adminViewer|| allDisabled || lasdUserFields} name="lastName" label="Last Name" />
 
               <RHFRankSelect name="rank" label="Rank" disabled={(!adminViewer && !lasdUserFields) || allDisabled} />
               
-              <RHFTextField disabled={!adminViewer || allDisabled} name="pNumber" label={pNumberLabel} />
+              <RHFTextField disabled={!adminViewer || allDisabled || lasdUserFields} name="pNumber" label={pNumberLabel} />
 
               <RHFSelect
                 fullWidth
@@ -523,7 +523,7 @@ export default function AccountGeneral({
               {
                 lasdUserFields && (
                   <>
-                    <RHFDatePicker disabled={!adminViewer || allDisabled} name="tenor" label="Hire Date" />
+                    <RHFDatePicker disabled={!adminViewer || allDisabled || lasdUserFields} name="tenor" label="Hire Date" />
 
                     <RHFUnitSelect name="unit" label="Unit of Assignment" disabled={allDisabled} />
 
@@ -575,7 +575,7 @@ export default function AccountGeneral({
               </Box>
 
               <Box>
-                <RHFTextField disabled={!adminViewer || allDisabled} name="primaryEmail" label="Primary Email" />
+                <RHFTextField disabled={!adminViewer || allDisabled || lasdUserFields} name="primaryEmail" label="Primary Email" />
                 <RHFSwitch disabled={!adminViewer || allDisabled} name="primaryEmailReceive" label="Receive emails" />
               </Box>
 

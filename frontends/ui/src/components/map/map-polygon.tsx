@@ -421,7 +421,11 @@ export default function PolygonDrawMap({
           )}
         </Map>
       </StyledMapContainer>
-      <MapExpandDialog dialogOpen={dialogOpen} />
+      <MapExpandDialog dialogOpen={dialogOpen}>
+        { dialogOpen.attribute && (
+          <PolygonDrawMap sx={{ height: '100%' }} disabled hideExpandControl initialPolygon={dialogOpen.attribute} />
+        )}
+      </MapExpandDialog>
     </>
   );
 }

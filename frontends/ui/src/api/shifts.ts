@@ -468,6 +468,13 @@ export const GET_ALL_SHIFTS = gql`
           startTime
           endTime
           geoFence
+          reportingLocation {
+            fullAddress
+            location {
+              latitude
+              longitude
+            }
+          }
           allowOfficerCheckIn
           venue {
             id
@@ -493,6 +500,13 @@ export const GET_ALL_SHIFTS = gql`
           reportingLocation
           geoFence
           allowOfficerCheckIn
+          reportingLocationDetails {
+            fullAddress
+            location {
+              latitude
+              longitude
+            }
+          }
           requiredEquipment {
             id
             name

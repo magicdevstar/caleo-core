@@ -19,6 +19,7 @@ import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
+import MapMarkersPopups from 'src/components/map/map-marker-popups';
 import Label, { LabelColor, LabelVariant } from "src/components/label";
 import { reader } from "src/layouts/_common/notifications-popover/notification-item";
 import { convertDate, useDateFormats } from "src/hooks/use-datejs";
@@ -28,6 +29,7 @@ import { useFeatures } from "src/hooks/use-features";
 import { useLazyQuery } from "@apollo/client";
 import { GET_EVENT_NOTES } from "src/api/event";
 import { GET_ASSIGNMENT_DESCRIPTION } from "src/api/assignment";
+import { StyledMapContainer } from "../map/styles";
 
 export type ShiftAction = {
   key: string;
@@ -109,6 +111,31 @@ export default function ShiftItem({
     }
     return inputShift as Shift;
   }, [inputShift]);
+  const reportingLocation = useMemo(() => {
+    const address = shift.assignment?.reportingLocationDetails?.fullAddress ||
+      shift.assignment?.reportingLocation ||
+      shift.event?.reportingLocation?.fullAddress ||
+      'N/A';
+    const latitude = shift.assignment?.reportingLocationDetails?.location?.latitude ||
+      shift.event?.reportingLocation?.location?.latitude;
+    const longitude = shift.assignment?.reportingLocationDetails?.location?.longitude ||
+      shift.event?.reportingLocation?.location?.longitude;
+
+    let coordinates;
+    if (latitude && longitude) {
+      coordinates = {
+        latitude,
+        longitude,
+        name: 'Reporting Location',
+      };
+    }
+
+    return {
+      address,
+      coordinates,
+    }
+  }, [shift]);
+  console.log({ reportingLocation });
   const { user } = useAuthContext();
   const { eventCheckIn, eventCheckOut, lasdEventFields, callSign, enabledEventThumbnail } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
@@ -519,7 +546,7 @@ export default function ShiftItem({
 
           <Grid container spacing={2} sx={{ height: detailHeight, transition: 'all .15s ease-in-out', mt: compact ? -3 : '' }}>
             {compact && renderFirstRowDetails}
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               {/* Include open to roles */}
               <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Open to roles</Typography>
@@ -532,7 +559,7 @@ export default function ShiftItem({
             {
               !lasdEventFields && (
                 <>
-                  <Grid item xs={12} sm={4}>
+                  <Grid item xs={12} sm={6}>
                     {/* Include other people assigned */}
                     <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Assigned to shift</Typography>
@@ -541,7 +568,7 @@ export default function ShiftItem({
                       </Box>
                     </Stack>
                   </Grid>
-                  <Grid item xs={12} sm={4}>
+                  <Grid item xs={12} sm={6}>
                     {/* Include contact info */}
                     <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Contact Info</Typography>
@@ -556,12 +583,26 @@ export default function ShiftItem({
 
             {
               lasdEventFields && (
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6}>
                   <Stack direction="column" spacing={1} sx={{ mt: 2 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Reporting Location</Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                      {shift?.assignment?.reportingLocation || 'N/A'}
+                      {reportingLocation.address}
                     </Box>
+                    { reportingLocation.coordinates && (
+                      <StyledMapContainer>
+                        <MapMarkersPopups
+                          minZoom={1}
+                          attributionControl={false}
+                          initialViewState={{
+                            zoom: 16,
+                            latitude: reportingLocation.coordinates.latitude,
+                            longitude: reportingLocation.coordinates.longitude,
+                          }}
+                          data={[reportingLocation.coordinates]}
+                        />
+                      </StyledMapContainer>
+                    )}
                   </Stack>
                 </Grid>
               )

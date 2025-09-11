@@ -103,9 +103,7 @@ export function MapExpandDialog({ dialogOpen, children }: IMapExpandDialogProps)
       </DialogTitle>
 
       <DialogContent sx={{ p: 0, position: "relative" }}>
-        {dialogOpen.attribute && (
-          {children}
-        )}
+        {children}
       </DialogContent>
 
       <DialogActions>

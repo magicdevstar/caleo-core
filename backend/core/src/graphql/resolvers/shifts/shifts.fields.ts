@@ -37,6 +37,8 @@ export const fields = {
     docusignEvents: (item: IShift, _, context: Context) => {
       return context.docusign.loadAllEventsByShiftId((item.id?.toString() || item._id?.toString())!);
     },
+    shiftComment: (shift: IShift, _, { shifts }: Context) =>
+      shifts.loadCommentsById.load(shift.id || shift._id!.toString()),
   },
   ShiftCheckInOut: {
     checkInTime: (item: IShiftCheckInOut) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
@@ -46,5 +48,5 @@ export const fields = {
     checkInTime: (item: IShiftCheckInOutEquipment) => item.checkInTime ? new Date(item.checkInTime).toISOString() : null,
     checkOutTime: (item: IShiftCheckInOutEquipment) => item.checkOutTime ? new Date(item.checkOutTime).toISOString() : null,
     vehicleCategory: (item: IShiftCheckInOutEquipment, _, { vehicleCategories }: Context) => item.vehicleCategoryId ? vehicleCategories.loader.load(item.vehicleCategoryId.toString()) : null,
-  }
+  },
 };

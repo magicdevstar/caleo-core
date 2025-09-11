@@ -25,6 +25,12 @@ export const CHECK_IN = gql`
   }
 `;
 
+export const ADD_SHIFT_COMMENT = gql`
+  mutation AddShiftComment($input: UpsertShiftComment!) {
+    shiftComment(input: $input)
+  }
+`;
+
 export const EDIT_CHECK_IN_OUT = gql`
   mutation EditCheckInOut($input: ShiftAdminCheckInOutEvent!) {
     editCheckInOut(input: $input) {
@@ -554,6 +560,10 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         userId
         locked
         callSign
+        shiftComment {
+          id
+          comment
+        }
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -961,6 +971,11 @@ export const GET_GROUPED_SHIFTS = gql`
       locked
       userId
       callSign
+
+      shiftComment {
+        id
+        comment
+      }
 
       shiftCheckInOut {
         checkInTime

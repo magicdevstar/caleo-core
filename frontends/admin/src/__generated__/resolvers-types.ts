@@ -1208,6 +1208,7 @@ export type Mutation = {
   setShiftBufferStatus?: Maybe<ShiftBufferRequest>;
   shiftAssign?: Maybe<Shift>;
   shiftBufferRequest?: Maybe<ShiftBufferRequest>;
+  shiftComment?: Maybe<Scalars['Boolean']['output']>;
   shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   shiftLotteryRequest?: Maybe<ShiftLotteryRequest>;
   shifts?: Maybe<Array<Maybe<Shift>>>;
@@ -1538,6 +1539,11 @@ export type MutationShiftAssignArgs = {
 
 export type MutationShiftBufferRequestArgs = {
   shiftBufferRequest?: InputMaybe<CreateShiftBufferRequest>;
+};
+
+
+export type MutationShiftCommentArgs = {
+  input: UpsertShiftComment;
 };
 
 
@@ -2345,6 +2351,7 @@ export type Shift = {
   removedAt?: Maybe<Scalars['String']['output']>;
   shiftBufferShift?: Maybe<Shift>;
   shiftCheckInOut?: Maybe<ShiftCheckInOut>;
+  shiftComment?: Maybe<ShiftComment>;
   shiftId: Scalars['String']['output'];
   shiftInterestRequest?: Maybe<ShiftInterestRequest>;
   startTime: Scalars['String']['output'];
@@ -2497,6 +2504,16 @@ export type ShiftCheckOutResponse = {
   __typename?: 'ShiftCheckOutResponse';
   shift: Shift;
   signingUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type ShiftComment = {
+  __typename?: 'ShiftComment';
+  comment: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  shiftId: Scalars['ObjectId']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  userId: Scalars['ObjectId']['output'];
 };
 
 export type ShiftDayTime = {
@@ -3110,6 +3127,13 @@ export type UpsertShiftBuffer = {
   minuteShiftBuffer: Scalars['Int']['input'];
 };
 
+export type UpsertShiftComment = {
+  comment: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
+  shiftId: Scalars['ObjectId']['input'];
+  userId: Scalars['ObjectId']['input'];
+};
+
 export type UpsertShiftInterestRequest = {
   id?: InputMaybe<Scalars['String']['input']>;
   shiftGroupId: Scalars['String']['input'];
@@ -3606,6 +3630,7 @@ export type ResolversTypes = ResolversObject<{
   ShiftCheckInOutEquipmentEvent: ShiftCheckInOutEquipmentEvent;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ResolverTypeWrapper<ShiftCheckOutResponse>;
+  ShiftComment: ResolverTypeWrapper<ShiftComment>;
   ShiftDayTime: ResolverTypeWrapper<ShiftDayTime>;
   ShiftDetails: ResolverTypeWrapper<ShiftDetails>;
   ShiftInterestRequest: ResolverTypeWrapper<ShiftInterestRequest>;
@@ -3664,6 +3689,7 @@ export type ResolversTypes = ResolversObject<{
   UpsertReportingLocation: UpsertReportingLocation;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftComment: UpsertShiftComment;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
   UpsertShiftLotteryRequest: UpsertShiftLotteryRequest;
   UpsertShiftReminder: UpsertShiftReminder;
@@ -3845,6 +3871,7 @@ export type ResolversParentTypes = ResolversObject<{
   ShiftCheckInOutEquipmentEvent: ShiftCheckInOutEquipmentEvent;
   ShiftCheckInOutEvent: ShiftCheckInOutEvent;
   ShiftCheckOutResponse: ShiftCheckOutResponse;
+  ShiftComment: ShiftComment;
   ShiftDayTime: ShiftDayTime;
   ShiftDetails: ShiftDetails;
   ShiftInterestRequest: ShiftInterestRequest;
@@ -3897,6 +3924,7 @@ export type ResolversParentTypes = ResolversObject<{
   UpsertReportingLocation: UpsertReportingLocation;
   UpsertShift: UpsertShift;
   UpsertShiftBuffer: UpsertShiftBuffer;
+  UpsertShiftComment: UpsertShiftComment;
   UpsertShiftInterestRequest: UpsertShiftInterestRequest;
   UpsertShiftLotteryRequest: UpsertShiftLotteryRequest;
   UpsertShiftReminder: UpsertShiftReminder;
@@ -4677,6 +4705,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setShiftBufferStatus?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, RequireFields<MutationSetShiftBufferStatusArgs, 'id' | 'status'>>;
   shiftAssign?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType, RequireFields<MutationShiftAssignArgs, 'id'>>;
   shiftBufferRequest?: Resolver<Maybe<ResolversTypes['ShiftBufferRequest']>, ParentType, ContextType, Partial<MutationShiftBufferRequestArgs>>;
+  shiftComment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationShiftCommentArgs, 'input'>>;
   shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType, Partial<MutationShiftInterestRequestArgs>>;
   shiftLotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType, Partial<MutationShiftLotteryRequestArgs>>;
   shifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<MutationShiftsArgs, 'shifts'>>;
@@ -5056,6 +5085,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shiftBufferShift?: Resolver<Maybe<ResolversTypes['Shift']>, ParentType, ContextType>;
   shiftCheckInOut?: Resolver<Maybe<ResolversTypes['ShiftCheckInOut']>, ParentType, ContextType>;
+  shiftComment?: Resolver<Maybe<ResolversTypes['ShiftComment']>, ParentType, ContextType>;
   shiftId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   shiftInterestRequest?: Resolver<Maybe<ResolversTypes['ShiftInterestRequest']>, ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -5155,6 +5185,16 @@ export type ShiftCheckInOutEquipmentResolvers<ContextType = any, ParentType exte
 export type ShiftCheckOutResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftCheckOutResponse'] = ResolversParentTypes['ShiftCheckOutResponse']> = ResolversObject<{
   shift?: Resolver<ResolversTypes['Shift'], ParentType, ContextType>;
   signingUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ShiftCommentResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShiftComment'] = ResolversParentTypes['ShiftComment']> = ResolversObject<{
+  comment?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  shiftId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -5546,6 +5586,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ShiftCheckInOutCoordinates?: ShiftCheckInOutCoordinatesResolvers<ContextType>;
   ShiftCheckInOutEquipment?: ShiftCheckInOutEquipmentResolvers<ContextType>;
   ShiftCheckOutResponse?: ShiftCheckOutResponseResolvers<ContextType>;
+  ShiftComment?: ShiftCommentResolvers<ContextType>;
   ShiftDayTime?: ShiftDayTimeResolvers<ContextType>;
   ShiftDetails?: ShiftDetailsResolvers<ContextType>;
   ShiftInterestRequest?: ShiftInterestRequestResolvers<ContextType>;

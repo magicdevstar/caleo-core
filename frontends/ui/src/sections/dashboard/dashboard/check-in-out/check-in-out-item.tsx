@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useMutation } from '@apollo/client';
 // @mui
 import ListItemText from '@mui/material/ListItemText';
 import Box from '@mui/material/Box';
@@ -7,12 +8,19 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { SxProps } from '@mui/system';
 import { Theme } from '@mui/material/styles/createTheme';
+import TextField from '@mui/material/TextField';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
+import { useBoolean } from 'src/hooks/use-boolean';
 // components
 import Iconify from 'src/components/iconify';
-import { Shift } from 'src/__generated__/resolvers-types';
 import PolygonDrawMap from 'src/components/map/map-polygon';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+// types
+import { Shift } from 'src/__generated__/resolvers-types';
+import { ADD_SHIFT_COMMENT } from 'src/api/shifts';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -24,7 +32,11 @@ export type CheckInOutItemProps = {
 };
 
 export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence }: CheckInOutItemProps) {
+  const { user } = useAuthContext();
   const { eventCheckIn } = useFeatures();
+  const addCommentDialog = useBoolean();
+  const [comment, setComment] = useState('');
+  const [addComment, { loading: addingCommentLoading }] = useMutation(ADD_SHIFT_COMMENT);
   const geoDetails = useMemo(() => {
     const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
     const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
@@ -35,26 +47,40 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence }
     };
   }, [shift]);
   const isCheckOut = shift.shiftCheckInOut?.checkInTime || !eventCheckIn;
+
+  const submitComment = useCallback(async () => {
+    try {
+      await addComment({
+        variables: {
+          input: {
+            id: shift.id,
+            shiftId: shift.id,
+            userId: user.id,
+            comment,
+          },
+        },
+      });
+      setComment('');
+      addCommentDialog.onFalse();
+    } catch(error) {
+      console.error('Error submitting comment:', error);
+    }
+  }, [addCommentDialog, comment, shift, user, addComment]);
+
   const action = (
-    <Stack
-      spacing={1}
-      direction="row"
-    >
-      <Button
-        onClick={() => {
-          onClick?.(shift);
-        }}
-        size="small"
-        variant="contained"
-        sx={{
-          flexShrink: 0,
-          minWidth: 'auto',
-          whiteSpace: 'nowrap',
-          px: 2,
-        }}
-      >
-        {isCheckOut ? 'Check Out' : 'Check In'}
-      </Button>
+    <Stack spacing={1}>
+      <Stack spacing={1} direction="row">
+        <Button
+          onClick={() => {
+            onClick?.(shift);
+          }}
+          size="small"
+          variant="contained"
+        >
+          {isCheckOut ? 'Check Out' : 'Check In'}
+        </Button>
+        {!isCheckOut && (<Button size="small" variant="outlined" onClick={addCommentDialog.onTrue}>Contact</Button>)}
+      </Stack>
       <Typography variant='caption' color="textSecondary" component="p">You can remotely check in now! Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
     </Stack>
   );
@@ -114,6 +140,30 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence }
       </Box>
 
       {action}
+
+      <ConfirmDialog
+        open={addCommentDialog.value}
+        onClose={addCommentDialog.onFalse}
+        title="Add Comment"
+        content={(
+          <Stack spacing={2}>
+            <Typography variant="body2">Please add your comment:</Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              disabled={addingCommentLoading}
+            />
+          </Stack>
+        )}
+        action={
+          <LoadingButton loading={addingCommentLoading} variant="contained" onClick={submitComment}>
+            Submit Comment
+          </LoadingButton>
+        }
+      />
     </Stack>
   );
 }

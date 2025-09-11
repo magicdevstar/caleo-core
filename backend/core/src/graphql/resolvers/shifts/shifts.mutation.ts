@@ -15,6 +15,7 @@ import {
   ShiftCheckInOutEvent,
   ShiftStatus,
   ShiftUpdates,
+  UpsertShiftComment,
 } from "../../../__generated__/resolvers-types";
 import { adminOnly, adminOrOwnerOnly, userIsAdmin } from "../../../utils/access";
 import { EventRemoveEventType } from "../../../models/event";
@@ -24,6 +25,14 @@ import { IShift, UpsertShiftExtended } from "../../../models/shift";
 import { ShiftNotificationType } from "../../../services/notification.service";
 
 export const Mutation = {
+  shiftComment: async (
+    _parent: unknown,
+    { input }: { input: UpsertShiftComment },
+    { shifts }: Context
+  ): Promise<boolean> => {
+    await shifts.upsertShiftComment(input);
+    return true;
+  },
   editCheckInOut: async (
     _parent: unknown,
     {

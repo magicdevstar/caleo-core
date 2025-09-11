@@ -763,6 +763,7 @@
     notificationId: String
     shiftCheckInOut: ShiftCheckInOut
 
+    shiftComment: ShiftComment
     # This will be included when searching for shifts
     shiftBufferShift: Shift
     # This will be included with available shifts so that we can show existing requests
@@ -779,6 +780,22 @@
     modifiedBy: User
     docusignEvent: DocusignEvent
     docusignEvents: [DocusignEvent!]
+  }
+
+  type ShiftComment {
+    id: ID!
+    shiftId: ObjectId!
+    userId: ObjectId!
+    comment: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  input UpsertShiftComment {
+    id: ID!
+    shiftId: ObjectId!
+    userId: ObjectId!
+    comment: String!
   }
 
   enum EventUserActionType {
@@ -2777,6 +2794,7 @@ type Mutation {
   checkIn(input: ShiftCheckInOutEvent!): Shift!
   checkOut(input: ShiftCheckInOutEvent!): ShiftCheckOutResponse!
   editCheckInOut(input: ShiftAdminCheckInOutEvent!): Shift!
+  shiftComment(input: UpsertShiftComment!): Boolean
 
   notification(notification: UpsertNotification!): Notification
   removeNotification(id: String!): ID!

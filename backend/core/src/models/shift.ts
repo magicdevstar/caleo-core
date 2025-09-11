@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from 'mongodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { toZonedTime } from 'date-fns-tz';
-import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, UpsertShift, User } from '../__generated__/resolvers-types';
+import { DayAvailability, DayOfWeek, DocType, EventStatus, Organization, Shift, ShiftCheckInOut, ShiftCheckInOutCoordinates, ShiftCheckInOutEquipment, ShiftSearchInput, ShiftStatus, UpsertShift, UpsertShiftComment, User } from '../__generated__/resolvers-types';
 import logger from '../utils/logger';
 import { addHours, endOfDay, getDay, getHours, getMinutes, isAfter, setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import DataLoader from 'dataloader';
@@ -129,6 +129,7 @@ const lambda = new LambdaClient({});
 export class ShiftModel extends BaseMongo<IShift> {
   eventsCollection: Collection;
   lottoShiftRequestCollection: Collection;
+  shiftCommentCollection: Collection;
 
   public loadUserShiftsByGroupId = new DataLoader(async (groupKeys: readonly { userId: string; shiftId: string; }[]) => {
     const res = await this.collection.find<IShift>({
@@ -374,10 +375,25 @@ export class ShiftModel extends BaseMongo<IShift> {
           .map(({ shifts }) => shifts);
   });
 
+  public loadCommentsById = new DataLoader(async (keys: readonly string[]) => {
+    const res = await this.shiftCommentCollection.find({
+      _id: { $in: keys.map((id) => new ObjectId(id)) }
+    }).toArray();
+
+    return keys.map((key) => {
+      const comment = res.find((item) => item._id.toString() === key) || null;
+      if (comment) {
+        comment.id = comment._id!.toString();
+      }
+      return comment;
+    });
+  });
+
   constructor(db: Db, private lotteryCounter: LotteryCounterModel) {
     super(db, DocType.Shift, 'shifts');
     this.eventsCollection = db.collection('events');
     this.lottoShiftRequestCollection = db.collection('shiftLotteryRequests');
+    this.shiftCommentCollection = db.collection('shiftComments');
 
     const shiftCounter = (level: 'eventId' | 'assignmentId', includeAssignedShifts: boolean) => new DataLoader(async (keys: readonly string[]) => {
       const res = await this.collection.aggregate<{
@@ -1534,5 +1550,23 @@ export class ShiftModel extends BaseMongo<IShift> {
       total,
       items,
     }
+  }
+
+  async upsertShiftComment(shiftComment: UpsertShiftComment) {
+    await this.shiftCommentCollection.updateOne({
+      _id: new ObjectId(shiftComment.id),
+    }, {
+      $set: {
+        comment: shiftComment.comment,
+        shiftId: new ObjectId(shiftComment.id),
+        userId: new ObjectId(shiftComment.userId),
+        updatedAt: new Date(),
+      },
+      $setOnInsert: {
+        createdAt: new Date(),
+      }
+    }, {
+      upsert: true,
+    });
   }
 };

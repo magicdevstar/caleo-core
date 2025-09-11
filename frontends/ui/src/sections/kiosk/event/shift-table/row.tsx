@@ -36,7 +36,7 @@ export default function Row({
         <StringCell value={parsed?.format?.("NATIONAL") || '-'} />
         {docusignCheckout && <StringCell labelColor={docusignStatusColor(row.docusignEvent?.status)} value={row.docusignEvent?.status || '-'} />}
         <BooleanCell value={!!row.shiftCheckInOut?.noShow} />
-        <BooleanCell value={!!(row.shiftCheckInOut?.adminNotes || '').trim()} />
+        <BooleanCell value={!!(row.shiftCheckInOut?.adminNotes || '').trim() || !!(row.shiftComment?.comment || '').trim()} />
         <DateCell value={row.startTime} />
         <TableCell align="right" sx={{ px: 1 }}>
           <Button

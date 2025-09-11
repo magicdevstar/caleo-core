@@ -12,6 +12,7 @@ import Accordion, { accordionClasses } from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
 // Components
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
 import MapMarkersPopups from 'src/components/map/map-marker-popups';
@@ -199,6 +200,16 @@ export const EditCheckInOut = ({
       content={(
         <>
           {customizableShiftId && (<RHFTextField name="customId" label="Shift Id" fullWidth sx={{ mt: 1, mb: 2 }} />)}
+
+          <Stack direction="row" spacing={3} sx={{ mb: 3 }}>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              value={shift?.shiftComment?.comment }
+              label="Officer Comment"
+            />
+          </Stack>
 
           <Box sx={{
             width: '100%',

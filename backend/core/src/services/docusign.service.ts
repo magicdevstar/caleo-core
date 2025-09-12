@@ -380,11 +380,11 @@ export class Docusign {
       const rank = await this.ranks.get(user.member.rankId!);
 
       // Get lieutenant and supervisor from assignment or event
-      const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
-      const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
+      const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId).catch(() => null);
+      const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId).catch(() => null);
 
-      const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
-      const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
+      const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId).catch(() => null);
+      const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId).catch(() => null);
 
       const supervisor = assignmentSupervisor || eventSupervisor;
       const lieutenant = assignmentLieutenant || eventLieutenant;
@@ -397,8 +397,8 @@ export class Docusign {
         userRank: rank!,
         unit: unit!,
         event: event!,
-        lieutenant: lieutenant!,
-        supervisor: supervisor!,
+        lieutenant: lieutenant,
+        supervisor: supervisor,
       });
 
       return {

@@ -335,8 +335,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     user: IUser;
     userRank: IRank;
     unit: IUnit;
-    supervisor: IUser;
-    lieutenant: IUser;
+    supervisor: IUser | null;
+    lieutenant: IUser | null;
     event: IEvent;
     assignment: IAssignment;
   }) {

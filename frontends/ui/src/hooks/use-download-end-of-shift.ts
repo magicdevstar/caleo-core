@@ -1,7 +1,7 @@
 import { useLazyQuery } from "@apollo/client";
 import { PDFDocument } from 'pdf-lib';
 import { useSnackbar } from "notistack";
-import { Assignment, Shift } from "src/__generated__/resolvers-types";
+import { Assignment, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENT_SHIFTS } from "src/api/event";
 import { GET_SHIFT_TABS } from "src/api/shifts";
 import { generateFilledPDF } from "src/utils/generate-files/end-of-shift";
@@ -57,7 +57,7 @@ export const useEndOfShiftDownload = () => {
         assignment.shifts?.map((shift) => ({ ...shift, assignment: { name: assignment.name } }))
       ) || [];
       const shifts = rawShifts
-        .filter((shift: Shift) => shift.user)
+        .filter((shift: Shift) => shift.user && shift.status !== ShiftStatus.Removed)
         .sort((a: Shift, b: Shift) => {
           const aName = `${a.user?.lastName}, ${a.user?.firstName}`;
           const bName = `${b.user?.lastName}, ${b.user?.firstName}`;
@@ -84,7 +84,7 @@ export const useEndOfShiftDownload = () => {
       }));
       const mergedPdfFile = await mergedPdf.save();
 
-      const blob = new Blob([mergedPdfFile], { type: 'application/pdf' });
+      const blob = new Blob([mergedPdfFile as any], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');

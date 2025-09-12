@@ -552,6 +552,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
     shifts(input: $input) {
       items {
         id
+        shiftId
         startTime
         endTime
         status
@@ -603,6 +604,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           name
         }
         user {
+          id
           name
           member {
             divisionId

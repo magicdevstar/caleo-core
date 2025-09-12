@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -21,14 +21,16 @@ import {
 } from 'src/components/hook-form';
 import { useFeatures } from 'src/hooks/use-features';
 // Types
-import { Shift } from "src/__generated__/resolvers-types";
+import { EventUserActionLogAction, Shift } from "src/__generated__/resolvers-types";
 import { useAuthContext } from "src/auth/hooks";
-import { convertDate } from 'src/hooks/use-datejs';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { EDIT_CHECK_IN_OUT } from 'src/api/shifts';
+import { GET_USER_SHIFT_ACTIVITY } from 'src/api/user';
 import Iconify from '../iconify';
 import { RHFVehicleCategoriesSelect } from '../hook-form/rhf-vehicle-categories-select';
 import ConfirmDialogWithForm from '../custom-dialog/confirm-dialog-with-form';
 import { StyledMapContainer } from '../map';
+import { EventUserActionsResponse } from './groupedByEvent/shift-activitiy-dialog';
 
 const baseSettings = {
   minZoom: 1,
@@ -55,6 +57,22 @@ export const EditCheckInOut = ({
   } = useFeatures();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
+  console.log('shift', shift);
+  const { data: activityData, loading } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
+    variables: {
+      input: {
+        shiftGroupId: shift?.shiftId,
+        userId: shift?.user?.id,
+        orderBy: 'timestamp',
+        order: 'desc',
+      },
+    },
+    skip: !shift,
+  });
+  console.log('activityData', activityData);
+  const officerComments = activityData?.eventUserActions?.items.
+    filter(action => action.action === EventUserActionLogAction.OfficerCommentAdded) || [];
 
   const [editCheckInOut] = useMutation(EDIT_CHECK_IN_OUT);
 
@@ -198,18 +216,8 @@ export const EditCheckInOut = ({
       title="Shift Details"
       maxWidth='md'
       content={(
-        <>
-          {customizableShiftId && (<RHFTextField name="customId" label="Shift Id" fullWidth sx={{ mt: 1, mb: 2 }} />)}
-
-          <Stack direction="row" spacing={3} sx={{ mb: 3 }}>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              value={shift?.shiftComment?.comment }
-              label="Officer Comment"
-            />
-          </Stack>
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          {customizableShiftId && (<RHFTextField name="customId" label="Shift Id" fullWidth />)}
 
           <Box sx={{
             width: '100%',
@@ -231,7 +239,6 @@ export const EditCheckInOut = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '10px',
-                mt: 3,
               }}>
                 <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkInEquipmentTime" label="Equipment Check In Time" />
                 <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={{ hours: 1, minutes: 15, seconds: 5 }} ampm={false} name="checkOutEquipmentTime" label="Equipment Check Out Time" />
@@ -241,14 +248,13 @@ export const EditCheckInOut = ({
 
           {
             vehicleCategories && (
-              <RHFVehicleCategoriesSelect sx={{ mt: 2 }} name="vehicleCategoryId" label='Vehicle Category' />
+              <RHFVehicleCategoriesSelect name="vehicleCategoryId" label='Vehicle Category' />
             )
           }
 
           {
             (shift?.shiftCheckInOut?.checkInNote || shift?.shiftCheckInOut?.checkOutNote) && (
               <Accordion sx={{
-                mt: 1,
                 '&:before': {
                   backgroundColor: 'transparent'
                 },
@@ -279,8 +285,45 @@ export const EditCheckInOut = ({
             )
           }
 
-          <RHFTextField sx={{ mt: 2 }} name="adminNotes" label="Admin Notes" multiline rows={3} fullWidth />
-          <RHFSwitch name="noShow" label="No Show" />
+          <RHFTextField name="adminNotes" label="Admin Notes" multiline rows={3} fullWidth />
+          <Accordion sx={{
+            '&:before': {
+              backgroundColor: 'transparent'
+            },
+            [`&.${accordionClasses.expanded}`]: {
+              boxShadow: 'none !important',
+              backgroundColor: 'transparent !important',
+            }
+          }}>
+            <AccordionSummary
+              sx={{ pr: 1, pl: 1 }}
+              expandIcon={<Iconify icon="solar:alt-arrow-down-bold" />}
+              aria-controls="officer-comments"
+              id="officer-comments-header"
+            >
+              Officer Comments
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack direction="column" spacing={3}>
+                {officerComments.length > 0 ? (
+                  officerComments.map(({ id, notes, updatedAt }) => (
+                    <TextField
+                      key={id}
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={notes}
+                      label={`Officer Comment ${convertDate({ date: new Date(updatedAt), user }).format(dateTimeFormat)}`}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    No officer comments have been added for this shift.
+                  </Typography>
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
           {
             hasCoordinates && (
@@ -308,7 +351,9 @@ export const EditCheckInOut = ({
               </StyledMapContainer>
             )
           }
-        </>
+
+          <RHFSwitch name="noShow" label="No Show" />
+        </Stack>
       )}
     />
   )

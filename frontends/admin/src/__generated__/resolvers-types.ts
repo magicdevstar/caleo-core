@@ -608,6 +608,7 @@ export enum EventUserActionLogAction {
   Completed = 'COMPLETED',
   Declined = 'DECLINED',
   Drafted = 'DRAFTED',
+  OfficerCommentAdded = 'OFFICER_COMMENT_ADDED',
   Rejected = 'REJECTED',
   Relinquished = 'RELINQUISHED',
   Removed = 'REMOVED',

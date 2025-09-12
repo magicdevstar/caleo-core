@@ -28,7 +28,7 @@ interface Props {
   entityKey?: string;
 };
 
-interface QueryResponse {
+export interface EventUserActionsResponse {
   eventUserActions: {
     total: number;
     items: EventUserAction[];
@@ -59,9 +59,7 @@ const getLabelColor = (action: EventUserActionLogAction) => {
 }
 
 export function ShiftActivityDialog({ opener, userId, entityId, entityKey }: Props) {
-  const { user } = useAuthContext();
-  const { dateTimeFormat } = useDateFormats();
-  const [fetchActivity, { data: activityData, loading }] = useLazyQuery<QueryResponse>(GET_USER_SHIFT_ACTIVITY);
+  const [fetchActivity, { data: activityData, loading }] = useLazyQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY);
   const handleDialogOpen = () => {
     if (opener.value) {
       fetchActivity({
@@ -78,47 +76,7 @@ export function ShiftActivityDialog({ opener, userId, entityId, entityKey }: Pro
   };
 
   let content = (
-    <Timeline position="right">
-      {(activityData?.eventUserActions?.items || []).map((activity: EventUserAction, index: number) => (
-        <TimelineItem key={activity.id}>
-          <TimelineOppositeContent
-            sx={{
-              m: 'auto 0',
-              maxWidth: 120,
-            }}
-            align="right"
-            variant="body2"
-            color="text.secondary"
-          >
-            {convertDate({ date: new Date(activity.timestamp), user }).format(dateTimeFormat)}
-          </TimelineOppositeContent>
-          <TimelineSeparator>
-            <TimelineDot color="primary" />
-            {index < (activityData?.eventUserActions?.items || []).length - 1 && <TimelineConnector />}
-          </TimelineSeparator>
-          <TimelineContent sx={{ py: '12px', px: 2 }}>
-            <Typography variant="subtitle2" component="h6">
-              {startCase(toLower(activity.source))}: <span><Label variant="soft" color={getLabelColor(activity.action)}>{startCase(toLower(activity.action))}</Label></span>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Completed by: {activity.modifiedBy?.name || 'Unknown'}
-            </Typography>
-            {
-              activity.actionId && (
-                <Typography variant="body2" color="text.secondary">
-                  ID: {activity.actionId}
-                </Typography>
-              )
-            }
-            {activity.notes && (
-              <Typography variant="body2" color="text.secondary">
-                Notes: {activity.notes}
-              </Typography>
-            )}
-          </TimelineContent>
-        </TimelineItem>
-      ))}
-    </Timeline>
+    <ShiftActivity items={activityData?.eventUserActions?.items || []} />
   );
 
   if (loading) {
@@ -155,4 +113,56 @@ export function ShiftActivityDialog({ opener, userId, entityId, entityKey }: Pro
       </DialogContent>
     </Dialog>
   )
+}
+
+export function ShiftActivity({
+  items,
+}: {
+  items: EventUserAction[];
+}) {
+  const { user } = useAuthContext();
+  const { dateTimeFormat } = useDateFormats();
+  return (
+    <Timeline position="right">
+      {items.map((activity: EventUserAction, index: number) => (
+        <TimelineItem key={activity.id}>
+          <TimelineOppositeContent
+            sx={{
+              m: 'auto 0',
+              maxWidth: 120,
+            }}
+            align="right"
+            variant="body2"
+            color="text.secondary"
+          >
+            {convertDate({ date: new Date(activity.timestamp), user }).format(dateTimeFormat)}
+          </TimelineOppositeContent>
+          <TimelineSeparator>
+            <TimelineDot color="primary" />
+            {index < items.length - 1 && <TimelineConnector />}
+          </TimelineSeparator>
+          <TimelineContent sx={{ py: '12px', px: 2 }}>
+            <Typography variant="subtitle2" component="h6">
+              {startCase(toLower(activity.source))}: <span><Label variant="soft" color={getLabelColor(activity.action)}>{startCase(toLower(activity.action))}</Label></span>
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Completed by: {activity.modifiedBy?.name || 'Unknown'}
+            </Typography>
+            {
+              activity.actionId && (
+                <Typography variant="body2" color="text.secondary">
+                  ID: {activity.actionId}
+                </Typography>
+              )
+            }
+            {activity.notes && (
+              <Typography variant="body2" color="text.secondary">
+                Notes: {activity.notes}
+              </Typography>
+            )}
+          </TimelineContent>
+        </TimelineItem>
+      ))}
+    </Timeline>
+  );
 }

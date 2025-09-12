@@ -28,9 +28,22 @@ export const Mutation = {
   shiftComment: async (
     _parent: unknown,
     { input }: { input: UpsertShiftComment },
-    { shifts }: Context
+    { eventUserActions, shifts, user }: Context
   ): Promise<boolean> => {
-    await shifts.upsertShiftComment(input);
+    const shift = await shifts.get(input.shiftId);
+    if (!shift) {
+      throw new GraphQLError("Shift not found");
+    }
+    await eventUserActions.createItem({
+      userId: user._id!,
+      eventId: shift.eventId,
+      shiftGroupId: shift.shiftId,
+      source: EventUserActionLogSource.Shift,
+      modifiedById: user._id!,
+      timestamp: new Date(),
+      action: EventUserActionLogAction.OfficerCommentAdded,
+      notes: input.comment,
+    });
     return true;
   },
   editCheckInOut: async (

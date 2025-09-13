@@ -9,9 +9,11 @@ import { useFeatures } from "./use-features";
 export const useCheckInOut = ({
   userId,
   eventId,
+  isKiosk,
 } : {
   eventId?: string;
   userId?: string;
+  isKiosk?: boolean;
 } = {}) => {
   const { user } = useAuthContext();
   const { eventCheckIn, eventCheckOut } = useFeatures();
@@ -59,7 +61,7 @@ export const useCheckInOut = ({
       if (
         (user.member.allowSelfCheckIn) &&
         (eventCheckIn || eventCheckOut) &&
-        (event?.allowOfficerCheckIn || assignment?.allowOfficerCheckIn)
+        (event?.allowOfficerCheckIn || assignment?.allowOfficerCheckIn || isKiosk)
       ) {
         // Check if the user has completed check-in/out or not
         let complete = true;
@@ -89,7 +91,7 @@ export const useCheckInOut = ({
     });
 
     return runningShifts;
-  }, [shifts, user, eventCheckIn, eventCheckOut, minutesAfterEndTime, minutesBeforeStartTime]);  
+  }, [shifts, user, eventCheckIn, eventCheckOut, minutesAfterEndTime, minutesBeforeStartTime, isKiosk]);  
 
   return {
     loading,

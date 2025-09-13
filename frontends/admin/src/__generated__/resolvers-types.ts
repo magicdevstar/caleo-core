@@ -193,8 +193,8 @@ export type CheckInOutCoordinates = {
   altitude?: InputMaybe<Scalars['Float']['input']>;
   altitudeAccuracy?: InputMaybe<Scalars['Float']['input']>;
   heading?: InputMaybe<Scalars['Float']['input']>;
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
+  latitude?: InputMaybe<Scalars['Float']['input']>;
+  longitude?: InputMaybe<Scalars['Float']['input']>;
   speed?: InputMaybe<Scalars['Float']['input']>;
 };
 

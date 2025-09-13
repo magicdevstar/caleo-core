@@ -41,6 +41,7 @@ export default function CheckInOut({
   const { currentShifts, loading } = useCheckInOut({
     eventId,
     userId,
+    isKiosk: ignoreGeoFence,
   });
   const confirm = useBoolean<Shift>();
 

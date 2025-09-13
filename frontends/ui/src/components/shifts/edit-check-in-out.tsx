@@ -59,7 +59,7 @@ export const EditCheckInOut = ({
   const { user } = useAuthContext();
   const { dateTimeFormat } = useDateFormats();
   console.log('shift', shift);
-  const { data: activityData, loading } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
+  const { data: activityData } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
     variables: {
       input: {
         shiftGroupId: shift?.shiftId,

@@ -61,7 +61,7 @@ export default function DashboardView() {
         {
           hasCheckInOutShifts && (
             <Grid xs={12} md={sizes.checkIn}>
-              <CheckInOut title="Check in/out" currentShifts={currentShifts} sx={{ height: '100%' }} />
+              <CheckInOut title="Check in/out" fromSelfCheckout currentShifts={currentShifts} sx={{ height: '100%' }} />
             </Grid>
           )
         }

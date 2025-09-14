@@ -26,12 +26,14 @@ export default function CheckInOut({
   allowView = true,
   onSuccess,
   ignoreGeoFence = false,
+  fromSelfCheckout = false,
 } : {
   eventId?: string;
   userId?: string;
   emptyView?: JSX.Element;
   allowView?: boolean;
   ignoreGeoFence?: boolean;
+  fromSelfCheckout: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const { dateTimeFormat } = useDateFormats();
@@ -113,6 +115,7 @@ export default function CheckInOut({
                 shift={shift}
                 onClick={() => confirm.onTrue(shift)}
                 ignoreGeoFence={ignoreGeoFence}
+                fromSelfCheckout={fromSelfCheckout}
               />
             </Card>
           ))
@@ -124,6 +127,7 @@ export default function CheckInOut({
         checkInOutConfirm={confirm.attribute as Shift}
         onSuccess={onSuccess}
         ignoreGeoFence={ignoreGeoFence}
+        fromSelfCheckout={fromSelfCheckout}
       />
     </>
   );

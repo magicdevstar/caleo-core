@@ -899,6 +899,7 @@
     note: String
     adminNotes: String
     signNow: Boolean
+    fromSelfCheckout: Boolean
   }
 
   input ShiftCheckInOutEquipmentEvent {

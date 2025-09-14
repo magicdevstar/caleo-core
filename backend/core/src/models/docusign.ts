@@ -439,6 +439,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     lieutenant,
     signNow,
     requiresVehicleInformation,
+    fromSelfCheckout,
   }: {
     assignment?: IAssignment | null;
     org: IOrganization;
@@ -451,6 +452,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     event: IEvent;
     signNow: boolean;
     requiresVehicleInformation: boolean;
+    fromSelfCheckout: boolean;
   }) {
     const {
       envAPI,
@@ -550,7 +552,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       const baseDomain = `https://${domain}.caleopro.com`;
       // const baseDomain = 'http://192.168.4.150:3000';
       const viewRequest = {
-        returnUrl: `${baseDomain}/kiosk/${event._id}`,
+        returnUrl: fromSelfCheckout ? `${baseDomain}/dashboard` : `${baseDomain}/kiosk/${event._id}`,
         authenticationMethod: 'none',
         email: user.member.contactInfo?.primaryEmail.address,
         userName: user.name,

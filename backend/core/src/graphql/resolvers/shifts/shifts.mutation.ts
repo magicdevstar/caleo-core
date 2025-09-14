@@ -148,7 +148,7 @@ export const Mutation = {
       eventId: updatedShift!.eventId,
       shiftGroupId: updatedShift!.shiftId,
       source: EventUserActionLogSource.Shift,
-      modifiedById: user._id!,
+      modifiedById: shift.userId!,
       timestamp: updatedShift!.shiftCheckInOut?.checkInTime || new Date(),
       action: EventUserActionLogAction.CheckIn,
       notes: checkInNote,
@@ -167,7 +167,8 @@ export const Mutation = {
         adminNotes,
         vehicleCategoryId,
         equipmentDateTime,
-        signNow
+        signNow,
+        fromSelfCheckout
       }
     }: { input: ShiftCheckInOutEvent },
     { shifts, docusign, eventUserActions, organization, user }: Context
@@ -200,6 +201,7 @@ export const Mutation = {
       shift: updatedShift!,
       organization: organization!,
       signNow: !!signNow,
+      fromSelfCheckout: !!fromSelfCheckout,
     });
 
     await eventUserActions.createItem({
@@ -207,7 +209,7 @@ export const Mutation = {
       eventId: updatedShift!.eventId,
       shiftGroupId: updatedShift!.shiftId,
       source: EventUserActionLogSource.Shift,
-      modifiedById: user._id!,
+      modifiedById: shift.userId!,
       timestamp: updatedShift!.shiftCheckInOut?.checkOutTime || new Date(),
       action: EventUserActionLogAction.CheckOut,
       notes: checkOutNote,

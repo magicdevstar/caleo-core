@@ -31,10 +31,12 @@ export default function CheckInOutConfirm({
   confirm,
   onSuccess,
   ignoreGeoFence,
+  fromSelfCheckout,
 }: {
   checkInOutConfirm: Shift | null;
   confirm: UseBooleanReturnType<any>;
   ignoreGeoFence?: boolean;
+  fromSelfCheckout: boolean;
   onSuccess?: (type: CHECK_IN_OUT_STATUS) => void;
 }) {
   const geoLocation = useGeolocation();
@@ -94,6 +96,7 @@ export default function CheckInOutConfirm({
             note: checkInOutNote,
             ...(vehicleCategories && vehicleCategoryId && { vehicleCategoryId }),
             signNow,
+            fromSelfCheckout,
             ...(requiredEquipmentTime && equipmentTime && {
               equipmentDateTime: equipmentTime.toISOString(),
             }),
@@ -144,6 +147,7 @@ export default function CheckInOutConfirm({
     enqueueSnackbar,
     onSuccess,
     setEquipmentTime,
+    fromSelfCheckout,
     ignoreGeoFence,
     vehicleCategories,
     vehicleCategoryId,

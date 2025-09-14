@@ -20,9 +20,10 @@ interface Props extends CardProps {
   title?: string;
   subheader?: string;
   currentShifts?: Shift[];
+  fromSelfCheckout: boolean;
 }
 
-export default function CheckInOut({ title, subheader, currentShifts, ...other }: Props) {
+export default function CheckInOut({ title, subheader, currentShifts, fromSelfCheckout, ...other }: Props) {
   const confirm = useBoolean();
   const [checkInOutConfirm, setCheckInOutConfirm] = useState<Shift | null>(null);
 
@@ -34,7 +35,7 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
         setCheckInOutConfirm(shift)
         confirm.onTrue();
       },
-    }));
+    })) as any;
   }, [currentShifts, confirm, setCheckInOutConfirm]);
 
   const carousel = useCarousel({
@@ -54,7 +55,7 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
       return (
         <Carousel ref={carousel.carouselRef} {...carousel.carouselSettings}>
           {recentNotifications.map((item) => (
-            <CheckInOutItem key={item.shift.id} shift={item.shift} onClick={item.onClick} />
+            <CheckInOutItem key={item.shift.id} shift={item.shift} onClick={item.onClick} fromSelfCheckout />
           ))}
         </Carousel>
       );
@@ -101,6 +102,7 @@ export default function CheckInOut({ title, subheader, currentShifts, ...other }
       <CheckInOutConfirm
         confirm={confirm}
         checkInOutConfirm={checkInOutConfirm}
+        fromSelfCheckout={fromSelfCheckout}
       />
     </>
   );

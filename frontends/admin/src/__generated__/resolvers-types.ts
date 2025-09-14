@@ -2494,6 +2494,7 @@ export type ShiftCheckInOutEvent = {
   equipmentDateTime?: InputMaybe<Scalars['String']['input']>;
   /** @deprecated Use equipmentDateTime instead! */
   equipmentTime?: InputMaybe<Scalars['Float']['input']>;
+  fromSelfCheckout?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['String']['input'];
   note?: InputMaybe<Scalars['String']['input']>;
   signNow?: InputMaybe<Scalars['Boolean']['input']>;

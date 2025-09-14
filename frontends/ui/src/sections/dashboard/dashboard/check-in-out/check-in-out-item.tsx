@@ -29,9 +29,10 @@ export type CheckInOutItemProps = {
   mapSx?: SxProps<Theme>;
   onClick: (shift: Shift) => void;
   ignoreGeoFence?: boolean;
+  fromSelfCheckout: boolean;
 };
 
-export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence }: CheckInOutItemProps) {
+export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, fromSelfCheckout }: CheckInOutItemProps) {
   const { user } = useAuthContext();
   const { eventCheckIn } = useFeatures();
   const addCommentDialog = useBoolean();

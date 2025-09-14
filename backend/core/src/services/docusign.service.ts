@@ -477,6 +477,7 @@ export class Docusign {
             supervisor: supervisor!,
             signNow: false,
             requiresVehicleInformation,
+            fromSelfCheckout: true,
           });
           await this.shifts.setDocusignEnvelopeId({
             _id: shift._id!,
@@ -501,10 +502,12 @@ export class Docusign {
     shift,
     organization,
     signNow,
+    fromSelfCheckout,
   }: {
     shift: IShift;
     organization: IOrganization;
     signNow: boolean;
+    fromSelfCheckout: boolean;
   }) {
     if (organization.features.docusignCheckout && organization.docusign && organization.docusign.templateId) {
       try {
@@ -552,6 +555,7 @@ export class Docusign {
           supervisor: supervisor!,
           signNow,
           requiresVehicleInformation,
+          fromSelfCheckout,
         });
 
         await this.shifts.setDocusignEnvelopeId({

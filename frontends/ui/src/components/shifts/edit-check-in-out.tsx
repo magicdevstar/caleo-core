@@ -332,19 +332,19 @@ export const EditCheckInOut = ({
                   {...baseSettings}
                   initialViewState={{
                     zoom: 16,
-                    latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude || shift?.shiftCheckInOut?.checkOutCoords?.latitude,
-                    longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude || shift?.shiftCheckInOut?.checkOutCoords?.longitude,
+                    latitude: (shift?.shiftCheckInOut?.checkInCoords?.latitude || shift?.shiftCheckInOut?.checkOutCoords?.latitude) as any,
+                    longitude: (shift?.shiftCheckInOut?.checkInCoords?.longitude || shift?.shiftCheckInOut?.checkOutCoords?.longitude) as any,
                   }}
                   data={[
                     ...(shift?.shiftCheckInOut?.checkInCoords?.latitude ? [{
                       name: 'Check In',
-                      latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude,
-                      longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude,
+                      latitude: (shift?.shiftCheckInOut?.checkInCoords?.latitude) as any,
+                      longitude: (shift?.shiftCheckInOut?.checkInCoords?.longitude) as any,
                     }] : []),
                     ...(shift?.shiftCheckInOut?.checkOutCoords?.latitude ? [{
                       name: 'Check Out',
-                      latitude: shift?.shiftCheckInOut?.checkOutCoords?.latitude,
-                      longitude: shift?.shiftCheckInOut?.checkOutCoords?.longitude,
+                      latitude: (shift?.shiftCheckInOut?.checkOutCoords?.latitude) as any,
+                      longitude: (shift?.shiftCheckInOut?.checkOutCoords?.longitude) as any,
                     }] : []),
                   ]}
                 />

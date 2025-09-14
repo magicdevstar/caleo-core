@@ -2469,8 +2469,8 @@ export type ShiftCheckInOutCoordinates = {
   altitude?: Maybe<Scalars['Float']['output']>;
   altitudeAccuracy?: Maybe<Scalars['Float']['output']>;
   heading?: Maybe<Scalars['Float']['output']>;
-  latitude: Scalars['Float']['output'];
-  longitude: Scalars['Float']['output'];
+  latitude?: Maybe<Scalars['Float']['output']>;
+  longitude?: Maybe<Scalars['Float']['output']>;
   speed?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -5169,8 +5169,8 @@ export type ShiftCheckInOutCoordinatesResolvers<ContextType = any, ParentType ex
   altitude?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   altitudeAccuracy?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   heading?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  latitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  longitude?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  latitude?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  longitude?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   speed?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

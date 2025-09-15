@@ -357,7 +357,11 @@ export function generateContractLawWorksheet(
 
   // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
   if (!lastRow.getCell(1).isMerged) {
-    worksheet.mergeCells(`A${rowIdx}:E${rowIdx}`);
+    try {
+      worksheet.mergeCells(`A${rowIdx}:E${rowIdx}`);
+    } catch(error) {
+      console.warn('Error merging cells for complete total row:', error);
+    }
   }
 
   // Complete Total Overtime Hours
@@ -489,7 +493,11 @@ export function generateContractLawVehicleWorksheet(
 
     // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
     if (!perVehicleTotalRow.getCell(1).isMerged) {
-      worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+      try {
+        worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+      } catch(error) {
+        console.warn('Error merging cells for complete total row:', error);
+      }
     }
 
     // fill out per rank totals
@@ -522,7 +530,11 @@ export function generateContractLawVehicleWorksheet(
 
   // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
   if (!lastRow.getCell(1).isMerged) {
-    worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+    try {
+      worksheet.mergeCells(`A${rowIdx}:J${rowIdx}`);
+    } catch(error) {
+      console.warn('Error merging cells for complete total row:', error);
+    }
   }
 
   // Complete Total Overtime Hours

@@ -86,8 +86,16 @@ export class InterestListService {
           }),
         }));
       } catch (error: any) {
-        logger.error(error);
+        logger.error('Failed to invoke assignShiftGroup', error);
       }
+    } else {
+      logger.warn('Not triggering interest list assignment', {
+        now,
+        interestListClose,
+        interestListCutoff,
+        shiftId: shift._id,
+        locked: shift.locked,
+      });
     }
   }
 

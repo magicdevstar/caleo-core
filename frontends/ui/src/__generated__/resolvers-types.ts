@@ -690,6 +690,7 @@ export type IIncidentForm = {
   assignmentSummary: IAssignmentSummary;
   eventId: Scalars['ObjectId']['input'];
   id?: InputMaybe<Scalars['ID']['input']>;
+  isMutualAid?: InputMaybe<Scalars['Boolean']['input']>;
   operationalPeriod: IOperationalPeriod;
   reviewer?: InputMaybe<Scalars['ObjectId']['input']>;
   shiftDetails: IShiftDetails;
@@ -799,6 +800,7 @@ export type IncidentForm = {
   event: Event;
   eventId: Scalars['ObjectId']['output'];
   id: Scalars['ID']['output'];
+  isMutualAid: Scalars['Boolean']['output'];
   modifiedBy: User;
   modifiedById: Scalars['ObjectId']['output'];
   operationalPeriod: OperationalPeriod;
@@ -4412,6 +4414,7 @@ export type IncidentFormResolvers<ContextType = any, ParentType extends Resolver
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isMutualAid?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   modifiedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   modifiedById?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   operationalPeriod?: Resolver<ResolversTypes['OperationalPeriod'], ParentType, ContextType>;

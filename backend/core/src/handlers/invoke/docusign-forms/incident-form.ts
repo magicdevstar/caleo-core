@@ -15,7 +15,7 @@ export const IncidentForm = async (event: IIncidentInput) => {
 
   const loadDoc = (path: string) => {
     const pdfBytes = readFileSync(path);
-    return PDFDocument.load(pdfBytes);
+    return PDFDocument.load(pdfBytes as any);
   }
 
   const fillForm = (pdfDoc: PDFDocument) => {

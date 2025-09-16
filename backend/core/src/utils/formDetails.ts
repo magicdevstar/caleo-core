@@ -27,7 +27,7 @@ export const buildDescription = (eventName: string, incidentForm: InputIncidentF
     description += `\nMission Number: ${missionNumbers.join(', ')}`;
   }
 
-  description += `\nSee ICS-214 for additional details`;
+  description += `\n${incidentForm.isMutualAid ? 'Mutual Aid deployment. ' : ''}See ICS-214 for additional details`;
 
   return description;
 };

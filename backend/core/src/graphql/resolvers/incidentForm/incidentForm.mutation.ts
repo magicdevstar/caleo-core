@@ -17,6 +17,7 @@ export const Mutation = {
         resubmit,
         incidentForm: {
           ...input,
+          isMutualAid: !!input.isMutualAid,
           modifiedById: user._id!,
           userId: user._id!,
           orgId: user.member.orgId,

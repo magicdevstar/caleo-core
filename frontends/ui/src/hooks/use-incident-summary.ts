@@ -128,6 +128,9 @@ export const useIncidentSummary = () => {
         'Soft Closure': incidentForm.assignmentSummary?.missionAssignments?.softClosure ? 'Yes' : 'No',
         'Welfare Check': incidentForm.assignmentSummary?.missionAssignments?.welfareCheck ? 'Yes' : 'No',
         'Other Assignment': incidentForm.assignmentSummary?.missionAssignments?.other ? 'Yes' : 'No',
+
+        // Mutual Aid
+        'Mutual Aid': incidentForm.isMutualAid ? 'Yes' : 'No',
         
         // Activity Log Summary
         'Activity Log Entry Count': incidentForm.activityLog?.entries?.length || 0,

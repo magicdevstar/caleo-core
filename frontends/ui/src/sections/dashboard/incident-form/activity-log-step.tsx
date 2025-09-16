@@ -11,7 +11,8 @@ import Iconify from 'src/components/iconify';
 import { RHFTextField, RHFTimePicker } from '../../../components/hook-form';
 
 export default function ActivityLogStep() {
-  const { control } = useFormContext();
+  const { control, getValues } = useFormContext();
+  const isMutualAid = !!getValues('isMutualAid');
   
   // Use fieldArray to manage the array of activity log entries
   const { fields, append, remove } = useFieldArray({
@@ -42,6 +43,18 @@ export default function ActivityLogStep() {
   
   return (
     <Stack spacing={3}>
+      {isMutualAid && (
+        <Alert severity="info">
+          When completing your overtime form, please provide detailed information about your Mutual Aid deployment. Include the following:<br />
+          <ul>
+            <li><strong>Duration of Deployment:</strong> If deployed only part of the shift, specify hours (e.g., 1400–1800 hrs).</li>
+            <li><strong>Agency Assisted:</strong> List the agency supported (e.g., LAPD, CAL FIRE, CHP).</li>
+            <li><strong>Duties Executed:</strong> Describe tasks performed (e.g., traffic control, evacuation support, roving security, civil disobedience).</li>
+          </ul>
+          This information is required to validate reimbursement and ensure accurate documentation for FEMA and partner agencies.
+        </Alert>
+      )}
+
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h6">Activity Log</Typography>
         

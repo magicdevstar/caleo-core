@@ -19,6 +19,7 @@ export const fields = {
     event: (parent: IIncidentForm, _: unknown, context: Context) => {
       if (!parent.eventId) return null;
       return context.events.loader.load(parent.eventId.toString());
-    }
+    },
+    isMutualAid: (parent: IIncidentForm) => !!parent.isMutualAid,
   }
 };

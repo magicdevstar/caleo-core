@@ -54,6 +54,8 @@ export const requestToPDFForm = ({
     [`alNote${index}`]: entry!.notes || '',
   }), {});
   return {
+    headerText: incidentForm.isMutualAid ? 'Mutual Aid' : '',
+    headerText2: incidentForm.isMutualAid ? 'Mutual Aid' : '',
     ocn: event.ocn || '',
     budgetActivityCode: event.budgetActivityCode || '',
     overtimeReasonCode: event.overtimeReasonCode || '',

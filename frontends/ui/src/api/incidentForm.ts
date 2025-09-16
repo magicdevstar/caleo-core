@@ -7,6 +7,7 @@ export const GET_INCIDENT_SUBMISSIONS = gql`
         id
         step
         status
+        isMutualAid
         operationalPeriod {
           date
         }
@@ -85,6 +86,7 @@ export const GET_INCIDENT_SUBMISSION = gql`
       id
       step
       status
+      isMutualAid
       operationalPeriod {
         date
       }
@@ -163,6 +165,7 @@ export const GET_SUBMITTED_INCIDENT_SUBMISSIONS = gql`
         step
         status
         userId
+        isMutualAid
         operationalPeriod {
           date
         }
@@ -211,6 +214,7 @@ export const UPSERT_INCIDENT_SUBMISSION = gql`
         step
         status
         userId
+        isMutualAid
         operationalPeriod {
           date
         }
@@ -286,6 +290,7 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
         status
         submittedDate
         updatedAt
+        isMutualAid
         operationalPeriod {
           date
         }

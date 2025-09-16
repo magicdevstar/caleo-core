@@ -41,10 +41,11 @@ import AssignmentSummaryStep from './assignment-summary-step';
 import ActivityLogStep from './activity-log-step';
 import SelectReviewerStep from './select-reviewer-step';
 import Submissions from './submissions';
+import MutualAidStep from './mutual-aid-step';
 
 // ----------------------------------------------------------------------
 
-const STEPS = ['Operational Period', 'Timekeeping', 'Shift Details', 'Vehicle Information', 'Assignment Summary', 'Activity Log', 'Select Reviewer/Approver'];
+const STEPS = ['Operational Period', 'Timekeeping', 'Shift Details', 'Vehicle Information', 'Assignment Summary', 'Mutual Aid', 'Activity Log', 'Select Reviewer/Approver'];
 
 // ----------------------------------------------------------------------
 
@@ -58,6 +59,7 @@ const IncidentFormSchema = Yup.object().shape({
     name: Yup.string().required('Reviewer name is required'),
     pNumber: Yup.string().required('Reviewer PNumber is required'),
   }).required('Reviewer is required'),
+  isMutualAid: Yup.boolean(),
   timekeeping: Yup.object().shape({
     rdo: Yup.string().required('RDO selection is required'),
     type: Yup.string().required('Paid or Saved selection is required'),
@@ -174,6 +176,7 @@ const defaultValues: IncidentFormSchemaType = {
     date: null as any,
   },
   reviewer: null as any,
+  isMutualAid: false,
   timekeeping: {
     rdo: 'yes',
     type: TimekeepingType.PAID,
@@ -369,10 +372,10 @@ export default function IncidentFormStepper({
         'assignmentSummary.missionAssignments',
         'assignmentSummary.otherExplanation',
       ];
-    } else if (step === 5) {
+    } else if (step === 6) {
       // Activity log validation is handled by the schema (array min/max validation)
       stepFields = ['activityLog.entries'];
-    } else if (step === 6) {
+    } else if (step === 7) {
       // Validate reviewer selection
       stepFields = ['reviewer'];
     }
@@ -432,6 +435,7 @@ export default function IncidentFormStepper({
     // Reset form with the submission data, adding display fields
     methods.reset({
       id: submission.id,
+      isMutualAid: submission.isMutualAid || false,
       operationalPeriod: submission.operationalPeriod,
       reviewer: submission.reviewerUser,
       timekeeping: {
@@ -481,8 +485,10 @@ export default function IncidentFormStepper({
       case 4:
         return <AssignmentSummaryStep />;
       case 5:
-        return <ActivityLogStep />;
+        return <MutualAidStep />;
       case 6:
+        return <ActivityLogStep />;
+      case 7:
         return <SelectReviewerStep />;
       default:
         return null;
@@ -651,7 +657,6 @@ export default function IncidentFormStepper({
             </Box>
           )
         }
-        
       </Paper>
     </FormProvider>
   );

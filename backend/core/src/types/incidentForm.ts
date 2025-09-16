@@ -103,6 +103,8 @@ export interface IIncidentFormDetails {
   timeIn?: string;
   totalTime?: string;
   timeOut?: string;
+  headerText: string;
+  headerText2: string;
   alTime0?: string;
   alMission0?: string;
   alNote0?: string;

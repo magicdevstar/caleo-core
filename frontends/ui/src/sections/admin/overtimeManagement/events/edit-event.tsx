@@ -1115,7 +1115,7 @@ export default function EditEvent({
       <Grid container spacing={3}>
         {renderDetails}
 
-        <EditReportingLocation />
+        {!isIncident && <EditReportingLocation />}
 
         {lasdEventFields && <LASDDetails currentEvent={currentEvent} allDisabled={allDisabled} isIncident={isIncident} />}
 

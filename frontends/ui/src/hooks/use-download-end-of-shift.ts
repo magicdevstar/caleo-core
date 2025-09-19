@@ -26,7 +26,7 @@ export const useEndOfShiftDownload = () => {
         variables: { id: shift.id },
       });
       const tabData: Record<string, any> = JSON.parse(shiftTabs.data);
-      const now = dayjs().format('MM/DD/YYYY');
+      const now = dayjs(shift.endTime).format('MM/DD/YYYY');
       tabData.DateSigned1 = now;
       tabData.DateSigned2 = now;
       if (!shift.shiftCheckInOut?.checkInTime || !shift.shiftCheckInOut?.checkOutTime) {

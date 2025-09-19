@@ -93,7 +93,8 @@ export class InterestListService {
         now,
         interestListClose,
         interestListCutoff,
-        shiftId: shift._id,
+        id: shift._id,
+        shiftId: shift.shiftId,
         locked: shift.locked,
       });
     }

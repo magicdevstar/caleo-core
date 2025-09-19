@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import { Event, EventStatus, FinanceShift } from "src/__generated__/resolvers-types";
 import { useDownloadPdf } from "src/hooks/use-download-pdf";
 import { useIncidentSummary } from "src/hooks/use-incident-summary";
+import { useBillingByEvent } from "src/hooks/use-billing-by-event";
 import ReportLink from "./report-link";
 
 interface Props {
@@ -27,6 +28,7 @@ export default function ReportDetails({
     fileName: 'docusign-bundle',
   });
   const { generateEventDownload } = useEventSummary();
+  const { downloadReport } = useBillingByEvent({ eventId: event.id });
 
   // Download documentBundle
   const downloadDocuments = useCallback((
@@ -82,7 +84,7 @@ export default function ReportDetails({
         </Typography>
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
         <ReportLink title="Incident/Event Report" subtitle="CSV Download" onClick={() => {
           enqueueSnackbar(`Preparing summary for ${eventName}...`, {
             variant: 'info',
@@ -95,10 +97,20 @@ export default function ReportDetails({
           generateEventDownload(event.id);
         }} />
       </Grid>
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
         <ReportLink title="Overtime Slip" subtitle="PDF Bundle" onClick={downloadDocuments('Overtime Slip', overtimeSlipDocumentIndex)} />
       </Grid>
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} md={6}>
+        <ReportLink
+          icon="mdi:google-spreadsheet"
+          title="Billing Report"
+          subtitle="Excel Download"
+          disabled={event.status === EventStatus.Incident}
+          disabledTooltip="Billing reports are only available for pre planned events."
+          onClick={downloadReport}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
         <ReportLink
           title="Form 214"
           subtitle="PDF Bundle"

@@ -257,7 +257,7 @@ export class FinanceService {
       {
         $lookup: {
           from: 'vehicleCategories',
-          localField: 'checkInOut.equipmentDetails.vehicleCategoryId',
+          localField: 'shiftCheckInOut.equipmentDetails.vehicleCategoryId',
           foreignField: '_id',
           as: 'vehicleCategory',
         }

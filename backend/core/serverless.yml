@@ -453,13 +453,13 @@ stepFunctions:
                     Resource:
                       Fn::GetAtt: [tierResetSync, Arn]
                     End: true
-              - StartAt: CheckoutNotifications
-                States:
-                  CheckoutNotifications:
-                    Type: Task
-                    Resource:
-                      Fn::GetAtt: [checkoutNotifications, Arn]
-                    End: true
+              # - StartAt: CheckoutNotifications
+              #   States:
+              #     CheckoutNotifications:
+              #       Type: Task
+              #       Resource:
+              #         Fn::GetAtt: [checkoutNotifications, Arn]
+              #       End: true
               - StartAt: MarkAsComplete
                 States:
                   MarkAsComplete:

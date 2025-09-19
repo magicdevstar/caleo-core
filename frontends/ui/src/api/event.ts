@@ -113,7 +113,6 @@ export const GET_ALL_EVENTS = gql`
         startTime
         endTime
         ocn
-        notes
         # When the interest list will stop automatically assigning officers
         interestListAutoAssignCutoff
         # When the interest list will start automatically assigning officers

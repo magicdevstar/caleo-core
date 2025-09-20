@@ -493,14 +493,6 @@ export class DocusignModel extends BaseMongo<IDocusign> {
         email: lieutenant.member.contactInfo?.primaryEmail.address,
         name: lieutenant.name,
       },
-      ...(isReserve ? [
-        {
-          roleName: 'supervisor',
-          routingOrder: '3',
-          email: supervisor.member.contactInfo?.primaryEmail.address,
-          name: supervisor.name,
-        }
-      ] : []),
     ];
     const envDef: EnvelopeDefinition = {
       templateId,

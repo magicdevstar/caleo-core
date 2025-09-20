@@ -60,6 +60,7 @@ export class InterestListService {
       return;
     }
     if (event.status !== EventStatus.InterestList || !event.scheduledCloseInterestList) {
+      logger.warn('Not triggering interest list assignment - event not interest list', { id: shift._id, shiftId: shift.shiftId, eventStatus: event.status, scheduledCloseInterestList: event.scheduledCloseInterestList });
       return;
     }
 
@@ -89,7 +90,7 @@ export class InterestListService {
         logger.error('Failed to invoke assignShiftGroup', error);
       }
     } else {
-      logger.warn('Not triggering interest list assignment', {
+      logger.warn('Not triggering interest list assignment - conditions not met', {
         now,
         interestListClose,
         interestListCutoff,

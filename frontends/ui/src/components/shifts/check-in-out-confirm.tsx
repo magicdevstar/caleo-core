@@ -51,7 +51,6 @@ export default function CheckInOutConfirm({
   const [checkInOutNote, setCheckInOutNote] = useState<string>('');
   const [vehicleCategoryId, setVehicleCategoryId] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [signNow, setSignNow] = useState(true);
 
   const [checkIn] = useMutation(CHECK_IN, {
     refetchQueries: [GET_ALL_SHIFTS],
@@ -95,7 +94,7 @@ export default function CheckInOutConfirm({
             id: shift.id,
             note: checkInOutNote,
             ...(vehicleCategories && vehicleCategoryId && { vehicleCategoryId }),
-            signNow,
+            signNow: isCheckout && docusignCheckout,
             fromSelfCheckout,
             ...(requiredEquipmentTime && equipmentTime && {
               equipmentDateTime: equipmentTime.toISOString(),
@@ -157,8 +156,8 @@ export default function CheckInOutConfirm({
     confirm,
     checkInOutNote,
     equipmentTime,
-    signNow,
     geoLocation,
+    docusignCheckout,
   ]);
 
   return (
@@ -208,18 +207,6 @@ export default function CheckInOutConfirm({
               setCheckInOutNote(event.target.value)
             }}
           />
-          {
-            isCheckout && docusignCheckout && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    onChange={(_, checked) => setSignNow(checked)}
-                    checked={signNow} />
-                }
-                label="Sign shift document now"
-              />
-            )
-          }
         </Stack>
       )}
       action={

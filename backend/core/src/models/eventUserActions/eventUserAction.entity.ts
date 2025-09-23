@@ -27,6 +27,10 @@ export interface IEventUserAction extends Omit<
   eventId: ObjectId;
   incidentFormId?: ObjectId;
   modifiedById?: ObjectId;
+  modifiedBy?: {
+    id: string;
+    name: string;
+  };
 
   createdAt: Date;
   updatedAt: Date;

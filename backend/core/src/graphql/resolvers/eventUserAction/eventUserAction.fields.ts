@@ -11,7 +11,15 @@ export const fields = {
       return EventUserActionType.Shift;
     },
     user: (parent: IEventUserAction, _args, { users }: Context) => users.loader.load(parent.userId.toString()),
-    modifiedBy: (parent: IEventUserAction, _args, { users }: Context) => parent.modifiedById ? users.loader.load(parent.modifiedById.toString()) : null,
+    modifiedBy: (parent: IEventUserAction, _args, { users }: Context) => {
+      if (parent.modifiedBy) {
+        return parent.modifiedBy;
+      }
+      if (parent.modifiedById) {
+        return users.loader.load(parent.modifiedById.toString());
+      }
+      return null;
+    },
     event: (parent: IEventUserAction, _args, { events }: Context) => events.loader.load(parent.eventId.toString()),
     shifts: (parent: IEventUserAction, _args, { shifts }: Context) => {
       return parent.shiftGroupId ? shifts.loadUserShiftsByGroupId.load({

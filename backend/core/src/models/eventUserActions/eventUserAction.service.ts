@@ -32,6 +32,7 @@ export class EventUserActionService {
     source,
     actionId,
     modifiedById,
+    modifiedBy,
     timestamp,
     action,
     notes,
@@ -46,6 +47,7 @@ export class EventUserActionService {
 
     source: EventUserActionLogSource;
     modifiedById?: ObjectId;
+    modifiedBy?: {id: string; name: string};
     timestamp?: Date;
     action: EventUserActionLogAction;
     notes?: string;
@@ -59,6 +61,7 @@ export class EventUserActionService {
       actionType: shiftGroupId ? EventUserActionType.Shift : EventUserActionType.IncidentSubmission,
       source,
       modifiedById,
+      modifiedBy,
       timestamp,
       action,
       notes,

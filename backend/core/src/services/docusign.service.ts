@@ -228,6 +228,15 @@ export class Docusign {
         notes = voidedReason;
       }
 
+      let modifiedBy: { id: string; name: string } | undefined = undefined;
+      if (status.toLowerCase() === 'completed') {
+        const lastSigner = signers[signers.length - 1];
+        modifiedBy = {
+          id: lastSigner.email!,
+          name: lastSigner.name!,
+        };
+      }
+
       await this.eventUserActions.createItem({
         userId: userId,
         eventId: eventId,
@@ -235,6 +244,7 @@ export class Docusign {
         source: EventUserActionLogSource.Docusign,
         actionId: envelopeId,
         modifiedById: userId,
+        modifiedBy,
         timestamp: new Date(),
         notes,
         action,

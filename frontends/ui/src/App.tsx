@@ -1,9 +1,6 @@
 // @apollo/client
 import { ApolloProvider } from '@apollo/client';
 
-// GA4
-import ReactGA from 'react-ga4';
-
 // scrollbar
 import 'simplebar-react/dist/simplebar.min.css';
 
@@ -43,6 +40,7 @@ import { AuthProvider, AuthConsumer } from 'src/auth/context/amplify';
 import { client } from './utils/apollo';
 import { SnackbarProvider } from './components/snackbar';
 import ErrorComponent from "./components/error/Error";
+import { initG4 } from './utils/ga4';
 
 // ----------------------------------------------------------------------
 
@@ -50,9 +48,7 @@ import ErrorComponent from "./components/error/Error";
 LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyOTU1NzQwMDAsUz1wcm8sTE09cGVycGV0dWFsLEtWPTI=');
 
 // GA
-if (window.location.hostname !== 'localhost' && process.env.REACT_APP_GA_TRACKING_ID) {
-  ReactGA.initialize(process.env.REACT_APP_GA_TRACKING_ID!);
-}
+initG4();
 
 export default function App() {
   const charAt = `

@@ -51,6 +51,7 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=6144"
           AWS_REGION: us-west-2
+          REACT_APP_GA_TRACKING_ID: ${{ vars.REACT_APP_GA_TRACKING_ID }}
           REACT_APP_HOST_API: ${{ vars.REACT_APP_HOST_API }}
           REACT_APP_ASSETS_API: ${{ vars.REACT_APP_ASSETS_API }}
           REACT_APP_MAPBOX_API: ${{ vars.REACT_APP_MAPBOX_API }}

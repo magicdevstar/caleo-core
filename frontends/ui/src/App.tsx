@@ -1,6 +1,9 @@
 // @apollo/client
 import { ApolloProvider } from '@apollo/client';
 
+// GA4
+import ReactGA from 'react-ga4';
+
 // scrollbar
 import 'simplebar-react/dist/simplebar.min.css';
 
@@ -45,6 +48,11 @@ import ErrorComponent from "./components/error/Error";
 
 // MUI X License Key
 LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyOTU1NzQwMDAsUz1wcm8sTE09cGVycGV0dWFsLEtWPTI=');
+
+// GA
+if (window.location.hostname !== 'localhost' && process.env.REACT_APP_GA_TRACKING_ID) {
+  ReactGA.initialize(process.env.REACT_APP_GA_TRACKING_ID!);
+}
 
 export default function App() {
   const charAt = `

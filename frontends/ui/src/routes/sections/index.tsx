@@ -1,6 +1,8 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 // config
 import { PATH_AFTER_LOGIN } from 'src/config-global';
+// hooks
+import usePageTracking from 'src/hooks/use-page-tracking';
 //
 import { mainRoutes } from './main';
 
@@ -12,6 +14,8 @@ import { kioskRoutes } from './kiosk';
 // ----------------------------------------------------------------------
 
 export default function Router() {
+  usePageTracking();
+
   return useRoutes([
     {
       path: '/',

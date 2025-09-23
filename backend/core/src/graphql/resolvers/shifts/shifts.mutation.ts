@@ -539,7 +539,7 @@ export const Mutation = {
 
     const shift = await shifts.get(id);
     const existingUserId = shift?.userId ? `${shift?.userId}` : null;
-    if (!shift || (shift?.locked && !userIsAdmin(user))) {
+    if (!shift || (shift?.locked && userId && !userIsAdmin(user))) {
       throw new GraphQLError("Shift not found");
     }
 

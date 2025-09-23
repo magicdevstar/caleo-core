@@ -8,8 +8,6 @@ import { useMutation } from '@apollo/client';
 import { DesktopDateTimePicker } from '@mui/x-date-pickers/DesktopDateTimePicker';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
 import { Shift } from 'src/__generated__/resolvers-types';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { UseBooleanReturnType } from "src/hooks/use-boolean"

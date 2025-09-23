@@ -47,6 +47,7 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
   try {
     const services = await createContext();
     const webhookData = JSON.parse(event.body || '{}') as DocusignEvent;
+    logger.info('Received docusign webhook', { webhookData });
 
     const incident = await services.incidentSubmissionModel.findByEnvelopeId(webhookData.data.envelopeId);
     if (incident) {
@@ -96,8 +97,6 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
       return buildUnverifiedResponse();
     }
 
-    logger.info('Webhook details', { shiftId, orgId });
-
     await services.docusign.saveEvent({
       shiftId,
       status: webhookData.data.envelopeSummary.status,
@@ -126,6 +125,6 @@ export const docusignEvent = async (event: APIGatewayEvent) => {
 
 export const handler = middy(docusignEvent)
   .use(injectLambdaContext(logger, {
-    logEvent: process.env.STAGE !== 'prod',
+    logEvent: false,
     clearState: true
   }));

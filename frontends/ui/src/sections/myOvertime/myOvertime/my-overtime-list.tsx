@@ -7,7 +7,7 @@ import { TableProps } from 'src/components/table';
 import { useResponsive } from 'src/hooks/use-responsive';
 // local imports
 import ShiftItems from 'src/components/shifts/shift-items';
-import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus, ShiftStatus } from 'src/__generated__/resolvers-types';
+import { Organization, Shift, ShiftBufferRequest, ShiftBufferRequestStatus } from 'src/__generated__/resolvers-types';
 import { ORGANIZATION } from 'src/api/organization';
 import { useBoolean } from 'src/hooks/use-boolean';
 import RelinquishDialog from 'src/sections/dashboard/dashboard/overtime-shifts/relinquish-dialog';
@@ -49,13 +49,6 @@ const getButtonInfo = (organization: Organization, shift: Shift | ShiftBufferReq
       icon: 'mdi:check',
       title: 'Secured',
       disabled,
-    }
-  }
-  if ((shift as Shift).locked || shift.status === ShiftStatus.Locked) {
-    return {
-      icon: 'mdi:lock',
-      title: 'Locked',
-      disabled: true,
     }
   }
   return {

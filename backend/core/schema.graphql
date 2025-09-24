@@ -2014,6 +2014,8 @@ type DocusignSignerDetailsData {
     vehicleNumber: String # required when hasVehicle is "yes"
     startingMileage: Float # required when hasVehicle is "yes"
     endingMileage: Float # required when hasVehicle is "yes"
+
+    vehicleCategoryRecord: VehicleCategories
   }
 
   type MissionAssignments {

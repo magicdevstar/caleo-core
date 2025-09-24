@@ -3333,6 +3333,7 @@ export type VehicleInformation = {
   hasVehicle?: Maybe<Scalars['String']['output']>;
   startingMileage?: Maybe<Scalars['Float']['output']>;
   vehicleCategory?: Maybe<Scalars['ObjectId']['output']>;
+  vehicleCategoryRecord?: Maybe<VehicleCategories>;
   vehicleMake?: Maybe<Scalars['String']['output']>;
   vehicleModel?: Maybe<Scalars['String']['output']>;
   vehicleNumber?: Maybe<Scalars['String']['output']>;
@@ -5446,6 +5447,7 @@ export type VehicleInformationResolvers<ContextType = any, ParentType extends Re
   hasVehicle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startingMileage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   vehicleCategory?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  vehicleCategoryRecord?: Resolver<Maybe<ResolversTypes['VehicleCategories']>, ParentType, ContextType>;
   vehicleMake?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   vehicleModel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   vehicleNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

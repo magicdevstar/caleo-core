@@ -325,6 +325,11 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
           vehicleNumber
           startingMileage
           endingMileage
+          vehicleCategoryRecord {
+            id
+            name
+            milageRate
+          }
         }
         assignmentSummary {
           callSign
@@ -364,6 +369,10 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
           name
           member {
             pNumber
+            division {
+              id
+              name
+            }
           }
         }
 

@@ -1,4 +1,5 @@
 import { Dayjs } from "dayjs";
+import sortBy from 'lodash/sortBy';
 import { client } from 'src/utils/apollo';
 import { useSnackbar } from "notistack";
 import capitalize from "lodash/capitalize";
@@ -8,6 +9,7 @@ import { usePNumberLabel } from "src/hooks/use-pNumber-label";
 import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useDownloadCsv } from "src/hooks/use-download-csv";
 import { GET_INCIDENT_SUBMISSIONS_FOR_REPORT } from "src/api/incidentForm";
+import { useFeatures } from "./use-features";
 
 interface DownloadSummaryProps {
   event: { id: string; };
@@ -18,6 +20,7 @@ interface DownloadSummaryProps {
 export const useIncidentSummary = () => {
   const { user } = useAuthContext();
   const { pNumberLabel } = usePNumberLabel();
+  const { lasdUserFields } = useFeatures();
   const { dateFormat, timeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadCsv({
@@ -41,7 +44,10 @@ export const useIncidentSummary = () => {
           },
         },
       });
-      const items = (res.incidentForms?.items || []) as IncidentForm[];
+      const items = sortBy(
+        (res.incidentForms?.items || []) as IncidentForm[],
+        ['user.lastName', 'operationalPeriod.date']
+      );
       
       if (items.length === 0) {
         enqueueSnackbar('No data. Please try again.', {
@@ -59,7 +65,11 @@ export const useIncidentSummary = () => {
         'Budget Activity Code': incidentForm.event?.budgetActivityCode || '',
         'Outside Org Code': incidentForm.event?.outsideOrgCode || '',
         'Overtime Reason Code': incidentForm.event?.overtimeReasonCode || '',
-        'Officer Name': incidentForm.user?.name || '',
+        'Officer First Name': incidentForm.user?.firstName || '',
+        'Officer Last Name': incidentForm.user?.lastName || '',
+        ...(lasdUserFields && {
+          'Office Division': incidentForm.user?.member?.division?.name || '',
+        }),
         [`Officer ${pNumberLabel}`]: incidentForm.user?.member?.pNumber || '',
         'Reviewer': incidentForm.reviewerUser?.name || '',
         [`Reviewer ${pNumberLabel}`]: incidentForm.reviewerUser?.pNumber || '',
@@ -81,8 +91,8 @@ export const useIncidentSummary = () => {
         'Overtime Time Out': incidentForm.timekeeping?.overtimeTimeOut 
           ? convertDate({ date: incidentForm.timekeeping.overtimeTimeOut, user }).format(timeFormat)
           : '',
-        'Straight Hours': incidentForm.timekeeping?.straightHours || '',
-        'Overtime Hours': incidentForm.timekeeping?.overtimeHours || '',
+        'Straight Incident Hours': incidentForm.timekeeping?.straightHours || '',
+        'Overtime Incident Hours': incidentForm.timekeeping?.overtimeHours || '',
         
         // Shift Details
         'En Route to Incident': incidentForm.shiftDetails?.enrouteToIncident 
@@ -103,12 +113,16 @@ export const useIncidentSummary = () => {
         
         // Vehicle Information
         'Has Vehicle': incidentForm.vehicleInformation?.hasVehicle || '',
-        'Vehicle Category': incidentForm.vehicleInformation?.vehicleCategory || '',
+        'Vehicle Category': incidentForm.vehicleInformation?.vehicleCategoryRecord?.name || '',
         'Vehicle Make': incidentForm.vehicleInformation?.vehicleMake || '',
         'Vehicle Model': incidentForm.vehicleInformation?.vehicleModel || '',
         'Vehicle Number': incidentForm.vehicleInformation?.vehicleNumber || '',
         'Starting Mileage': incidentForm.vehicleInformation?.startingMileage || '',
         'Ending Mileage': incidentForm.vehicleInformation?.endingMileage || '',
+        'Total Mileage': (typeof incidentForm.vehicleInformation?.startingMileage === 'number' && typeof incidentForm.vehicleInformation?.endingMileage === 'number')
+          ? (incidentForm.vehicleInformation.endingMileage - incidentForm.vehicleInformation.startingMileage)
+          : '',
+        'Milage Rate': incidentForm?.vehicleInformation?.vehicleCategoryRecord?.milageRate || '',
         
         // Assignment Summary
         'Call Sign': incidentForm.assignmentSummary?.callSign || '',

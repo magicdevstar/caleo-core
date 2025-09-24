@@ -21,5 +21,11 @@ export const fields = {
       return context.events.loader.load(parent.eventId.toString());
     },
     isMutualAid: (parent: IIncidentForm) => !!parent.isMutualAid,
+  },
+  VehicleInformation: {
+    vehicleCategoryRecord: (parent: any, _: unknown, context: Context) => {
+      if (!parent.vehicleCategory) return null;
+      return context.vehicleCategories.loader.load(parent.vehicleCategory.toString());
+    }
   }
 };

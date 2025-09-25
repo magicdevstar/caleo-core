@@ -67,16 +67,31 @@ export class FinanceService {
         },
         {
           $lookup: {
-            from: 'dsEvents',
-            localField: 'envelopeId',
-            foreignField: 'envelopeId',
-            as: 'docusignEvent',
+            from: "dsEvents",
+            localField: "_id",
+            foreignField: "shiftId",
+            let: {
+              envelopeId: "$envelopeId"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$status", "completed"]
+                  }
+                }
+              },
+              {
+                $limit: 1
+              }
+            ],
+            as: "docusignEvent"
           }
         },
         {
           $addFields: {
-            docusignEvent: { $arrayElemAt: ["$docusignEvent", 0] },
-          },
+            docusignEvent: { $arrayElemAt: ["$docusignEvent", 0] }
+          }
         },
         {
           $match: {
@@ -178,16 +193,31 @@ export class FinanceService {
       },
       {
         $lookup: {
-          from: 'dsEvents',
-          localField: '_id',
-          foreignField: 'shiftId',
-          as: 'docusignEvent',
+          from: "dsEvents",
+          localField: "_id",
+          foreignField: "shiftId",
+          let: {
+            envelopeId: "$envelopeId"
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$status", "completed"]
+                }
+              }
+            },
+            {
+              $limit: 1
+            }
+          ],
+          as: "docusignEvent"
         }
       },
       {
         $addFields: {
-          docusignEvent: { $arrayElemAt: ["$docusignEvent", 0] },
-        },
+          docusignEvent: { $arrayElemAt: ["$docusignEvent", 0] }
+        }
       },
       {
         $lookup: {

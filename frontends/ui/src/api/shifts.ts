@@ -1256,6 +1256,8 @@ export const GET_ALL_FINANCE_SHIFTS = gql`
       user {
         id
         name
+        firstName
+        lastName
         member {
           hourlyRate
           incidentHourlyRate

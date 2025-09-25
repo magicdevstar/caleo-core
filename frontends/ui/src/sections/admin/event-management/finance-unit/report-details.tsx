@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
+import sortBy from 'lodash/sortBy';
 import { useEventSummary } from "src/hooks/use-event-summary";
 import { PDFDocument } from "pdf-lib";
 import Grid from "@mui/material/Grid";
@@ -23,7 +24,7 @@ export default function ReportDetails({
   const eventName = event.name || 'Event';
   const { downloadSummary } = useIncidentSummary();
   const overtimeSlipDocumentIndex = isIncident ? 1 : 0;
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { download } = useDownloadPdf({
     fileName: 'docusign-bundle',
   });
@@ -35,12 +36,12 @@ export default function ReportDetails({
     documentName:string,
     documentIndex: number
   ) => async () => {
+    const preparing = enqueueSnackbar(`Preparing PDF bundle: ${documentName}...`, {
+      variant: 'info',
+      persist: true,
+    });
     try {
-      enqueueSnackbar(`Preparing PDF bundle: ${documentName}...`, {
-        variant: 'info',
-        autoHideDuration: 3000,
-      });
-      const documentUrls = data
+      const documentUrls = sortBy(data, ['user.lastName'])
         .map((item) => item.docusignEvent?.documentUrls?.[documentIndex])
         .filter(Boolean);
 
@@ -68,12 +69,15 @@ export default function ReportDetails({
         variant: 'error',
         autoHideDuration: 5000,
       });
+    } finally {
+      closeSnackbar(preparing);
     }
   }, [
     eventName,
     data,
     download,
     enqueueSnackbar,
+    closeSnackbar,
   ]);
 
   return (

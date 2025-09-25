@@ -107,7 +107,7 @@ export default function ReportDetails({
           subtitle="Excel Download"
           disabled={event.status === EventStatus.Incident}
           disabledTooltip="Billing reports are only available for pre planned events."
-          onClick={downloadReport}
+          onClick={() => downloadReport(event.id)}
         />
       </Grid>
       <Grid item xs={12} md={6}>

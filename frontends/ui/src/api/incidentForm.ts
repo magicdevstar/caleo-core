@@ -392,6 +392,9 @@ export const GET_INCIDENT_SUBMISSIONS_DOC_DOWNLOAD = gql`
     incidentForms(input: $input, report: $report) {
       items {
         id
+        operationalPeriod {
+          date
+        }
         user {
           id,
           lastName

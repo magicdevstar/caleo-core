@@ -30,7 +30,6 @@ export default function FinanceUnitDetailView() {
     },
   });
 
-  // TODO: Use this query on the finance dashboard :)
   const { data, loading, error, refetch } = useQuery(GET_ALL_FINANCE_SHIFTS, {
     fetchPolicy: 'network-only', // Used for first execution
     nextFetchPolicy: 'cache-first', // Used for subsequent executions

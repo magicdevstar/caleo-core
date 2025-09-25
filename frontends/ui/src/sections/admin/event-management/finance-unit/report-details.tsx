@@ -33,17 +33,21 @@ export default function ReportDetails({
 
   // Download documentBundle
   const downloadDocuments = useCallback((
-    documentName:string,
-    documentIndex: number
+    documentName: string,
+    documentIndex?: number
   ) => async () => {
     const preparing = enqueueSnackbar(`Preparing PDF bundle: ${documentName}...`, {
       variant: 'info',
       persist: true,
     });
     try {
-      const documentUrls = sortBy(data, ['user.lastName'])
-        .map((item) => item.docusignEvent?.documentUrls?.[documentIndex])
-        .filter(Boolean);
+      const documentUrls = sortBy(data, ['user.lastName', 'startTime'])
+        .map((item) => typeof documentIndex === 'number' ?
+          item.docusignEvent?.documentUrls?.[documentIndex] :
+          item.docusignEvent?.documentUrls?.reverse?.()
+        )
+        .filter(Boolean)
+        .flat();
 
       if (documentUrls.length > 0) {
         const pdfDoc = await PDFDocument.create();
@@ -121,6 +125,15 @@ export default function ReportDetails({
           disabled={event.status !== EventStatus.Incident}
           disabledTooltip="Form 214 is only available for Incident events."
           onClick={downloadDocuments('Form 214', 0)}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <ReportLink
+          title="FEMA Packet"
+          subtitle="PDF Bundle"
+          disabled={event.status !== EventStatus.Incident}
+          disabledTooltip="FEMA Packet is only available for Incident events."
+          onClick={downloadDocuments('FEMA Packet')}
         />
       </Grid>
     </>

@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { useCallback, useState } from "react";
+import sortBy from "lodash/sortBy";
 import { useSnackbar } from "notistack";
 import { PDFDocument } from "pdf-lib";
 import { client } from "src/utils/apollo";
@@ -43,17 +44,8 @@ export const useOvertimeSlips = () => {
 
       // get overtime slip urls sorted by last name
       const shiftsWithOvertimeSlips = shifts.filter(shift => !!shift.docusignEvent?.documentUrl);
-      const overtimeSlipUrls = shiftsWithOvertimeSlips.sort((shiftA, shiftB) => {
-        const nameA = shiftA.user?.lastName || '';
-        const nameB = shiftB.user?.lastName || '';
-        if (nameA < nameB) {
-          return -1;
-        }
-        if (nameA > nameB) {
-          return 1;
-        }
-        return 0;
-      }).map(shift => shift.docusignEvent?.documentUrl);
+      const overtimeSlipUrls = sortBy(shiftsWithOvertimeSlips, ['user.lastName', 'startTime'])
+        .map(shift => shift.docusignEvent?.documentUrl);
 
       if (!overtimeSlipUrls.length) {
         enqueueSnackbar('No shifts with overtime slips found', { variant: 'info', autoHideDuration: 3000 });

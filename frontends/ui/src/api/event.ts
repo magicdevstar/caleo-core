@@ -89,6 +89,7 @@ export const GET_ALL_EVENT_SHIFTS = gql`
         shifts {
           id
           status
+          startTime
           endTime
           user {
             firstName

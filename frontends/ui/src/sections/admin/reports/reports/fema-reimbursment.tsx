@@ -1,6 +1,7 @@
 import { useSnackbar } from 'notistack';
 import { PDFDocument } from "pdf-lib";
 import { useForm } from 'react-hook-form';
+import sortBy from 'lodash/sortBy';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
@@ -65,18 +66,7 @@ export function FEMAReimbursementReport() {
 
       const key = values.docType === DocumentType.FORM_214 ? 0 : 1;
 
-      const documentUrls = items
-        .sort((a, b) => {
-          const nameA = a.user?.lastName || '';
-          const nameB = b.user?.lastName || '';
-          if (nameA < nameB) {
-            return -1;
-          }
-          if (nameA > nameB) {
-            return 1;
-          }
-          return 0;
-        })
+      const documentUrls = sortBy(items, ['user.lastName', 'operationalPeriod.date'])
         .filter((item) => item.docusignEvent?.status?.toUpperCase?.() === DocusignStatus.COMPLETED)
         .map((item) => item.docusignEvent?.documentUrls?.[key])
         .flat()

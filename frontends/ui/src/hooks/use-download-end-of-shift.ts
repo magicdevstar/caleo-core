@@ -1,4 +1,5 @@
 import { useLazyQuery } from "@apollo/client";
+import sortBy from "lodash/sortBy";
 import { PDFDocument } from 'pdf-lib';
 import { useSnackbar } from "notistack";
 import { Assignment, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
@@ -56,14 +57,10 @@ export const useEndOfShiftDownload = () => {
       const rawShifts = res.data.event?.assignments?.flatMap?.((assignment: Assignment) =>
         assignment.shifts?.map((shift) => ({ ...shift, assignment: { name: assignment.name } }))
       ) || [];
-      const shifts = rawShifts
-        .filter((shift: Shift) => shift.user && shift.status !== ShiftStatus.Removed)
-        .sort((a: Shift, b: Shift) => {
-          const aName = `${a.user?.lastName}, ${a.user?.firstName}`;
-          const bName = `${b.user?.lastName}, ${b.user?.firstName}`;
-
-          return aName.localeCompare(bName) || a.id.localeCompare(b.id);
-        });
+      const shifts = sortBy(
+        rawShifts.filter((shift: Shift) => shift.user && shift.status !== ShiftStatus.Removed),
+        ['user.lastName', 'startTime']
+      );
       if (shifts.length === 0) {
         enqueueSnackbar("No shifts available for end of shift form.", { variant: "warning", autoHideDuration: 5000 });
         return;

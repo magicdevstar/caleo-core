@@ -14,10 +14,11 @@ import { Shift } from 'src/__generated__/resolvers-types';
 import TableContainer from '@mui/material/TableContainer';
 import Scrollbar from 'src/components/scrollbar';
 import Table from '@mui/material/Table';
-import { emptyRows, getComparator, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
+import { emptyRows, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
 import TableBody from '@mui/material/TableBody';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useFeatures } from 'src/hooks/use-features';
+import { mixedTypeSort } from 'src/utils/mixed-type-sort';
 import Row from './row';
 
 export default function ShiftTable({
@@ -124,10 +125,7 @@ export default function ShiftTable({
     tableTab
   ]);
 
-  const finalData = useMemo(() => applySort({
-    inputData: filteredData || [],
-    comparator: getComparator(table.order, table.orderBy),
-  }), [table, filteredData]);
+  const finalData = useMemo(() => mixedTypeSort(filteredData || [], table), [table, filteredData]).items as Shift[];
 
   const searchBox = (
     <TextField
@@ -203,24 +201,4 @@ export default function ShiftTable({
       </Card>
     </Grid>
   )
-}
-
-function applySort({
-  inputData,
-  comparator,
-}: {
-  inputData: Shift[];
-  comparator: (a: any, b: any) => number;
-}) {
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  return inputData;
 }

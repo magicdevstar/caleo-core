@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
-import orderBy from 'lodash/orderBy';
 import { useRouter } from 'src/routes/hooks';
 import { isAfter, isBefore } from 'date-fns';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -21,6 +20,7 @@ import GQLTable from 'src/components/table/gql/table';
 import { TableConfig } from 'src/components/table/table-config';
 import PopulateShiftSlots from 'src/components/shifts/populate-shift-slots';
 import PopulateAllShiftSlots from 'src/components/shifts/populate-all-shift-slots';
+import { mixedTypeSort } from 'src/utils/mixed-type-sort';
 
 type EventAssignmentsTableProps = {
   currentEvent?: Event;
@@ -189,10 +189,7 @@ export default function EventAssignmentsTable({
           }),
         };
 
-        return {
-          ...res,
-          items: orderBy<any>(res.items, [options?.orderBy], [options?.order || 'asc' as any]),
-        }
+        return mixedTypeSort(res.items, options);
       },
     },
     rowActions: [

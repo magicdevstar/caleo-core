@@ -135,7 +135,6 @@ export default function ShiftItem({
       coordinates,
     }
   }, [shift]);
-  console.log({ reportingLocation });
   const { user } = useAuthContext();
   const { eventCheckIn, eventCheckOut, lasdEventFields, callSign, enabledEventThumbnail } = useFeatures();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');

@@ -58,7 +58,6 @@ export const EditCheckInOut = ({
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
   const { dateTimeFormat } = useDateFormats();
-  console.log('shift', shift);
   const { data: activityData } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
     variables: {
       input: {
@@ -70,7 +69,6 @@ export const EditCheckInOut = ({
     },
     skip: !shift,
   });
-  console.log('activityData', activityData);
   const officerComments = activityData?.eventUserActions?.items.
     filter(action => action.action === EventUserActionLogAction.OfficerCommentAdded) || [];
 

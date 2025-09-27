@@ -68,8 +68,8 @@ export class FinanceService {
         {
           $lookup: {
             from: "dsEvents",
-            localField: "_id",
-            foreignField: "shiftId",
+            localField: "envelopeId",
+            foreignField: "envelopeId",
             let: {
               envelopeId: "$envelopeId"
             },

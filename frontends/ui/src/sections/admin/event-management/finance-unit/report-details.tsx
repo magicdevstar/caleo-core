@@ -44,7 +44,7 @@ export default function ReportDetails({
       const documentUrls = sortBy(data, ['user.lastName', 'startTime'])
         .map((item) => typeof documentIndex === 'number' ?
           item.docusignEvent?.documentUrls?.[documentIndex] :
-          item.docusignEvent?.documentUrls?.reverse?.()
+          [...(item.docusignEvent?.documentUrls || [])].reverse()
         )
         .filter(Boolean)
         .flat();
@@ -69,6 +69,7 @@ export default function ReportDetails({
         download(pdfDocBuffer, `${eventName}: ${documentName}.pdf`);
       }
     } catch(error) {
+      console.error(error);
       enqueueSnackbar(`Failed to download PDF bundle: ${documentName}. Please try again.`, {
         variant: 'error',
         autoHideDuration: 5000,

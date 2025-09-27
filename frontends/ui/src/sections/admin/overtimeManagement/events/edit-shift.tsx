@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import orderBy from 'lodash/orderBy';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -41,6 +40,7 @@ import {
   UPDATE_SHIFTS,
   UPSERT_SHIFTS
 } from 'src/api/shifts';
+import { mixedTypeSort } from 'src/utils/mixed-type-sort';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -428,10 +428,7 @@ export default function EditShift({
     search: {
       data: currentShifts || [],
       query: GET_ALL_SHIFTS,
-      processResult: (data: any, options) => ({
-        total: data.length,
-        items: orderBy<any>(data, [options?.orderBy], [options?.order || 'asc' as any]),
-      }),
+      processResult: mixedTypeSort,
     },
     rowActions: [
       {
@@ -850,7 +847,7 @@ export default function EditShift({
               variant="outlined"
               value={callSign || editCallSign.attribute?.callSign}
               onChange={(e) => {
-                setCallSign(e.target.value.trim());
+                setCallSign(e.target.value);
               }}
             />
           </Stack>

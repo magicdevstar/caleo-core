@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
-import orderBy from 'lodash/orderBy';
 import { isAfter, isBefore } from 'date-fns';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -18,6 +17,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { GET_ALL_SHIFTS, REMOVE_SHIFTS } from 'src/api/shifts';
 import { TableConfig } from 'src/components/table/table-config';
 import GQLTable from 'src/components/table/gql/table';
+import { mixedTypeSort } from 'src/utils/mixed-type-sort';
 
 // ----------------------------------------------------------------------
 
@@ -150,10 +150,7 @@ export default function AssignmentShiftsTable({
     search: {
       data: (shiftMeta || []) as any,
       query: GET_ALL_SHIFTS,
-      processResult: (data: any, options) => ({
-        total: data.length,
-        items: orderBy<any>(data, [options?.orderBy], [options?.order || 'asc' as any]),
-      }),
+      processResult: mixedTypeSort,
     },
     rowActions: [
       {

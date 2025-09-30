@@ -2334,6 +2334,7 @@ export type Shift = {
   createdById?: Maybe<Scalars['String']['output']>;
   customId: Scalars['String']['output'];
   docType: DocType;
+  docusignEnvelopeId?: Maybe<Scalars['String']['output']>;
   docusignEvent?: Maybe<DocusignEvent>;
   docusignEvents?: Maybe<Array<DocusignEvent>>;
   endTime: Scalars['String']['output'];
@@ -2376,6 +2377,7 @@ export type ShiftAdminCheckInOutEvent = {
   equipmentDetails?: InputMaybe<ShiftCheckInOutEquipmentEvent>;
   id: Scalars['String']['input'];
   noShow?: InputMaybe<Scalars['Boolean']['input']>;
+  regenerateDocusign?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type ShiftAvailabilityTime = {
@@ -5071,6 +5073,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   customId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  docusignEnvelopeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
   docusignEvents?: Resolver<Maybe<Array<ResolversTypes['DocusignEvent']>>, ParentType, ContextType>;
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

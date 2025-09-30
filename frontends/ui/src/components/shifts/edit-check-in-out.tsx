@@ -86,6 +86,7 @@ export const EditCheckInOut = ({
     checkOutNote: Yup.string().nullable(),
     adminNotes: Yup.string().nullable(),
     noShow: Yup.boolean().default(false),
+    regenerateDocusign: Yup.boolean().default(false),
   });
 
   const defaultValues = useMemo(
@@ -113,6 +114,7 @@ export const EditCheckInOut = ({
         user
       }).toDate() : undefined,
       noShow: shift?.shiftCheckInOut?.noShow || false,
+      regenerateDocusign: false,
     }),
     [shift, user]
   );
@@ -144,6 +146,7 @@ export const EditCheckInOut = ({
         customShiftId: formData.customId,
         adminNotes: formData.adminNotes,
         noShow: formData.noShow,
+        regenerateDocusign: formData.regenerateDocusign,
       }
       
       if (dirtyFields.checkInTime && formData.checkInTime) {
@@ -173,9 +176,18 @@ export const EditCheckInOut = ({
         variables: {
           input: payload,
         },
-      })
+      });
 
-      enqueueSnackbar('Shift details updated successfully', { variant: 'success', autoHideDuration: 4000 });
+      const messaging: any = {
+        message: 'Shift details updated successfully',
+        options: { variant: 'success', autoHideDuration: 4000 },
+      };
+      if (formData.regenerateDocusign) {
+        messaging.message = 'Shift details updated and end of shift document resent successfully';
+        messaging.options = { variant: 'success', persist: true };
+      }
+
+      enqueueSnackbar(messaging.message, messaging.options);
       // await client.refetchQueries({
       //   include: [GET_GROUPED_SHIFTS],
       // });
@@ -195,15 +207,18 @@ export const EditCheckInOut = ({
       methods={methods}
       handleSubmit={onSubmit}
       action={
-        <LoadingButton
-          type="submit"
-          disabled={!isDirty}
-          loading={isSubmitting}
-          variant="contained"
-          color="primary"
-        >
-          Save
-        </LoadingButton>
+        <Stack spacing={2} direction="row" mr={2}>
+          <RHFSwitch disabled={!shift?.docusignEnvelopeId} name="regenerateDocusign" label="Regenerate End of Shift Document" sx={{ mr: 'auto' }} />
+          <LoadingButton
+            type="submit"
+            disabled={!isDirty}
+            loading={isSubmitting}
+            variant="contained"
+            color="primary"
+          >
+            Save
+          </LoadingButton>
+        </Stack>
       }
       TransitionProps={{
         // wait for animation to end on closing

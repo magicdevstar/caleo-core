@@ -31,7 +31,7 @@ export default function Analytics({
 
   const awaitingArrivalShifts = useMemo(() => {
     if (filteredData.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
-    const awaitingArrival = filteredData.filter((shift) => !shift.shiftCheckInOut?.checkInTime);
+    const awaitingArrival = filteredData.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow);
     const totalAwaiting = awaitingArrival.length;
     const totalShifts = total;
     const percent = totalShifts ? (totalAwaiting / totalShifts) * 100 : 0;

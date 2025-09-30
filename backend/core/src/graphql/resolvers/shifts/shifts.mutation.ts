@@ -57,6 +57,7 @@ export const Mutation = {
         equipmentDetails,
         noShow,
         customShiftId,
+        regenerateDocusign,
       }
     }: {
       input: ShiftAdminCheckInOutEvent
@@ -67,6 +68,7 @@ export const Mutation = {
       organization,
       docusign,
       notificationService,
+      eventUserActions,
     }: Context
   ): Promise<IShift> => {
     adminOnly(user);
@@ -88,7 +90,7 @@ export const Mutation = {
       customShiftId,
     });
 
-    if (checkInTime || checkOutTime) {
+    if (regenerateDocusign) {
       await docusign.resubmitEndOfShiftEnvelope({
         shift: response,
         organization: organization!,

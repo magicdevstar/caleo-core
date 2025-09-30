@@ -561,6 +561,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         userId
         locked
         callSign
+        docusignEnvelopeId
         shiftComment {
           id
           comment
@@ -632,6 +633,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         assignment {
           id
           name
+          callSign
           requiredEquipment {
             id
             name
@@ -973,6 +975,7 @@ export const GET_GROUPED_SHIFTS = gql`
       locked
       userId
       callSign
+      docusignEnvelopeId
 
       shiftComment {
         id

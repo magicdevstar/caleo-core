@@ -30,6 +30,7 @@ export default function Row({
     <>
       <TableRow hover>
         <StringCell value={customizableShiftId ? `${row.customId}` : `${row.refNumber}`} />
+        <StringCell value={row.callSign || row.assignment.callSign || '-'} />
         <StringCell value={row.user?.name || '-'} />
         <StringCell labelColor={row.user?.member?.rank?.name ? 'primary' : 'default'} value={row.user?.member?.rank?.name || '-'} />
         <StringCell value={row.user?.member?.pNumber || '-'} />

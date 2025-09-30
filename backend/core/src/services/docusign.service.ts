@@ -442,62 +442,62 @@ export class Docusign {
               org: organization,
             });
           }
-
-          const user = await this.users.get(shift.userId!);
-          if (!user) {
-            throw new Error('User not found');
-          }
-          const event = await this.events.get(shift.eventId);
-          if (!event) {
-            throw new Error('Event not found');
-          }
-          const unit = await this.units.get(user.member.unitId!);
-          const rank = await this.ranks.get(user.member.rankId!);
-          const assignment = await this.assignments.get(shift.assignmentId);
-
-          // Get lieutenant and supervisor from assignment or event
-          const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
-          const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
-
-          const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
-          const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
-
-          const supervisor = assignmentSupervisor || eventSupervisor;
-          const lieutenant = assignmentLieutenant || eventLieutenant;
-
-          let requiresVehicleInformation = false;
-
-          if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {
-            const equipment = await this.equipments.findAll(assignment.requiredEquipmentIds);
-            requiresVehicleInformation = equipment.some((eq) => eq.requiresVehicleInformation);
-          }
-  
-          const {
-            envelopeId,
-            signingUrl,
-          } = await this.docusign.createLASDShiftEnvelope({
-            org: organization,
-            assignment,
-            shift,
-            user,
-            userRank: rank!,
-            unit: unit!,
-            event: event!,
-            lieutenant: lieutenant!,
-            supervisor: supervisor!,
-            signNow: false,
-            requiresVehicleInformation,
-            fromSelfCheckout: true,
-          });
-          await this.shifts.setDocusignEnvelopeId({
-            _id: shift._id!,
-            envelopeId,
-          });
-          return {
-            envelopeId,
-            signingUrl,
-          };
         }
+
+        const user = await this.users.get(shift.userId!);
+        if (!user) {
+          throw new Error('User not found');
+        }
+        const event = await this.events.get(shift.eventId);
+        if (!event) {
+          throw new Error('Event not found');
+        }
+        const unit = await this.units.get(user.member.unitId!);
+        const rank = await this.ranks.get(user.member.rankId!);
+        const assignment = await this.assignments.get(shift.assignmentId);
+
+        // Get lieutenant and supervisor from assignment or event
+        const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
+        const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
+
+        const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
+        const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
+
+        const supervisor = assignmentSupervisor || eventSupervisor;
+        const lieutenant = assignmentLieutenant || eventLieutenant;
+
+        let requiresVehicleInformation = false;
+
+        if (Array.isArray(assignment?.requiredEquipmentIds) && assignment.requiredEquipmentIds.length > 0) {
+          const equipment = await this.equipments.findAll(assignment.requiredEquipmentIds);
+          requiresVehicleInformation = equipment.some((eq) => eq.requiresVehicleInformation);
+        }
+
+        const {
+          envelopeId,
+          signingUrl,
+        } = await this.docusign.createLASDShiftEnvelope({
+          org: organization,
+          assignment,
+          shift,
+          user,
+          userRank: rank!,
+          unit: unit!,
+          event: event!,
+          lieutenant: lieutenant!,
+          supervisor: supervisor!,
+          signNow: false,
+          requiresVehicleInformation,
+          fromSelfCheckout: true,
+        });
+        await this.shifts.setDocusignEnvelopeId({
+          _id: shift._id!,
+          envelopeId,
+        });
+        return {
+          envelopeId,
+          signingUrl,
+        };
       } catch(error) {
         logger.error('Error updating prefilled tabs', {
           error,

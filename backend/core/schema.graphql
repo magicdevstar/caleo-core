@@ -762,6 +762,7 @@
     availability: ShiftAvailabilityTime
     notificationId: String
     shiftCheckInOut: ShiftCheckInOut
+    docusignEnvelopeId: String
 
     shiftComment: ShiftComment
     # This will be included when searching for shifts
@@ -918,6 +919,7 @@
     adminNotes: String
     noShow: Boolean
     customShiftId: String
+    regenerateDocusign: Boolean
   }
 
   input CheckInOutCoordinates {

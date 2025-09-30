@@ -36,6 +36,7 @@ export default function ShiftTable({
   const { pNumberLabel } = usePNumberLabel();
   const TABLE_HEAD = [
     customizableShiftId ? { id: 'customId', label: 'Shift Id' } : { id: 'refNumber', label: 'Slot Ref #' },
+    { id: 'callSign', label: 'Call Sign' },
     { id: 'user.name', label: 'Name' },
     { id: 'user.member.rank.name', label: 'Rank' },
     { id: 'user.member.pNumber', label: pNumberLabel },
@@ -63,9 +64,9 @@ export default function ShiftTable({
     [setTableTab]
   );
 
-  const totalCheckedIn = data?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime).length || 0;
-  const totalNotCheckedIn = data?.filter((shift) => !shift.shiftCheckInOut?.checkInTime).length || 0;
-  const totalNoShow = data?.filter((shift) => !!shift.shiftCheckInOut?.noShow).length || 0;
+  const totalCheckedIn = shiftData?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime).length || 0;
+  const totalNotCheckedIn = shiftData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow).length || 0;
+  const totalNoShow = shiftData?.filter((shift) => !!shift.shiftCheckInOut?.noShow).length || 0;
 
   const TABS = [
     { value: 'all', label: 'All', color: 'default', count: total },
@@ -109,7 +110,7 @@ export default function ShiftTable({
       fData = fData?.filter((shift) => searchRegex.test(shift?.user?.name || ''));
     }
     if (tableTab === 'awaitingArrival') {
-      return fData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime);
+      return fData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow);
     }
     if (tableTab === 'checkedIn') {
       return fData?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime);

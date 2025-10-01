@@ -562,6 +562,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         locked
         callSign
         docusignEnvelopeId
+        hasComments
         shiftComment {
           id
           comment

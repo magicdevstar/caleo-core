@@ -11,6 +11,7 @@ import { fCurrency, fNumber } from 'src/utils/format-number';
 type Props = {
   title: string;
   height?: number;
+  colors?: string[];
   categories: string[];
   currency?: boolean;
   series: {
@@ -22,11 +23,13 @@ type Props = {
 export default function ChartColumnStacked({
   title,
   currency,
+  colors,
   categories,
   height = 375,
   series
 }: Props) {
   const chartOptions = useChart({
+    colors,
     chart: {
       stacked: true,
       zoom: {

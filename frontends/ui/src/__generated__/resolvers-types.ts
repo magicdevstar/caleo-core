@@ -2340,6 +2340,7 @@ export type Shift = {
   endTime: Scalars['String']['output'];
   event: Event;
   eventId: Scalars['String']['output'];
+  hasComments: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   locked?: Maybe<Scalars['Boolean']['output']>;
   lotteryRequest?: Maybe<ShiftLotteryRequest>;
@@ -5079,6 +5080,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hasComments?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   locked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lotteryRequest?: Resolver<Maybe<ResolversTypes['ShiftLotteryRequest']>, ParentType, ContextType>;

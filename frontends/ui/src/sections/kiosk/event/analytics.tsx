@@ -3,100 +3,144 @@ import Grid from '@mui/material/Grid';
 import SummaryWidget from 'src/components/widgets/summary';
 import PieChart from 'src/components/widgets/pie-chart';
 import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
-import { ShiftData } from 'src/api/shifts';
+import { IShiftData } from 'src/types/event-dashboard';
 import { calculateCheckData, calculateLatePersonalData, calculateNoShowPersonnelData } from './analytics/utils';
 
 export default function Analytics({
   data
 }: {
-  data: ShiftData | undefined;
+  data: IShiftData;
 }) {
-  const filteredData = useMemo(() => (data?.shifts?.items || []).filter((shift) => !!shift.userId), [data]);
-  const total = filteredData.length;
-
   const checkInData = useMemo(() => calculateCheckData({
-    data: filteredData,
-    total,
+    data: data.checkedIn.items,
+    total: data.checkedIn.total,
     timeKey: 'checkInTime'
-  }), [filteredData, total]);
+  }), [data.checkedIn]);
   const checkOutData = useMemo(() => calculateCheckData({
-    data: filteredData,
-    total,
+    data: data.checkedOut.items,
+    total: data.checkedOut.total,
     timeKey: 'checkOutTime'
-  }), [filteredData, total]);
+  }), [data.checkedOut]);
 
-  const latePersonnelData = useMemo(() => calculateLatePersonalData(filteredData, total), [filteredData, total]);
+  const latePersonnelData = useMemo(() => calculateLatePersonalData(data.late.items, data.late.total), [data.late]);
 
-  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(filteredData, total), [filteredData, total]);
+  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(data.noShow.items, data.noShow.total), [data.noShow]);
 
   const awaitingArrivalShifts = useMemo(() => {
-    if (filteredData.length === 0) return { percent: 0, total: 0, chart: { series: [] } };
-    const awaitingArrival = filteredData.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow);
+    if (data.awaitingArrival.total === 0) return { percent: 0, total: 0, chart: { series: [] } };
+    const awaitingArrival = data.awaitingArrival.items;
     const totalAwaiting = awaitingArrival.length;
-    const totalShifts = total;
+    const totalShifts = data.assignedShifts.total;
     const percent = totalShifts ? (totalAwaiting / totalShifts) * 100 : 0;
     return { percent, total: totalAwaiting, chart: { series: [] } };
-  }, [filteredData, total]);
+  }, [data]);
 
   const assignmentShiftData = useMemo(() => {
-    if (filteredData.length === 0) {
-      return { names: [], graph: [{ name: 'Checked In', data: [] }, { name: 'Not Checked In', data: [] }] };
+    if (data.assignedShifts.total === 0) {
+      return {
+        names: [],
+        graph: [
+          { name: 'Awaiting Arrival', data: [] },
+          { name: 'Late', data: [] },
+          { name: 'Checked In', data: [] },
+          { name: 'Checked Out', data: [] },
+          { name: 'No Show', data: [] },
+        ]
+      };
     }
 
-    const groups: { [key: string]: { checkedIn: number; notCheckedIn: number } } = {};
+    const groups: {
+      [key: string]: {
+        awaitingArrival: number;
+        late: number;
+        checkedIn: number;
+        checkedOut: number;
+        noShow: number;
+      }
+    } = {};
 
-    filteredData
+    const initAssignment = (name: string) => {
+      if (!groups[name]) {
+        groups[name] = {
+          awaitingArrival: 0,
+          late: 0,
+          checkedIn: 0,
+          checkedOut: 0,
+          noShow: 0
+        };
+      }
+    }
+
+    data.awaitingArrival.items
       .forEach((shift) => {
-      if (shift?.shiftCheckInOut?.noShow) {
-        return; // Skip shifts that are marked as no-show
-      }
-      // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
-      const assignmentName = shift.assignment?.name || 'Unassigned';
-      if (!groups[assignmentName]) {
-        groups[assignmentName] = { checkedIn: 0, notCheckedIn: 0 };
-      }
-      // Check if the shift has been checked in based on checkInTime
-      if (shift.shiftCheckInOut?.checkInTime) {
+        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
+        const assignmentName = shift.assignment?.name || 'Unassigned';
+        initAssignment(assignmentName);
+        groups[assignmentName].awaitingArrival += 1;
+      });
+
+    data.late.items
+      .forEach((shift) => {
+        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
+        const assignmentName = shift.assignment?.name || 'Unassigned';
+        initAssignment(assignmentName);
+        groups[assignmentName].late += 1;
+      });
+
+    data.checkedIn.items
+      .forEach((shift) => {
+        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
+        const assignmentName = shift.assignment?.name || 'Unassigned';
+        initAssignment(assignmentName);
         groups[assignmentName].checkedIn += 1;
-      } else {
-        groups[assignmentName].notCheckedIn += 1;
-      }
-    });
+      });
+
+    data.checkedOut.items
+      .forEach((shift) => {
+        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
+        const assignmentName = shift.assignment?.name || 'Unassigned';
+        initAssignment(assignmentName);
+        groups[assignmentName].checkedOut += 1;
+      });
+
+    data.noShow.items
+      .forEach((shift) => {
+        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
+        const assignmentName = shift.assignment?.name || 'Unassigned';
+        initAssignment(assignmentName);
+        groups[assignmentName].noShow += 1;
+      });
 
     const names = Object.keys(groups);
+    const lateData = names.map((name) => groups[name].late);
+    const awaitingArrivalData = names.map((name) => groups[name].awaitingArrival);
+    const noShowData = names.map((name) => groups[name].noShow);
     const checkedInData = names.map((name) => groups[name].checkedIn);
-    const notCheckedInData = names.map((name) => groups[name].notCheckedIn);
+    const checkedOutData = names.map((name) => groups[name].checkedOut);
 
     return {
       names,
+      colors: ['#2065D1', 'orange', '#919EAB', '#21C55E', '#FF5730'],
       graph: [
+        { name: 'Awaiting Arrival', data: awaitingArrivalData },
+        { name: 'Late', data: lateData },
         { name: 'Checked In', data: checkedInData },
-        { name: 'Not Checked In', data: notCheckedInData }
-      ]
+        { name: 'Checked Out', data: checkedOutData },
+        { name: 'No Show', data: noShowData },
+      ],
     };
-  }, [filteredData]);
+  }, [data]);
 
-  const checkInProgressPieChartData = useMemo(() => {
-    if (filteredData.length === 0) {
-      return { series: [] };
-    }
-    let checkedIn = 0;
-    let notCheckedIn = 0;
-    filteredData
-    .forEach((shift) => {
-      if (shift.shiftCheckInOut?.checkInTime) {
-        checkedIn += 1;
-      } else {
-        notCheckedIn += 1;
-      }
-    });
-    return {
-      series: [
-        { label: 'Checked In', value: checkedIn },
-        { label: 'Not Checked In', value: notCheckedIn }
-      ]
-    };
-  }, [filteredData]);
+  const checkInProgressPieChartData = useMemo(() => ({
+    colors: ['#2065D1', 'orange', '#919EAB', '#21C55E', '#FF5730'],
+    series: [
+      { label: 'Awaiting Arrival', value: data.awaitingArrival.total },
+      { label: 'Late', value: data.late.total },
+      { label: 'Checked In', value: data.checkedIn.total },
+      { label: 'Checked Out', value: data.checkedOut.total },
+      { label: 'No Show', value: data.noShow.total },
+    ],
+  }), [data]);
 
   return (
     <>
@@ -147,15 +191,16 @@ export default function Analytics({
 
       <Grid item xs={12} md={6} lg={4}>
         <PieChart
-          title="Check In Progress"
+          title="Personnel Status"
           chart={checkInProgressPieChartData}
         />
       </Grid>
 
       <Grid item xs={12} md={6} lg={8}>
         <ChartColumnStacked
+          colors={assignmentShiftData.colors}
           categories={assignmentShiftData.names}
-          title="Check In by Assignment"
+          title="Status by Assignment"
           series={assignmentShiftData.graph}
         />
       </Grid>

@@ -67,7 +67,7 @@ export const EditCheckInOut = ({
         order: 'desc',
       },
     },
-    skip: !shift,
+    skip: !shift || !editCheckInOutModal.value,
   });
   const officerComments = activityData?.eventUserActions?.items.
     filter(action => action.action === EventUserActionLogAction.OfficerCommentAdded) || [];

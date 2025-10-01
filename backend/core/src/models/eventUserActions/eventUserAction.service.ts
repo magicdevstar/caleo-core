@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import DataLoader from 'dataloader';
 import { IChangeStreamEvent } from '../../types/change.streams';
 import { IncidentSubmissionModel } from '../incidentForm';
 import { ShiftModel } from '../shift';
@@ -6,8 +7,33 @@ import { ShiftInterestRequestModel } from '../shiftInterestRequest';
 import { ShiftLotteryRequestModel } from '../shiftLotteryRequest';
 import { EventUserActionRepo } from './eventUserAction.repository';
 import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType } from '../../__generated__/resolvers-types';
+import logger from '../../utils/logger';
 
 export class EventUserActionService {
+  loadHasActionsForShifts = new DataLoader(async (keys: readonly { shiftId: string; userId: ObjectId; action?: EventUserActionLogAction }[]) => {
+    const res = await this.eventUserAction.collection.find({
+      $or: keys.map(key => ({
+        shiftGroupId: key.shiftId,
+        userId: key.userId,
+        action: key.action,
+      })),
+    }).toArray();
+
+    logger.info('loadHasActionsForShifts', { keys, res });
+
+    // Map results to keys and return true or false if record exists
+    const map = new Map<string, boolean>();
+    res.forEach((item) => {
+      const key = `${item.shiftGroupId.toString()}_${item.userId.toString()}_${item.action}`;
+      map.set(key, true);
+    });
+
+    return keys.map(key => {
+      const mapKey = `${key.shiftId}_${key.userId.toString()}_${key.action}`;
+      return map.get(mapKey) || false;
+    });
+  });
+
   constructor(
     private shifts: ShiftModel,
     private shiftInterestRequests: ShiftInterestRequestModel,

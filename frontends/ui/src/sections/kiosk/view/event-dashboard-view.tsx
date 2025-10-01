@@ -10,6 +10,7 @@ import { useParams } from 'src/routes/hooks';
 import QueryView from 'src/components/query-view';
 // types
 import { ShiftData, SHIFTS_FOR_EVENT_DASHBOARD } from 'src/api/shifts';
+import { IShiftData } from 'src/types/event-dashboard';
 import Analytics from '../event/analytics';
 import ShiftTable from '../event/shift-table/table';
 import Actions, { IActions } from '../event/header/actions';
@@ -40,18 +41,85 @@ export default function EventDashboardView() {
     pollInterval: 1 * 60 * 1000 * 2,
   });
 
-  const shiftData = useMemo(() => {
+  const shiftData: IShiftData = useMemo(() => {
     let items = data?.shifts?.items;
     if (filters.divisionIds.length > 0) {
       items = data?.shifts?.items?.filter((shift) => 
         filters.divisionIds.includes(shift.user?.member?.divisionId || '')
       );
     }
+
+    const assignedShifts = items?.filter((shift) => !!shift.userId);
+    const unassignedShifts = items?.filter((shift) => !shift.userId);
+
+    const awaitingArrival = assignedShifts?.filter((shift) =>
+      !!shift.userId &&
+      !shift.shiftCheckInOut?.noShow &&
+      !shift.shiftCheckInOut?.checkInTime &&
+      !shift.shiftCheckInOut?.checkOutTime &&
+      new Date(shift.startTime) >= new Date()
+    );
+
+    const late = assignedShifts?.filter((shift) =>
+      !!shift.userId &&
+      !shift.shiftCheckInOut?.noShow &&
+      !shift.shiftCheckInOut?.checkInTime &&
+      !shift.shiftCheckInOut?.checkOutTime &&
+      new Date(shift.startTime) < new Date()
+    );
+
+    const checkedIn = assignedShifts?.filter((shift) =>
+      !!shift.userId &&
+      !shift.shiftCheckInOut?.noShow &&
+      !!shift.shiftCheckInOut?.checkInTime &&
+      !shift.shiftCheckInOut?.checkOutTime
+    );
+
+    const checkedOut = assignedShifts?.filter((shift) =>
+      !!shift.userId &&
+      !shift.shiftCheckInOut?.noShow &&
+      !!shift.shiftCheckInOut?.checkInTime &&
+      !!shift.shiftCheckInOut?.checkOutTime
+    );
+
+    const nowShow = assignedShifts?.filter((shift) =>
+      !!shift.userId &&
+      !!shift.shiftCheckInOut?.noShow
+    );
+
     return {
       shifts: {
         items: items || [],
         total: items?.length || 0,
-      }
+      },
+      assignedShifts: {
+        items: assignedShifts || [],
+        total: assignedShifts?.length || 0,
+      },
+      unassignedShifts: {
+        items: unassignedShifts || [],
+        total: unassignedShifts?.length || 0,
+      },
+      awaitingArrival: {
+        items: awaitingArrival || [],
+        total: awaitingArrival?.length || 0,
+      },
+      checkedIn: {
+        items: checkedIn || [],
+        total: checkedIn?.length || 0,
+      },
+      checkedOut: {
+        items: checkedOut || [],
+        total: checkedOut?.length || 0,
+      },
+      noShow: {
+        items: nowShow || [],
+        total: nowShow?.length || 0,
+      },
+      late: {
+        items: late || [],
+        total: late?.length || 0,
+      },
     };
   }, [filters, data]);
 
@@ -81,7 +149,7 @@ export default function EventDashboardView() {
         <Grid container spacing={3}>
           <Analytics data={shiftData} />
 
-          <ShiftTable data={shiftData?.shifts?.items} loading={loading} />
+          <ShiftTable data={shiftData} loading={loading} />
         </Grid>
       </QueryView>
     </Container>

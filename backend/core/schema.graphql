@@ -763,6 +763,7 @@
     notificationId: String
     shiftCheckInOut: ShiftCheckInOut
     docusignEnvelopeId: String
+    hasComments: Boolean!
 
     shiftComment: ShiftComment
     # This will be included when searching for shifts

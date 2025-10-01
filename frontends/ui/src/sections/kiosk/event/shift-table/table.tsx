@@ -7,18 +7,19 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import CardHeader from '@mui/material/CardHeader';
 import TextField from '@mui/material/TextField';
+import TableBody from '@mui/material/TableBody';
+import Table from '@mui/material/Table';
+import TableContainer from '@mui/material/TableContainer';
 // components
 import Label from 'src/components/label';
 // types
 import { Shift } from 'src/__generated__/resolvers-types';
-import TableContainer from '@mui/material/TableContainer';
 import Scrollbar from 'src/components/scrollbar';
-import Table from '@mui/material/Table';
 import { emptyRows, TableEmptyRows, TableHeadCustom, TableNoData, useTable } from 'src/components/table';
-import TableBody from '@mui/material/TableBody';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useFeatures } from 'src/hooks/use-features';
 import { mixedTypeSort } from 'src/utils/mixed-type-sort';
+import { IShiftData } from 'src/types/event-dashboard';
 import Row from './row';
 
 export default function ShiftTable({
@@ -26,13 +27,11 @@ export default function ShiftTable({
   loading,
 }: {
   loading: boolean;
-  data: Shift[] | undefined;
+  data: IShiftData;
 }) {
-  const { eventCheckIn, customizableShiftId, docusignCheckout } = useFeatures();
-  const shiftData = useMemo(() => (data || []).filter((shift) => !!shift.userId), [data]);
-  const unassignedData = useMemo(() => (data || []).filter((shift) => !shift.userId), [data]);
-  const totalUnassigned = unassignedData.length;
-  const total = shiftData.length;
+  const { eventCheckIn, eventCheckOut, customizableShiftId, docusignCheckout } = useFeatures();
+  const totalUnassigned = data.unassignedShifts.total;
+  const { total } = data.assignedShifts;
   const { pNumberLabel } = usePNumberLabel();
   const TABLE_HEAD = [
     customizableShiftId ? { id: 'customId', label: 'Shift Id' } : { id: 'refNumber', label: 'Slot Ref #' },
@@ -64,9 +63,11 @@ export default function ShiftTable({
     [setTableTab]
   );
 
-  const totalCheckedIn = shiftData?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime).length || 0;
-  const totalNotCheckedIn = shiftData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow).length || 0;
-  const totalNoShow = shiftData?.filter((shift) => !!shift.shiftCheckInOut?.noShow).length || 0;
+  const totalCheckedIn = data.checkedIn.total;
+  const totalCheckedOut = data.checkedOut.total;
+  const totalNotCheckedIn = data.awaitingArrival.total;
+  const totalNoShow = data.noShow.total;
+  const totalLate = data.late.total;
 
   const TABS = [
     { value: 'all', label: 'All', color: 'default', count: total },
@@ -78,10 +79,24 @@ export default function ShiftTable({
     },
     ...(eventCheckIn ? [
       {
+        value: 'late',
+        label: 'Late',
+        color: 'error',
+        count: totalLate,
+      },
+      {
         value: 'checkedIn',
         label: 'Checked In',
         color: 'success',
         count: totalCheckedIn,
+      },
+    ] : [] as any),
+    ...(eventCheckOut ? [
+      {
+        value: 'checkedOut',
+        label: 'Checked Out',
+        color: 'default',
+        count: totalCheckedOut,
       },
     ] : [] as any),
     {
@@ -100,29 +115,39 @@ export default function ShiftTable({
 
   const filteredData = useMemo(() => {
     const searchRegex = new RegExp(searchText, 'i');
-    let fData = shiftData;
+    let fData = data.assignedShifts.items;
 
-    if (tableTab === 'unassigned') {
-      fData = unassignedData;
+    switch(tableTab) {
+      case 'unassigned':
+        fData = data.unassignedShifts.items;
+        break;
+      case 'awaitingArrival':
+        fData = data.awaitingArrival.items;
+        break;
+      case 'checkedIn':
+        fData = data.checkedIn.items;
+        break;
+      case 'checkedOut':
+        fData = data.checkedOut.items;
+        break;
+      case 'late':
+        fData = data.late.items;
+        break;
+      case 'shiftCheckInOut.noShow':
+        fData = data.noShow.items;
+        break;
+      default:
+        break;
     }
 
     if (searchText !== '') {
-      fData = fData?.filter((shift) => searchRegex.test(shift?.user?.name || ''));
+      return fData?.filter((shift) => searchRegex.test(shift?.user?.name || ''));
     }
-    if (tableTab === 'awaitingArrival') {
-      return fData?.filter((shift) => !shift.shiftCheckInOut?.checkInTime && !shift.shiftCheckInOut?.noShow);
-    }
-    if (tableTab === 'checkedIn') {
-      return fData?.filter((shift) => !!shift.shiftCheckInOut?.checkInTime);
-    }
-    if (tableTab === 'shiftCheckInOut.noShow') {
-      return fData?.filter((shift) => !!shift.shiftCheckInOut?.noShow);
-    }
+
     return fData;
   }, [
     searchText,
-    shiftData,
-    unassignedData,
+    data,
     tableTab
   ]);
 
@@ -176,7 +201,7 @@ export default function ShiftTable({
                 order={table.order}
                 orderBy={table.orderBy}
                 headLabel={TABLE_HEAD}
-                rowCount={data?.length || 0}
+                rowCount={data?.shifts.total}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
               />

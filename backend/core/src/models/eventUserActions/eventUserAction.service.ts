@@ -7,7 +7,6 @@ import { ShiftInterestRequestModel } from '../shiftInterestRequest';
 import { ShiftLotteryRequestModel } from '../shiftLotteryRequest';
 import { EventUserActionRepo } from './eventUserAction.repository';
 import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType } from '../../__generated__/resolvers-types';
-import logger from '../../utils/logger';
 
 export class EventUserActionService {
   loadHasActionsForShifts = new DataLoader(async (keys: readonly { shiftId: string; userId: ObjectId; action?: EventUserActionLogAction }[]) => {
@@ -18,8 +17,6 @@ export class EventUserActionService {
         action: key.action,
       })),
     }).toArray();
-
-    logger.info('loadHasActionsForShifts', { keys, res });
 
     // Map results to keys and return true or false if record exists
     const map = new Map<string, boolean>();

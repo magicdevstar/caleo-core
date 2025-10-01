@@ -2,7 +2,6 @@ import { Context } from "../../../utils/createContext";
 import { commonResolvers } from "../../../utils/common.resolvers";
 import { IShift, IShiftCheckInOut, IShiftCheckInOutEquipment } from "../../../models/shift";
 import { EventUserActionLogAction } from "../../../__generated__/resolvers-types";
-import logger from "../../../utils/logger";
 
 export const fields = {
   Shift: {
@@ -42,7 +41,6 @@ export const fields = {
     shiftComment: (shift: IShift, _, { shifts }: Context) =>
       shifts.loadCommentsById.load(shift.id || shift._id!.toString()),
     hasComments: (shift: IShift, _, context: Context) => {
-      logger.info('hasComments for shift', { shift });
       if (!!shift.shiftCheckInOut?.adminNotes) return true;
       if (!shift.userId) return false;
       return context.eventUserActions.loadHasActionsForShifts.load({ shiftId: shift.shiftId, userId: shift.userId, action: EventUserActionLogAction.OfficerCommentAdded });

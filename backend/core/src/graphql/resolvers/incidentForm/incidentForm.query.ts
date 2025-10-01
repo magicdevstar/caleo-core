@@ -23,7 +23,7 @@ export const Query = {
   ): Promise<SearchResults<IIncidentForm>> => {
     let userId = user?._id;
     if (userIsAdmin(user)) {
-      userId = input.userId || user?._id;
+      userId = report ? input.userId : input.userId || user?._id;
       if (submittedDate) {
         (input as any).submittedDate = {
           $lte: submittedDate.lte,

@@ -208,7 +208,7 @@ export const EditCheckInOut = ({
       handleSubmit={onSubmit}
       action={
         <Stack spacing={2} direction="row" mr={2}>
-          <RHFSwitch disabled={!shift?.docusignEnvelopeId} name="regenerateDocusign" label="Regenerate End of Shift Document" sx={{ mr: 'auto' }} />
+          <RHFSwitch disabled={!shift?.shiftCheckInOut?.checkInTime || !shift?.shiftCheckInOut?.checkOutTime} name="regenerateDocusign" label="Regenerate End of Shift Document" sx={{ mr: 'auto' }} />
           <LoadingButton
             type="submit"
             disabled={!isDirty}

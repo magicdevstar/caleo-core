@@ -21,12 +21,14 @@ export const docusignDates = ({
   timezone,
   startEquipmentTime,
   endEquipmentTime,
+  includeDriveTime,
 } : {
   startTime?: Date;
   endTime?: Date;
   timezone: Timezone;
   startEquipmentTime?: Date;
   endEquipmentTime?: Date;
+  includeDriveTime: boolean;
 }) => {
   if (!startTime || !endTime) {
     return {
@@ -43,6 +45,7 @@ export const docusignDates = ({
       timezone,
       startEquipmentTime,
       endEquipmentTime,
+      includeDriveTime,
     }
   });
   const zonedStartTime = truncateToMinute(utcToZonedTime(startTime, timezone));
@@ -61,14 +64,14 @@ export const docusignDates = ({
   }
 
   // The 1 extra hour is for drive time if no equipment time is set
-  let additionalEndTime = 1;
+  let additionalEndTime = includeDriveTime ? 1 : 0;
   if (endEquipmentTime) {
     const zonedEndEquipmentTime = truncateToMinute(utcToZonedTime(endEquipmentTime, timezone));
     additionalEndTime = differenceInHours(zonedEndEquipmentTime, zonedEndTime, { roundingMethod: 'ceil' });
     totalEquipmentTime += additionalEndTime;
     // Ensure at least 1 hour for drive time
     if (additionalEndTime < 1) {
-      additionalEndTime = 1;
+      additionalEndTime = includeDriveTime ? 1 : 0;
     }
   }
 

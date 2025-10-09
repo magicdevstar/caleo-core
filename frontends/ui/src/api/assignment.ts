@@ -96,6 +96,7 @@ export const GET_ASSIGNMENT = gql`
       uniform
       briefingTime
       briefingLocation
+      includeDriveTime
 
       reportingLocationDetails {
         fullAddress

@@ -74,7 +74,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
           3600
         );
         const userInfo = await client.getUserInfo(refreshValue.body.access_token);
-        const accountInfo = userInfo.accounts.find(account => organization.docusign.accountName === account.accountName);
+        const accountInfo = userInfo.accounts.find((account: any) => organization.docusign.accountName === account.accountName);
         const token = refreshValue.body.access_token;
         const date = new Date();
         await this.collection.updateOne({
@@ -163,6 +163,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     org,
     shift,
     event,
+    assignment,
     user,
     userRank,
     unit,
@@ -183,6 +184,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     supervisor: IUser;
     lieutenant: IUser;
     event: IEvent;
+    assignment: IAssignment;
   }) {
     if (!envAPI || !tokenRecord) {
       const { envAPI: newEnvAPI, tokenRecord: newTokenRecord } = await this.initDocusignEnvelopeAPI({
@@ -205,12 +207,15 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
       endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
       timezone: org.timezone as any,
+      includeDriveTime: !!assignment.includeDriveTime,
     });
 
-    const lastLineExplainer =
-      totalEquipmentTime ?
-      `Employee received a total of ${totalEquipmentTime} hours of equipment time.` :
-      'Employee received a total of 1 hour of travel time.'
+    let lastLineExplainer = '';
+    if (totalEquipmentTime) {
+      lastLineExplainer = `Employee received a total of ${totalEquipmentTime} hours of equipment time.`;
+    } else if (assignment.includeDriveTime) {
+      lastLineExplainer = 'Employee received a total of 1 hour of travel time.';
+    }
 
     const prefillTabs = {
       tabs: {
@@ -372,12 +377,15 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
       endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,
       timezone: org.timezone as any,
+      includeDriveTime: !!assignment.includeDriveTime,
     });
 
-    const lastLineExplainer =
-      totalEquipmentTime ?
-      `Employee received a total of ${totalEquipmentTime} hours of equipment time.` :
-      'Employee received a total of 1 hour of travel time.';
+    let lastLineExplainer = '';
+    if (totalEquipmentTime) {
+      lastLineExplainer = `Employee received a total of ${totalEquipmentTime} hours of equipment time.`;
+    } else if (assignment.includeDriveTime) {
+      lastLineExplainer = 'Employee received a total of 1 hour of travel time.';
+    }
 
     const res: Record<string, any> = {};
     for(const tab of tabConfig) {
@@ -441,7 +449,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     requiresVehicleInformation,
     fromSelfCheckout,
   }: {
-    assignment?: IAssignment | null;
+    assignment: IAssignment;
     org: IOrganization;
     shift: IShift;
     user: IUser;
@@ -529,6 +537,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       envAPI,
       tokenRecord,
       envelopeId: envelope.envelopeId!,
+      assignment,
     });
 
     await envAPI.update(tokenRecord.accountId, envelope.envelopeId!, {

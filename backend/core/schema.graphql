@@ -534,6 +534,7 @@
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
 
+    includeDriveTime: Boolean
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
     reportingLocationDetails: ReportingLocation
@@ -1050,6 +1051,7 @@
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
+    includeDriveTime: Boolean
   }
 
   input UpsertAssignmentShiftSlot {

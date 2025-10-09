@@ -168,7 +168,7 @@ export class Docusign {
       userId,
       status,
       signerDetails: signers.map((signer) => {
-        const fields = {};
+        const fields: Record<string, string> = {};
         const tabs = signer.tabs || {};
 
         for (const [tabType, tabArray] of Object.entries(tabs)) {
@@ -300,7 +300,7 @@ export class Docusign {
       userId: event.modifiedById!,
       status,
       signerDetails: signers.map((signer) => {
-        const fields = {};
+        const fields: Record<string, string> = {};
         const tabs = signer.tabs || {};
 
         for (const [tabType, tabArray] of Object.entries(tabs)) {
@@ -313,7 +313,7 @@ export class Docusign {
           }
     
           for (const tab of tabArray) {
-            const tabName = tab.tabLabel || tab.name || `tab_${tab.tabId}`;
+            const tabName: string = tab.tabLabel || tab.name || `tab_${tab.tabId}`;
             const tabValue = tab.value ?? tab.originalValue ?? '';
             fields[tabName] = tabValue;
           }
@@ -478,7 +478,7 @@ export class Docusign {
           signingUrl,
         } = await this.docusign.createLASDShiftEnvelope({
           org: organization,
-          assignment,
+          assignment: assignment!,
           shift,
           user,
           userRank: rank!,
@@ -555,7 +555,7 @@ export class Docusign {
           signingUrl,
         } = await this.docusign.createLASDShiftEnvelope({
           org: organization,
-          assignment,
+          assignment: assignment!,
           shift,
           user,
           userRank: rank!,
@@ -692,7 +692,7 @@ export class Docusign {
         if (!existing) {
           throw new Error('Could not find existing submission to resubmit');
         }
-        pastEnvelopeId = existing.envelopeId;
+        pastEnvelopeId = existing.envelopeId!;
         await this.docusign.voidEnvelope({
           envelopeId: existing.envelopeId!,
           currentStatus: existing.docusignEvent?.status || 'unknown',

@@ -73,6 +73,7 @@ export type Assignment = {
   fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   geoFence?: Maybe<Array<Maybe<Array<Maybe<Scalars['Float']['output']>>>>>;
   id: Scalars['ID']['output'];
+  includeDriveTime?: Maybe<Scalars['Boolean']['output']>;
   isSigningAuthority?: Maybe<Scalars['Boolean']['output']>;
   lieutenant?: Maybe<User>;
   lieutenantAssignment?: Maybe<Assignment>;
@@ -2847,6 +2848,7 @@ export type UpsertAssignment = {
   fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   geoFence?: InputMaybe<Array<InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>>>;
   id?: InputMaybe<Scalars['String']['input']>;
+  includeDriveTime?: InputMaybe<Scalars['Boolean']['input']>;
   isSigningAuthority?: InputMaybe<Scalars['Boolean']['input']>;
   lieutenantAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   /** @deprecated Use lieutenantAssignmentId instead! */
@@ -3995,6 +3997,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   geoFence?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  includeDriveTime?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   isSigningAuthority?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   lieutenantAssignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType>;

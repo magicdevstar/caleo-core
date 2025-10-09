@@ -121,6 +121,7 @@ export default function EditAssignment({
     uniform: Yup.string().nullable(),
     briefingTime: Yup.date().nullable(),
     briefingLocation: Yup.string().nullable(),
+    includeDriveTime: Yup.boolean().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -159,6 +160,7 @@ export default function EditAssignment({
       uniform: currentAssignment?.uniform || '',
       briefingTime: currentAssignment?.briefingTime ? new Date(currentAssignment?.briefingTime) : null,
       briefingLocation: currentAssignment?.briefingLocation || '',
+      includeDriveTime: currentAssignment?.includeDriveTime || false,
       reportingLocationPosition: currentAssignment?.reportingLocationDetails?.location?.latitude && currentAssignment?.reportingLocationDetails?.location?.longitude ? [currentAssignment?.reportingLocationDetails?.location?.longitude, currentAssignment?.reportingLocationDetails?.location?.latitude] : null,
       reportingLocationAddress: currentAssignment?.reportingLocationDetails?.fullAddress ? {
         id: currentAssignment?.reportingLocationDetails?.fullAddress,
@@ -227,6 +229,7 @@ export default function EditAssignment({
             fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             isSigningAuthority: formData?.isSigningAuthority,
             allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
+            includeDriveTime: formData?.includeDriveTime || false,
             geoFence: formData?.geoFence || null,
             uniform: formData?.uniform?.trim?.(),
             briefingTime: formData?.briefingTime?.toISOString?.(),
@@ -298,16 +301,19 @@ export default function EditAssignment({
               />
             )}
 
-            {
-              signingAuthorityAssignment && (
-                <RHFSwitch
-                  helperText={(currentAssignment?.shifts?.length || 0) > 1 ? 'Supervisor assignments are only allowed with a single shift slot' : ''}
-                  disabled={(currentAssignment?.shifts?.length || 0) > 1}
-                  name="isSigningAuthority"
-                  label="Supervisor"
-                />
-              )
-            }
+            <Stack direction="row" spacing={2}>
+              {
+                signingAuthorityAssignment && (
+                  <RHFSwitch
+                    helperText={(currentAssignment?.shifts?.length || 0) > 1 ? 'Supervisor assignments are only allowed with a single shift slot' : ''}
+                    disabled={(currentAssignment?.shifts?.length || 0) > 1}
+                    name="isSigningAuthority"
+                    label="Supervisor"
+                  />
+                )
+              }
+              { lasdEventFields && (<RHFSwitch name="includeDriveTime" label="Include Drive Time" />) }
+            </Stack>
 
             {
               lasdEventFields && (

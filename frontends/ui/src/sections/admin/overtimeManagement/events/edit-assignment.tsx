@@ -160,7 +160,7 @@ export default function EditAssignment({
       uniform: currentAssignment?.uniform || '',
       briefingTime: currentAssignment?.briefingTime ? new Date(currentAssignment?.briefingTime) : null,
       briefingLocation: currentAssignment?.briefingLocation || '',
-      includeDriveTime: currentAssignment?.includeDriveTime || false,
+      includeDriveTime: 'includeDriveTime' in (currentAssignment || {}) ? currentAssignment?.includeDriveTime : true,
       reportingLocationPosition: currentAssignment?.reportingLocationDetails?.location?.latitude && currentAssignment?.reportingLocationDetails?.location?.longitude ? [currentAssignment?.reportingLocationDetails?.location?.longitude, currentAssignment?.reportingLocationDetails?.location?.latitude] : null,
       reportingLocationAddress: currentAssignment?.reportingLocationDetails?.fullAddress ? {
         id: currentAssignment?.reportingLocationDetails?.fullAddress,
@@ -229,7 +229,7 @@ export default function EditAssignment({
             fieldSupervisorAssignmentId: formData?.fieldSupervisorAssignment?.id,
             isSigningAuthority: formData?.isSigningAuthority,
             allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
-            includeDriveTime: formData?.includeDriveTime || false,
+            includeDriveTime: formData?.includeDriveTime,
             geoFence: formData?.geoFence || null,
             uniform: formData?.uniform?.trim?.(),
             briefingTime: formData?.briefingTime?.toISOString?.(),

@@ -14,7 +14,13 @@ import { VenueModel } from "../models/venue";
 import { IUser } from "../types/common";
 import logger from "../utils/logger";
 import { IIncidentForm as IncidentForm } from '../models/incidentForm';
-import { DocusignEventSearchInput, DocusignEventUserRole, EventUserActionLogAction, EventUserActionLogSource, IncidentFormResponse } from "../__generated__/resolvers-types";
+import {
+  DocusignEventSearchInput,
+  DocusignEventUserRole,
+  EventUserActionLogAction,
+  EventUserActionLogSource,
+  IncidentFormResponse,
+} from "../__generated__/resolvers-types";
 import { Signer } from "docusign-esign";
 import { AssignmentModel } from "../models/assignment";
 import { EquipmentModel } from "../models/equipment";
@@ -534,6 +540,7 @@ export class Docusign {
         const assignment = await this.assignments.get(shift.assignmentId!);
 
         // Get lieutenant and supervisor from assignment or event
+        const outsideSupervisor = await this.users.get(assignment?.overrideSignerId);
         const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
         const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
 
@@ -541,7 +548,7 @@ export class Docusign {
         const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
 
         const supervisor = assignmentSupervisor || eventSupervisor;
-        const lieutenant = assignmentLieutenant || eventLieutenant;
+        const lieutenant = outsideSupervisor || assignmentLieutenant || eventLieutenant;
 
         let requiresVehicleInformation = false;
 

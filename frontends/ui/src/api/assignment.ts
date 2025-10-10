@@ -132,6 +132,11 @@ export const GET_ASSIGNMENT = gql`
         name
       }
 
+      overrideSigner {
+        id
+        name
+      }
+
       requiredEquipment {
         id
         name

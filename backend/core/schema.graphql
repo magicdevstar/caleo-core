@@ -530,6 +530,8 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    # This one is used for smaller events with only one supervisor
+    overrideSignerId: ObjectId
     # If the assignment is a signing authority assignment
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
@@ -560,6 +562,7 @@
     supervisorAssignment: Assignment
     lieutenantAssignment: Assignment
     fieldSupervisorAssignment: Assignment
+    overrideSigner: User
     org: Organization!
     modifiedBy: User
   }
@@ -1044,6 +1047,7 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    overrideSignerId: ObjectId
     isSigningAuthority: Boolean
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]

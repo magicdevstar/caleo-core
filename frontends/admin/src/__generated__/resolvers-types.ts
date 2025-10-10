@@ -86,6 +86,8 @@ export type Assignment = {
   notifyWhenFullyStaffed?: Maybe<Scalars['Boolean']['output']>;
   org: Organization;
   orgId: Scalars['String']['output'];
+  overrideSigner?: Maybe<User>;
+  overrideSignerId?: Maybe<Scalars['ObjectId']['output']>;
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
@@ -2855,6 +2857,7 @@ export type UpsertAssignment = {
   lieutenantId?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
+  overrideSignerId?: InputMaybe<Scalars['ObjectId']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   reportingLocation?: InputMaybe<Scalars['String']['input']>;
   reportingLocationDetails?: InputMaybe<UpsertReportingLocation>;
@@ -4009,6 +4012,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   notifyWhenFullyStaffed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  overrideSigner?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  overrideSignerId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

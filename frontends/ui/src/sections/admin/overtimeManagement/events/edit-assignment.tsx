@@ -31,6 +31,7 @@ import FormProvider, {
   RHFAssignmentShiftSlots,
   RHFSigningAuthorityAutocomplete,
   RHFSkillAutocomplete,
+  RHFUserAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
 import { GET_EVENT } from 'src/api/event';
@@ -122,6 +123,7 @@ export default function EditAssignment({
     briefingTime: Yup.date().nullable(),
     briefingLocation: Yup.string().nullable(),
     includeDriveTime: Yup.boolean().nullable(),
+    overrideSigner: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -154,6 +156,7 @@ export default function EditAssignment({
       supervisorAssignment: currentAssignment?.supervisorAssignment || null,
       lieutenantAssignment: currentAssignment?.lieutenantAssignment || null,
       fieldSupervisorAssignment: currentAssignment?.fieldSupervisorAssignment || null,
+      overrideSigner: currentAssignment?.overrideSigner || null,
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       allowOfficerCheckIn: currentAssignment?.allowOfficerCheckIn || false,
       geoFence: currentAssignment?.geoFence || null,
@@ -231,6 +234,7 @@ export default function EditAssignment({
             allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
             includeDriveTime: formData?.includeDriveTime,
             geoFence: formData?.geoFence || null,
+            overrideSignerId: formData?.overrideSigner?.id || null,
             uniform: formData?.uniform?.trim?.(),
             briefingTime: formData?.briefingTime?.toISOString?.(),
             briefingLocation: formData?.briefingLocation?.trim?.(),
@@ -317,29 +321,39 @@ export default function EditAssignment({
 
             {
               lasdEventFields && (
-                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={eventId}
-                    name="supervisorAssignment"
-                    label='Pre-Approval Supervisor'
-                    disabled={allDisabled}
-                    helperText="Incident commander assignment that oversees the event and will be included on all shift documents"
-                  />
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={eventId}
-                    name="lieutenantAssignment"
-                    label='Signing Supervisor'
-                    disabled={allDisabled}
-                    helperText="Supervisor assignment that will sign off all shift confirmation documents."
-                  />
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={eventId}
-                    name="fieldSupervisorAssignment"
-                    label='Field Supervisor'
-                    disabled={allDisabled}
-                    helperText="Field Supervisor assignment."
-                  />
-                </Stack>
+                <>
+                  <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={eventId}
+                      name="supervisorAssignment"
+                      label='Pre-Approval Supervisor'
+                      disabled={allDisabled}
+                      helperText="Incident commander assignment that oversees the event and will be included on all shift documents"
+                    />
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={eventId}
+                      name="lieutenantAssignment"
+                      label='Signing Supervisor'
+                      disabled={allDisabled}
+                      helperText="Supervisor assignment that will sign off all shift confirmation documents."
+                    />
+                  </Stack>
+                  <Stack direction="row" spacing={1.5}>
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={eventId}
+                      name="fieldSupervisorAssignment"
+                      label='Field Supervisor'
+                      disabled={allDisabled}
+                      helperText="Field Supervisor assignment."
+                    />
+                    <RHFUserAutocomplete
+                      name="overrideSigner"
+                      label="Override Signer"
+                      disabled={allDisabled || !isSigningAuthority}
+                      helperText="Select a user to override signing supervisor for this assignment."
+                    />
+                  </Stack>
+                </>
               )
             }
 

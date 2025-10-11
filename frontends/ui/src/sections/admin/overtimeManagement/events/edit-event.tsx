@@ -131,6 +131,7 @@ const NewEventSchema = Yup.object().shape({
   thumbnail: Yup.mixed().nullable(),
   uniform: Yup.string().nullable(),
   briefingTime: Yup.date().nullable(),
+  overrideSupervisor: Yup.object().nullable(),
   briefingLocation: Yup.string().nullable(),
   ocn: Yup
     .string()
@@ -336,6 +337,7 @@ export default function EditEvent({
       uniform: currentEvent?.uniform || '',
       briefingTime: currentEvent?.briefingTime ? new Date(currentEvent.briefingTime) : undefined,
       briefingLocation: currentEvent?.briefingLocation || '',
+      overrideSupervisor: currentEvent?.overrideSupervisor || null,
       reportingLocationPosition: currentEvent?.reportingLocation?.location?.latitude && currentEvent?.reportingLocation?.location?.longitude ? [currentEvent?.reportingLocation?.location?.longitude, currentEvent?.reportingLocation?.location?.latitude] : null,
       reportingLocationAddress: currentEvent?.reportingLocation?.fullAddress ? {
         id: currentEvent?.reportingLocation?.fullAddress,
@@ -550,6 +552,7 @@ export default function EditEvent({
             lotteryNumber: formData?.lotteryNumber,
             startTime: formData?.startTime ? formData?.startTime.toISOString() : null,
             endTime: formData?.endTime ? formData?.endTime.toISOString() : null,
+            overrideSupervisorId: formData?.overrideSupervisor?.id || null,
             attachmentPaths: [
               ...existingAttachments,
               ...imageUploadUrls,

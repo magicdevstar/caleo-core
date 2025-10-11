@@ -117,22 +117,20 @@ export const GET_ASSIGNMENT = gql`
         }
       }
 
+      useSupervisorAssignmentOverride
       supervisorAssignment {
         id
         name
       }
 
+      useLieutenantAssignmentOverride
       lieutenantAssignment {
         id
         name
       }
 
+      useFieldSupervisorAssignmentOverride
       fieldSupervisorAssignment {
-        id
-        name
-      }
-
-      overrideSigner {
         id
         name
       }
@@ -155,6 +153,17 @@ export const GET_ASSIGNMENT = gql`
         endTime
         removedAt
         name
+
+        overrideSupervisor {
+          id
+          name
+          member {
+            rank {
+              id
+              name
+            }
+          }
+        }
       }
 
       ranks {

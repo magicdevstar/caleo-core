@@ -462,6 +462,7 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    overrideSupervisorId: ObjectId
     overtimeNarrative: String
 
     # Incident only fields
@@ -479,6 +480,7 @@
     lotteryCounter: LotteryCounter
     supervisor: User
     lieutenant: User
+    overrideSupervisor: User
     supervisorAssignment: Assignment
     lieutenantAssignment: Assignment
     fieldSupervisorAssignment: Assignment
@@ -528,8 +530,11 @@
     lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
     # Overrides for event supervisor and lieutenant
     supervisorAssignmentId: ObjectId
+    useSupervisorAssignmentOverride: Boolean
     lieutenantAssignmentId: ObjectId
+    useLieutenantAssignmentOverride: Boolean
     fieldSupervisorAssignmentId: ObjectId
+    useFieldSupervisorAssignmentOverride: Boolean
     # This one is used for smaller events with only one supervisor
     overrideSignerId: ObjectId
     # If the assignment is a signing authority assignment
@@ -975,6 +980,7 @@
     supervisorAssignmentId: ObjectId
     lieutenantAssignmentId: ObjectId
     fieldSupervisorAssignmentId: ObjectId
+    overrideSupervisorId: ObjectId
     overtimeNarrative: String
 
     uniform: String
@@ -1045,8 +1051,11 @@
     supervisorId: String @deprecated(reason: "Use supervisorAssignmentId instead!")
     lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
     supervisorAssignmentId: ObjectId
+    useSupervisorAssignmentOverride: Boolean
     lieutenantAssignmentId: ObjectId
+    useLieutenantAssignmentOverride: Boolean
     fieldSupervisorAssignmentId: ObjectId
+    useFieldSupervisorAssignmentOverride: Boolean
     overrideSignerId: ObjectId
     isSigningAuthority: Boolean
     allowOfficerCheckIn: Boolean

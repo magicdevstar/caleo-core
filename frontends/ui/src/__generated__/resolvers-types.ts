@@ -108,6 +108,9 @@ export type Assignment = {
   totalShifts?: Maybe<Scalars['Int']['output']>;
   uniform?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
+  useFieldSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
+  useLieutenantAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
+  useSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type AssignmentSearchInput = {
@@ -492,6 +495,8 @@ export type Event = {
   org: Organization;
   orgId: Scalars['String']['output'];
   outsideOrgCode?: Maybe<Scalars['String']['output']>;
+  overrideSupervisor?: Maybe<User>;
+  overrideSupervisorId?: Maybe<Scalars['ObjectId']['output']>;
   overtimeNarrative?: Maybe<Scalars['String']['output']>;
   overtimeReasonCode?: Maybe<Scalars['String']['output']>;
   referenceId: Scalars['String']['output'];
@@ -2869,6 +2874,9 @@ export type UpsertAssignment = {
   /** @deprecated Use supervisorAssignmentId instead! */
   supervisorId?: InputMaybe<Scalars['String']['input']>;
   uniform?: InputMaybe<Scalars['String']['input']>;
+  useFieldSupervisorAssignmentOverride?: InputMaybe<Scalars['Boolean']['input']>;
+  useLieutenantAssignmentOverride?: InputMaybe<Scalars['Boolean']['input']>;
+  useSupervisorAssignmentOverride?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpsertAssignmentShiftSlot = {
@@ -2932,6 +2940,7 @@ export type UpsertEvent = {
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   ocn?: InputMaybe<Scalars['String']['input']>;
   outsideOrgCode?: InputMaybe<Scalars['String']['input']>;
+  overrideSupervisorId?: InputMaybe<Scalars['ObjectId']['input']>;
   overtimeNarrative?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
   reportingLocation?: InputMaybe<UpsertReportingLocation>;
@@ -4033,6 +4042,9 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   totalShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   uniform?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  useFieldSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  useLieutenantAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  useSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4279,6 +4291,8 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   outsideOrgCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  overrideSupervisor?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  overrideSupervisorId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   overtimeNarrative?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   overtimeReasonCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

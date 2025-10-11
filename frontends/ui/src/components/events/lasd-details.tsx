@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import {
   RHFTextField,
   RHFSigningAuthorityAutocomplete,
+  RHFUserAutocomplete,
 } from 'src/components/hook-form';
 
 // hooks
@@ -72,29 +73,39 @@ export const LASDDetails = ({
             </Stack>
             {
               !isIncident && (
-                <Stack direction="row" spacing={1.5}>
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={currentEvent?.id}
-                    name="supervisorAssignment"
-                    label='Pre-Approval Supervisor'
-                    disabled={allDisabled}
-                    helperText="Supervisor assignment that oversees the event and will be included on all shift documents"
-                  />
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={currentEvent?.id}
-                    name="lieutenantAssignment"
-                    label='Signing Supervisor'
-                    disabled={allDisabled}
-                    helperText="Supervisor assignment that will sign off all shift confirmation documents."
-                  />
-                  <RHFSigningAuthorityAutocomplete
-                    eventId={currentEvent?.id}
-                    name="fieldSupervisorAssignment"
-                    label='Field Supervisor'
-                    disabled={allDisabled}
-                    helperText="Field Supervisor assignment."
-                  />
-                </Stack>
+                <>
+                  <Stack direction="row" spacing={1.5}>
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={currentEvent?.id}
+                      name="supervisorAssignment"
+                      label='Pre-Approval Supervisor'
+                      disabled={allDisabled}
+                      helperText="Supervisor assignment that oversees the event and will be included on all shift documents"
+                    />
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={currentEvent?.id}
+                      name="lieutenantAssignment"
+                      label='Signing Supervisor'
+                      disabled={allDisabled}
+                      helperText="Supervisor assignment that will sign off all shift confirmation documents."
+                    />
+                  </Stack>
+                  <Stack direction="row" spacing={1.5}>
+                    <RHFSigningAuthorityAutocomplete
+                      eventId={currentEvent?.id}
+                      name="fieldSupervisorAssignment"
+                      label='Field Supervisor'
+                      disabled={allDisabled}
+                      helperText="Field Supervisor assignment."
+                    />
+
+                    <RHFUserAutocomplete
+                      name="overrideSupervisor"
+                      label="Outside Supervisor"
+                      disabled={allDisabled}
+                    />
+                  </Stack>
+                </>
               )
             }
             <RHFTextField

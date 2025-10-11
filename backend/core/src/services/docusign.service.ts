@@ -31,6 +31,7 @@ import { requestToPDFForm } from "../models/incidentForm/lasd";
 import { FormEntityType, IGenerateFormResponse, IIncidentInput, IncidentFormType } from "../types/incidentForm";
 import { buildDescription } from "../utils/formDetails";
 import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
+import { getEventLeadership } from "../utils/docusign";
 
 const lambda = new LambdaClient({});
 
@@ -396,14 +397,15 @@ export class Docusign {
       const rank = await this.ranks.get(user.member.rankId!);
 
       // Get lieutenant and supervisor from assignment or event
-      const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId).catch(() => null);
-      const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId).catch(() => null);
-
-      const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId).catch(() => null);
-      const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId).catch(() => null);
-
-      const supervisor = assignmentSupervisor || eventSupervisor;
-      const lieutenant = assignmentLieutenant || eventLieutenant;
+      const {
+        supervisor,
+        lieutenant,
+      } = await getEventLeadership({
+        users: this.users,
+        assignments: this.assignments,
+        event,
+        assignment: assignment!,
+      });
 
       const tabs = await this.docusign.generateTabs({
         org: organization,
@@ -463,14 +465,15 @@ export class Docusign {
         const assignment = await this.assignments.get(shift.assignmentId);
 
         // Get lieutenant and supervisor from assignment or event
-        const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
-        const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
-
-        const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
-        const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
-
-        const supervisor = assignmentSupervisor || eventSupervisor;
-        const lieutenant = assignmentLieutenant || eventLieutenant;
+        const {
+          supervisor,
+          lieutenant,
+        } = await getEventLeadership({
+          users: this.users,
+          assignments: this.assignments,
+          event,
+          assignment: assignment!,
+        });
 
         let requiresVehicleInformation = false;
 
@@ -540,15 +543,15 @@ export class Docusign {
         const assignment = await this.assignments.get(shift.assignmentId!);
 
         // Get lieutenant and supervisor from assignment or event
-        const outsideSupervisor = await this.users.get(assignment?.overrideSignerId);
-        const eventLieutenant = await this.assignments.getSigningAuthorityUser(event.lieutenantAssignmentId);
-        const assignmentLieutenant = await this.assignments.getSigningAuthorityUser(assignment?.lieutenantAssignmentId);
-
-        const eventSupervisor = await this.assignments.getSigningAuthorityUser(event.supervisorAssignmentId);
-        const assignmentSupervisor = await this.assignments.getSigningAuthorityUser(assignment?.supervisorAssignmentId);
-
-        const supervisor = assignmentSupervisor || eventSupervisor;
-        const lieutenant = outsideSupervisor || assignmentLieutenant || eventLieutenant;
+        const {
+          supervisor,
+          lieutenant,
+        } = await getEventLeadership({
+          users: this.users,
+          assignments: this.assignments,
+          event,
+          assignment: assignment!,
+        });
 
         let requiresVehicleInformation = false;
 

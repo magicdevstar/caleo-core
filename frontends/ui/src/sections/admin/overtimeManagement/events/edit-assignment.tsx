@@ -31,10 +31,9 @@ import FormProvider, {
   RHFAssignmentShiftSlots,
   RHFSigningAuthorityAutocomplete,
   RHFSkillAutocomplete,
-  RHFUserAutocomplete,
 } from 'src/components/hook-form';
 import { RouterLink } from 'src/routes/components';
-import { GET_EVENT } from 'src/api/event';
+import { GET_EVENT, GET_EVENT_WITH_SUPERVISOR_OVERRIDE } from 'src/api/event';
 import { GET_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
 import { GET_EQUIPMENT_SLIM } from 'src/api/equipment';
 import { useFeatures } from 'src/hooks/use-features';
@@ -55,6 +54,9 @@ export default function EditAssignment({
   currentAssignment,
   assignmentTemplateView = false, // Default to shifts table view
 }: Props) {
+  const { data: eventData } = useQuery(GET_EVENT_WITH_SUPERVISOR_OVERRIDE, {
+    variables: { id: eventId },
+  });
   const basePath = assignmentTemplateView ? paths.dashboard.admin.overtime.templates : paths.dashboard.admin.overtime;
   const {
     equipment: equipmentFeature,
@@ -123,7 +125,9 @@ export default function EditAssignment({
     briefingTime: Yup.date().nullable(),
     briefingLocation: Yup.string().nullable(),
     includeDriveTime: Yup.boolean().nullable(),
-    overrideSigner: Yup.object().nullable(),
+    useSupervisorAssignmentOverride: Yup.boolean().nullable(),
+    useLieutenantAssignmentOverride: Yup.boolean().nullable(),
+    useFieldSupervisorAssignmentOverride: Yup.boolean().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -156,7 +160,9 @@ export default function EditAssignment({
       supervisorAssignment: currentAssignment?.supervisorAssignment || null,
       lieutenantAssignment: currentAssignment?.lieutenantAssignment || null,
       fieldSupervisorAssignment: currentAssignment?.fieldSupervisorAssignment || null,
-      overrideSigner: currentAssignment?.overrideSigner || null,
+      useSupervisorAssignmentOverride: !!currentAssignment?.useSupervisorAssignmentOverride,
+      useLieutenantAssignmentOverride: !!currentAssignment?.useLieutenantAssignmentOverride,
+      useFieldSupervisorAssignmentOverride: !!currentAssignment?.useFieldSupervisorAssignmentOverride,
       isSigningAuthority: !!currentAssignment?.isSigningAuthority,
       allowOfficerCheckIn: currentAssignment?.allowOfficerCheckIn || false,
       geoFence: currentAssignment?.geoFence || null,
@@ -234,7 +240,9 @@ export default function EditAssignment({
             allowOfficerCheckIn: formData?.allowOfficerCheckIn || false,
             includeDriveTime: formData?.includeDriveTime,
             geoFence: formData?.geoFence || null,
-            overrideSignerId: formData?.overrideSigner?.id || null,
+            useSupervisorAssignmentOverride: formData?.useSupervisorAssignmentOverride || false,
+            useLieutenantAssignmentOverride: formData?.useLieutenantAssignmentOverride || false,
+            useFieldSupervisorAssignmentOverride: formData?.useFieldSupervisorAssignmentOverride || false,
             uniform: formData?.uniform?.trim?.(),
             briefingTime: formData?.briefingTime?.toISOString?.(),
             briefingLocation: formData?.briefingLocation?.trim?.(),
@@ -321,8 +329,8 @@ export default function EditAssignment({
 
             {
               lasdEventFields && (
-                <>
-                  <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                <Stack direction="row" spacing={1.5} paddingBottom={1.5}>
+                  <Stack spacing={1} flex={1}>
                     <RHFSigningAuthorityAutocomplete
                       eventId={eventId}
                       name="supervisorAssignment"
@@ -330,15 +338,27 @@ export default function EditAssignment({
                       disabled={allDisabled}
                       helperText="Incident commander assignment that oversees the event and will be included on all shift documents"
                     />
+                    <RHFSwitch
+                      name="useSupervisorAssignmentOverride"
+                      label={<span>Use Pre-Approval Supervisor Override<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      disabled={allDisabled}
+                    />
+                  </Stack>
+                  <Stack spacing={1} flex={1}>
                     <RHFSigningAuthorityAutocomplete
                       eventId={eventId}
                       name="lieutenantAssignment"
-                      label='Signing Supervisor'
+                      label='Signing Supervisor Override'
                       disabled={allDisabled}
                       helperText="Supervisor assignment that will sign off all shift confirmation documents."
                     />
+                    <RHFSwitch
+                      name="useLieutenantAssignmentOverride"
+                      label={<span>Use Signing Supervisor Override<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      disabled={allDisabled}
+                    />
                   </Stack>
-                  <Stack direction="row" spacing={1.5}>
+                  <Stack spacing={1} flex={1}>
                     <RHFSigningAuthorityAutocomplete
                       eventId={eventId}
                       name="fieldSupervisorAssignment"
@@ -346,14 +366,13 @@ export default function EditAssignment({
                       disabled={allDisabled}
                       helperText="Field Supervisor assignment."
                     />
-                    <RHFUserAutocomplete
-                      name="overrideSigner"
-                      label="Override Signer"
-                      disabled={allDisabled || !isSigningAuthority}
-                      helperText="Select a user to override signing supervisor for this assignment."
+                    <RHFSwitch
+                      name="useFieldSupervisorAssignmentOverride"
+                      label={<span>Use Field Supervisor Override<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      disabled={allDisabled}
                     />
                   </Stack>
-                </>
+                </Stack>
               )
             }
 

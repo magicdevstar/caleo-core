@@ -46,6 +46,7 @@ export const fields = {
         return organizations.defaultEventThumbnailLoader.load(organization.settings.eventSettings.defaultThumbnail);
       }
       return null;
-    }
+    },
+    overrideSupervisor: (event: IEvent, _, { users }: Context) => event.overrideSupervisorId ? users.loader.load(event.overrideSupervisorId.toString()) : null,
   },
 };

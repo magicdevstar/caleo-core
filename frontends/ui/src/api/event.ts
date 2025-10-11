@@ -419,6 +419,17 @@ export const GET_EVENT = gql`
       geoFence
       allowOfficerCheckIn
 
+      overrideSupervisor {
+        id
+        name
+        member {
+          rank {
+            id
+            name
+          }
+        }
+      }
+
       reportingLocation {
         fullAddress
         location {
@@ -522,6 +533,24 @@ export const GET_EVENT = gql`
         }
       }
 
+    }
+  }
+`;
+
+export const GET_EVENT_WITH_SUPERVISOR_OVERRIDE = gql`
+  query GetEventWithSupervisorOverride($id: String!) {
+    event(id: $id) {
+      id
+      overrideSupervisor {
+        id
+        name
+        member {
+          rank {
+            id
+            name
+          }
+        }
+      }
     }
   }
 `;

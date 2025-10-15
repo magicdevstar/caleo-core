@@ -63,9 +63,10 @@ export default function EventDashboardView() {
     const late = assignedShifts?.filter((shift) =>
       !!shift.userId &&
       !shift.shiftCheckInOut?.noShow &&
-      !shift.shiftCheckInOut?.checkInTime &&
-      !shift.shiftCheckInOut?.checkOutTime &&
-      new Date(shift.startTime) < new Date()
+      (
+        !shift.shiftCheckInOut?.checkInTime ||
+        (new Date(shift.shiftCheckInOut?.checkInTime) > new Date(shift.startTime))
+      )
     );
 
     const checkedIn = assignedShifts?.filter((shift) =>

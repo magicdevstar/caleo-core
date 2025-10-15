@@ -6,6 +6,8 @@ import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
 import { IShiftData } from 'src/types/event-dashboard';
 import { calculateCheckData, calculateLatePersonalData, calculateNoShowPersonnelData } from './analytics/utils';
 
+const graphColors = ['orange', '#fa7d61ff', '#21C55E', '#919EAB', '#ff2f00ff' ];
+
 export default function Analytics({
   data
 }: {
@@ -120,7 +122,7 @@ export default function Analytics({
 
     return {
       names,
-      colors: ['#2065D1', 'orange', '#919EAB', '#21C55E', '#FF5730'],
+      colors: graphColors,
       graph: [
         { name: 'Awaiting Arrival', data: awaitingArrivalData },
         { name: 'Late', data: lateData },
@@ -132,7 +134,7 @@ export default function Analytics({
   }, [data]);
 
   const checkInProgressPieChartData = useMemo(() => ({
-    colors: ['#2065D1', 'orange', '#919EAB', '#21C55E', '#FF5730'],
+    colors: graphColors,
     series: [
       { label: 'Awaiting Arrival', value: data.awaitingArrival.total },
       { label: 'Late', value: data.late.total },

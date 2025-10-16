@@ -1,6 +1,7 @@
 import { toZonedTime as utcToZonedTime } from "date-fns-tz";
 import {
   setMilliseconds,
+  differenceInMilliseconds,
   setSeconds,
   addHours,
   differenceInMinutes,
@@ -48,14 +49,33 @@ export const docusignDates = ({
       includeDriveTime,
     }
   });
-  const zonedStartTime = truncateToMinute(utcToZonedTime(startTime, timezone));
-  const zonedEndTime = truncateToMinute(utcToZonedTime(endTime, timezone));
+  const zonedStartTime = roundToNearestMinutes(
+    truncateToMinute(utcToZonedTime(startTime, timezone)),
+    {
+      nearestTo: 15,
+      roundingMethod: 'floor',
+    }
+  );
+  const zonedEndTime = roundToNearestMinutes(
+    truncateToMinute(utcToZonedTime(endTime, timezone)),
+    {
+      nearestTo: 15,
+      roundingMethod: 'ceil',
+    }
+  );
 
   let totalEquipmentTime = 0;
   let additionalStartTime = 0;
   if (startEquipmentTime) {
-    const zonedStartEquipmentTime = truncateToMinute(utcToZonedTime(startEquipmentTime, timezone));
-    additionalStartTime = differenceInHours(zonedStartTime, zonedStartEquipmentTime, { roundingMethod: 'ceil' });
+    const zonedStartEquipmentTime = roundToNearestMinutes(
+      truncateToMinute(utcToZonedTime(startEquipmentTime, timezone)),
+      {
+        nearestTo: 15,
+        roundingMethod: 'floor',
+      }
+    );
+    const diffMs = differenceInMilliseconds(zonedStartTime, zonedStartEquipmentTime);
+    additionalStartTime = diffMs / (1000 * 60 * 60);
     // Ensure no negative time
     if (additionalStartTime < 0) {
       additionalStartTime = 0;
@@ -66,13 +86,20 @@ export const docusignDates = ({
   // The 1 extra hour is for drive time if no equipment time is set
   let additionalEndTime = includeDriveTime ? 1 : 0;
   if (endEquipmentTime) {
-    const zonedEndEquipmentTime = truncateToMinute(utcToZonedTime(endEquipmentTime, timezone));
-    additionalEndTime = differenceInHours(zonedEndEquipmentTime, zonedEndTime, { roundingMethod: 'ceil' });
-    totalEquipmentTime += additionalEndTime;
+    const zonedEndEquipmentTime = roundToNearestMinutes(
+      truncateToMinute(utcToZonedTime(endEquipmentTime, timezone)),
+      {
+        nearestTo: 15,
+        roundingMethod: 'ceil',
+      }
+    );
+    const diffMs = differenceInMilliseconds(zonedEndEquipmentTime, zonedEndTime);
+    additionalEndTime = diffMs / (1000 * 60 * 60);
     // Ensure at least 1 hour for drive time
     if (additionalEndTime < 1) {
       additionalEndTime = includeDriveTime ? 1 : 0;
     }
+    totalEquipmentTime += additionalEndTime;
   }
 
   const zoneStartTime = roundToNearestMinutes(

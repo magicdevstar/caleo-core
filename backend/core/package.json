@@ -17,7 +17,8 @@
     "test:assignments": "TZ=UTC jest --testPathPattern=assignments",
     "test:shifts": "TZ=UTC jest --testPathPattern=shifts",
     "test:interest": "TZ=UTC jest --testPathPattern=Interest",
-    "test:incident": "TZ=UTC jest --testPathPattern=Incident"
+    "test:incident": "TZ=UTC jest --testPathPattern=Incident",
+    "test:dates": "TZ=UTC jest --testPathPattern=date"
   },
   "author": "danwakeem",
   "license": "MIT",

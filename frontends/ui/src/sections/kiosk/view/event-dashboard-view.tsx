@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { setMilliseconds, setSeconds } from 'date-fns';
 // @mui
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -14,6 +15,9 @@ import { IShiftData } from 'src/types/event-dashboard';
 import Analytics from '../event/analytics';
 import ShiftTable from '../event/shift-table/table';
 import Actions, { IActions } from '../event/header/actions';
+
+const truncateToMinute = (date: Date) =>
+  setSeconds(setMilliseconds(date, 0), 0);
 
 export default function EventDashboardView() {
   const params = useParams();
@@ -57,17 +61,18 @@ export default function EventDashboardView() {
       !shift.shiftCheckInOut?.noShow &&
       !shift.shiftCheckInOut?.checkInTime &&
       !shift.shiftCheckInOut?.checkOutTime &&
-      new Date(shift.startTime) >= new Date()
+      truncateToMinute(new Date(shift.startTime)) >= truncateToMinute(new Date())
     );
 
-    const late = assignedShifts?.filter((shift) =>
-      !!shift.userId &&
-      !shift.shiftCheckInOut?.noShow &&
-      (
-        !shift.shiftCheckInOut?.checkInTime ||
-        (new Date(shift.shiftCheckInOut?.checkInTime) > new Date(shift.startTime))
-      )
-    );
+    const late = assignedShifts?.filter((shift) => {
+      const baseConditions = !!shift.userId && !shift.shiftCheckInOut?.noShow;
+
+      if (shift.shiftCheckInOut?.checkInTime) {
+        return baseConditions && (truncateToMinute(new Date(shift.shiftCheckInOut?.checkInTime)) > truncateToMinute(new Date(shift.startTime)));
+      }
+
+      return baseConditions && truncateToMinute(new Date(shift.startTime)) <= truncateToMinute(new Date());
+    });
 
     const checkedIn = assignedShifts?.filter((shift) =>
       !!shift.userId &&

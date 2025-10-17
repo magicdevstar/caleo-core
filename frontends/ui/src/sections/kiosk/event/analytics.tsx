@@ -4,7 +4,6 @@ import SummaryWidget from 'src/components/widgets/summary';
 import PieChart from 'src/components/widgets/pie-chart';
 import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
 import { IShiftData } from 'src/types/event-dashboard';
-import { calculateCheckData, calculateLatePersonalData, calculateNoShowPersonnelData } from './analytics/utils';
 
 const graphColors = ['orange', '#fa7d61ff', '#21C55E', '#919EAB', '#ff2f00ff' ];
 
@@ -13,30 +12,6 @@ export default function Analytics({
 }: {
   data: IShiftData;
 }) {
-  const checkInData = useMemo(() => calculateCheckData({
-    data: data.checkedIn.items,
-    total: data.checkedIn.total,
-    timeKey: 'checkInTime'
-  }), [data.checkedIn]);
-  const checkOutData = useMemo(() => calculateCheckData({
-    data: data.checkedOut.items,
-    total: data.checkedOut.total,
-    timeKey: 'checkOutTime'
-  }), [data.checkedOut]);
-
-  const latePersonnelData = useMemo(() => calculateLatePersonalData(data.late.items, data.late.total), [data.late]);
-
-  const noShowPersonnelData = useMemo(() => calculateNoShowPersonnelData(data.noShow.items, data.noShow.total), [data.noShow]);
-
-  const awaitingArrivalShifts = useMemo(() => {
-    if (data.awaitingArrival.total === 0) return { percent: 0, total: 0, chart: { series: [] } };
-    const awaitingArrival = data.awaitingArrival.items;
-    const totalAwaiting = awaitingArrival.length;
-    const totalShifts = data.assignedShifts.total;
-    const percent = totalShifts ? (totalAwaiting / totalShifts) * 100 : 0;
-    return { percent, total: totalAwaiting, chart: { series: [] } };
-  }, [data]);
-
   const assignmentShiftData = useMemo(() => {
     if (data.assignedShifts.total === 0) {
       return {
@@ -149,26 +124,26 @@ export default function Analytics({
       <Grid item xs={12} md={4}>
         <SummaryWidget
           title="Awaiting Arrival"
-          percent={awaitingArrivalShifts.percent}
-          total={awaitingArrivalShifts.total}
-          chart={awaitingArrivalShifts.chart}
+          percent={parseFloat(((data.awaitingArrival.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
+          total={data.awaitingArrival.total}
+          chart={{ series: [] }}
         />
       </Grid>
 
       <Grid item xs={12} md={4}>
         <SummaryWidget
           title="Total Check Ins"
-          percent={checkInData.percent} // Updated code
-          total={checkInData.total} // Updated code
-          chart={{ series: [] }} // Updated code
+          percent={parseFloat(((data.checkedIn.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
+          total={data.checkedIn.total}
+          chart={{ series: [] }}
         />
       </Grid>
 
       <Grid item xs={12} md={4}>
         <SummaryWidget
           title="Total Check Outs"
-          percent={checkOutData.percent}
-          total={checkOutData.total}
+          percent={parseFloat(((data.checkedOut.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
+          total={data.checkedOut.total}
           chart={{ series: [] }}
         />
       </Grid>
@@ -176,8 +151,8 @@ export default function Analytics({
       <Grid item xs={12} md={6}>
         <SummaryWidget
           title="Late Personnel"
-          percent={latePersonnelData.percent}
-          total={latePersonnelData.total}
+          percent={parseFloat(((data.late.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
+          total={data.late.total}
           chart={{series: []}}
         />
       </Grid>
@@ -185,8 +160,8 @@ export default function Analytics({
       <Grid item xs={12} md={6}>
         <SummaryWidget
           title="No Show"
-          percent={noShowPersonnelData.percent}
-          total={noShowPersonnelData.total}
+          percent={parseFloat(((data.noShow.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
+          total={data.noShow.total}
           chart={{series: []}}
         />
       </Grid>

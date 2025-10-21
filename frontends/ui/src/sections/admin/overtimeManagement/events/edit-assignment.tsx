@@ -340,7 +340,7 @@ export default function EditAssignment({
                     />
                     <RHFSwitch
                       name="useSupervisorAssignmentOverride"
-                      label={<span>Use Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      label={<span>Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
                       disabled={allDisabled}
                     />
                   </Stack>
@@ -354,7 +354,7 @@ export default function EditAssignment({
                     />
                     <RHFSwitch
                       name="useLieutenantAssignmentOverride"
-                      label={<span>Use Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      label={<span>Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
                       disabled={allDisabled}
                     />
                   </Stack>
@@ -368,7 +368,7 @@ export default function EditAssignment({
                     />
                     <RHFSwitch
                       name="useFieldSupervisorAssignmentOverride"
-                      label={<span>Use Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
+                      label={<span>Outside Supervisor<br />{eventData?.event?.overrideSupervisor ? `${eventData?.event?.overrideSupervisor?.name} - ${eventData?.event?.overrideSupervisor?.member?.rank?.name}` : '' }</span>}
                       disabled={allDisabled}
                     />
                   </Stack>

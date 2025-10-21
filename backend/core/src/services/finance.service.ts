@@ -11,6 +11,7 @@ import { IUnit } from "../models/unit";
 import { IOrganization } from "../models/organizations/organization.entity";
 import { docusignDates } from "../utils/date.helpers";
 import logger from "../utils/logger";
+import { IAssignment } from "../models/assignment";
 
 export interface IFinanceShift {
   user: IUser;
@@ -42,6 +43,7 @@ interface IExtendedShift extends IShift {
   unit: IUnit;
   vehicleCategory?: IVehicleCategory;
   docusignEvent: DocusignEvent;
+  assignment: IAssignment;
 }
 
 export class FinanceService {
@@ -260,6 +262,19 @@ export class FinanceService {
       },
       {
         $lookup: {
+          from: 'assignments',
+          localField: 'assignmentId',
+          foreignField: '_id',
+          as: 'assignment',
+        }
+      },
+      {
+        $addFields: {
+          assignment: { $arrayElemAt: ["$assignment", 0] },
+        },
+      },
+      {
+        $lookup: {
           from: 'divisions',
           localField: 'user.member.divisionId',
           foreignField: '_id',
@@ -306,6 +321,7 @@ export class FinanceService {
         startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
         endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,
         timezone: org.timezone as any,
+        includeDriveTime: !!shift.assignment.includeDriveTime,
       });
       return {
         user: shift.user,

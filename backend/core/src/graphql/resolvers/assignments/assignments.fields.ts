@@ -20,5 +20,8 @@ export const fields = {
     lieutenantAssignment: (assignment: IAssignment, _, { assignments }: Context) => assignment.lieutenantAssignmentId ? assignments.loader.load(assignment.lieutenantAssignmentId.toString()) : null,
     fieldSupervisorAssignment: (assignment: IAssignment, _, { assignments }: Context) => assignment.fieldSupervisorAssignmentId ? assignments.loader.load(assignment.fieldSupervisorAssignmentId.toString()) : null,
     overrideSigner: (assignment: IAssignment, _, { users }: Context) => assignment.overrideSignerId ? users.loader.load(assignment.overrideSignerId.toString()) : null,
+    assignmentDivision: (assignment: IAssignment, _, { assignmentDivisions }: Context) => assignment.assignmentDivisionId ? assignmentDivisions.loader.load(assignment.assignmentDivisionId.toString()) : null,
+    assignmentGroup: (assignment: IAssignment, _, { assignmentGroups }: Context) => assignment.assignmentGroupId ? assignmentGroups.loader.load(assignment.assignmentGroupId.toString()) : null,
+    branch: (assignment: IAssignment, _, { branches }: Context) => assignment.branchId ? branches.loader.load(assignment.branchId.toString()) : null,
   },
 };

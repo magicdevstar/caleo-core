@@ -438,9 +438,12 @@ export const GET_EVENT = gql`
         }
       }
 
+      bodyWarnTag
+      commandPostContactNumber
       uniform
       briefingTime
       briefingLocation
+      reportingTime
 
       requestDetails {
         startTime

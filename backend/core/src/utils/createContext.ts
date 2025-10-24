@@ -46,6 +46,9 @@ import { IncidentSubmissionModel } from "../models/incidentForm";
 import { FinanceService } from "../services/finance.service";
 import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
 import { EventUserActionRepo } from "../models/eventUserActions/eventUserAction.repository";
+import { BranchModel } from "../models/branch";
+import { AssignmentDivisionModel } from "../models/assignmentDivision";
+import { AssignmentGroupModel } from "../models/assignmentGroup";
 
 let db: Db;
 
@@ -76,6 +79,9 @@ export interface Context {
   ranks: RankModel;
   unit: UnitModel;
   division: DivisionModel;
+  assignmentDivisions: AssignmentDivisionModel;
+  assignmentGroups: AssignmentGroupModel;
+  branches: BranchModel;
   skills: SkillModel;
   memberSkills: MemberSkillModel;
   equipments: EquipmentModel;
@@ -131,6 +137,9 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
   const skills = new SkillModel(db);
   const ranks = new RankModel(db);
   const division = new DivisionModel(db);
+  const assignmentDivisions = new AssignmentDivisionModel(db);
+  const assignmentGroups = new AssignmentGroupModel(db);
+  const branches = new BranchModel(db);
   const unit = new UnitModel(db);
   const equipments = new EquipmentModel(db);
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
@@ -238,6 +247,9 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     equipments,
     memberEquipments,
     division,
+    assignmentDivisions,
+    assignmentGroups,
+    branches,
     unit,
     docusign,
     vehicleCategories,

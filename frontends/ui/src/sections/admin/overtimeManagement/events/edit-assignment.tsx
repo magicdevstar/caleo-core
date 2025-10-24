@@ -121,6 +121,7 @@ export default function EditAssignment({
     geoFence: Yup.array().nullable(),
     reportingLocationPosition: Yup.array().nullable(),
     reportingLocationAddress: Yup.object().nullable(),
+    reportingTime: Yup.date().nullable(),
     uniform: Yup.string().nullable(),
     briefingTime: Yup.date().nullable(),
     briefingLocation: Yup.string().nullable(),
@@ -128,6 +129,9 @@ export default function EditAssignment({
     useSupervisorAssignmentOverride: Yup.boolean().nullable(),
     useLieutenantAssignmentOverride: Yup.boolean().nullable(),
     useFieldSupervisorAssignmentOverride: Yup.boolean().nullable(),
+    assignmentDivision: Yup.object().nullable(),
+    assignmentGroup: Yup.object().nullable(),
+    branch: Yup.object().nullable(),
     shiftSlots: Yup.array().of(
       Yup.object().shape({
         slotCount: Yup.number().positive().nullable(),
@@ -167,7 +171,11 @@ export default function EditAssignment({
       allowOfficerCheckIn: currentAssignment?.allowOfficerCheckIn || false,
       geoFence: currentAssignment?.geoFence || null,
       uniform: currentAssignment?.uniform || '',
+      reportingTime: currentAssignment?.reportingTime ? new Date(currentAssignment?.reportingTime) : null,
       briefingTime: currentAssignment?.briefingTime ? new Date(currentAssignment?.briefingTime) : null,
+      assignmentDivision: currentAssignment?.assignmentDivision || null,
+      assignmentGroup: currentAssignment?.assignmentGroup || null,
+      branch: currentAssignment?.branch || null,
       briefingLocation: currentAssignment?.briefingLocation || '',
       includeDriveTime: 'includeDriveTime' in (currentAssignment || {}) ? currentAssignment?.includeDriveTime : true,
       reportingLocationPosition: currentAssignment?.reportingLocationDetails?.location?.latitude && currentAssignment?.reportingLocationDetails?.location?.longitude ? [currentAssignment?.reportingLocationDetails?.location?.longitude, currentAssignment?.reportingLocationDetails?.location?.latitude] : null,
@@ -244,8 +252,12 @@ export default function EditAssignment({
             useLieutenantAssignmentOverride: formData?.useLieutenantAssignmentOverride || false,
             useFieldSupervisorAssignmentOverride: formData?.useFieldSupervisorAssignmentOverride || false,
             uniform: formData?.uniform?.trim?.(),
+            reportingTime: formData?.reportingTime?.toISOString?.(),
             briefingTime: formData?.briefingTime?.toISOString?.(),
             briefingLocation: formData?.briefingLocation?.trim?.(),
+            assignmentDivisionId: formData?.assignmentDivision?.id,
+            assignmentGroupId: formData?.assignmentGroup?.id,
+            branchId: formData?.branch?.id,
             // Only send shiftSlots if they exist to avoid overwriting existing slots with []
             ...(formData?.shiftSlots?.length > 0 ? { shiftSlots: formData?.shiftSlots } : {}),
             reportingLocationDetails: formData?.reportingLocationPosition || formData?.reportingLocationAddress ? {
@@ -528,7 +540,7 @@ export default function EditAssignment({
       <Grid container spacing={3}>
         {renderDetails}
 
-        <EditReportingLocation checkLabel="Set Assignment-Specific Check-in/out Location" />
+        <EditReportingLocation includeAssignmentFields checkLabel="Set Assignment-Specific Check-in/out Location" />
 
         {renderShifts}
 

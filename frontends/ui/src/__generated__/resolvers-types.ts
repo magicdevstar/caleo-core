@@ -59,7 +59,13 @@ export type AllUsersSearchInput = {
 export type Assignment = {
   __typename?: 'Assignment';
   allowOfficerCheckIn?: Maybe<Scalars['Boolean']['output']>;
+  assignmentDivision?: Maybe<AssignmentDivision>;
+  assignmentDivisionId?: Maybe<Scalars['ObjectId']['output']>;
+  assignmentGroup?: Maybe<AssignmentGroup>;
+  assignmentGroupId?: Maybe<Scalars['ObjectId']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
+  branch?: Maybe<Branch>;
+  branchId?: Maybe<Scalars['ObjectId']['output']>;
   briefingLocation?: Maybe<Scalars['String']['output']>;
   briefingTime?: Maybe<Scalars['DateTime']['output']>;
   bwNeeded: Scalars['Boolean']['output'];
@@ -93,6 +99,7 @@ export type Assignment = {
   removedAt?: Maybe<Scalars['String']['output']>;
   reportingLocation?: Maybe<Scalars['String']['output']>;
   reportingLocationDetails?: Maybe<ReportingLocation>;
+  reportingTime?: Maybe<Scalars['DateTime']['output']>;
   requiredEquipment?: Maybe<Array<Maybe<Equipment>>>;
   requiredEquipmentIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -111,6 +118,66 @@ export type Assignment = {
   useFieldSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
   useLieutenantAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
   useSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type AssignmentDivision = {
+  __typename?: 'AssignmentDivision';
+  active: Scalars['Boolean']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org?: Maybe<Organization>;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type AssignmentDivisionSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AssignmentDivisionSearchResult = {
+  __typename?: 'AssignmentDivisionSearchResult';
+  items?: Maybe<Array<Maybe<AssignmentDivision>>>;
+  total: Scalars['Int']['output'];
+};
+
+export type AssignmentGroup = {
+  __typename?: 'AssignmentGroup';
+  active: Scalars['Boolean']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org?: Maybe<Organization>;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type AssignmentGroupSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AssignmentGroupSearchResult = {
+  __typename?: 'AssignmentGroupSearchResult';
+  items?: Maybe<Array<Maybe<AssignmentGroup>>>;
+  total: Scalars['Int']['output'];
 };
 
 export type AssignmentSearchInput = {
@@ -167,6 +234,36 @@ export type AvailableShiftsSearchInput = {
   upcoming?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type Branch = {
+  __typename?: 'Branch';
+  active: Scalars['Boolean']['output'];
+  createdAt: Scalars['String']['output'];
+  docType: DocType;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  org?: Maybe<Organization>;
+  orgId: Scalars['String']['output'];
+  removedAt?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type BranchSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type BranchSearchResult = {
+  __typename?: 'BranchSearchResult';
+  items?: Maybe<Array<Maybe<Branch>>>;
+  total: Scalars['Int']['output'];
+};
+
 export type BrowserNotificationKeys = {
   __typename?: 'BrowserNotificationKeys';
   auth: Scalars['String']['output'];
@@ -192,6 +289,14 @@ export type BrowserNotificationSubscription = {
   endpoint: Scalars['String']['output'];
   expirationTime?: Maybe<Scalars['String']['output']>;
   keys: BrowserNotificationKeys;
+};
+
+export type CalculatedShiftDetails = {
+  __typename?: 'CalculatedShiftDetails';
+  endTime?: Maybe<Scalars['DateTime']['output']>;
+  formattedDiff?: Maybe<Scalars['Float']['output']>;
+  startTime?: Maybe<Scalars['DateTime']['output']>;
+  totalEquipmentTime?: Maybe<Scalars['Float']['output']>;
 };
 
 export type CheckInOutCoordinates = {
@@ -295,6 +400,9 @@ export type DivisionSearchResult = {
 
 export enum DocType {
   Assignment = 'ASSIGNMENT',
+  AssignmentDivision = 'ASSIGNMENT_DIVISION',
+  AssignmentGroup = 'ASSIGNMENT_GROUP',
+  Branch = 'BRANCH',
   BrowserNotificationSetting = 'BROWSER_NOTIFICATION_SETTING',
   Division = 'DIVISION',
   DsEvents = 'DS_EVENTS',
@@ -459,11 +567,13 @@ export type Event = {
   attachments?: Maybe<Array<Scalars['String']['output']>>;
   autoAssignInterestList?: Maybe<Scalars['Boolean']['output']>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
+  bodyWarnTag?: Maybe<Scalars['String']['output']>;
   briefingLocation?: Maybe<Scalars['String']['output']>;
   briefingTime?: Maybe<Scalars['DateTime']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: Maybe<Scalars['String']['output']>;
+  commandPostContactNumber?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
@@ -502,6 +612,7 @@ export type Event = {
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   reportingLocation?: Maybe<ReportingLocation>;
+  reportingTime?: Maybe<Scalars['DateTime']['output']>;
   requestDetails?: Maybe<EventRequestDetails>;
   requiredSkillIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   requiredSkills?: Maybe<Array<Maybe<Skill>>>;
@@ -1160,6 +1271,9 @@ export type Mutation = {
   approveEvent?: Maybe<Event>;
   approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
+  assignmentDivision?: Maybe<AssignmentDivision>;
+  assignmentGroup?: Maybe<AssignmentGroup>;
+  branch?: Maybe<Branch>;
   browserNotificationSubscription?: Maybe<BrowserNotificationSetting>;
   checkIn: Shift;
   checkOut: ShiftCheckOutResponse;
@@ -1190,6 +1304,9 @@ export type Mutation = {
   rejectEvent?: Maybe<Event>;
   rejectLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   removeAssignment: Scalars['ID']['output'];
+  removeAssignmentDivision: Scalars['ID']['output'];
+  removeAssignmentGroup: Scalars['ID']['output'];
+  removeBranch: Scalars['ID']['output'];
   removeBrowserNotificationSubscription?: Maybe<Scalars['Boolean']['output']>;
   removeDivision: Scalars['ID']['output'];
   removeEquipment: Scalars['ID']['output'];
@@ -1262,6 +1379,21 @@ export type MutationApproveLottoAssignmentArgs = {
 
 export type MutationAssignmentArgs = {
   assignment: UpsertAssignment;
+};
+
+
+export type MutationAssignmentDivisionArgs = {
+  assignmentDivision: UpsertAssignmentDivision;
+};
+
+
+export type MutationAssignmentGroupArgs = {
+  assignmentGroup: UpsertAssignmentGroup;
+};
+
+
+export type MutationBranchArgs = {
+  branch: UpsertBranch;
 };
 
 
@@ -1403,6 +1535,21 @@ export type MutationRejectLottoAssignmentArgs = {
 
 
 export type MutationRemoveAssignmentArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveAssignmentDivisionArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveAssignmentGroupArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveBranchArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -1914,8 +2061,14 @@ export type Query = {
   activityShifts?: Maybe<ShiftSearchResult>;
   allUsers?: Maybe<UserSearchResult>;
   assignment?: Maybe<Assignment>;
+  assignmentDivision?: Maybe<AssignmentDivision>;
+  assignmentDivisions?: Maybe<AssignmentDivisionSearchResult>;
+  assignmentGroup?: Maybe<AssignmentGroup>;
+  assignmentGroups?: Maybe<AssignmentGroupSearchResult>;
   assignments?: Maybe<AssignmentSearchResult>;
   availableShifts?: Maybe<ShiftSearchResult>;
+  branch?: Maybe<Branch>;
+  branches?: Maybe<BranchSearchResult>;
   division?: Maybe<Division>;
   divisions?: Maybe<DivisionSearchResult>;
   docusignEvents?: Maybe<DocusignEventSearchResult>;
@@ -1992,6 +2145,26 @@ export type QueryAssignmentArgs = {
 };
 
 
+export type QueryAssignmentDivisionArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryAssignmentDivisionsArgs = {
+  input?: InputMaybe<AssignmentDivisionSearchInput>;
+};
+
+
+export type QueryAssignmentGroupArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryAssignmentGroupsArgs = {
+  input?: InputMaybe<AssignmentGroupSearchInput>;
+};
+
+
 export type QueryAssignmentsArgs = {
   input?: InputMaybe<AssignmentSearchInput>;
 };
@@ -1999,6 +2172,16 @@ export type QueryAssignmentsArgs = {
 
 export type QueryAvailableShiftsArgs = {
   input?: InputMaybe<AvailableShiftsSearchInput>;
+};
+
+
+export type QueryBranchArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryBranchesArgs = {
+  input?: InputMaybe<BranchSearchInput>;
 };
 
 
@@ -2336,6 +2519,7 @@ export type Shift = {
   assignment: Assignment;
   assignmentId: Scalars['String']['output'];
   availability?: Maybe<ShiftAvailabilityTime>;
+  calculatedShiftDetails?: Maybe<CalculatedShiftDetails>;
   callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy?: Maybe<User>;
@@ -2846,6 +3030,9 @@ export type UpsertAfterShiftRemove = {
 
 export type UpsertAssignment = {
   allowOfficerCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  assignmentDivisionId?: InputMaybe<Scalars['ObjectId']['input']>;
+  assignmentGroupId?: InputMaybe<Scalars['ObjectId']['input']>;
+  branchId?: InputMaybe<Scalars['ObjectId']['input']>;
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   bwNeeded?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2866,6 +3053,7 @@ export type UpsertAssignment = {
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   reportingLocation?: InputMaybe<Scalars['String']['input']>;
   reportingLocationDetails?: InputMaybe<UpsertReportingLocation>;
+  reportingTime?: InputMaybe<Scalars['DateTime']['input']>;
   requiredEquipmentIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   shiftIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -2879,6 +3067,18 @@ export type UpsertAssignment = {
   useSupervisorAssignmentOverride?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type UpsertAssignmentDivision = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpsertAssignmentGroup = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpsertAssignmentShiftSlot = {
   id?: InputMaybe<Scalars['String']['input']>;
   slotCount?: InputMaybe<Scalars['Int']['input']>;
@@ -2890,6 +3090,12 @@ export type UpsertAssignmentSlotDetails = {
   customId?: InputMaybe<Scalars['String']['input']>;
   index: Scalars['Int']['input'];
   locked?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpsertBranch = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpsertCheckInOutSetting = {
@@ -2919,11 +3125,13 @@ export type UpsertEvent = {
   assignmentIds: Array<InputMaybe<Scalars['String']['input']>>;
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   autoAssignInterestList?: InputMaybe<Scalars['Boolean']['input']>;
+  bodyWarnTag?: InputMaybe<Scalars['String']['input']>;
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: InputMaybe<Scalars['String']['input']>;
+  commandPostContactNumber?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   endTime?: InputMaybe<Scalars['String']['input']>;
   fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
@@ -2944,6 +3152,7 @@ export type UpsertEvent = {
   overtimeNarrative?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
   reportingLocation?: InputMaybe<UpsertReportingLocation>;
+  reportingTime?: InputMaybe<Scalars['DateTime']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
   requiredSkillIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   scheduledCloseInterestList?: InputMaybe<Scalars['String']['input']>;
@@ -3493,6 +3702,12 @@ export type ResolversTypes = ResolversObject<{
   AfterShiftRemove: ResolverTypeWrapper<AfterShiftRemove>;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: ResolverTypeWrapper<Assignment>;
+  AssignmentDivision: ResolverTypeWrapper<AssignmentDivision>;
+  AssignmentDivisionSearchInput: AssignmentDivisionSearchInput;
+  AssignmentDivisionSearchResult: ResolverTypeWrapper<AssignmentDivisionSearchResult>;
+  AssignmentGroup: ResolverTypeWrapper<AssignmentGroup>;
+  AssignmentGroupSearchInput: AssignmentGroupSearchInput;
+  AssignmentGroupSearchResult: ResolverTypeWrapper<AssignmentGroupSearchResult>;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: ResolverTypeWrapper<AssignmentSearchResult>;
   AssignmentShiftSlot: ResolverTypeWrapper<AssignmentShiftSlot>;
@@ -3501,9 +3716,13 @@ export type ResolversTypes = ResolversObject<{
   AvailabilityTime: ResolverTypeWrapper<AvailabilityTime>;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  Branch: ResolverTypeWrapper<Branch>;
+  BranchSearchInput: BranchSearchInput;
+  BranchSearchResult: ResolverTypeWrapper<BranchSearchResult>;
   BrowserNotificationKeys: ResolverTypeWrapper<BrowserNotificationKeys>;
   BrowserNotificationSetting: ResolverTypeWrapper<BrowserNotificationSetting>;
   BrowserNotificationSubscription: ResolverTypeWrapper<BrowserNotificationSubscription>;
+  CalculatedShiftDetails: ResolverTypeWrapper<CalculatedShiftDetails>;
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: ResolverTypeWrapper<CheckInOutSetting>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
@@ -3685,8 +3904,11 @@ export type ResolversTypes = ResolversObject<{
   UpdateUser: UpdateUser;
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
+  UpsertAssignmentDivision: UpsertAssignmentDivision;
+  UpsertAssignmentGroup: UpsertAssignmentGroup;
   UpsertAssignmentShiftSlot: UpsertAssignmentShiftSlot;
   UpsertAssignmentSlotDetails: UpsertAssignmentSlotDetails;
+  UpsertBranch: UpsertBranch;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertDivision: UpsertDivision;
   UpsertEquipment: UpsertEquipment;
@@ -3748,6 +3970,12 @@ export type ResolversParentTypes = ResolversObject<{
   AfterShiftRemove: AfterShiftRemove;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: Assignment;
+  AssignmentDivision: AssignmentDivision;
+  AssignmentDivisionSearchInput: AssignmentDivisionSearchInput;
+  AssignmentDivisionSearchResult: AssignmentDivisionSearchResult;
+  AssignmentGroup: AssignmentGroup;
+  AssignmentGroupSearchInput: AssignmentGroupSearchInput;
+  AssignmentGroupSearchResult: AssignmentGroupSearchResult;
   AssignmentSearchInput: AssignmentSearchInput;
   AssignmentSearchResult: AssignmentSearchResult;
   AssignmentShiftSlot: AssignmentShiftSlot;
@@ -3756,9 +3984,13 @@ export type ResolversParentTypes = ResolversObject<{
   AvailabilityTime: AvailabilityTime;
   AvailableShiftsSearchInput: AvailableShiftsSearchInput;
   Boolean: Scalars['Boolean']['output'];
+  Branch: Branch;
+  BranchSearchInput: BranchSearchInput;
+  BranchSearchResult: BranchSearchResult;
   BrowserNotificationKeys: BrowserNotificationKeys;
   BrowserNotificationSetting: BrowserNotificationSetting;
   BrowserNotificationSubscription: BrowserNotificationSubscription;
+  CalculatedShiftDetails: CalculatedShiftDetails;
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: CheckInOutSetting;
   ContactInfo: ContactInfo;
@@ -3920,8 +4152,11 @@ export type ResolversParentTypes = ResolversObject<{
   UpdateUser: UpdateUser;
   UpsertAfterShiftRemove: UpsertAfterShiftRemove;
   UpsertAssignment: UpsertAssignment;
+  UpsertAssignmentDivision: UpsertAssignmentDivision;
+  UpsertAssignmentGroup: UpsertAssignmentGroup;
   UpsertAssignmentShiftSlot: UpsertAssignmentShiftSlot;
   UpsertAssignmentSlotDetails: UpsertAssignmentSlotDetails;
+  UpsertBranch: UpsertBranch;
   UpsertCheckInOutSetting: UpsertCheckInOutSetting;
   UpsertDivision: UpsertDivision;
   UpsertEquipment: UpsertEquipment;
@@ -3995,7 +4230,13 @@ export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends Reso
 
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
   allowOfficerCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType>;
+  assignmentDivisionId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType>;
+  assignmentGroupId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType>;
+  branchId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -4028,6 +4269,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reportingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reportingLocationDetails?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
+  reportingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   requiredEquipment?: Resolver<Maybe<Array<Maybe<ResolversTypes['Equipment']>>>, ParentType, ContextType>;
   requiredEquipmentIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -4045,6 +4287,48 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   useFieldSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   useLieutenantAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   useSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentDivisionResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentDivision'] = ResolversParentTypes['AssignmentDivision']> = ResolversObject<{
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentDivisionSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentDivisionSearchResult'] = ResolversParentTypes['AssignmentDivisionSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['AssignmentDivision']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentGroup'] = ResolversParentTypes['AssignmentGroup']> = ResolversObject<{
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentGroupSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentGroupSearchResult'] = ResolversParentTypes['AssignmentGroupSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['AssignmentGroup']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4084,6 +4368,27 @@ export type AvailabilityTimeResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type BranchResolvers<ContextType = any, ParentType extends ResolversParentTypes['Branch'] = ResolversParentTypes['Branch']> = ResolversObject<{
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  org?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type BranchSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['BranchSearchResult'] = ResolversParentTypes['BranchSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<Maybe<ResolversTypes['Branch']>>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type BrowserNotificationKeysResolvers<ContextType = any, ParentType extends ResolversParentTypes['BrowserNotificationKeys'] = ResolversParentTypes['BrowserNotificationKeys']> = ResolversObject<{
   auth?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   p256dh?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4108,6 +4413,14 @@ export type BrowserNotificationSubscriptionResolvers<ContextType = any, ParentTy
   endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   expirationTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   keys?: Resolver<ResolversTypes['BrowserNotificationKeys'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type CalculatedShiftDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CalculatedShiftDetails'] = ResolversParentTypes['CalculatedShiftDetails']> = ResolversObject<{
+  endTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  formattedDiff?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  startTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  totalEquipmentTime?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -4257,10 +4570,12 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   autoAssignInterestList?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  bodyWarnTag?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  commandPostContactNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4298,6 +4613,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reportingLocation?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
+  reportingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   requestDetails?: Resolver<Maybe<ResolversTypes['EventRequestDetails']>, ParentType, ContextType>;
   requiredSkillIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   requiredSkills?: Resolver<Maybe<Array<Maybe<ResolversTypes['Skill']>>>, ParentType, ContextType>;
@@ -4677,6 +4993,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   approveEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationApproveEventArgs, 'id'>>;
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
+  assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType, RequireFields<MutationAssignmentDivisionArgs, 'assignmentDivision'>>;
+  assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType, RequireFields<MutationAssignmentGroupArgs, 'assignmentGroup'>>;
+  branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType, RequireFields<MutationBranchArgs, 'branch'>>;
   browserNotificationSubscription?: Resolver<Maybe<ResolversTypes['BrowserNotificationSetting']>, ParentType, ContextType, RequireFields<MutationBrowserNotificationSubscriptionArgs, 'input'>>;
   checkIn?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationCheckInArgs, 'input'>>;
   checkOut?: Resolver<ResolversTypes['ShiftCheckOutResponse'], ParentType, ContextType, RequireFields<MutationCheckOutArgs, 'input'>>;
@@ -4707,6 +5026,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   rejectEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationRejectEventArgs, 'id'>>;
   rejectLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRejectLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   removeAssignment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentArgs, 'id'>>;
+  removeAssignmentDivision?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentDivisionArgs, 'id'>>;
+  removeAssignmentGroup?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveAssignmentGroupArgs, 'id'>>;
+  removeBranch?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveBranchArgs, 'id'>>;
   removeBrowserNotificationSubscription?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationRemoveBrowserNotificationSubscriptionArgs>>;
   removeDivision?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveDivisionArgs, 'id'>>;
   removeEquipment?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationRemoveEquipmentArgs, 'id'>>;
@@ -4977,8 +5299,14 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   activityShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, RequireFields<QueryActivityShiftsArgs, 'userId'>>;
   allUsers?: Resolver<Maybe<ResolversTypes['UserSearchResult']>, ParentType, ContextType, Partial<QueryAllUsersArgs>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<QueryAssignmentArgs, 'id'>>;
+  assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType, RequireFields<QueryAssignmentDivisionArgs, 'id'>>;
+  assignmentDivisions?: Resolver<Maybe<ResolversTypes['AssignmentDivisionSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentDivisionsArgs>>;
+  assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType, RequireFields<QueryAssignmentGroupArgs, 'id'>>;
+  assignmentGroups?: Resolver<Maybe<ResolversTypes['AssignmentGroupSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentGroupsArgs>>;
   assignments?: Resolver<Maybe<ResolversTypes['AssignmentSearchResult']>, ParentType, ContextType, Partial<QueryAssignmentsArgs>>;
   availableShifts?: Resolver<Maybe<ResolversTypes['ShiftSearchResult']>, ParentType, ContextType, Partial<QueryAvailableShiftsArgs>>;
+  branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType, RequireFields<QueryBranchArgs, 'id'>>;
+  branches?: Resolver<Maybe<ResolversTypes['BranchSearchResult']>, ParentType, ContextType, Partial<QueryBranchesArgs>>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<QueryDivisionArgs, 'id'>>;
   divisions?: Resolver<Maybe<ResolversTypes['DivisionSearchResult']>, ParentType, ContextType, Partial<QueryDivisionsArgs>>;
   docusignEvents?: Resolver<Maybe<ResolversTypes['DocusignEventSearchResult']>, ParentType, ContextType, RequireFields<QueryDocusignEventsArgs, 'input'>>;
@@ -5090,6 +5418,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   availability?: Resolver<Maybe<ResolversTypes['ShiftAvailabilityTime']>, ParentType, ContextType>;
+  calculatedShiftDetails?: Resolver<Maybe<ResolversTypes['CalculatedShiftDetails']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -5530,14 +5859,21 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ActivityLogEntry?: ActivityLogEntryResolvers<ContextType>;
   AfterShiftRemove?: AfterShiftRemoveResolvers<ContextType>;
   Assignment?: AssignmentResolvers<ContextType>;
+  AssignmentDivision?: AssignmentDivisionResolvers<ContextType>;
+  AssignmentDivisionSearchResult?: AssignmentDivisionSearchResultResolvers<ContextType>;
+  AssignmentGroup?: AssignmentGroupResolvers<ContextType>;
+  AssignmentGroupSearchResult?: AssignmentGroupSearchResultResolvers<ContextType>;
   AssignmentSearchResult?: AssignmentSearchResultResolvers<ContextType>;
   AssignmentShiftSlot?: AssignmentShiftSlotResolvers<ContextType>;
   AssignmentSlotDetails?: AssignmentSlotDetailsResolvers<ContextType>;
   AssignmentSummary?: AssignmentSummaryResolvers<ContextType>;
   AvailabilityTime?: AvailabilityTimeResolvers<ContextType>;
+  Branch?: BranchResolvers<ContextType>;
+  BranchSearchResult?: BranchSearchResultResolvers<ContextType>;
   BrowserNotificationKeys?: BrowserNotificationKeysResolvers<ContextType>;
   BrowserNotificationSetting?: BrowserNotificationSettingResolvers<ContextType>;
   BrowserNotificationSubscription?: BrowserNotificationSubscriptionResolvers<ContextType>;
+  CalculatedShiftDetails?: CalculatedShiftDetailsResolvers<ContextType>;
   CheckInOutSetting?: CheckInOutSettingResolvers<ContextType>;
   ContactInfo?: ContactInfoResolvers<ContextType>;
   Date?: GraphQLScalarType;

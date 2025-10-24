@@ -17,6 +17,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 // types
 import { Event } from 'src/__generated__/resolvers-types';
+import RHFPhoneField from '../hook-form/rhf-phone-field';
 
 interface IProps {
   currentEvent?: Event;
@@ -46,6 +47,20 @@ export const LASDDetails = ({
         <Card>
           {!mdUp && <CardHeader title="Details" />}
           <Stack spacing={4} sx={{ p: 4, pl: 3, pr: 3 }}>
+            {!isIncident &&
+              <Stack direction="row" spacing={1.5}>
+                <RHFTextField
+                  name="bodyWarnTag"
+                  label="Body Warn Tag"
+                  disabled={allDisabled}
+                />
+                <RHFPhoneField
+                  name="commandPostContactNumber"
+                  label="Command Post Contact Number"
+                  disabled={allDisabled}
+                />
+              </Stack>
+            }
             <Stack direction="row" spacing={1.5}>
               <RHFTextField
                 name="ocn"

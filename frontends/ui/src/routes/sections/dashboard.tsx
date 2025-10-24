@@ -18,6 +18,7 @@ const RankOvertime = lazyWithRetry(() => import('src/pages/dashboard/rankOvertim
 const MyProfile = lazyWithRetry(() => import('src/pages/dashboard/user/account'));
 const RanksAndSkills = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/ranksAndSkills'));
 const UnitAndDivision = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/unitAndDivision'));
+const MiscLASD = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/miscLASD'));
 const AdminNotifications = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/notifications'));
 const EditNotification = lazyWithRetry(() => import('src/pages/dashboard/admin/settings/editNotification'));
 const UserSearch = lazyWithRetry(() => import('src/pages/dashboard/admin/userManagement/userSearch'));
@@ -121,6 +122,7 @@ export const dashboardRoutes = [
               { element: <OvertimeSettings />, index: true },
               { path: 'ranks-and-skills', element: <RanksAndSkills /> },
               { path: 'unit-and-division', element: <UnitAndDivision /> },
+              { path: 'misc-lasd', element: <MiscLASD /> },
               { path: 'department', element: <DepartmentSettings /> },
               { path: 'notifications', element: <AdminNotifications /> },
               { path: 'notifications/:id', element: <EditNotification /> },

@@ -52,6 +52,7 @@ export function useNavData() {
     equipment,
     lottery,
     lasdUserFields,
+    lasdEventFields,
     eventTemplates,
     financeUnit,
     kiosk,
@@ -134,6 +135,7 @@ export function useNavData() {
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
                 { title: equipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
                 ...(lasdUserFields ? [{ title: 'Unit and Division', path: paths.dashboard.admin.settings.unitAndDivision }] : []),
+                ...(lasdEventFields ? [{ title: 'Misc LASD', path: paths.dashboard.admin.settings.miscLASD }] : []),
                 ...(outsideUserList ? [{ title: 'External Users', path: paths.dashboard.admin.settings.outsideUsers }] : []),
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
                 { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
@@ -151,7 +153,8 @@ export function useNavData() {
       lottery,
       lasdUserFields,
       eventTemplates,
-      outsideUserList
+      outsideUserList,
+      lasdEventFields
     ]
   );
 

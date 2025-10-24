@@ -67,6 +67,7 @@ export const paths = {
         root: `${ROOTS.DASHBOARD}/admin/settings`,
         ranksAndSkill: `${ROOTS.DASHBOARD}/admin/settings/ranks-and-skills`,
         unitAndDivision: `${ROOTS.DASHBOARD}/admin/settings/unit-and-division`,
+        miscLASD: `${ROOTS.DASHBOARD}/admin/settings/misc-lasd`,
         department: `${ROOTS.DASHBOARD}/admin/settings/department`,
         outsideUsers: `${ROOTS.DASHBOARD}/admin/settings/outside-users`,
         notifications: `${ROOTS.DASHBOARD}/admin/settings/notifications`,

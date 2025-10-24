@@ -30,6 +30,9 @@
     OUTSIDE_USER
     INCIDENT_FORM
     EVENT_USER_ACTION
+    ASSIGNMENT_GROUP
+    ASSIGNMENT_DIVISION
+    BRANCH
   }
   enum DayOfWeek {
     SUNDAY
@@ -435,9 +438,12 @@
     # Boolean stating if we want the interest list to auto assign when it closes
     autoAssignInterestList: Boolean
 
+    bodyWarnTag: String
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
+    reportingTime: DateTime
+    commandPostContactNumber: String
 
     scheduledFirstComeFirstServe: String
     notifyOnFirstComeFirstServe: Boolean
@@ -546,6 +552,10 @@
     geoFence: [[Float]]
     reportingLocationDetails: ReportingLocation
 
+    assignmentDivisionId: ObjectId
+    branchId: ObjectId
+    assignmentGroupId: ObjectId
+    reportingTime: DateTime
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
@@ -564,6 +574,9 @@
     totalShifts: Int
     supervisor: User
     lieutenant: User
+    assignmentDivision: AssignmentDivision
+    assignmentGroup: AssignmentGroup
+    branch: Branch
     supervisorAssignment: Assignment
     lieutenantAssignment: Assignment
     fieldSupervisorAssignment: Assignment
@@ -774,6 +787,7 @@
     docusignEnvelopeId: String
     hasComments: Boolean!
 
+    calculatedShiftDetails: CalculatedShiftDetails
     shiftComment: ShiftComment
     # This will be included when searching for shifts
     shiftBufferShift: Shift
@@ -791,6 +805,13 @@
     modifiedBy: User
     docusignEvent: DocusignEvent
     docusignEvents: [DocusignEvent!]
+  }
+
+  type CalculatedShiftDetails {
+    startTime: DateTime
+    endTime: DateTime
+    formattedDiff: Float
+    totalEquipmentTime: Float
   }
 
   type ShiftComment {
@@ -983,9 +1004,12 @@
     overrideSupervisorId: ObjectId
     overtimeNarrative: String
 
+    bodyWarnTag: String
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
+    reportingTime: DateTime
+    commandPostContactNumber: String
 
     # Incident only field! This will only be accepted when the event status is INCIDENT
     startTime: String
@@ -1065,6 +1089,10 @@
     briefingTime: DateTime
     briefingLocation: String
     includeDriveTime: Boolean
+    assignmentDivisionId: ObjectId
+    branchId: ObjectId
+    assignmentGroupId: ObjectId
+    reportingTime: DateTime
   }
 
   input UpsertAssignmentShiftSlot {
@@ -1414,7 +1442,76 @@ type DocusignSignerDetailsData {
     name: String
     active: Boolean
   }
-###### END Unit ######
+###### END Division ######
+
+###### START AssignmentDivision ######
+  type AssignmentDivision {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertAssignmentDivision {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END AssignmentDivision ######
+
+###### START Branch ######
+  type Branch {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertBranch {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END Branch ######
+
+###### START AssignmentGroup ######
+  type AssignmentGroup {
+    id: ID!
+    name: String!
+    active: Boolean!
+    docType: DocType!
+    orgId: String!
+    createdAt: String!
+    updatedAt: String!
+    removedAt: String
+    modifiedById: String
+
+    org: Organization
+    modifiedBy: User
+  }
+
+  input UpsertAssignmentGroup {
+    id: String
+    name: String
+    active: Boolean
+  }
+###### END AssignmentGroup ######
 
 ###### START Vehicle Categories ######
   type VehicleCategories {
@@ -2318,6 +2415,33 @@ type DocusignSignerDetailsData {
     order: String
   }
 
+  input AssignmentDivisionSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
+  input BranchSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
+  input AssignmentGroupSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+  }
+
   input VehicleCategoriesSearchInput {
     limit: Int
     skip: Int
@@ -2329,6 +2453,21 @@ type DocusignSignerDetailsData {
 
   type DivisionSearchResult {
     items: [Division]
+    total: Int!
+  }
+
+  type AssignmentDivisionSearchResult {
+    items: [AssignmentDivision]
+    total: Int!
+  }
+
+  type BranchSearchResult {
+    items: [Branch]
+    total: Int!
+  }
+
+  type AssignmentGroupSearchResult {
+    items: [AssignmentGroup]
     total: Int!
   }
 
@@ -2682,6 +2821,15 @@ type Query {
   division(id: String!): Division
   divisions(input: DivisionSearchInput): DivisionSearchResult
 
+  assignmentDivision(id: String!): AssignmentDivision
+  assignmentDivisions(input: AssignmentDivisionSearchInput): AssignmentDivisionSearchResult
+
+  branch(id: String!): Branch
+  branches(input: BranchSearchInput): BranchSearchResult
+
+  assignmentGroup(id: String!): AssignmentGroup
+  assignmentGroups(input: AssignmentGroupSearchInput): AssignmentGroupSearchResult
+
   vehicleCategory(id: String!): Division
   vehicleCategories(input: VehicleCategoriesSearchInput): VehicleCategoriesSearchResult
   
@@ -2765,6 +2913,15 @@ type Mutation {
 
   division(division: UpsertDivision!): Division
   removeDivision(id: String!): ID!
+
+  assignmentDivision(assignmentDivision: UpsertAssignmentDivision!): AssignmentDivision
+  removeAssignmentDivision(id: String!): ID!
+
+  branch(branch: UpsertBranch!): Branch
+  removeBranch(id: String!): ID!
+
+  assignmentGroup(assignmentGroup: UpsertAssignmentGroup!): AssignmentGroup
+  removeAssignmentGroup(id: String!): ID!
 
   vehicleCategory(vehicleCategory: UpsertVehicleCategories!): VehicleCategories
   removeVehicleCategory(id: String!): ID!

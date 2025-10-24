@@ -97,6 +97,22 @@ export const GET_ASSIGNMENT = gql`
       briefingTime
       briefingLocation
       includeDriveTime
+      reportingTime
+
+      assignmentDivision {
+        id
+        name
+      }
+
+      assignmentGroup {
+        id
+        name
+      }
+
+      branch {
+        id
+        name
+      }
 
       reportingLocationDetails {
         fullAddress

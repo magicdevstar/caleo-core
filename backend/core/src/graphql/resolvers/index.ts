@@ -24,6 +24,9 @@ import { lotteryAnalyticsQuery, lotteryAnalyticsFields, lotteryAnalyticsMutation
 import { shiftInterestRequestsQuery, shiftInterestRequestsMutation, shiftInterestRequestsFields } from './shiftInterestRequests';
 import { unitQuery, unitMutation, unitFields } from './unit';
 import { queryDivision, mutationDivision, divisionFields } from './division';
+import { queryAssignmentDivision, mutationAssignmentDivision, fieldsAssignmentDivision } from './assignmentDivision';
+import { queryAssignmentGroup, mutationAssignmentGroup, fieldsAssignmentGroup } from './assignmentGroup';
+import { queryBranch, mutationBranch, fieldsBranch } from './branch';
 import { queryDocusignEvents, mutationDocusignEvents, docusignEventsFields } from './docusignEvents';
 import { queryOutsideUsers, mutationOutsideUsers, fieldsOutsideUsers } from './outsideUsers';
 import { QueryIncidentForm, MutationIncidentForm, fieldsIncidentForm } from './incidentForm';
@@ -58,6 +61,9 @@ export default {
     ...queryOutsideUsers,
     ...QueryIncidentForm,
     ...QueryEventUserAction,
+    ...queryAssignmentDivision,
+    ...queryAssignmentGroup,
+    ...queryBranch,
   },
   Mutation: {
     ...healthMutation,
@@ -86,6 +92,9 @@ export default {
     ...mutationOutsideUsers,
     ...MutationIncidentForm,
     ...MutationEventUserAction,
+    ...mutationAssignmentDivision,
+    ...mutationAssignmentGroup,
+    ...mutationBranch,
   },
   ...healthFields,
   ...organizationFields,
@@ -113,6 +122,9 @@ export default {
   ...fieldsOutsideUsers,
   ...fieldsIncidentForm,
   ...fieldsEventUserAction,
+  ...fieldsAssignmentDivision,
+  ...fieldsAssignmentGroup,
+  ...fieldsBranch,
   Date: DateScalar,
   DateTime: DateTimeScalar,
   ObjectId: ObjectIdScalar,

@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import { GeoFenceDefinition } from 'src/components/events/reporting-location/geo-fence-definition';
 import {
   RHFDateTimePicker,
+  RHFGQLSearchAutocomplete,
   RHFTextField
 } from 'src/components/hook-form';
 // hooks
@@ -16,15 +17,20 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from 'src/hooks/use-features';
 import RHFAutocompleteGeocode from 'src/components/hook-form/rhf-autocomplete-geocode';
 import { useFormContext } from 'react-hook-form';
+import { GET_ASSIGNMENT_DIVISIONS } from 'src/api/assignmentDivision';
+import { GET_ASSIGNMENT_GROUPS } from 'src/api/assignmentGroup';
+import { GET_BRANCHES } from 'src/api/branch';
 
 interface Props {
   disabledInput?: boolean;
   checkLabel?: string;
+  includeAssignmentFields?: boolean;
 }
 
 export const EditReportingLocation = ({
   disabledInput,
-  checkLabel
+  checkLabel,
+  includeAssignmentFields,
 }: Props) => {
   const { mapboxReportingLocation } = useFeatures();
   const { watch, setValue } = useFormContext();
@@ -87,9 +93,38 @@ export const EditReportingLocation = ({
                     <RHFTextField disabled={disabledInput} name="reportingLocation" label="Reporting Location" />
                   )
                 }
+                <RHFDateTimePicker disabled={disabledInput} name="reportingTime" label="Reporting Time" />
                 <RHFTextField disabled={disabledInput} name="uniform" label="Uniform" />
                 <RHFDateTimePicker disabled={disabledInput} name="briefingTime" label="Briefing Time" />
                 <RHFTextField disabled={disabledInput} name="briefingLocation" label="Briefing Location" />
+                {
+                  includeAssignmentFields && (
+                    <Stack spacing={3}>
+                      <Stack direction="row" spacing={1.5}>
+                        <RHFGQLSearchAutocomplete
+                          name="assignmentDivision"
+                          label="Division"
+                          query={GET_ASSIGNMENT_DIVISIONS}
+                          responseKey='assignmentDivisions'
+                        />
+                        <RHFGQLSearchAutocomplete
+                          name="assignmentGroup"
+                          label="Group"
+                          query={GET_ASSIGNMENT_GROUPS}
+                          responseKey='assignmentGroups'
+                        />
+                      </Stack>
+                      <Stack direction="row" spacing={1.5}>
+                        <RHFGQLSearchAutocomplete
+                          name="branch"
+                          label="Branch"
+                          query={GET_BRANCHES}
+                          responseKey='branches'
+                        />
+                      </Stack>
+                    </Stack>
+                  )
+                }
               </>
             )}
           </Stack>

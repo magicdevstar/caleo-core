@@ -216,6 +216,12 @@ query GetEvent($id: String!) {
         status
         customId
         refNumber
+        calculatedShiftDetails {
+          startTime
+          endTime
+          formattedDiff
+          totalEquipmentTime
+        }
         docusignEvent {
           id
           status

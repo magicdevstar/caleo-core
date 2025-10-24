@@ -2,12 +2,11 @@ import ExcelJS from 'exceljs';
 import { Event, Shift } from 'src/__generated__/resolvers-types';
 import { FrontendUser } from 'src/api/user';
 import { convertDate } from 'src/hooks/use-datejs';
-import { calculateCheckInOutHours } from './time-calc';
 import { getCellSumByColumnFormula, getColSumRangeFormula } from './excel-formulas';
 
-export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser, dateFormat: string) {
+export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser) {
   const eventDate = event.startTime
-    ? convertDate({ date: event.startTime, user }).format(dateFormat)
+    ? convertDate({ date: event.startTime, user }).format('MMMM DD, YYYY')
     : '';
   worksheet.getCell('A1').value = worksheet
     .getCell('A1')
@@ -22,16 +21,12 @@ export function generatePayAndLeaveWorksheet(
   shifts: Shift[],
   worksheet: ExcelJS.Worksheet,
   user: FrontendUser,
-  miniDateFormat: string
+  miniDateFormat: string,
+  timeFormat: string
 ) {
   // initialize template props
   const headerRows = 2;
   const defaultNumberOfRows = 123;
-  const oddRowColor = "FFD9E2F3";
-  const evenRowColor = "FFB4C6E7";
-
-  // Remove existing table reference (This causes errors on excel if not removed)
-  worksheet.removeTable('Table_1');
 
   // add or remove rows from template
   const rowDiff = Math.abs(shifts.length - defaultNumberOfRows);
@@ -42,7 +37,31 @@ export function generatePayAndLeaveWorksheet(
     worksheet.spliceRows(headerRows + shifts.length + 1, rowDiff);
   }
 
+  // remove original table and recreate it since Exceljs does not preserve table data upon importing
+  const originalTable = worksheet.getTable('Table_1');
+  const tableProps = (originalTable as any).table;
+  const tableConfig: ExcelJS.TableProperties = {
+    name: 'PayAndLeaveTable',
+    ref: tableProps.tableRef.split(':')[0],
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: 'TableStyleMedium9',
+      showRowStripes: true
+    },
+    columns: tableProps.columns.map((col: any, i: number) => ({
+      name: col.name,
+      filterButton: true,
+    })),
+    rows: [],
+  };
+  worksheet.removeTable('Table_1');
+  const table = worksheet.addTable(tableConfig);
+
+  let totalOvertimeHoursWorked = 0;
   let totalTravelTime = 0;
+  let totalEquipmentTime = 0;
+  const totalAdminTime = 0;
   let totalTime = 0;
 
   // sort shifts alphabetically
@@ -52,141 +71,99 @@ export function generatePayAndLeaveWorksheet(
     return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
   });
 
+  // create table rows
   shifts.forEach((shift, index) => {
     const rowIdx = headerRows + index + 1;
-    const row = worksheet.getRow(rowIdx);
-    // number
-    row.getCell(1).value = index + 1;
-    // Name
-    row.getCell(2).value = shift.user ? `${shift.user?.lastName || ''}, ${shift.user?.firstName || ''}` : '';
-    // Employee Number
-    row.getCell(3).value = shift.user?.member?.pNumber || '';
-    // Rank
-    row.getCell(4).value = shift.user?.member?.rank?.name || '';
-    // Call Sign
-    row.getCell(5).value = shift.docusignEvent?.signerDetails?.[0]?.data?.callSign || '';
-    // Date
-    row.getCell(6).value = shift.startTime
-      ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
-      : '';
-
-    // calculate hours worked and equipment time
-    const timeArg: Parameters<typeof calculateCheckInOutHours>[0] = {
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      timezone: user?.member?.org?.timezone || 'America/Los_Angeles',
-    };
-    if (shift.shiftCheckInOut?.checkInTime && shift.shiftCheckInOut?.checkOutTime) {
-      timeArg.startTime = shift.shiftCheckInOut.checkInTime;
-      timeArg.endTime = shift.shiftCheckInOut.checkOutTime;
-    }
-    const equipmentCheckInTime = shift.shiftCheckInOut?.equipmentDetails?.checkInTime;
-    const equipmentCheckOutTime = shift.shiftCheckInOut?.equipmentDetails?.checkOutTime;
-    if (equipmentCheckInTime && equipmentCheckOutTime) {
-      timeArg.startEquipmentTime = equipmentCheckInTime;
-      timeArg.endEquipmentTime = equipmentCheckOutTime;
-    }
-    const { hoursWorked, totalEquipmentTime } = calculateCheckInOutHours(timeArg)
-
-    // Overtime Hours Worked
-    row.getCell(7).value = hoursWorked;
-
-    // Travel Time (Default is 1)
-    row.getCell(8).value = totalEquipmentTime ? 0 : 1;
-
-    // Equipment Time
-    row.getCell(9).value = totalEquipmentTime;
 
     // NOTE: Not sure if I actually have to calculate the result of formulas as it works without, but docs recommend it.
     // Some reports say it is because if opened in protected view, it will not calculate and only show the result.
-    const rowSumValue = row.getCell(11).value as ExcelJS.CellFormulaValue;
-    row.getCell(11).value = {
-      ...rowSumValue,
-      result:
-        (row.getCell(7).value as number) +
-        (row.getCell(8).value as number) +
-        (row.getCell(9).value as number),
-    };
-    totalTravelTime += row.getCell(8).value as number;
-    totalTime += row.getCell(11).value as number;
+    const hoursWorked = shift.calculatedShiftDetails?.formattedDiff || 0;
+    const equipmentTime = shift.calculatedShiftDetails?.totalEquipmentTime || 0;
+    const travelTime = equipmentTime ? 0 : 1;
+    const totalRowTime = hoursWorked + travelTime + equipmentTime;
+
+    // add to total sums
+    totalOvertimeHoursWorked += hoursWorked;
+    totalTravelTime += equipmentTime ? 0 : 1;
+    totalEquipmentTime += equipmentTime;
+    totalTime += totalRowTime;
+
+    // add table row
+    table.addRow([
+      // number
+      index + 1,
+      // Name
+      shift.user ? `${shift.user?.lastName || ''}, ${shift.user?.firstName || ''}` : '',
+      // Employee Number
+      shift.user?.member?.pNumber || '',
+      // Rank
+      shift.user?.member?.rank?.name || '',
+      // Call Sign
+      shift.docusignEvent?.signerDetails?.[0]?.data?.callSign || '',
+      // Date
+      shift.startTime
+        ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
+        : '',
+      // Check-in Time
+      shift.calculatedShiftDetails?.startTime
+        ? convertDate({ date: shift.startTime, user }).format(timeFormat)
+        : '',
+      // Check-out Time
+      shift.calculatedShiftDetails?.endTime
+        ? convertDate({ date: shift.calculatedShiftDetails.endTime, user }).format(timeFormat)
+        : '',
+      // Overtime Hours Worked
+      hoursWorked,
+      // Travel Time (Default is 1)
+      travelTime,
+      // Equipment Time
+      equipmentTime,
+      // Administrative Time
+      0,
+      // Total Overtime Hours
+      { formula: `SUM(I${rowIdx}:L${rowIdx})`, result: totalRowTime }
+    ])
   });
+
+  // commit changes for all added rows
+  table.commit();
 
   const lastRowIdx = headerRows + shifts.length + 1;
   const lastRow = worksheet.getRow(lastRowIdx);
 
-  const lastRowTravelTimeFormula = lastRow.getCell(8).formula;
-  lastRow.getCell(8).value = {
-    formula: lastRowTravelTimeFormula.replace('H$125', `H$${lastRowIdx - 1}`),
+  // Total Overtime Hours Worked
+  lastRow.getCell(9).value = {
+    formula: `SUBTOTAL(109,'Pay and Leave'!$I$3:$I$${lastRowIdx - 1})`,
+    result: totalOvertimeHoursWorked,
+  };
+  // Total Travel Time
+  lastRow.getCell(10).value = {
+    formula: `SUBTOTAL(109,'Pay and Leave'!$J$3:$J$${lastRowIdx - 1})`,
     result: totalTravelTime,
   };
-  const lastRowTotalTimeFormula = lastRow.getCell(11).formula;
+  // Total Equipment Time
   lastRow.getCell(11).value = {
-    formula: lastRowTotalTimeFormula.replace('K$125', `K$${lastRowIdx - 1}`),
+    formula: `SUBTOTAL(109,'Pay and Leave'!$K$3:$K$${lastRowIdx - 1})`,
+    result: totalEquipmentTime,
+  }
+  // Total Admin Time
+  lastRow.getCell(12).value = {
+    formula: `SUBTOTAL(109,'Pay and Leave'!$L$3:$L$${lastRowIdx - 1})`,
+    result: totalAdminTime,
+  }
+  // Total Overtime Hours
+  lastRow.getCell(13).value = {
+    formula: `SUBTOTAL(109,'Pay and Leave'!$M$3:$M$${lastRowIdx - 1})`,
     result: totalTime,
   };
-
-  // Add back in original styling that was lost during import
-  worksheet.addConditionalFormatting({
-    ref: `A${headerRows}:K${lastRowIdx}`,
-    rules: [
-      {
-        priority: 1,
-        type: 'expression',
-        formulae: ['ROW()=2'],
-        style: {
-          fill: {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { theme: 4 },
-            bgColor: { theme: 4 },
-          }
-        }
-      },
-      {
-        priority: 1,
-        type: 'expression',
-        formulae: [`ROW()=${lastRowIdx}`],
-        style: {
-          fill: {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFFFF' }
-          }
-        }
-      },
-      {
-        priority: 2,
-        type: 'expression',
-        formulae: ['MOD(ROW(),2)=1'],
-        style: {
-          fill: {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: oddRowColor }
-          }
-        }
-      },
-      {
-        priority: 2,
-        type: 'expression',
-        formulae: ['MOD(ROW(),2)=0'],
-        style: {
-          fill: {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: evenRowColor }
-          }
-        }
-      }
-    ]
-  });
 }
 
 export function generateContractLawWorksheet(
   shiftsByRank: Record<string, Shift[]>,
   worksheet: ExcelJS.Worksheet,
   user: FrontendUser,
-  miniDateFormat: string
+  miniDateFormat: string,
+  timeFormat: string
 ) {
   // initialize template totals and props
   const headerRows = 2;
@@ -260,45 +237,32 @@ export function generateContractLawWorksheet(
       shiftRow.getCell(5).value = shift.startTime
         ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
         : '';
-
-      // calculate hours worked and equipment time
-      const timeArg: Parameters<typeof calculateCheckInOutHours>[0] = {
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        timezone: user?.member?.org?.timezone || 'America/Los_Angeles',
-      };
-      if (shift.shiftCheckInOut?.checkInTime && shift.shiftCheckInOut?.checkOutTime) {
-        timeArg.startTime = shift.shiftCheckInOut.checkInTime;
-        timeArg.endTime = shift.shiftCheckInOut.checkOutTime;
-      }
-      const equipmentCheckInTime = shift.shiftCheckInOut?.equipmentDetails?.checkInTime;
-      const equipmentCheckOutTime = shift.shiftCheckInOut?.equipmentDetails?.checkOutTime;
-      if (equipmentCheckInTime && equipmentCheckOutTime) {
-        timeArg.startEquipmentTime = equipmentCheckInTime;
-        timeArg.endEquipmentTime = equipmentCheckOutTime;
-      }
-      const { hoursWorked, totalEquipmentTime } = calculateCheckInOutHours(timeArg)
-
+      // Check-in Time
+      shiftRow.getCell(6).value = shift.calculatedShiftDetails?.startTime
+        ? convertDate({ date: shift.calculatedShiftDetails.startTime, user }).format(timeFormat)
+        : '';
+      // Check-out Time
+      shiftRow.getCell(7).value = shift.calculatedShiftDetails?.endTime
+        ? convertDate({ date: shift.calculatedShiftDetails.endTime, user }).format(timeFormat)
+        : '';
       // Overtime Hours Worked
-      shiftRow.getCell(6).value = hoursWorked;
-
+      shiftRow.getCell(8).value = shift.calculatedShiftDetails?.formattedDiff || 0;
       // Travel Time (Default is 1)
-      shiftRow.getCell(7).value = totalEquipmentTime ? 0 : 1;
-
+      shiftRow.getCell(9).value = shift.calculatedShiftDetails?.totalEquipmentTime ? 0 : 1;
       // Equipment Time
-      shiftRow.getCell(8).value = totalEquipmentTime;
+      shiftRow.getCell(10).value = shift.calculatedShiftDetails?.totalEquipmentTime || 0;
 
       // Total Overtime Hours
-      shiftRow.getCell(10).value =
-        (shiftRow.getCell(6).value as number) +
-        (shiftRow.getCell(7).value as number) +
-        (shiftRow.getCell(8).value as number);
+      shiftRow.getCell(12).value =
+        (shiftRow.getCell(8).value as number) +
+        (shiftRow.getCell(9).value as number) +
+        (shiftRow.getCell(10).value as number);
 
       // Add to per rank totals
-      perRankTotals.overtime += shiftRow.getCell(6).value as number;
-      perRankTotals.travelTime += shiftRow.getCell(7).value as number;
-      perRankTotals.equipment += shiftRow.getCell(8).value as number;
-      perRankTotals.grandTotal += shiftRow.getCell(10).value as number;
+      perRankTotals.overtime += shiftRow.getCell(8).value as number;
+      perRankTotals.travelTime += shiftRow.getCell(9).value as number;
+      perRankTotals.equipment += shiftRow.getCell(10).value as number;
+      perRankTotals.grandTotal += shiftRow.getCell(12).value as number;
 
       // jump to next row
       rowIdx += 1;
@@ -307,35 +271,35 @@ export function generateContractLawWorksheet(
     // fill out per rank totals
     const perRankTotalRow = worksheet.getRow(rowIdx);
     const rankTitle = shifts[0].user?.member?.rank?.name || '';
-    const rankTitleLabel = perRankTotalRow.getCell(5).value as string;
+    const rankTitleLabel = perRankTotalRow.getCell(7).value as string;
     // Rank Title Header
-    perRankTotalRow.getCell(5).value = rankTitleLabel.replace('[rank]', rankTitle);
+    perRankTotalRow.getCell(7).value = rankTitleLabel.replace('[rank]', rankTitle);
 
     const rangeMin = rowIdx - shifts.length;
     const rangeMax = rowIdx - 1;
     // Total Rank Overtime Hours
-    perRankTotalRow.getCell(6).value = {
-      formula: getColSumRangeFormula(rangeMin, rangeMax, 'F'),
+    perRankTotalRow.getCell(8).value = {
+      formula: getColSumRangeFormula(rangeMin, rangeMax, 'H'),
       result: perRankTotals.overtime,
     };
     // Total Rank Travel Time
-    perRankTotalRow.getCell(7).value = {
-      formula: getColSumRangeFormula(rangeMin, rangeMax, 'G'),
+    perRankTotalRow.getCell(9).value = {
+      formula: getColSumRangeFormula(rangeMin, rangeMax, 'I'),
       result: perRankTotals.travelTime,
     };
     // Total Rank Equipment Time
-    perRankTotalRow.getCell(8).value = {
-      formula: getColSumRangeFormula(rangeMin, rangeMax, 'H'),
+    perRankTotalRow.getCell(10).value = {
+      formula: getColSumRangeFormula(rangeMin, rangeMax, 'J'),
       result: perRankTotals.equipment,
     };
     // Total Rank Administrative Time (This is skipped, but should still leave formula)
-    perRankTotalRow.getCell(9).value = {
-      formula: getColSumRangeFormula(rangeMin, rangeMax, 'I'),
+    perRankTotalRow.getCell(11).value = {
+      formula: getColSumRangeFormula(rangeMin, rangeMax, 'K'),
       result: 0,
     };
     // Grand Total Rank Time
-    perRankTotalRow.getCell(10).value = {
-      formula: getColSumRangeFormula(rangeMin, rangeMax, 'J'),
+    perRankTotalRow.getCell(12).value = {
+      formula: getColSumRangeFormula(rangeMin, rangeMax, 'L'),
       result: perRankTotals.grandTotal,
     };
 
@@ -358,35 +322,35 @@ export function generateContractLawWorksheet(
   // Re-merge last row cells due to bug where moving merged cells causes them to become unmerged
   if (!lastRow.getCell(1).isMerged) {
     try {
-      worksheet.mergeCells(`A${rowIdx}:E${rowIdx}`);
+      worksheet.mergeCells(`A${rowIdx}:G${rowIdx}`);
     } catch(error) {
       console.warn('Error merging cells for complete total row:', error);
     }
   }
 
   // Complete Total Overtime Hours
-  lastRow.getCell(6).value = {
-    formula: getCellSumByColumnFormula(completeTotal.rows, 'F'),
+  lastRow.getCell(8).value = {
+    formula: getCellSumByColumnFormula(completeTotal.rows, 'H'),
     result: completeTotal.overtime,
   };
   // Complete Total Travel Time
-  lastRow.getCell(7).value = {
-    formula: getCellSumByColumnFormula(completeTotal.rows, 'G'),
+  lastRow.getCell(9).value = {
+    formula: getCellSumByColumnFormula(completeTotal.rows, 'I'),
     result: completeTotal.travelTime,
   };
   // Complete Total Equipment Time
-  lastRow.getCell(8).value = {
-    formula: getCellSumByColumnFormula(completeTotal.rows, 'H'),
+  lastRow.getCell(10).value = {
+    formula: getCellSumByColumnFormula(completeTotal.rows, 'J'),
     result: completeTotal.equipment,
   };
   // Complete Total Administrative Time (This is skipped, but should still leave formula)
-  lastRow.getCell(9).value = {
-    formula: getCellSumByColumnFormula(completeTotal.rows, 'I'),
+  lastRow.getCell(11).value = {
+    formula: getCellSumByColumnFormula(completeTotal.rows, 'K'),
     result: 0,
   };
   // Complete Grand Total Overtime Hours
-  lastRow.getCell(10).value = {
-    formula: getCellSumByColumnFormula(completeTotal.rows, 'J'),
+  lastRow.getCell(12).value = {
+    formula: getCellSumByColumnFormula(completeTotal.rows, 'L'),
     result: completeTotal.grandTotal,
   };
 }

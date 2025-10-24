@@ -17,7 +17,7 @@ import { Event, Assignment, Shift } from "src/__generated__/resolvers-types";
 
 export const useBillingByEvent = ({ eventId }: { eventId: string }) => {
   const { user } = useAuthContext();
-  const { dateFormat, miniDateFormat } = useDateFormats();
+  const { miniDateFormat, timeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const { download } = useDownloadExcel({ fileName: 'event-billing-by-event' });
 
@@ -87,24 +87,24 @@ export const useBillingByEvent = ({ eventId }: { eventId: string }) => {
 
       // Pay and Leave Worksheet
       const payAndLeaveWorksheet = workbook.worksheets[0];
-      modifyReportHeader(event, payAndLeaveWorksheet, user, dateFormat);
-      generatePayAndLeaveWorksheet(shifts, payAndLeaveWorksheet, user, miniDateFormat);
+      modifyReportHeader(event, payAndLeaveWorksheet, user);
+      generatePayAndLeaveWorksheet(shifts, payAndLeaveWorksheet, user, miniDateFormat, timeFormat);
 
       // reports that were skipped due to empty shift groupings
       const skippedReports: string[] = [];
 
       // Contract Law Worksheet
       const contractLawWorksheet = workbook.worksheets[1];
-      modifyReportHeader(event, contractLawWorksheet, user, dateFormat);
+      modifyReportHeader(event, contractLawWorksheet, user);
       if (Object.keys(shiftsByRank).length > 0) {
-        generateContractLawWorksheet(shiftsByRank, contractLawWorksheet, user, miniDateFormat);
+        generateContractLawWorksheet(shiftsByRank, contractLawWorksheet, user, miniDateFormat, timeFormat);
       } else {
         skippedReports.push('Contract Law');
       }
 
       // Contract Law Worksheet (TODO: figure out which property to group shifts by)
       const contractLawVehicleWorksheet = workbook.worksheets[2];
-      modifyReportHeader(event, contractLawVehicleWorksheet, user, dateFormat);
+      modifyReportHeader(event, contractLawVehicleWorksheet, user);
       if (Object.keys(shiftsByVehicle).length > 0) {
         generateContractLawVehicleWorksheet(shiftsByVehicle, contractLawVehicleWorksheet);
       } else {

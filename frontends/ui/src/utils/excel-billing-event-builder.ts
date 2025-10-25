@@ -106,7 +106,7 @@ export function generatePayAndLeaveWorksheet(
         : '',
       // Check-in Time
       shift.calculatedShiftDetails?.startTime
-        ? convertDate({ date: shift.startTime, user }).format(timeFormat)
+        ? convertDate({ date: shift.calculatedShiftDetails.startTime, user }).format(timeFormat)
         : '',
       // Check-out Time
       shift.calculatedShiftDetails?.endTime

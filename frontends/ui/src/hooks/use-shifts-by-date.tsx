@@ -67,7 +67,7 @@ export function generateTimeBuckets(options: BucketingOptions, user: FrontendUse
   const { bucketType, bucketCount, startDate } = options;
   const buckets: TimeBucket[] = [];
 
-  for (let i = 0; i < bucketCount; i+=1) {
+  for (let i = 0; i <= bucketCount; i+=1) {
     let bucketLabel: string;
     let bucketStart: Date;
     let bucketEnd: Date;
@@ -150,7 +150,7 @@ export function groupShiftsIntoBuckets(shifts: FinanceShift[], buckets: TimeBuck
 
       // Find the appropriate bucket for this shift
       const bucketIndex = result.findIndex(bucket => 
-        shiftDate >= bucket.start && shiftDate <= bucket.end
+        shiftDate >= bucket.start && shiftDate < bucket.end
       );
 
       if (bucketIndex !== -1) {

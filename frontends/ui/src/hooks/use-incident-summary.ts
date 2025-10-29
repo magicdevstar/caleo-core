@@ -73,7 +73,7 @@ export const useIncidentSummary = () => {
         [`Officer ${pNumberLabel}`]: incidentForm.user?.member?.pNumber || '',
         'Reviewer': incidentForm.reviewerUser?.name || '',
         [`Reviewer ${pNumberLabel}`]: incidentForm.reviewerUser?.pNumber || '',
-        'Operational Period Date': incidentForm.operationalPeriod?.date || '',
+        'Operational Period Date': convertDate({ date: incidentForm.operationalPeriod?.date, user }).format('YYYY-MM-DD'),
         'Submitted Date': convertDate({ date: incidentForm.submittedDate || incidentForm.updatedAt, user }).format(dateFormat),
         
         // Timekeeping

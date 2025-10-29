@@ -2094,7 +2094,7 @@ type DocusignSignerDetailsData {
 
 ###### START Incident Submission ######
   type OperationalPeriod {
-    date: Date! # required
+    date: DateTime! # required
   }
 
   enum TimekeepingType {
@@ -2211,7 +2211,7 @@ type DocusignSignerDetailsData {
   }
 
   input IOperationalPeriod {
-    date: Date! # required
+    date: DateTime! # required
   }
 
   input ITimekeeping {

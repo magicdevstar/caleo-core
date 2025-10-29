@@ -833,7 +833,7 @@ export type IMissionAssignments = {
 };
 
 export type IOperationalPeriod = {
-  date: Scalars['Date']['input'];
+  date: Scalars['DateTime']['input'];
 };
 
 export type IShiftDetails = {
@@ -1862,7 +1862,7 @@ export type NotificationSearchResult = {
 
 export type OperationalPeriod = {
   __typename?: 'OperationalPeriod';
-  date: Scalars['Date']['output'];
+  date: Scalars['DateTime']['output'];
 };
 
 export type Organization = {
@@ -5110,7 +5110,7 @@ export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type OperationalPeriodResolvers<ContextType = any, ParentType extends ResolversParentTypes['OperationalPeriod'] = ResolversParentTypes['OperationalPeriod']> = ResolversObject<{
-  date?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

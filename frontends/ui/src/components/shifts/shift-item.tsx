@@ -92,6 +92,18 @@ export default function ShiftItem({
   sx?: SxProps,
 }) {
   const { dateTimeFormat } = useDateFormats();
+  const { user } = useAuthContext();
+  const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
+  const popover = usePopover();
+  const mdDown = useResponsive('down', 'md');
+  const {
+    eventCheckIn,
+    eventCheckOut,
+    lasdEventFields,
+    callSign,
+    enabledEventThumbnail,
+    mapboxReportingLocation
+  } = useFeatures();
   const [fetchEventNotes, { data: eventNotes }] = useLazyQuery(GET_EVENT_NOTES);
   const [fetchAssignmentNotes, { data: assignmentNotes }] = useLazyQuery(GET_ASSIGNMENT_DESCRIPTION);
   const labelComponent = useMemo(() => {
@@ -112,8 +124,11 @@ export default function ShiftItem({
     return inputShift as Shift;
   }, [inputShift]);
   const reportingLocation = useMemo(() => {
-    const address = shift.assignment?.reportingLocationDetails?.fullAddress ||
-      shift.assignment?.reportingLocation ||
+    let assignmentAddress = shift.assignment?.reportingLocationDetails?.fullAddress;
+    if (!mapboxReportingLocation) {
+      assignmentAddress = shift.assignment?.reportingLocation;
+    }
+    const address = assignmentAddress ||
       shift.event?.reportingLocation?.fullAddress ||
       'N/A';
     const latitude = shift.assignment?.reportingLocationDetails?.location?.latitude ||
@@ -134,12 +149,7 @@ export default function ShiftItem({
       address,
       coordinates,
     }
-  }, [shift]);
-  const { user } = useAuthContext();
-  const { eventCheckIn, eventCheckOut, lasdEventFields, callSign, enabledEventThumbnail } = useFeatures();
-  const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
-  const popover = usePopover();
-  const mdDown = useResponsive('down', 'md');
+  }, [shift, mapboxReportingLocation]);
 
   const openDetails = () => {
     if (collapsible) {

@@ -128,12 +128,24 @@ export default function ShiftItem({
     if (!mapboxReportingLocation) {
       assignmentAddress = shift.assignment?.reportingLocation;
     }
+    if (!shift.assignment?.allowOfficerCheckIn) {
+      assignmentAddress = null;
+    }
     const address = assignmentAddress ||
       shift.event?.reportingLocation?.fullAddress ||
       'N/A';
-    const latitude = shift.assignment?.reportingLocationDetails?.location?.latitude ||
+
+    let assignmentLocation: any = {
+      latitude: shift.assignment?.reportingLocationDetails?.location?.latitude,
+      longitude: shift.assignment?.reportingLocationDetails?.location?.longitude,
+    }
+    if (!shift.assignment?.allowOfficerCheckIn || !assignmentAddress) {
+      assignmentLocation = {};
+    }
+
+    const latitude = assignmentLocation?.latitude ||
       shift.event?.reportingLocation?.location?.latitude;
-    const longitude = shift.assignment?.reportingLocationDetails?.location?.longitude ||
+    const longitude = assignmentLocation?.longitude ||
       shift.event?.reportingLocation?.location?.longitude;
 
     let coordinates;

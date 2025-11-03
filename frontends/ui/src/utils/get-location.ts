@@ -60,3 +60,27 @@ export const getCenterOfPolygon = (coords: [number, number][]) => {
   const sum = coords.reduce(([accX, accY], [x, y]) => [accX + x, accY + y], [0, 0]);
   return [sum[0] / coords.length, sum[1] / coords.length];
 }
+
+export const getCenterOfPolygons = (polygons: (number[][] | null)[]) => {
+  if (!polygons || polygons.length === 0) return null;
+  
+  const validPolygons = polygons.filter(Boolean) as number[][][];
+  if (validPolygons.length === 0) return null;
+  
+  // Collect all coordinates from all polygons
+  const allCoords: [number, number][] = [];
+  validPolygons.forEach(polygon => {
+    if (polygon && polygon.length > 0) {
+      polygon.forEach(coord => {
+        if (coord && coord.length >= 2) {
+          allCoords.push([coord[0], coord[1]]);
+        }
+      });
+    }
+  });
+  
+  if (allCoords.length === 0) return null;
+  
+  const sum = allCoords.reduce(([accX, accY], [x, y]) => [accX + x, accY + y], [0, 0]);
+  return [sum[0] / allCoords.length, sum[1] / allCoords.length];
+}

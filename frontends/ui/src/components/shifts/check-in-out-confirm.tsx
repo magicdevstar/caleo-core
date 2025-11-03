@@ -74,13 +74,18 @@ export default function CheckInOutConfirm({
       }
       setLoading(true);
 
-      const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
+      const assignmentCoords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence : undefined;
+      const eventCoords = shift.event?.allowOfficerCheckIn ? shift.event?.geoFence : undefined;
+      // const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
       const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
-      if (requiresSpecificLocation && coords && !ignoreGeoFence) {
+      if (requiresSpecificLocation && (assignmentCoords || eventCoords) && !ignoreGeoFence) {
         if (!geoLocation || geoLocation.error?.message) {
           throw new Error('LOCATION_REQUIRED');
         }
-        if (!isWithinPolygon(coords as any, geoLocation)) {
+        if (
+          !isWithinPolygon(assignmentCoords as any, geoLocation) &&
+          !isWithinPolygon(eventCoords as any, geoLocation)
+        ) {
           throw new Error('LOCATION_NOT_WITHIN_GEOFENCE');
         }
       }

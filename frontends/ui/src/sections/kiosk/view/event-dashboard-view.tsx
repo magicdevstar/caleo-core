@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { setMilliseconds, setSeconds } from 'date-fns';
+import { addMinutes, isAfter, setMilliseconds, setSeconds } from 'date-fns';
 // @mui
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -59,19 +59,21 @@ export default function EventDashboardView() {
     const awaitingArrival = assignedShifts?.filter((shift) =>
       !!shift.userId &&
       !shift.shiftCheckInOut?.noShow &&
-      !shift.shiftCheckInOut?.checkInTime &&
-      !shift.shiftCheckInOut?.checkOutTime &&
-      truncateToMinute(new Date(shift.startTime)) >= truncateToMinute(new Date())
+      !shift.shiftCheckInOut?.checkInTime
     );
 
     const late = assignedShifts?.filter((shift) => {
       const baseConditions = !!shift.userId && !shift.shiftCheckInOut?.noShow;
 
+      let userTime = truncateToMinute(new Date());
+      let startTimeExtension = 1;
+
       if (shift.shiftCheckInOut?.checkInTime) {
-        return baseConditions && (truncateToMinute(new Date(shift.shiftCheckInOut?.checkInTime)) > truncateToMinute(new Date(shift.startTime)));
+        userTime = truncateToMinute(new Date(shift.shiftCheckInOut?.checkInTime));
+        startTimeExtension = 15;
       }
 
-      return baseConditions && truncateToMinute(new Date(shift.startTime)) <= truncateToMinute(new Date());
+      return baseConditions && isAfter(userTime, addMinutes(truncateToMinute(new Date(shift.startTime)), startTimeExtension));
     });
 
     const checkedIn = assignedShifts?.filter((shift) =>

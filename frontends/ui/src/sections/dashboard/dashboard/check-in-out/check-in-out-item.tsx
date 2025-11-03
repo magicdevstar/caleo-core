@@ -39,7 +39,10 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
   const [comment, setComment] = useState('');
   const [addComment, { loading: addingCommentLoading }] = useMutation(ADD_SHIFT_COMMENT);
   const geoDetails = useMemo(() => {
-    const coords = shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence || shift.event?.geoFence : shift.event?.geoFence;
+    const coords = [
+      (shift.assignment?.allowOfficerCheckIn ? shift.assignment?.geoFence : undefined),
+      (shift.event?.allowOfficerCheckIn ? shift.event?.geoFence : undefined),
+    ].filter(Boolean);
     const requiresSpecificLocation = shift.assignment?.allowOfficerCheckIn || shift.event?.allowOfficerCheckIn;
 
     return {
@@ -127,7 +130,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
         {
           geoDetails.requiresSpecificLocation && !ignoreGeoFence ? (
             <PolygonDrawMap
-              initialPolygon={geoDetails.coords as [number, number][]}
+              initialPolygons={geoDetails.coords as [number, number][][]}
               disabled
               hideAttributionControl
               sx={mapSx || { height: 100, mt: 1 }}

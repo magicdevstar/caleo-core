@@ -8,7 +8,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { SxProps, Theme } from "@mui/material/styles";
 // utils
 import { DEFAULT_MAP_TILES } from "src/config-global";
-import { getCenterOfPolygon } from "src/utils/get-location";
+import { getCenterOfPolygon, getCenterOfPolygons } from "src/utils/get-location";
 import { useBoolean } from "src/hooks/use-boolean";
 import MapControl from "./map-control";
 import { styles } from "./polygon/styles";
@@ -28,6 +28,8 @@ import { StyledMapContainer } from './styles'
 export type PolygonDrawMapProps = {
   /** Array of [lng, lat] pairs (ring will be auto-closed internally). */
   initialPolygon?: number[][] | null;
+  /** Array of polygons, each being an array of [lng, lat] pairs */
+  initialPolygons?: (number[][] | null)[] | null;
   /** Fires whenever the polygon is created, updated, or deleted. */
   onPolygonChange?: (polygon: number[][] | null) => void;
   /** Initial pin location [lng, lat] */
@@ -48,6 +50,7 @@ export type PolygonDrawMapProps = {
 
 export default function PolygonDrawMap({
   initialPolygon,
+  initialPolygons,
   onPolygonChange,
   initialPin,
   onPinChange,
@@ -59,10 +62,17 @@ export default function PolygonDrawMap({
   sx,
 }: PolygonDrawMapProps) {
   const location = useGeolocation();
-  const center = useMemo(
-    () => (initialPolygon ? getCenterOfPolygon(initialPolygon as any) : null),
-    [initialPolygon],
-  );
+  const center = useMemo(() => {
+    // If we have multiple polygons, calculate center from all of them
+    if (initialPolygons && initialPolygons.length > 0) {
+      return getCenterOfPolygons(initialPolygons);
+    }
+    // Fall back to single polygon
+    if (initialPolygon) {
+      return getCenterOfPolygon(initialPolygon as any);
+    }
+    return null;
+  }, [initialPolygon, initialPolygons]);
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<any>(null);
   const loadedRef = useRef(false);
@@ -77,8 +87,10 @@ export default function PolygonDrawMap({
   const [pinMode, setPinMode] = useState(false);
 
   const handleOpenDialog = useCallback(() => {
-    dialogOpen.onTrue(initialPolygon);
-  }, [dialogOpen, initialPolygon]);
+    // Pass the appropriate polygon data to the dialog
+    const polygonData = initialPolygons && initialPolygons.length > 0 ? initialPolygons[0] : initialPolygon;
+    dialogOpen.onTrue(polygonData);
+  }, [dialogOpen, initialPolygon, initialPolygons]);
 
   const handlePinToggle = useCallback(() => {
     if (disabled) return;
@@ -152,6 +164,58 @@ export default function PolygonDrawMap({
       syncingRef.current = false;
     }, 0);
     return id;
+  };
+
+  const upsertPolygonsFromProp = (polygons: (number[][] | null)[] | null | undefined): string[] => {
+    const draw = drawRef.current;
+    if (!draw) return [];
+    syncingRef.current = true;
+    try {
+      draw.deleteAll();
+    } catch {
+      /* noop */
+    }
+    
+    const ids: string[] = [];
+    if (!polygons || polygons.length === 0) return ids;
+    
+    polygons.forEach((coords) => {
+      if (!coords || coords.length < 3) return;
+      
+      const closed = ensureClosedRing(coords);
+      const res = draw.add({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "Polygon", coordinates: [closed] },
+      });
+      
+      // MapboxDraw.add returns the created feature id or array of ids
+      let id: string | null = null;
+      if (Array.isArray(res)) {
+        id = res[0] ?? null;
+      } else if (typeof res === "string") {
+        id = res;
+      } else {
+        id = null;
+      }
+      
+      if (id) {
+        ids.push(id);
+      }
+    });
+    
+    // Update last emitted reference for all polygons
+    try {
+      lastEmittedRef.current = JSON.stringify(polygons?.map(p => normalizeRing(p)) || null);
+    } catch {
+      /* ignore */
+    }
+    
+    setTimeout(() => {
+      syncingRef.current = false;
+    }, 0);
+    
+    return ids;
   };
 
   // Initialize Draw control after the map has loaded
@@ -244,10 +308,47 @@ export default function PolygonDrawMap({
       }
     };
 
-    // Seed from initial polygon and fit view
+    // Seed from initial polygon(s) and fit view
     if (!loadedRef.current) {
       loadedRef.current = true;
-      if (initialPolygon && initialPolygon.length >= 3) {
+      
+      // Handle multiple polygons first
+      if (initialPolygons && initialPolygons.length > 0) {
+        const validPolygons = initialPolygons.filter(p => p && p.length >= 3);
+        if (validPolygons.length > 0) {
+          upsertPolygonsFromProp(initialPolygons);
+          
+          try {
+            // Calculate bounds for all polygons
+            const allCoords: number[][] = [];
+            validPolygons.forEach(polygon => {
+              if (polygon) {
+                allCoords.push(...polygon);
+              }
+            });
+            
+            if (allCoords.length > 0) {
+              const lngs = allCoords.map((c) => c[0]);
+              const lats = allCoords.map((c) => c[1]);
+              const minLng = Math.min(...lngs);
+              const minLat = Math.min(...lats);
+              const maxLng = Math.max(...lngs);
+              const maxLat = Math.max(...lats);
+              map.fitBounds(
+                [
+                  [minLng, minLat],
+                  [maxLng, maxLat],
+                ],
+                { padding: 40, animate: false },
+              );
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+      // Handle single polygon if no multiple polygons
+      else if (initialPolygon && initialPolygon.length >= 3) {
         try {
           const closed = ensureClosedRing(initialPolygon);
           const lngs = closed.map((c) => c[0]);
@@ -266,13 +367,20 @@ export default function PolygonDrawMap({
         } catch {
           /* ignore */
         }
-        // If enabled and a polygon exists, use simple_select without preselecting
-        if (!disabled) {
-          try {
+      }
+      
+      // Set drawing mode based on whether we have polygons and if editing is enabled
+      if (!disabled) {
+        const hasPolygons = (initialPolygons && initialPolygons.some(p => p && p.length >= 3)) || 
+                           (initialPolygon && initialPolygon.length >= 3);
+        try {
+          if (hasPolygons) {
             draw.changeMode("simple_select");
-          } catch {
-            /* ignore */
+          } else {
+            draw.changeMode("draw_polygon");
           }
+        } catch {
+          /* ignore */
         }
       }
     }
@@ -340,41 +448,65 @@ export default function PolygonDrawMap({
     onPinChange?.(newPin);
   }, [disabled, onPinChange]);
 
-  // Respond to external initialPolygon changes after mount
+  // Respond to external initialPolygon or initialPolygons changes after mount
   useEffect(() => {
     if (mapLoaded) {
-      // If incoming polygon equals current polygon, do nothing
-      try {
-        const current = getCurrentPolygon();
-        if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
-      } catch {
-        /* ignore */
-      }
-      const id = upsertPolygonFromProp(initialPolygon);
-      const draw = drawRef.current;
-      if (!disabled) {
-        try {
-          const featureId =
-            id ??
-            (draw?.getAll().features.find((f: any) => f.geometry?.type === "Polygon") as any)?.id;
-          if (featureId) {
-            draw.changeMode("simple_select");
-          } else {
-            // No polygon present: go to draw mode
-            draw.changeMode("draw_polygon");
+      // Prioritize initialPolygons over initialPolygon
+      if (initialPolygons && initialPolygons.length > 0) {
+        // Handle multiple polygons
+        const ids = upsertPolygonsFromProp(initialPolygons);
+        const draw = drawRef.current;
+        if (!disabled) {
+          try {
+            if (ids.length > 0) {
+              draw.changeMode("simple_select");
+            } else {
+              draw.changeMode("draw_polygon");
+            }
+          } catch {
+            /* ignore */
           }
+        } else {
+          try {
+            draw?.changeMode("static");
+          } catch {
+            /* ignore */
+          }
+        }
+      } else {
+        // Handle single polygon (existing logic)
+        try {
+          const current = getCurrentPolygon();
+          if (ringsEqual(current ?? null, initialPolygon ?? null)) return;
         } catch {
           /* ignore */
         }
-      } else {
-        try {
-          draw?.changeMode("static");
-        } catch {
-          /* ignore */
+        const id = upsertPolygonFromProp(initialPolygon);
+        const draw = drawRef.current;
+        if (!disabled) {
+          try {
+            const featureId =
+              id ??
+              (draw?.getAll().features.find((f: any) => f.geometry?.type === "Polygon") as any)?.id;
+            if (featureId) {
+              draw.changeMode("simple_select");
+            } else {
+              // No polygon present: go to draw mode
+              draw.changeMode("draw_polygon");
+            }
+          } catch {
+            /* ignore */
+          }
+        } else {
+          try {
+            draw?.changeMode("static");
+          } catch {
+            /* ignore */
+          }
         }
       }
     }
-  }, [initialPolygon, disabled, getCurrentPolygon, mapLoaded]);
+  }, [initialPolygon, initialPolygons, disabled, getCurrentPolygon, mapLoaded]);
 
   return (
     <>

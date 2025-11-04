@@ -27,7 +27,6 @@ function MyForm() {
   });
 
   const onSubmit = (data) => {
-    console.log('Polygon:', data.geofenceArea);
     // data.geofenceArea will be: [[lng1, lat1], [lng2, lat2], ...] or null
   };
 

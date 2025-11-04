@@ -51,14 +51,14 @@ const OverviewForm = Yup.object().shape({
     id: Yup.string().required(),
     name: Yup.string().nullable(),
     eventId: Yup.string().nullable(),
-    callSign: Yup.string().required(),
+    callSign: Yup.string().nullable(),
   }),
   customId: Yup.string().nullable(),
   checkInTime: Yup.date().nullable(),
   checkOutTime: Yup.date().nullable(),
   checkInEquipmentTime: Yup.date().nullable(),
   checkOutEquipmentTime: Yup.date().nullable(),
-  vehicleCategory: Yup.object().nullable(),
+  vehicleCategory: Yup.string().nullable(),
   checkInNote: Yup.string().nullable(),
   checkOutNote: Yup.string().nullable(),
   adminNotes: Yup.string().nullable(),
@@ -114,7 +114,7 @@ export const ShiftOverviewDialog = ({
     checkInNote: shift?.shiftCheckInOut?.checkInNote,
     checkOutNote: shift?.shiftCheckInOut?.checkOutNote,
     adminNotes: shift?.shiftCheckInOut?.adminNotes || '',
-    vehicleCategory: shift?.shiftCheckInOut?.equipmentDetails?.vehicleCategory || {},
+    vehicleCategory: shift?.shiftCheckInOut?.equipmentDetails?.vehicleCategory?.id,
     checkInEquipmentTime: shift?.shiftCheckInOut?.equipmentDetails?.checkInTime ? convertDate({
       date: new Date(shift.shiftCheckInOut.equipmentDetails.checkInTime),
       user
@@ -195,7 +195,7 @@ export const ShiftOverviewDialog = ({
 
       if (formData.vehicleCategory && vehicleCategories) {
         payload.equipmentDetails = payload.equipmentDetails || {};
-        payload.equipmentDetails.vehicleCategoryId = (formData.vehicleCategory as any).id;
+        payload.equipmentDetails.vehicleCategoryId = formData.vehicleCategory;
       }
 
       if (formData.checkInEquipmentTime) {

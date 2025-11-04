@@ -50,7 +50,7 @@ export default function ShiftOverviewDetail({
           // multiple tag values
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {normalizedValue.map((v: any) => (
-              <Label key={v} color={tagColor} variant={tagVariant}>
+              <Label key={v} color={tagColor} variant={tagVariant} sx={{ whiteSpace: 'break-spaces', lineHeight: 1.5, height: 'auto' }}>
                 {v}
               </Label>
             ))}
@@ -59,7 +59,7 @@ export default function ShiftOverviewDetail({
       }
       // single tag value
       return normalizedValue ? (
-        <Label color={tagColor} variant={tagVariant}>
+        <Label color={tagColor} variant={tagVariant} sx={{ whiteSpace: 'break-spaces', lineHeight: 1.5, height: 'auto' }}>
           {normalizedValue}
         </Label>
       ) : (

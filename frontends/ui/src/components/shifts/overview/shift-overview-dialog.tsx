@@ -317,7 +317,7 @@ export const ShiftOverviewDialog = ({
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
             <ShiftOverviewSection icon="mdi-report" title="Reporting Instructions">
-              <ShiftOverviewReporting assignment={shift?.assignment} event={shift?.event} />
+              <ShiftOverviewReporting assignment={shift?.assignment} event={shift?.event} shift={shift} />
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
             <ShiftOverviewSection icon="clarity:group-solid" title="Team">

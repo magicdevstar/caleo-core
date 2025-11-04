@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 // types
-import { Assignment, Event } from 'src/__generated__/resolvers-types'
+import { Assignment, Event, Shift } from 'src/__generated__/resolvers-types'
 // @mui
 import Stack from '@mui/material/Stack';
 import Grid from "@mui/material/Grid";
@@ -13,11 +13,12 @@ import PolygonDrawMap from 'src/components/map/map-polygon';
 import ShiftOverviewDetail from './shift-overview-detail';
 
 type Props = {
+  shift?: Shift;
   event?: Event;
   assignment?: Assignment
 }
 
-export default function ShiftOverviewReporting ({ assignment, event }: Props) {
+export default function ShiftOverviewReporting ({ shift, assignment, event }: Props) {
   const { timeFormat } = useDateFormats();
   const { user } = useAuthContext();
 
@@ -52,7 +53,7 @@ export default function ShiftOverviewReporting ({ assignment, event }: Props) {
     assignment?.reportingLocation || assignment?.reportingLocationDetails?.fullAddress || event?.reportingLocation?.fullAddress || 'N/A', [assignment,  event]);
 
   const reportingTime = useMemo(() => {
-    const rawReportTime = assignment?.reportingTime || event?.reportingTime;
+    const rawReportTime = assignment?.reportingTime || event?.reportingTime || shift?.startTime;
     if (!rawReportTime) {
       return null;
     }
@@ -60,7 +61,7 @@ export default function ShiftOverviewReporting ({ assignment, event }: Props) {
       date: new Date(rawReportTime),
       user
     }).format(timeFormat);
-  }, [assignment, event, timeFormat, user]);
+  }, [shift,assignment, event, timeFormat, user]);
 
   const briefingTime = useMemo(() => {
     const rawBriefingTime = assignment?.briefingTime || event?.briefingTime;
@@ -90,7 +91,7 @@ export default function ShiftOverviewReporting ({ assignment, event }: Props) {
             disabled
           />
         </Box>}
-        <ShiftOverviewDetail label='Uniform for the Shift' value={assignment?.uniform} tag />
+        <ShiftOverviewDetail label='Uniform for the Shift' value={assignment?.uniform || event?.uniform || 'N/A'} tag />
         <ShiftOverviewDetail label='Briefing Time' value={briefingTime} tagColor="info" tagVariant="filled" tag />
         <ShiftOverviewDetail label='Briefing Location' value={assignment?.briefingLocation || event?.briefingLocation || 'N/A'} />
       </Grid>

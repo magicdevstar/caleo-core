@@ -1431,6 +1431,7 @@ export const GET_SHIFT_OVERVIEW = gql`
         briefingLocation
         reportingTime
         geoFence
+        fieldSupervisorAssignmentId
         reportingLocation {
           fullAddress
           location {
@@ -1448,6 +1449,7 @@ export const GET_SHIFT_OVERVIEW = gql`
           callSign
           shifts {
             id
+            callSign
             user {
               id
               name
@@ -1467,22 +1469,6 @@ export const GET_SHIFT_OVERVIEW = gql`
           isSigningAuthority
           callSign
           eventId
-          shifts {
-            id
-            callSign
-            user {
-              id
-              name
-              image
-              member {
-                contactInfo {
-                  primaryPhone {
-                    number
-                  }
-                }
-              }
-            }
-          }
         }
         venue {
           id
@@ -1503,6 +1489,7 @@ export const GET_SHIFT_OVERVIEW = gql`
         geoFence
         allowOfficerCheckIn
 
+        fieldSupervisorAssignmentId
         uniform
         radioFrequency
         briefingTime
@@ -1511,6 +1498,23 @@ export const GET_SHIFT_OVERVIEW = gql`
         reportingTime
 
         useFieldSupervisorAssignmentOverride
+
+        shifts {
+          id
+          callSign
+          user {
+            id
+            name
+            image
+            member {
+              contactInfo {
+                primaryPhone {
+                  number
+                }
+              }
+            }
+          }
+        }
 
         fieldSupervisorAssignment {
           id

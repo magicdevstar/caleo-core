@@ -36,6 +36,8 @@ const EditVenue = lazyWithRetry(() => import('src/pages/dashboard/admin/overtime
 const Events = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 const EventsTemplates = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/events'));
 const EventDashboards = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/eventDashboards'));
+const EventOperationsTable = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/event-operations-table'));
+const EventOperations = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/event-operations'));
 const EventsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editEvent'));
 const AssignmentsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editAssignment'));
 const EditEvent = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editEvent'));
@@ -76,6 +78,8 @@ export const dashboardRoutes = [
             path: 'event-management',
             children: [
               { path: 'dashboards', element: <EventDashboards /> },
+              { path: 'operations', element: <EventOperationsTable /> },
+              { path: 'operations/:eventId', element: <EventOperations /> },
               { path: 'finance-unit', element: <FinanceUnit /> },
               { path: 'finance-unit/:eventId', element: <FinanceUnitDetail /> },
             ]

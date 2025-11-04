@@ -48,12 +48,12 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import DropDownButton from 'src/components/dropdown-button/dropdown-button';
-import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { InterestList } from 'src/components/interest-list/interest-list';
 import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useEndOfShiftDownload } from 'src/hooks/use-download-end-of-shift';
 import { EditShiftIdModel } from 'src/components/shifts/edit-shift-id-modal';
+import { ShiftOverviewDialog } from 'src/components/shifts/overview/shift-overview-dialog';
 import { AssignShiftModal } from './assign-shift';
 
 // ----------------------------------------------------------------------
@@ -101,7 +101,7 @@ export default function EditShift({
   } = useFeatures();
   const { downloadEndOfShiftPDF } = useEndOfShiftDownload();
   const [editShiftId, setEditShiftId] = useState<string | null>();
-  const editCheckInOutModal = useBoolean();
+  const editCheckInOutModal = useBoolean<Shift>();
   const deleteConfirm = useBoolean();
   const createSlotsConfirm = useBoolean();
   const createSlotsLoading = useBoolean();
@@ -112,7 +112,6 @@ export default function EditShift({
   const editCustomId = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
   const editCallSign = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
   const [shiftsToCreate, setShiftsToCreate] = useState<number>(1);
-  const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
   const [unassignReason, setUnassignReason] = useState<string>('');
   const [lockShift, setLockShift] = useState<Shift | null>();
   const [callSign, setCallSign] = useState<string>('');
@@ -246,8 +245,7 @@ export default function EditShift({
   };
 
   const clickCheckInOut = (row: Shift) => {
-    setEditCheckInOut(row);
-    editCheckInOutModal.onTrue();
+    editCheckInOutModal.onTrue(row);
   };
 
   const openRemoveShift = useCallback((id: string) => {
@@ -882,7 +880,13 @@ export default function EditShift({
 
       <InterestList open={showInterestList} interestList={shiftInterestRequests || []} />
 
-      <EditCheckInOut
+      <ShiftOverviewDialog
+        isAdminView
+        closeOnSave
+        controller={editCheckInOutModal}
+        refetch={refetch}
+      />
+      {/* <EditCheckInOut
         refetch={refetch}
         shift={editCheckInOut!}
         editCheckInOutModal={editCheckInOutModal}
@@ -892,7 +896,7 @@ export default function EditShift({
             setEditCheckInOut(null);
           }, 200);
         }}
-      />
+      /> */}
       <AssignShiftModal
         shiftId={editShiftId}
         shiftStartTime={currentShifts?.[0]?.startTime}

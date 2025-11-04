@@ -1,10 +1,12 @@
 import { DocumentNode } from "graphql";
+import { Theme, SxProps } from '@mui/material/styles';
 import { MemberStatus } from "src/__generated__/resolvers-types";
 
 export interface TableConfig<T> {
   header: {
     title: string;
     titleVariant?: string;
+    titleSx?: SxProps<Theme>;
     buttons?: {
       key: string;
       text?: string;

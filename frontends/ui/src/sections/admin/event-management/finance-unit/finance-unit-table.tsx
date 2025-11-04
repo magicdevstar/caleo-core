@@ -5,14 +5,14 @@ import { Event, EventStatus } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
 import { GET_ALL_EVENTS } from 'src/api/event';
 import { paths } from 'src/routes/paths';
-import { useBoolean } from 'src/hooks/use-boolean';
-import KioskOpenDialog from 'src/components/custom-dialog/kiosk-dialog';
 
 // ----------------------------------------------------------------------
 
-export default function FinanceUnitTable() {
-  const kioskConfirm = useBoolean<string>();
-
+export default function FinanceUnitTable({
+  pathLink = paths.dashboard.admin.eventManagement.financeUnitDetail,
+}: {
+  pathLink?: string;
+}) {
   const config: TableConfig<Event> = {
     header: {
       title: 'Events'
@@ -39,13 +39,13 @@ export default function FinanceUnitTable() {
         label: 'Ref #',
         columnType: 'string',
         width: 100,
-        getHref: (row: any) => paths.dashboard.admin.eventManagement.financeUnitDetail.replace(':eventId', row.id),
+        getHref: (row: any) => pathLink.replace(':eventId', row.id),
       },
       {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        getHref: (row: any) => paths.dashboard.admin.eventManagement.financeUnitDetail.replace(':eventId', row.id),
+        getHref: (row: any) => pathLink.replace(':eventId', row.id),
       },
       { id: 'startTime', label: 'Starts At', width: 160, columnType: 'date' },
       {
@@ -134,9 +134,6 @@ export default function FinanceUnitTable() {
   };
 
   return (
-    <>
-      <GQLTable config={config} />
-      <KioskOpenDialog kioskConfirm={kioskConfirm} eventId={kioskConfirm.attribute || ''} />
-    </>
+    <GQLTable config={config} />
   );
 };

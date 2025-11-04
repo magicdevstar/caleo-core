@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { ApolloQueryResult } from '@apollo/client';
 // @mui
 import { useTheme, alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -20,20 +21,26 @@ import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { useFeatures } from 'src/hooks/use-features';
 import { mixedTypeSort } from 'src/utils/mixed-type-sort';
 import { IShiftData } from 'src/types/event-dashboard';
+import { ShiftData } from 'src/api/shifts';
 import Row from './row';
+import { IShiftTableHead } from './types';
 
 export default function ShiftTable({
+  tableHead,
   data,
   loading,
+  refetch,
 }: {
+  tableHead?: IShiftTableHead[];
   loading: boolean;
   data: IShiftData;
+  refetch: () => Promise<ApolloQueryResult<ShiftData>>;
 }) {
   const { eventCheckIn, eventCheckOut, customizableShiftId, docusignCheckout } = useFeatures();
   const totalUnassigned = data.unassignedShifts.total;
   const { total } = data.assignedShifts;
   const { pNumberLabel } = usePNumberLabel();
-  const TABLE_HEAD = [
+  const TABLE_HEAD = tableHead || [
     customizableShiftId ? { id: 'customId', label: 'Shift Id' } : { id: 'refNumber', label: 'Slot Ref #' },
     { id: 'callSign', label: 'Call Sign' },
     { id: 'user.name', label: 'Name' },
@@ -91,6 +98,12 @@ export default function ShiftTable({
         count: totalCheckedIn,
       },
     ] : [] as any),
+    {
+      value: 'demobilized',
+      label: 'Demobilized',
+      color: 'secondary',
+      count: data.demobilized.total,
+    },
     ...(eventCheckOut ? [
       {
         value: 'checkedOut',
@@ -126,6 +139,9 @@ export default function ShiftTable({
         break;
       case 'checkedIn':
         fData = data.checkedIn.items;
+        break;
+      case 'demobilized':
+        fData = data.demobilized.items;
         break;
       case 'checkedOut':
         fData = data.checkedOut.items;
@@ -210,7 +226,9 @@ export default function ShiftTable({
                 {finalData?.map((row) => (
                   <Row
                     key={row.id}
+                    header={TABLE_HEAD}
                     row={row}
+                    refetch={refetch}
                   />
                 ))}
 

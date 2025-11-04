@@ -1,3 +1,4 @@
+import { DEMOBILIZE } from "../models/eventNotifications/eventNotifications.const";
 import { MailerEvents } from "./mailer";
 
 export const InAppTemplates = {
@@ -238,5 +239,21 @@ export const InAppTemplates = {
   }) => ({
     title: 'An event request has been submitted!',
     body: `Please review the new event request for ${eventName} #${eventRefNumber}.`,
+  }),
+  [MailerEvents.OfficerDemobilize]: ({
+    assignmentName,
+    eventName,
+  }) => ({
+    title: `${eventName}: ${assignmentName} - ${DEMOBILIZE.title}`,
+    body: DEMOBILIZE.description,
+  }),
+  [MailerEvents.OfficerDirectEventNotification]: ({
+    title,
+    description,
+    eventName,
+    assignmentName,
+  }) => ({
+    title: `${eventName}: ${assignmentName} - ${title}`,
+    body: description,
   }),
 };

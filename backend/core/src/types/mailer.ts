@@ -53,6 +53,8 @@ export enum MailerEvents {
   EventRequestedApproved = 'EventRequestedApproved',
   EventRequestedRejected = 'EventRequestedRejected',
   MissingOCN = 'MissingOCN',
+  OfficerDirectEventNotification = 'OFFICER_DIRECT_EVENT_NOTIFICATION',
+  OfficerDemobilize = 'OFFICER_DEMOBILIZE',
 };
 
 export enum SMSEvents {

@@ -156,6 +156,7 @@ export default function GQLTable({
             width: '100%',
             p: 2,
             pb: 0,
+            ...(config?.header?.titleSx || {}),
           }}>
             <Typography variant={(config.header.titleVariant as any) || "h4"}> { config.header.title } </Typography>
             <Stack direction="row" spacing={2}>

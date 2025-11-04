@@ -22,6 +22,7 @@ import {
   NotificationsPopover,
 } from '../_common';
 import NotificationRequestModal from '../_common/notification-request-modal';
+import ActiveShift from '../_common/active-shift/active-shift';
 
 // ----------------------------------------------------------------------
 
@@ -82,6 +83,7 @@ export default function Header({ onOpenNav }: Props) {
         spacing={{ xs: 0.5, sm: 1 }}
       >
 
+        <ActiveShift />
         <NotificationsPopover />
 
         {/* <SettingsButton /> */}

@@ -1,6 +1,7 @@
 import { Marker, MarkerProps } from 'react-map-gl/maplibre';
 // @mui
 import Box from '@mui/material/Box';
+import { MouseEventHandler } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -14,23 +15,29 @@ const ICON = `M20.2,15.7L20.2,15.7c1.1-1.6,1.8-3.6,1.8-5.7c0-5.6-4.5-10-10-10S2,
 
 interface Props extends MarkerProps {
   index?: number;
+  onMouseOver?: MouseEventHandler<SVGSVGElement>;
+  onMouseOut?: MouseEventHandler<SVGSVGElement>;
 }
 
-export default function MapMarker({ index, ...other }: Props) {
+export default function MapMarker({ index, onMouseOver, onMouseOut, ...other }: Props) {
   return (
     <Marker {...other}>
       <Box
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
         component="svg"
         viewBox="0 0 24 24"
         sx={{
+          width: SIZE,
           height: SIZE,
           stroke: 'none',
           cursor: 'pointer',
           fill: (theme) => index ? theme.palette.primary.main : theme.palette.error.main,
-          transform: `translate(${-SIZE / 2}px,${-SIZE}px)`,
+          transform: `translate(${-SIZE / 2 + 2}px, ${-SIZE + 2}px)`,
+          transformOrigin: 'center bottom',
         }}
       >
-        <path d={ICON} />
+        <path fill={other.color} d={ICON} />
       </Box>
     </Marker>
   );

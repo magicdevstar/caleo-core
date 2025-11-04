@@ -5,6 +5,16 @@ export interface IItemData {
   total: number;
 };
 
+export interface IMarkerDetails {
+  name: string;
+  latitude: number;
+  longitude: number;
+  status?: string;
+  callSign?: string;
+  shiftId?: string;
+  color?: string;
+};
+
 export interface IShiftData {
   shifts: IItemData;
   awaitingArrival: IItemData;
@@ -12,6 +22,12 @@ export interface IShiftData {
   checkedOut: IItemData;
   noShow: IItemData;
   late: IItemData;
+  demobilized: IItemData;
   assignedShifts: IItemData;
   unassignedShifts: IItemData;
+  markerLocationsCenter?: {
+    latitude: number;
+    longitude: number;
+  } | false,
+  markerLocations?: IMarkerDetails[];
 };

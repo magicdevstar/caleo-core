@@ -15,7 +15,6 @@ import {
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from 'src/hooks/use-features';
-import RHFAutocompleteGeocode from 'src/components/hook-form/rhf-autocomplete-geocode';
 import { useFormContext } from 'react-hook-form';
 import { GET_ASSIGNMENT_DIVISIONS } from 'src/api/assignmentDivision';
 import { GET_ASSIGNMENT_GROUPS } from 'src/api/assignmentGroup';
@@ -82,19 +81,12 @@ export const EditReportingLocation = ({
           {!mdUp && <CardHeader title="Reporting Details" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <GeoFenceDefinition checkLabel={checkLabel} />
+            <GeoFenceDefinition checkLabel={checkLabel} disabledInput={disabledInput} />
 
             {lasdEventFields && (
               <>
-                {
-                  mapboxReportingLocation ? (
-                    <RHFAutocompleteGeocode disabled={disabledInput} name="reportingLocationAddress" label="Reporting Location" />
-                  ) : (
-                    <RHFTextField disabled={disabledInput} name="reportingLocation" label="Reporting Location" />
-                  )
-                }
-                <RHFDateTimePicker disabled={disabledInput} name="reportingTime" label="Reporting Time" />
                 <RHFTextField disabled={disabledInput} name="uniform" label="Uniform" />
+                <RHFTextField disabled={disabledInput} name="radioFrequency" label="Radio Frequency" />
                 <RHFDateTimePicker disabled={disabledInput} name="briefingTime" label="Briefing Time" />
                 <RHFTextField disabled={disabledInput} name="briefingLocation" label="Briefing Location" />
                 {

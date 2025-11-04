@@ -15,7 +15,7 @@ import { SxProps } from "@mui/material";
 // components
 import Image from "src/components/image";
 // types
-import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
+import { MemberRole, Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -26,10 +26,12 @@ import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useAuthContext } from "src/auth/hooks";
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useFeatures } from "src/hooks/use-features";
+import { useBoolean } from "src/hooks/use-boolean";
 import { useLazyQuery } from "@apollo/client";
 import { GET_EVENT_NOTES } from "src/api/event";
 import { GET_ASSIGNMENT_DESCRIPTION } from "src/api/assignment";
 import { StyledMapContainer } from "../map/styles";
+import { ShiftOverviewDialog } from "./overview/shift-overview-dialog";
 
 export type ShiftAction = {
   key: string;
@@ -92,6 +94,7 @@ export default function ShiftItem({
   sx?: SxProps,
 }) {
   const { dateTimeFormat } = useDateFormats();
+  const shiftOverview = useBoolean<Shift>();
   const { user } = useAuthContext();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
   const popover = usePopover();
@@ -534,7 +537,14 @@ export default function ShiftItem({
                 </Stack>
               )
             }
-            {renderShiftActions}
+            {
+              lasdEventFields ? (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Button size="small" variant="outlined" onClick={(e) => shiftOverview.onTrue(shift)}>Details</Button>
+                  {renderShiftActions}
+                </Stack>
+              ) : (renderShiftActions)
+            }
             {selectable && (selectLoading ? <CircularProgress color="info" size={22} thickness={5} /> :
               <Checkbox
                 checked={!!shift.lotteryRequest}
@@ -690,6 +700,8 @@ export default function ShiftItem({
           </Grid>
         </Stack>
       </Stack>
+
+      <ShiftOverviewDialog controller={shiftOverview} isAdminView={user?.member?.role === MemberRole.Admin} />
 
       <CustomPopover
         open={popover.open}

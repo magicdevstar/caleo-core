@@ -439,6 +439,7 @@
     autoAssignInterestList: Boolean
 
     bodyWarnTag: String
+    radioFrequency: String
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
@@ -556,6 +557,7 @@
     branchId: ObjectId
     assignmentGroupId: ObjectId
     reportingTime: DateTime
+    radioFrequency: String
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
@@ -786,6 +788,7 @@
     shiftCheckInOut: ShiftCheckInOut
     docusignEnvelopeId: String
     hasComments: Boolean!
+    demobilizedTime: DateTime
 
     calculatedShiftDetails: CalculatedShiftDetails
     shiftComment: ShiftComment
@@ -890,6 +893,7 @@
     CHECK_IN
     CHECK_OUT
     OFFICER_COMMENT_ADDED
+    DEMOBILIZED
 
     # Incident actions
     DRAFTED
@@ -1005,6 +1009,7 @@
     overtimeNarrative: String
 
     bodyWarnTag: String
+    radioFrequency: String
     uniform: String
     briefingTime: DateTime
     briefingLocation: String
@@ -1086,6 +1091,7 @@
     geoFence: [[Float]]
     reportingLocationDetails: UpsertReportingLocation
     uniform: String
+    radioFrequency: String
     briefingTime: DateTime
     briefingLocation: String
     includeDriveTime: Boolean
@@ -1718,6 +1724,7 @@ type DocusignSignerDetailsData {
     financeUnit: Boolean!
     showShiftsByEvent: Boolean!
     mapboxReportingLocation: Boolean!
+    operationsUnit: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1947,6 +1954,7 @@ type DocusignSignerDetailsData {
     financeUnit: Boolean
     showShiftsByEvent: Boolean
     mapboxReportingLocation: Boolean
+    operationsUnit: Boolean
   }
 
   input UpsertInterestListSetting {
@@ -2037,6 +2045,38 @@ type DocusignSignerDetailsData {
     ranks: [Rank]!
     memberNotification: MemberNotification
     modifiedBy: User
+  }
+
+  type EventNotification {
+    id: ID!
+    eventId: ObjectId
+    assignmentId: ObjectId
+    shiftId: ObjectId
+    title: String!
+    description: String!
+    attachmentPaths: [String]
+
+    orgId: ObjectId!
+    createdById: ObjectId
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    removedAt: DateTime
+    modifiedById: ObjectId
+
+    attachments: [String!]
+    org: Organization!
+    createdBy: User
+    modifiedBy: User
+  }
+
+  input CreateEventNotification {
+    # We will set either a eventId, assignmentId, or shiftId based on what the notification is for
+    eventId: ObjectId
+    assignmentId: ObjectId
+    shiftId: ObjectId
+    title: String!
+    description: String!
+    attachmentPaths: [String]
   }
 
   # These are notifications that will replace SMS notifications
@@ -2718,6 +2758,23 @@ type DocusignSignerDetailsData {
     order: String
   }
 
+  type EventNotificationSearchResult {
+    items: [EventNotification!]
+    total: Int!
+  }
+
+  input EventNotificationSearchInput {
+    limit: Int
+    skip: Int
+    query: String
+    active: Boolean
+    orderBy: String
+    order: String
+    eventId: ObjectId!
+    assignmentId: ObjectId!
+    shiftId: ObjectId!
+  }
+
   type InAppNotificationSearchResult {
     items: [InAppNotifications]
     total: Int!
@@ -2846,6 +2903,7 @@ type Query {
 
   event(id: String!): Event
   events(input: EventSearchInput): EventSearchResult
+  eventNotifications(input: EventNotificationSearchInput): EventNotificationSearchResult
 
   incidentForms(input: IncidentFormSearchInput, report: Boolean): IncidentFormSearchResult
   incidentForm(id: ObjectId!): IncidentForm
@@ -2958,6 +3016,9 @@ type Mutation {
 
   assignment(assignment: UpsertAssignment!): Assignment
   removeAssignment(id: String!): ID!
+  demobilized(assignmentId: ObjectId!): Boolean
+  eventNotification(input: CreateEventNotification!): EventNotification
+  eventNotificationAttachmentUploadUrl: EventAttachmentUpload
 
   shifts(shifts: [UpsertShift]!, removeSlots: Boolean): [Shift]
   partialShiftUpdate(shiftId: String!, updates: ShiftUpdates!): String

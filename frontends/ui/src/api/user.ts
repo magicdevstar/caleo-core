@@ -64,6 +64,7 @@ const userDetailProperties = `
         financeUnit
         showShiftsByEvent
         mapboxReportingLocation
+        operationsUnit
       }
       customizations {
         pNumber

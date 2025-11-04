@@ -49,6 +49,7 @@ import { EventUserActionRepo } from "../models/eventUserActions/eventUserAction.
 import { BranchModel } from "../models/branch";
 import { AssignmentDivisionModel } from "../models/assignmentDivision";
 import { AssignmentGroupModel } from "../models/assignmentGroup";
+import { EventNotificationModel } from "../models/eventNotifications/eventNotifications.repository";
 
 let db: Db;
 
@@ -94,6 +95,7 @@ export interface Context {
   shiftBufferRequests: ShiftBufferRequestModel;
   shiftLotteryRequests: ShiftLotteryRequestModel;
   memberNotifications: MemberNotificationModel;
+  eventNotifications: EventNotificationModel;
   scheduler: SchedulerModel;
   interestList: InterestListService;
   invoiceService: InvoiceService;
@@ -142,6 +144,7 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
   const branches = new BranchModel(db);
   const unit = new UnitModel(db);
   const equipments = new EquipmentModel(db);
+  const eventNotifications = new EventNotificationModel(db, document);
   const shiftBufferRequests = new ShiftBufferRequestModel(db);
   const shiftLotteryRequests = new ShiftLotteryRequestModel(db, lotteryCounter);
   const events = new EventModel(db, document, shifts);
@@ -263,5 +266,6 @@ export const createContext = async (client?: MongoClient): Promise<IServiceConte
     incidentSubmissionModel,
     finance,
     eventUserActions,
+    eventNotifications,
   };
 };

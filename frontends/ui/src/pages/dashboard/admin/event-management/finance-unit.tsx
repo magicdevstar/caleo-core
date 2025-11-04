@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 // sections
-import FinanceUnitView from 'src/sections/admin/event-management/views/finance-unit';
+import FinanceUnitView from 'src/sections/admin/event-management/views/event-table';
 
 // ----------------------------------------------------------------------
 

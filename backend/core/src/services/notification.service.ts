@@ -191,6 +191,58 @@ export class NotificationService {
     }));
   }
 
+  async demobilizeNotification({
+    organization,
+    assignmentId,
+  }: {
+    id: ObjectId;
+    organization: IOrganization;
+    assignmentId: ObjectId;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerDemobilize,
+        data: {
+          organization,
+          assignmentId,
+        }
+      } as MailerEvent),
+    }));
+  }
+
+  async directEventNotification({
+    id,
+    title,
+    description,
+    organization,
+    assignmentId,
+  }: {
+    id: ObjectId;
+    title: string;
+    description: string;
+    organization: IOrganization;
+    assignmentId: ObjectId;
+  }) {
+    await lambda.send(new InvokeCommand({
+      FunctionName: process.env.MAILER_LAMBDA!,
+      InvocationType: 'Event',
+      Payload: JSON.stringify({
+        action: Action.Email,
+        template: MailerEvents.OfficerDirectEventNotification,
+        data: {
+          notificationId: id,
+          title,
+          description,
+          assignmentId,
+          organization,
+        }
+      } as MailerEvent),
+    }));
+  }
+
   async eventChange({
     eventId,
     orgId,

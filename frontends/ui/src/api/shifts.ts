@@ -548,11 +548,12 @@ export const GET_ALL_SHIFTS = gql`
 `;
 
 export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
-  query GetAllShifts($input: ShiftSearchInput!) {
+  query GetShiftsForEventDashboard($input: ShiftSearchInput!) {
     shifts(input: $input) {
       items {
         id
         shiftId
+        assignmentId
         startTime
         endTime
         status
@@ -562,6 +563,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         locked
         callSign
         docusignEnvelopeId
+        demobilizedTime
         hasComments
         shiftComment {
           id
@@ -604,6 +606,12 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         event {
           id
           name
+          reportingLocation {
+            location {
+              latitude
+              longitude
+            }
+          }
         }
         user {
           id
@@ -635,6 +643,12 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           id
           name
           callSign
+          reportingLocationDetails {
+            location {
+              latitude
+              longitude
+            }
+          }
           requiredEquipment {
             id
             name
@@ -759,7 +773,7 @@ export const GET_OFFICER_REPORT_SHIFTS = gql`
 `;
 
 export const DYNAMIC_SHIFT_SEARCH = gql`
-  query GetAllShifts($input: ShiftSearchInput!) {
+  query GetDynamicShiftSearch($input: ShiftSearchInput!) {
     shifts(input: $input) {
       items {
         id
@@ -1121,7 +1135,7 @@ query GetShiftDetails($id: String!) {
 `;
 
 export const GET_SHIFT_DETAILS_SLIM = gql`
-  query GetAllShifts($input: ShiftSearchInput!) {
+  query GetShiftDetailsSlim($input: ShiftSearchInput!) {
     shifts(input: $input) {
       items {
         id
@@ -1312,6 +1326,230 @@ export const UPSERT_SHIFTS = gql`
     }
   }
 `;
+
+export const GET_SHIFT_OVERVIEW = gql`
+  query GetShiftOverview($id: String!) {
+    shift(id: $id) {
+      id
+      assignmentId
+      shiftId
+      startTime
+      endTime
+      demobilizedTime
+      customId
+      refNumber
+      userId
+      locked
+      callSign
+      userId
+      user {
+        id
+        name
+        member {
+          pNumber
+          rank {
+            id
+            name
+          }
+          unit {
+            id
+            name
+          }
+          division {
+            id
+            name
+          }
+        }
+      }
+      docusignEvent {
+        id
+        status
+        documentUrl
+        signerDetails {
+          roleName
+          status
+          data {
+            callSign
+            vehicleModel
+            vehicleNumber
+            vehicleMake
+            endingMilage
+            totalMilage
+            startingMilage
+          }
+        }
+      }
+      shiftCheckInOut {
+        checkInTime
+        checkOutTime
+        checkInNote
+        checkOutNote
+        noShow
+        equipmentDetails {
+          checkInTime
+          checkOutTime
+          vehicleCategory {
+            id
+            name
+          }
+        }
+        adminNotes
+        checkInCoords {
+          accuracy
+          altitude
+          altitudeAccuracy
+          heading
+          latitude
+          longitude
+          speed
+        }
+        checkOutCoords {
+          accuracy
+          altitude
+          altitudeAccuracy
+          heading
+          latitude
+          longitude
+          speed
+        }
+      }
+      event {
+        id
+        referenceId
+        name
+        attachments
+        startTime
+        endTime
+        thumbnailUrl
+        status
+        allowOfficerCheckIn
+        bodyWarnTag
+        commandPostContactNumber
+        uniform
+        radioFrequency
+        briefingTime
+        briefingLocation
+        reportingTime
+        geoFence
+        reportingLocation {
+          fullAddress
+          location {
+            latitude
+            longitude
+          }
+        }
+        overrideSupervisor {
+          id
+          name
+        }
+        fieldSupervisorAssignment {
+          id
+          name
+          callSign
+          shifts {
+            id
+            user {
+              id
+              name
+              member {
+                contactInfo {
+                  primaryPhone {
+                    number
+                  }
+                }
+              }
+            }
+          }
+        }
+        assignments {
+          id
+          name
+          isSigningAuthority
+          callSign
+          eventId
+          shifts {
+            id
+            callSign
+            user {
+              id
+              name
+              image
+              member {
+                contactInfo {
+                  primaryPhone {
+                    number
+                  }
+                }
+              }
+            }
+          }
+        }
+        venue {
+          id
+          name
+          address
+          city
+          state
+          zip
+          phone
+        }
+      }
+      assignment {
+        id
+        name
+        bwNeeded
+        callSign
+        reportingLocation
+        geoFence
+        allowOfficerCheckIn
+
+        uniform
+        radioFrequency
+        briefingTime
+        briefingLocation
+        includeDriveTime
+        reportingTime
+
+        useFieldSupervisorAssignmentOverride
+
+        fieldSupervisorAssignment {
+          id
+          name
+          callSign
+          shifts {
+            id
+            user {
+              id
+              name
+              member {
+                contactInfo {
+                  primaryPhone {
+                    number
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        assignmentDivision {
+          id
+          name
+        }
+
+        assignmentGroup {
+          id
+          name
+        }
+
+        branch {
+          id
+          name
+        }
+      }
+    }
+  }
+`
 
 export const UPDATE_SHIFTS = gql`
   mutation UpdateShifts($shiftId: String!, $updates: ShiftUpdates!) {

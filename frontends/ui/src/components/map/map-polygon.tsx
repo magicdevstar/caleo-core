@@ -88,7 +88,7 @@ export default function PolygonDrawMap({
 
   const handleOpenDialog = useCallback(() => {
     // Pass the appropriate polygon data to the dialog
-    const polygonData = initialPolygons && initialPolygons.length > 0 ? initialPolygons[0] : initialPolygon;
+    const polygonData = initialPolygons && initialPolygons.length > 0 ? initialPolygons : [initialPolygon];
     dialogOpen.onTrue(polygonData);
   }, [dialogOpen, initialPolygon, initialPolygons]);
 
@@ -555,7 +555,7 @@ export default function PolygonDrawMap({
       </StyledMapContainer>
       <MapExpandDialog dialogOpen={dialogOpen}>
         { dialogOpen.attribute && (
-          <PolygonDrawMap sx={{ height: '100%' }} disabled hideExpandControl initialPolygon={dialogOpen.attribute} />
+          <PolygonDrawMap sx={{ height: '100%' }} disabled hideExpandControl initialPolygons={dialogOpen.attribute} />
         )}
       </MapExpandDialog>
     </>

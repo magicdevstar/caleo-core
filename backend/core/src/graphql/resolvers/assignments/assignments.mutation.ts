@@ -4,8 +4,70 @@ import { adminOnly } from "../../../utils/access";
 import { ObjectId } from "mongodb";
 import { IAssignment } from "../../../models/assignment";
 import { EventRemoveEventType } from "../../../models/event";
+import { IShift } from "../../../models/shift";
+import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType } from "../../../__generated__/resolvers-types";
+import { IEventNotification } from "../../../models/eventNotifications/eventNotifications.entity";
+import { DEMOBILIZE } from "../../../models/eventNotifications/eventNotifications.const";
 
 export const Mutation = {
+  demobilized: async (
+    _parent: unknown,
+    { assignmentId }: { assignmentId: ObjectId },
+    { shifts, eventUserActions, notificationService, eventNotifications, user, organization }: Context,
+  ): Promise<boolean> => {
+    adminOnly(user);
+
+    const shiftFilter: any = {
+      assignmentId,
+      userId: {$exists: true},
+      removedAt: { $exists: false },
+      demobilizedTime: { $exists: false },
+    };
+    await shifts.collection.updateMany(
+      shiftFilter,
+      {
+        $set: {
+          demobilizedTime: new Date(),
+          modifiedById: user!._id!,
+          updatedAt: new Date(),
+        }
+      }
+    );
+
+    delete shiftFilter.demobilizedTime;
+    const assignmentShifts = await shifts.collection.find<IShift>(shiftFilter).toArray();
+    const bulkEdits = assignmentShifts.map(shift => ({
+      userId: shift.userId,
+      eventId: shift.eventId,
+      shiftGroupId: shift.shiftId,
+      actionType: EventUserActionType.Shift,
+      source: EventUserActionLogSource.Shift,
+      modifiedById: user._id!,
+      timestamp: new Date(),
+      action: EventUserActionLogAction.Demobilized,
+    }));
+
+    if (bulkEdits.length > 0) {
+      await eventUserActions.bulk(bulkEdits);
+    }
+
+    await eventNotifications.create<IEventNotification>({
+      title: DEMOBILIZE.title,
+      description: DEMOBILIZE.description,
+      assignmentId: assignmentId,
+      orgId: user!.member.orgId,
+      modifiedById: user!._id!,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await notificationService.demobilizeNotification({
+      organization,
+      assignmentId: assignmentId,
+    });
+
+    return true;
+  },
   removeAssignment: async (
     _parent: unknown,
     { id }: { id: string },

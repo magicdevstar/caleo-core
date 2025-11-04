@@ -2963,6 +2963,196 @@ const sendEmail = async (input: MailerEvent) => {
         }, {} as Record<string, AddressConfiguration>);
 
       await Promise.all(inAppPromises);
+    } else if (input.template === MailerEvents.OfficerDemobilize) {
+      const { assignmentId, organization }: {
+        assignmentId: string;
+        organization: IOrganization;
+      } = input.data;
+      fromEmail = organization.fromEmail || fromEmail;
+
+      const assignment = await context.assignments.get(assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, assignmentId });
+        return;
+      }
+
+      const event = await context.events.get(assignment.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, assignment });
+        return;
+      }
+
+      const allUsersOnAssignment = await context.shifts.collection.aggregate<IShiftExpanded>([
+        {
+          $match: {
+            assignmentId: new ObjectId(assignment.id),
+            removedAt: { $exists: false },
+            status: ShiftStatus.Assigned,
+          },
+        },
+        {
+          $lookup:{
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        {
+          $unwind: { path: "$user", preserveNullAndEmptyArrays: true }
+        }
+      ]);
+
+      let user: IShiftExpanded | null;
+      do {
+        user = await allUsersOnAssignment.next();
+        if (user && user.user) {
+          const email = user.user.member.contactInfo?.primaryEmail.address;
+          if (!email) {
+            logger.error('User email not found', { input, user });
+            continue;
+          }
+
+          const { title, body } = InAppTemplates[input.template]({
+            assignmentName: assignment.name,
+            eventName: event.name,
+          });
+          await sendInAppNotification({
+            context,
+            userId: user.user!._id!.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title,
+            body,
+            meta: {
+              assignmentId: new ObjectId(assignment.id),
+            }
+          });
+
+          let url = process.env.LOGIN_URL || '';
+          if ((organization as IOrganization).features.sso) {
+            const domain = organization.sso?.uiSubDomains?.[0] || 'app';
+            const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+            urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+            urlBuilder.searchParams.append('response_type', 'code');
+            urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+            urlBuilder.searchParams.append('identity_provider', domain);
+            url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+          }
+
+          Addresses = {
+            ...Addresses,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "user.first_name": [user.user.firstName],
+                "system.metro_name": [organization.name],
+                "system.login_url": [url],
+              },
+            },
+          };
+        }
+      } while(user);
+    } else if (input.template === MailerEvents.OfficerDirectEventNotification) {
+      const { assignmentId, organization, title, description, notificationId }: {
+        assignmentId: string;
+        organization: IOrganization;
+        title: string;
+        description: string;
+        notificationId: string;
+      } = input.data;
+
+      fromEmail = organization.fromEmail || fromEmail;
+
+      const assignment = await context.assignments.get(assignmentId);
+      if (!assignment) {
+        logger.error('Assignment not found', { input, assignmentId });
+        return;
+      }
+
+      const event = await context.events.get(assignment.eventId);
+      if (!event) {
+        logger.error('Event not found', { input, assignment });
+        return;
+      }
+
+      const allUsersOnAssignment = await context.shifts.collection.aggregate<IShiftExpanded>([
+        {
+          $match: {
+            assignmentId: new ObjectId(assignment.id),
+            removedAt: { $exists: false },
+            status: ShiftStatus.Assigned,
+          },
+        },
+        {
+          $lookup:{
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        {
+          $unwind: { path: "$user", preserveNullAndEmptyArrays: true }
+        }
+      ]);
+
+      let user: IShiftExpanded | null;
+      do {
+        user = await allUsersOnAssignment.next();
+        if (user && user.user) {
+          const email = user.user.member.contactInfo?.primaryEmail.address;
+          if (!email) {
+            logger.error('User email not found', { input, user });
+            continue;
+          }
+
+          const { title: t, body } = InAppTemplates[input.template]({
+            assignmentName: assignment.name,
+            eventName: event.name,
+            title,
+            description,
+          });
+          await sendInAppNotification({
+            context,
+            userId: user.user!._id!.toString(),
+            templateName: input.template,
+            orgId: organization.id,
+            title: t,
+            body,
+            meta: {
+              eventNotificationId: new ObjectId(notificationId),
+              assignmentId: new ObjectId(assignment.id),
+            }
+          });
+
+          let url = process.env.LOGIN_URL || '';
+          if ((organization as IOrganization).features.sso) {
+            const domain = organization.sso?.uiSubDomains?.[0] || 'app';
+            const urlBuilder = new URL(`${process.env.COGNITO_URL}/oauth2/authorize`);
+            urlBuilder.searchParams.append('client_id', process.env.COGNITO_CLIENT_ID!);
+            urlBuilder.searchParams.append('response_type', 'code');
+            urlBuilder.searchParams.append('redirect_uri', `https://${domain}.caleopro.com`);
+            urlBuilder.searchParams.append('identity_provider', domain);
+            url = `${urlBuilder.toString()}&scope=phone+email+openid+phone`;
+          }
+
+          Addresses = {
+            ...Addresses,
+            [email]: {
+              ChannelType: 'EMAIL',
+              Substitutions: {
+                "event.name": [event.name],
+                "notification.title": [title],
+                "user.first_name": [user.user.firstName],
+                "notification.description": [description],
+                "system.login_url": [url],
+                "system.metro_name": [organization.name],
+              },
+            },
+          };
+        }
+      } while(user);
     }
 
     if (Object.keys(Addresses).length === 0) {

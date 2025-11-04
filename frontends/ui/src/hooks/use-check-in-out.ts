@@ -50,8 +50,8 @@ export const useCheckInOut = ({
   });
   const shifts = useMemo(() => (data?.shifts?.items || []) as Shift[], [data]);
 
-  const currentShifts = useMemo(() => {
-    const runningShifts = shifts.filter(({
+  const currentShifts = useMemo(() => shifts
+    .filter(({
       startTime,
       endTime,
       shiftCheckInOut,
@@ -88,10 +88,15 @@ export const useCheckInOut = ({
         return now.add(minutesBeforeStartTime, 'minutes').isAfter(formattedStart) && now.isBefore(formattedEnd.add(minutesAfterEndTime, 'minutes'));
       }
       return false;
-    });
-
-    return runningShifts;
-  }, [shifts, user, eventCheckIn, eventCheckOut, minutesAfterEndTime, minutesBeforeStartTime, isKiosk]);  
+    })
+    // Sort by start time closest to now
+    .sort((a, b) => {
+      const aStart = convertDate({ date: new Date(a.startTime), user });
+      const bStart = convertDate({ date: new Date(b.startTime), user });
+      const diffA = Math.abs(aStart.valueOf() - rightNow.valueOf());
+      const diffB = Math.abs(bStart.valueOf() - rightNow.valueOf());
+      return diffA - diffB;
+    }), [shifts, rightNow, user, eventCheckIn, eventCheckOut, minutesAfterEndTime, minutesBeforeStartTime, isKiosk]);  
 
   return {
     loading,

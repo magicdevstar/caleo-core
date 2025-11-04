@@ -34,6 +34,7 @@ export interface IInAppNotificationMeta {
   skillId?: ObjectId;
   equipmentId?: ObjectId;
   venueId?: ObjectId;
+  eventNotificationId?: ObjectId;
 }
 
 export class InAppNotificationModel {

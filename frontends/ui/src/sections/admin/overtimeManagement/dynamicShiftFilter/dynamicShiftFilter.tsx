@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import PhoneNumberFormatter from 'phone-number-formats';
 import { DayOfWeek, Shift, ShiftStatus } from "src/__generated__/resolvers-types";
 import { GET_ALL_EVENTS_SLIM } from "src/api/event";
@@ -12,17 +11,16 @@ import { client } from "src/utils/apollo";
 import { paths } from 'src/routes/paths';
 import { useFeatures } from 'src/hooks/use-features';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { EditCheckInOut } from 'src/components/shifts/edit-check-in-out';
 import { usePNumberLabel } from 'src/hooks/use-pNumber-label';
 import { formattedStatus, getShiftStatus } from 'src/utils/shiftStatus';
 import { EditShiftIdModel } from 'src/components/shifts/edit-shift-id-modal';
+import { ShiftOverviewDialog } from 'src/components/shifts/overview/shift-overview-dialog';
 
 export default function DynamicShiftFilter() {
   const { pNumberLabel } = usePNumberLabel();
   const { eventCheckIn, customizableShiftId } = useFeatures();
-  const editCheckInOutModal = useBoolean();
+  const editCheckInOutModal = useBoolean<Shift>();
   const editCustomId = useBoolean<Shift | null>({ defaultValue: false, trackedAttribute: null });
-  const [editCheckInOut, setEditCheckInOut] = useState<Shift | null>();
 
   const openCustomIdEditor = (row: Shift) => {
     editCustomId.onTrue(row);
@@ -198,8 +196,7 @@ export default function DynamicShiftFilter() {
           getDisabled: (row: Shift) => !row.shiftCheckInOut,
           getIcon: () => 'solar:stopwatch-bold-duotone',
           onClick: (row: Shift) => {
-            setEditCheckInOut(row);
-            editCheckInOutModal.onTrue();
+            editCheckInOutModal.onTrue(row);
           },
         }
       ]
@@ -392,7 +389,12 @@ export default function DynamicShiftFilter() {
   return (
     <>
       <GQLTable config={config} />
-      <EditCheckInOut
+      <ShiftOverviewDialog
+        isAdminView
+        closeOnSave
+        controller={editCheckInOutModal}
+      />
+      {/* <EditCheckInOut
         shift={editCheckInOut!}
         editCheckInOutModal={editCheckInOutModal}
         handleClose={() => {
@@ -401,7 +403,7 @@ export default function DynamicShiftFilter() {
             setEditCheckInOut(null);
           }, 200);
         }}
-      />
+      /> */}
       <EditShiftIdModel controller={editCustomId} />
     </>
   )

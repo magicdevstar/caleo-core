@@ -46,6 +46,8 @@ export enum MailerEvents {
   EventRequestedConfirm = 'EventRequestedConfirm',
   EventRequestedApproved = 'EventRequestedApproved',
   EventRequestedRejected = 'EventRequestedRejected',
+  OfficerDirectEventNotification = 'OFFICER_DIRECT_EVENT_NOTIFICATION',
+  OfficerDemobilize = 'OFFICER_DEMOBILIZE',
 };
 
 export enum SMSEvents {

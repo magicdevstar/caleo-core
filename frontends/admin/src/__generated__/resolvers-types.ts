@@ -94,6 +94,7 @@ export type Assignment = {
   orgId: Scalars['String']['output'];
   overrideSigner?: Maybe<User>;
   overrideSignerId?: Maybe<Scalars['ObjectId']['output']>;
+  radioFrequency?: Maybe<Scalars['String']['output']>;
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
@@ -321,6 +322,15 @@ export type ContactInfo = {
   primaryPhone?: Maybe<Phone>;
   secondaryEmail?: Maybe<Email>;
   secondaryPhone?: Maybe<Phone>;
+};
+
+export type CreateEventNotification = {
+  assignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
+  attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  description: Scalars['String']['input'];
+  eventId?: InputMaybe<Scalars['ObjectId']['input']>;
+  shiftId?: InputMaybe<Scalars['ObjectId']['input']>;
+  title: Scalars['String']['input'];
 };
 
 export type CreateOrganization = {
@@ -609,6 +619,7 @@ export type Event = {
   overrideSupervisorId?: Maybe<Scalars['ObjectId']['output']>;
   overtimeNarrative?: Maybe<Scalars['String']['output']>;
   overtimeReasonCode?: Maybe<Scalars['String']['output']>;
+  radioFrequency?: Maybe<Scalars['String']['output']>;
   referenceId: Scalars['String']['output'];
   removedAt?: Maybe<Scalars['String']['output']>;
   reportingLocation?: Maybe<ReportingLocation>;
@@ -644,6 +655,45 @@ export type EventAttachmentUpload = {
 export type EventInvoiceResponse = {
   __typename?: 'EventInvoiceResponse';
   signingUrl: Scalars['String']['output'];
+};
+
+export type EventNotification = {
+  __typename?: 'EventNotification';
+  assignmentId?: Maybe<Scalars['ObjectId']['output']>;
+  attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  attachments?: Maybe<Array<Scalars['String']['output']>>;
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  createdById?: Maybe<Scalars['ObjectId']['output']>;
+  description: Scalars['String']['output'];
+  eventId?: Maybe<Scalars['ObjectId']['output']>;
+  id: Scalars['ID']['output'];
+  modifiedBy?: Maybe<User>;
+  modifiedById?: Maybe<Scalars['ObjectId']['output']>;
+  org: Organization;
+  orgId: Scalars['ObjectId']['output'];
+  removedAt?: Maybe<Scalars['DateTime']['output']>;
+  shiftId?: Maybe<Scalars['ObjectId']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type EventNotificationSearchInput = {
+  active?: InputMaybe<Scalars['Boolean']['input']>;
+  assignmentId: Scalars['ObjectId']['input'];
+  eventId: Scalars['ObjectId']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  order?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+  shiftId: Scalars['ObjectId']['input'];
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type EventNotificationSearchResult = {
+  __typename?: 'EventNotificationSearchResult';
+  items?: Maybe<Array<EventNotification>>;
+  total: Scalars['Int']['output'];
 };
 
 export type EventRequestDetails = {
@@ -726,6 +776,7 @@ export enum EventUserActionLogAction {
   CheckOut = 'CHECK_OUT',
   Completed = 'COMPLETED',
   Declined = 'DECLINED',
+  Demobilized = 'DEMOBILIZED',
   Drafted = 'DRAFTED',
   OfficerCommentAdded = 'OFFICER_COMMENT_ADDED',
   Rejected = 'REJECTED',
@@ -1280,11 +1331,14 @@ export type Mutation = {
   cloneEvent?: Maybe<Event>;
   createOrganization?: Maybe<Organization>;
   defaultEventThumbnailUploadUrl: OrganizationEventSettingsUpload;
+  demobilized?: Maybe<Scalars['Boolean']['output']>;
   division?: Maybe<Division>;
   editCheckInOut: Shift;
   equipment?: Maybe<Equipment>;
   event?: Maybe<Event>;
   eventAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
+  eventNotification?: Maybe<EventNotification>;
+  eventNotificationAttachmentUploadUrl?: Maybe<EventAttachmentUpload>;
   generateDSInvoice?: Maybe<EventInvoiceResponse>;
   generateInvoice?: Maybe<Scalars['String']['output']>;
   impersonateUser?: Maybe<Scalars['Boolean']['output']>;
@@ -1422,6 +1476,11 @@ export type MutationCreateOrganizationArgs = {
 };
 
 
+export type MutationDemobilizedArgs = {
+  assignmentId: Scalars['ObjectId']['input'];
+};
+
+
 export type MutationDivisionArgs = {
   division: UpsertDivision;
 };
@@ -1439,6 +1498,11 @@ export type MutationEquipmentArgs = {
 
 export type MutationEventArgs = {
   event: UpsertEvent;
+};
+
+
+export type MutationEventNotificationArgs = {
+  input: CreateEventNotification;
 };
 
 
@@ -1972,6 +2036,7 @@ export type OrganizationFeatures = {
   monthlyMaxHours: Scalars['Boolean']['output'];
   noShowReport: Scalars['Boolean']['output'];
   officerCheckInOut: Scalars['Boolean']['output'];
+  operationsUnit: Scalars['Boolean']['output'];
   outsideUserList: Scalars['Boolean']['output'];
   profileTenor: Scalars['Boolean']['output'];
   rankGrouping: Scalars['Boolean']['output'];
@@ -2075,6 +2140,7 @@ export type Query = {
   equipment?: Maybe<Equipment>;
   equipments?: Maybe<EquipmentSearchResult>;
   event?: Maybe<Event>;
+  eventNotifications?: Maybe<EventNotificationSearchResult>;
   eventUserActions?: Maybe<EventUserActionSearchResult>;
   events?: Maybe<EventSearchResult>;
   financeShifts?: Maybe<Array<Maybe<FinanceShift>>>;
@@ -2212,6 +2278,11 @@ export type QueryEquipmentsArgs = {
 
 export type QueryEventArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryEventNotificationsArgs = {
+  input?: InputMaybe<EventNotificationSearchInput>;
 };
 
 
@@ -2525,6 +2596,7 @@ export type Shift = {
   createdBy?: Maybe<User>;
   createdById?: Maybe<Scalars['String']['output']>;
   customId: Scalars['String']['output'];
+  demobilizedTime?: Maybe<Scalars['DateTime']['output']>;
   docType: DocType;
   docusignEnvelopeId?: Maybe<Scalars['String']['output']>;
   docusignEvent?: Maybe<DocusignEvent>;
@@ -3050,6 +3122,7 @@ export type UpsertAssignment = {
   name: Scalars['String']['input'];
   notifyWhenFullyStaffed?: InputMaybe<Scalars['Boolean']['input']>;
   overrideSignerId?: InputMaybe<Scalars['ObjectId']['input']>;
+  radioFrequency?: InputMaybe<Scalars['String']['input']>;
   rankIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   reportingLocation?: InputMaybe<Scalars['String']['input']>;
   reportingLocationDetails?: InputMaybe<UpsertReportingLocation>;
@@ -3151,6 +3224,7 @@ export type UpsertEvent = {
   overrideSupervisorId?: InputMaybe<Scalars['ObjectId']['input']>;
   overtimeNarrative?: InputMaybe<Scalars['String']['input']>;
   overtimeReasonCode?: InputMaybe<Scalars['String']['input']>;
+  radioFrequency?: InputMaybe<Scalars['String']['input']>;
   reportingLocation?: InputMaybe<UpsertReportingLocation>;
   reportingTime?: InputMaybe<Scalars['DateTime']['input']>;
   requestDetails?: InputMaybe<InputEventRequestDetails>;
@@ -3284,6 +3358,7 @@ export type UpsertOrganizationFeatures = {
   monthlyMaxHours?: InputMaybe<Scalars['Boolean']['input']>;
   noShowReport?: InputMaybe<Scalars['Boolean']['input']>;
   officerCheckInOut?: InputMaybe<Scalars['Boolean']['input']>;
+  operationsUnit?: InputMaybe<Scalars['Boolean']['input']>;
   outsideUserList?: InputMaybe<Scalars['Boolean']['input']>;
   profileTenor?: InputMaybe<Scalars['Boolean']['input']>;
   rankGrouping?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3726,6 +3801,7 @@ export type ResolversTypes = ResolversObject<{
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: ResolverTypeWrapper<CheckInOutSetting>;
   ContactInfo: ResolverTypeWrapper<ContactInfo>;
+  CreateEventNotification: CreateEventNotification;
   CreateOrganization: CreateOrganization;
   CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
@@ -3752,6 +3828,9 @@ export type ResolversTypes = ResolversObject<{
   Event: ResolverTypeWrapper<Event>;
   EventAttachmentUpload: ResolverTypeWrapper<EventAttachmentUpload>;
   EventInvoiceResponse: ResolverTypeWrapper<EventInvoiceResponse>;
+  EventNotification: ResolverTypeWrapper<EventNotification>;
+  EventNotificationSearchInput: EventNotificationSearchInput;
+  EventNotificationSearchResult: ResolverTypeWrapper<EventNotificationSearchResult>;
   EventRequestDetails: ResolverTypeWrapper<EventRequestDetails>;
   EventSearchInput: EventSearchInput;
   EventSearchResult: ResolverTypeWrapper<EventSearchResult>;
@@ -3994,6 +4073,7 @@ export type ResolversParentTypes = ResolversObject<{
   CheckInOutCoordinates: CheckInOutCoordinates;
   CheckInOutSetting: CheckInOutSetting;
   ContactInfo: ContactInfo;
+  CreateEventNotification: CreateEventNotification;
   CreateOrganization: CreateOrganization;
   CreateOutsideUser: CreateOutsideUser;
   CreateShiftBufferRequest: CreateShiftBufferRequest;
@@ -4016,6 +4096,9 @@ export type ResolversParentTypes = ResolversObject<{
   Event: Event;
   EventAttachmentUpload: EventAttachmentUpload;
   EventInvoiceResponse: EventInvoiceResponse;
+  EventNotification: EventNotification;
+  EventNotificationSearchInput: EventNotificationSearchInput;
+  EventNotificationSearchResult: EventNotificationSearchResult;
   EventRequestDetails: EventRequestDetails;
   EventSearchInput: EventSearchInput;
   EventSearchResult: EventSearchResult;
@@ -4264,6 +4347,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   orgId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   overrideSigner?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   overrideSignerId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  radioFrequency?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   rankIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   ranks?: Resolver<Maybe<Array<Maybe<ResolversTypes['Rank']>>>, ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4610,6 +4694,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   overrideSupervisorId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   overtimeNarrative?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   overtimeReasonCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  radioFrequency?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   referenceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   removedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reportingLocation?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
@@ -4644,6 +4729,33 @@ export type EventAttachmentUploadResolvers<ContextType = any, ParentType extends
 
 export type EventInvoiceResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventInvoiceResponse'] = ResolversParentTypes['EventInvoiceResponse']> = ResolversObject<{
   signingUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventNotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventNotification'] = ResolversParentTypes['EventNotification']> = ResolversObject<{
+  assignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  createdById?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  eventId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  modifiedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  modifiedById?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  org?: Resolver<ResolversTypes['Organization'], ParentType, ContextType>;
+  orgId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  removedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  shiftId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type EventNotificationSearchResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventNotificationSearchResult'] = ResolversParentTypes['EventNotificationSearchResult']> = ResolversObject<{
+  items?: Resolver<Maybe<Array<ResolversTypes['EventNotification']>>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -5002,11 +5114,14 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   cloneEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationCloneEventArgs, 'id'>>;
   createOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationCreateOrganizationArgs, 'organization'>>;
   defaultEventThumbnailUploadUrl?: Resolver<ResolversTypes['OrganizationEventSettingsUpload'], ParentType, ContextType>;
+  demobilized?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationDemobilizedArgs, 'assignmentId'>>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<MutationDivisionArgs, 'division'>>;
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<MutationEquipmentArgs, 'equipment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
   eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
+  eventNotification?: Resolver<Maybe<ResolversTypes['EventNotification']>, ParentType, ContextType, RequireFields<MutationEventNotificationArgs, 'input'>>;
+  eventNotificationAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
   generateDSInvoice?: Resolver<Maybe<ResolversTypes['EventInvoiceResponse']>, ParentType, ContextType, RequireFields<MutationGenerateDsInvoiceArgs, 'eventId'>>;
   generateInvoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationGenerateInvoiceArgs, 'eventId'>>;
   impersonateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationImpersonateUserArgs, 'userId'>>;
@@ -5220,6 +5335,7 @@ export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends 
   monthlyMaxHours?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   noShowReport?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   officerCheckInOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  operationsUnit?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   outsideUserList?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   profileTenor?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   rankGrouping?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -5313,6 +5429,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<QueryEquipmentArgs, 'id'>>;
   equipments?: Resolver<Maybe<ResolversTypes['EquipmentSearchResult']>, ParentType, ContextType, Partial<QueryEquipmentsArgs>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventArgs, 'id'>>;
+  eventNotifications?: Resolver<Maybe<ResolversTypes['EventNotificationSearchResult']>, ParentType, ContextType, Partial<QueryEventNotificationsArgs>>;
   eventUserActions?: Resolver<Maybe<ResolversTypes['EventUserActionSearchResult']>, ParentType, ContextType, RequireFields<QueryEventUserActionsArgs, 'input'>>;
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
   financeShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['FinanceShift']>>>, ParentType, ContextType, RequireFields<QueryFinanceShiftsArgs, 'eventId'>>;
@@ -5424,6 +5541,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   createdById?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   customId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  demobilizedTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   docType?: Resolver<ResolversTypes['DocType'], ParentType, ContextType>;
   docusignEnvelopeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   docusignEvent?: Resolver<Maybe<ResolversTypes['DocusignEvent']>, ParentType, ContextType>;
@@ -5892,6 +6010,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Event?: EventResolvers<ContextType>;
   EventAttachmentUpload?: EventAttachmentUploadResolvers<ContextType>;
   EventInvoiceResponse?: EventInvoiceResponseResolvers<ContextType>;
+  EventNotification?: EventNotificationResolvers<ContextType>;
+  EventNotificationSearchResult?: EventNotificationSearchResultResolvers<ContextType>;
   EventRequestDetails?: EventRequestDetailsResolvers<ContextType>;
   EventSearchResult?: EventSearchResultResolvers<ContextType>;
   EventUserAction?: EventUserActionResolvers<ContextType>;

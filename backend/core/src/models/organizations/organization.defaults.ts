@@ -70,6 +70,7 @@ export const featureDefinitions = [
   { value: 'financeUnit', label: 'Finance Unit', defaultEnabled: false },
   { value: 'showShiftsByEvent', label: 'Show Shifts By Event', defaultEnabled: false },
   { value: 'mapboxReportingLocation', label: 'Mapbox Reporting Location', defaultEnabled: false },
+  { value: 'operationsUnit', label: 'Operations Unit', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

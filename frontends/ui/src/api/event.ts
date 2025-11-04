@@ -445,6 +445,7 @@ export const GET_EVENT = gql`
       }
 
       bodyWarnTag
+      radioFrequency
       commandPostContactNumber
       uniform
       briefingTime

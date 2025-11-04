@@ -6,6 +6,12 @@ export const REMOVE_ASSIGNMENT = gql`
   }
 `;
 
+export const DEMOBILIZE_ASSIGNMENT = gql`
+  mutation DemobilizeAssignment($assignmentId: ObjectId!) {
+    demobilized(assignmentId: $assignmentId)
+  }
+`;
+
 export const GET_ASSIGNMENT_DESCRIPTION = gql`
   query GetAssignment($id: String!) {
     assignment(id: $id) {
@@ -93,6 +99,7 @@ export const GET_ASSIGNMENT = gql`
       geoFence
       allowOfficerCheckIn
 
+      radioFrequency
       uniform
       briefingTime
       briefingLocation

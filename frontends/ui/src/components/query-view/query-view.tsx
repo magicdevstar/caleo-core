@@ -1,5 +1,6 @@
 import { PropsWithChildren, useState } from 'react';
 // @mui
+import { Theme, SxProps } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -15,6 +16,7 @@ type QueryViewProps = PropsWithChildren & {
   error?: boolean;
   refetch?: (variables?: any) => Promise<any>;
   onRetry?: VoidFunction;
+  sx?: SxProps<Theme>;
 };
 
 /**
@@ -26,6 +28,7 @@ export default function QueryView({
   errorImg,
   loading = false,
   error = false,
+  sx,
   refetch,
   onRetry,
   children,
@@ -40,6 +43,7 @@ export default function QueryView({
           borderRadius: 1.5,
           bgcolor: 'background.default',
           mt: 5,
+          ...sx,
         }}
       />
     );

@@ -57,6 +57,7 @@ export function useNavData() {
     financeUnit,
     kiosk,
     outsideUserList,
+    operationsUnit
   } = useFeatures();
 
   const data = useMemo(
@@ -104,6 +105,9 @@ export function useNavData() {
                 icon: ICONS.tour,
                 children: [
                   { title: 'Resource Unit', path: paths.dashboard.admin.eventManagement.eventDashboards },
+                  ...(operationsUnit ? [
+                    { title: 'Operations Unit', path: paths.dashboard.admin.eventManagement.operationsTable, internalChildRoutes: true },
+                  ] : []),
                   ...(financeUnit ? [
                     { title: 'Finance Unit', path: paths.dashboard.admin.eventManagement.financeUnit, internalChildRoutes: true },
                   ] : [])
@@ -135,7 +139,7 @@ export function useNavData() {
                 { title: 'Overtime', path: paths.dashboard.admin.settings.root },
                 { title: equipment ? 'Ranks, Skills & Equipment' : 'Ranks & Skills', path: paths.dashboard.admin.settings.ranksAndSkill },
                 ...(lasdUserFields ? [{ title: 'Unit and Division', path: paths.dashboard.admin.settings.unitAndDivision }] : []),
-                ...(lasdEventFields ? [{ title: 'Misc LASD', path: paths.dashboard.admin.settings.miscLASD }] : []),
+                ...(lasdEventFields ? [{ title: 'EAP/IAP', path: paths.dashboard.admin.settings.miscLASD }] : []),
                 ...(outsideUserList ? [{ title: 'External Users', path: paths.dashboard.admin.settings.outsideUsers }] : []),
                 { title: 'Department', path: paths.dashboard.admin.settings.department },
                 { title: 'Notifications', path: paths.dashboard.admin.settings.notifications, internalChildRoutes: true },
@@ -150,6 +154,7 @@ export function useNavData() {
       user?.role,
       equipment,
       financeUnit,
+      operationsUnit,
       lottery,
       lasdUserFields,
       eventTemplates,

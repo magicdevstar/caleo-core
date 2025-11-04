@@ -32,6 +32,7 @@ import { queryOutsideUsers, mutationOutsideUsers, fieldsOutsideUsers } from './o
 import { QueryIncidentForm, MutationIncidentForm, fieldsIncidentForm } from './incidentForm';
 import { QueryEventUserAction, MutationEventUserAction, fieldsEventUserAction } from './eventUserAction';
 import { DateScalar, DateTimeScalar, ObjectIdScalar } from './scalars/scalars';
+import { queryEventNotifications, mutationEventNotifications, fieldsEventNotifications } from './eventNotifications';
 
 export default {
   Query: {
@@ -64,6 +65,7 @@ export default {
     ...queryAssignmentDivision,
     ...queryAssignmentGroup,
     ...queryBranch,
+    ...queryEventNotifications,
   },
   Mutation: {
     ...healthMutation,
@@ -95,6 +97,7 @@ export default {
     ...mutationAssignmentDivision,
     ...mutationAssignmentGroup,
     ...mutationBranch,
+    ...mutationEventNotifications,
   },
   ...healthFields,
   ...organizationFields,
@@ -125,6 +128,7 @@ export default {
   ...fieldsAssignmentDivision,
   ...fieldsAssignmentGroup,
   ...fieldsBranch,
+  ...fieldsEventNotifications,
   Date: DateScalar,
   DateTime: DateTimeScalar,
   ObjectId: ObjectIdScalar,

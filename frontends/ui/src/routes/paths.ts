@@ -44,6 +44,8 @@ export const paths = {
       eventManagement: {
         root: `${ROOTS.DASHBOARD}/admin/event-management`,
         eventDashboards: `${ROOTS.DASHBOARD}/admin/event-management/dashboards`,
+        operationsTable: `${ROOTS.DASHBOARD}/admin/event-management/operations`,
+        operations: `${ROOTS.DASHBOARD}/admin/event-management/operations/:eventId`,
         financeUnit: `${ROOTS.DASHBOARD}/admin/event-management/finance-unit`,
         financeUnitDetail: `${ROOTS.DASHBOARD}/admin/event-management/finance-unit/:eventId`,
       },

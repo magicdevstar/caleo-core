@@ -1,4 +1,5 @@
 import { Db, ObjectId, PullOperator } from 'mongodb';
+import DataLoader from 'dataloader';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import uniq from 'lodash.uniq';
 import { Assignment, AssignmentSlotDetails, DocType } from '../__generated__/resolvers-types';
@@ -67,6 +68,24 @@ export interface IAssignment extends Omit<
 }
 
 export class AssignmentModel extends BaseMongo<IAssignment> {
+  public loadByEventId = new DataLoader(async (eventIds: readonly ObjectId[]) => {
+    const res = await this.collection.find<IAssignment>({ eventId: { $in: eventIds }, removedAt: { $exists: false } }).toArray();
+
+    const groupedByEventId: Record<string, IAssignment[]> = res.reduce((acc, assignment) => {
+      const eId = assignment.eventId.toString();
+      if (!acc[eId]) {
+        acc[eId] = [];
+      }
+      acc[eId].push({
+        ...assignment,
+        id: assignment._id?.toString(),
+      });
+      return acc;
+    }, {} as Record<string, IAssignment[]>);
+
+    return eventIds.map((id) => groupedByEventId[id.toString()] || []);
+  });
+
   constructor(db: Db) {
     super(db, DocType.Assignment, 'assignments');
   }

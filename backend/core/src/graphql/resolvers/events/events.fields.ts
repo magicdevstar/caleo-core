@@ -13,7 +13,7 @@ export const fields = {
     fieldSupervisorAssignment: (event: IEvent, _, { assignments }: Context) => event.fieldSupervisorAssignmentId ? assignments.loader.load(event.fieldSupervisorAssignmentId.toString()) : null,
     org: (event: IEvent, _, { organizations }: Context) => organizations.loader.load(event.orgId.toString()),
     venue: (event: IEvent, _, { venues }: Context) => event.venueId ? venues.loader.load(event.venueId.toString()) : null,
-    assignments: (event: IEvent, _, { assignments }: Context) => assignments.loader.loadMany((event.assignmentIds || []).map((id) => id.toString())),
+    assignments: (event: IEvent, _, { assignments }: Context) => assignments.loadByEventId.load(event._id!),
     startTime: (item: IEvent) => item.startTime ? new Date(item.startTime).toISOString() : null,
     endTime: (item: IEvent) => item.endTime ? new Date(item.endTime).toISOString() : null,
     scheduledFirstComeFirstServe: (item: IEvent) => item.scheduledFirstComeFirstServe ? new Date(item.scheduledFirstComeFirstServe).toISOString() : null,

@@ -13,7 +13,7 @@ export const fields = {
               equipments.loader.loadMany((event.requiredEquipmentIds || []).map((id) => id.toString())) :
               [],
     ranks: (assignment: IAssignment, _, { ranks }: Context) => ranks.loader.loadMany((assignment.rankIds || []).map((id) => id.toString())),
-    shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loader.loadMany((assignment.shiftIds || []).map((id) => id.toString())),
+    shifts: (assignment: IAssignment, _, { shifts }: Context) => shifts.loadShiftsByAssignmentId.load(assignment._id!),
     availableShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.availableShiftsOnAssignment.load(item.id!.toString()!),
     totalShifts: async (item: IAssignment, _arg: unknown, { shifts }: Context) => shifts.totalShiftsOnAssignment.load(item.id!.toString()!),
     supervisorAssignment: (assignment: IAssignment, _, { assignments }: Context) => assignment.supervisorAssignmentId ? assignments.loader.load(assignment.supervisorAssignmentId.toString()) : null,

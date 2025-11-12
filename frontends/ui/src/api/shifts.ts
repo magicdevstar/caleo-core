@@ -1467,8 +1467,46 @@ export const GET_SHIFT_OVERVIEW = gql`
           id
           name
           isSigningAuthority
+          fieldSupervisorAssignmentId
           callSign
           eventId
+
+          shifts {
+            id
+            callSign
+            user {
+              id
+              name
+              image
+              member {
+                contactInfo {
+                  primaryPhone {
+                    number
+                  }
+                }
+              }
+            }
+          }
+
+          fieldSupervisorAssignment {
+            id
+            name
+            callSign
+            shifts {
+              id
+              user {
+                id
+                name
+                member {
+                  contactInfo {
+                    primaryPhone {
+                      number
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
         venue {
           id
@@ -1483,8 +1521,10 @@ export const GET_SHIFT_OVERVIEW = gql`
       assignment {
         id
         name
+        isSigningAuthority
         bwNeeded
         callSign
+        includeDriveTime
         reportingLocation
         geoFence
         allowOfficerCheckIn

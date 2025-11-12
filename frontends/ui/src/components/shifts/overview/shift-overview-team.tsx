@@ -6,8 +6,10 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 // types
 import { GET_SKILL_SLIM } from 'src/api/skill';
-import { Assignment, Event } from 'src/__generated__/resolvers-types';
+import { Assignment, Event, User } from 'src/__generated__/resolvers-types';
 import { TableConfig } from 'src/components/table/table-config';
+// hooks
+import { useAuthContext } from 'src/auth/hooks';
 // components
 import GQLTable from 'src/components/table/gql/table';
 import ShiftOverviewDetail from './shift-overview-detail';
@@ -26,6 +28,7 @@ interface Props {
 };
 
 export default function ShiftOverviewTeam({ event, assignment }: Props) {
+  const { user } = useAuthContext();
   const overrideSupervisor = useMemo(() => {
     if (!assignment?.useFieldSupervisorAssignmentOverride) {
       return null;
@@ -40,8 +43,12 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
   const supervisorCallSign = useMemo(() =>
     fieldSupervisorAssignment?.shifts?.[0]?.callSign || fieldSupervisorAssignment?.callSign || 'N/A', [fieldSupervisorAssignment]);
 
-  const supervisorName = useMemo(() =>
-    overrideSupervisor?.name || fieldSupervisorAssignment?.shifts?.[0]?.user?.name, [overrideSupervisor, fieldSupervisorAssignment]);
+  const supervisorName = useMemo(() => {
+    const superId = overrideSupervisor?.id || fieldSupervisorAssignment?.shifts?.[0]?.user?.id;
+    const name = overrideSupervisor?.name || fieldSupervisorAssignment?.shifts?.[0]?.user?.name;
+    const isSelf = user?.id === superId;
+    return `${name}${isSelf ? ' (Me)' : ''}`;
+  }, [overrideSupervisor, fieldSupervisorAssignment, user]);
 
   const supervisorPhone = useMemo(() => {
     const phone = overrideSupervisor?.member?.contactInfo?.primaryPhone?.number || fieldSupervisorAssignment?.shifts?.[0]?.user?.member?.contactInfo?.primaryPhone?.number;
@@ -62,17 +69,57 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
   }, [overrideSupervisor, fieldSupervisorAssignment])
 
   const directReports = useMemo(
-    () => (assignment?.shifts || [])
-      .filter((shift) => !(!shift?.user || shift?.shiftCheckInOut?.noShow))
-      .map((shift, i) => {
+    () => {
+      // Show all direct reports
+      if (assignment?.isSigningAuthority) {
+        const authorityId = assignment?.fieldSupervisorAssignment?.shifts?.[0]?.user?.id!;
+        return (event?.assignments || []).reduce((acc, assign, i) => {
+          let sup: User | null | undefined = assign?.useFieldSupervisorAssignmentOverride ? event?.overrideSupervisor : null;
+          if (!sup) {
+            sup = assign?.fieldSupervisorAssignment?.shifts?.[0]?.user || event?.fieldSupervisorAssignment?.shifts?.[0]?.user || null;
+          }
+          if (sup?.id === authorityId) {
+            const team = (assign?.shifts || [])
+            .filter((s) => !(!s?.user || s?.shiftCheckInOut?.noShow))
+            .map((s, j) => {
+              // create new direct report from shift
+              const newReport = {
+                id: `${s?.user?.id}-${i}-${j}`,
+                name: s?.user?.name,
+                image: s?.user?.image,
+                callSign: s?.callSign || assign?.callSign || 'N/A',
+                phone: s?.user?.member?.contactInfo?.primaryPhone?.number,
+                formattedPhone: s?.user?.member?.contactInfo?.primaryPhone?.number,
+              };
+
+              // try to format number
+              if (newReport.phone) {
+                try {
+                  const formattedNumber = new PhoneNumberFormatter(newReport.phone)?.format?.({
+                    type: 'domestic',
+                  })?.string;
+                  newReport.formattedPhone = formattedNumber;
+                } catch (_error) {} // eslint-disable-line no-empty
+              }
+              // push new report
+              return newReport as DirectReportUser;
+            });
+            acc.push(...team);
+          }
+          return acc;
+        }, [] as DirectReportUser[]);
+      }
+      return (assignment?.shifts || [])
+      .filter((s) => !(!s?.user || s?.shiftCheckInOut?.noShow))
+      .map((s, i) => {
         // create new direct report from shift
         const newReport = {
-          id: `${shift?.user?.id}-${i}`,
-          name: shift?.user?.name,
-          image: shift?.user?.image,
-          callSign: shift?.callSign || assignment?.callSign || 'N/A',
-          phone: shift?.user?.member?.contactInfo?.primaryPhone?.number,
-          formattedPhone: shift?.user?.member?.contactInfo?.primaryPhone?.number,
+          id: `${s?.user?.id}-${i}`,
+          name: s?.user?.name,
+          image: s?.user?.image,
+          callSign: s?.callSign || assignment?.callSign || 'N/A',
+          phone: s?.user?.member?.contactInfo?.primaryPhone?.number,
+          formattedPhone: s?.user?.member?.contactInfo?.primaryPhone?.number,
         };
 
         // try to format number
@@ -86,8 +133,8 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
         }
         // push new report
         return newReport as DirectReportUser;
-      }),
-    [assignment]
+      })
+    }, [event, assignment]
   );
 
   const commentTableConfig: TableConfig<DirectReportUser> = useMemo(() => ({

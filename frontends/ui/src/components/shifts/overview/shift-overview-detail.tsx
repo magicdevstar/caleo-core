@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 // @mui
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
+import Grid, { GridSize } from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 // components
 import Label, { LabelColor, LabelVariant } from 'src/components/label';
 
-type Props = {
+interface Props {
   label: string;
   value?: any | any[];
   tag?: boolean;
@@ -14,7 +14,13 @@ type Props = {
   tagVariant?: LabelVariant;
   emptyValue?: string;
   fullRow?: boolean;
-  children?: React.ReactNode
+  children?: React.ReactNode;
+  onClick?: (...args: any[]) => void;
+  xs?: boolean | GridSize | undefined;
+  sm?: boolean | GridSize | undefined;
+  md?: boolean | GridSize | undefined;
+  xl?: boolean | GridSize | undefined;
+  lg?: boolean | GridSize | undefined;
 };
 
 export default function ShiftOverviewDetail({
@@ -25,7 +31,9 @@ export default function ShiftOverviewDetail({
   tagVariant = 'soft',
   emptyValue = 'N/A',
   fullRow,
-  children
+  children,
+  onClick,
+  ...props
 }: Props) {
   const renderValue = useMemo(() => {
     // children automatically override any value props
@@ -59,11 +67,11 @@ export default function ShiftOverviewDetail({
       }
       // single tag value
       return normalizedValue ? (
-        <Label color={tagColor} variant={tagVariant} sx={{ whiteSpace: 'break-spaces', lineHeight: 1.5, height: 'auto' }}>
+        <Label color={tagColor} variant={tagVariant} sx={{ whiteSpace: 'break-spaces', lineHeight: 1.5, height: 'auto', cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
           {normalizedValue}
         </Label>
       ) : (
-        <Label color="default">{emptyValue}</Label>
+        <Label color="default" sx={{ cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>{emptyValue}</Label>
       );
     }
 
@@ -77,7 +85,7 @@ export default function ShiftOverviewDetail({
         {normalizedValue || emptyValue}
       </Typography>
     );
-  }, [value, tag, tagColor, tagVariant, emptyValue, children]);
+  }, [value, tag, tagColor, tagVariant, emptyValue, children, onClick]);
 
   return (
     <Grid
@@ -86,6 +94,7 @@ export default function ShiftOverviewDetail({
       md={fullRow ? 12 : 4}
       xl={fullRow ? 12 : 3}
       sx={{ mb: 1 }}
+      {...props}
     >
       <Typography variant="body2" color="text.secondary" sx={{ mb: 0.4 }}>
         {label}

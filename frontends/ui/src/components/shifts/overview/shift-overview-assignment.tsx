@@ -64,15 +64,15 @@ export default function ShiftOverviewAssignment ({ shift, assignment, event, isA
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>
-        <ShiftOverviewDetail label='Name' value={assignment?.name} />
-        <ShiftOverviewDetail label='Call Sign' value={callSign} tag>
+        <ShiftOverviewDetail label='Name' value={assignment?.name} xs={12} md={6} xl={6} />
+        <ShiftOverviewDetail label='Call Sign' value={callSign} tag xs={12} md={6} xl={6}>
           {isAdminView && <RHFTextField name="assignment.callSign" size='small' />}
         </ShiftOverviewDetail>
-        <ShiftOverviewDetail label='Branch' value={assignment?.branch?.name} tag />
-        <ShiftOverviewDetail label='Division' value={assignment?.assignmentDivision?.name} tag />
-        <ShiftOverviewDetail label='Group' value={assignment?.assignmentGroup?.name} tag />
-        <ShiftOverviewDetail label='Radio Frequency' value={radioFrequency} tag />
-        <ShiftOverviewDetail label='Assignment Location' value={reportingLocation} />
+        <ShiftOverviewDetail label='Branch' value={assignment?.branch?.name} tag xs={12} md={3} xl={3} />
+        <ShiftOverviewDetail label='Division' value={assignment?.assignmentDivision?.name} tag xs={12} md={3} xl={3} />
+        <ShiftOverviewDetail label='Group' value={assignment?.assignmentGroup?.name} tag xs={12} md={3} xl={3} />
+        <ShiftOverviewDetail label='Radio Frequency' value={radioFrequency} tag xs={12} md={3} xl={3} />
+        <ShiftOverviewDetail label='Assignment Location' value={reportingLocation} fullRow />
       </Grid>
       { officerCheckInOut && geoFence &&
         <Box>

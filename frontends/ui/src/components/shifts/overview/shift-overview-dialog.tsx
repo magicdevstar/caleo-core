@@ -52,6 +52,7 @@ const OverviewForm = Yup.object().shape({
     name: Yup.string().nullable(),
     eventId: Yup.string().nullable(),
     callSign: Yup.string().nullable(),
+    includeDriveTime: Yup.boolean().default(false),
   }),
   customId: Yup.string().nullable(),
   checkInTime: Yup.date().nullable(),
@@ -109,6 +110,7 @@ export const ShiftOverviewDialog = ({
       callSign: shift?.assignment.callSign || '',
       name: shift?.assignment.name || '',
       eventId: shift?.event.id || '',
+      includeDriveTime: shift?.assignment.includeDriveTime || false,
     },
     customId: shift?.customId,
     checkInNote: shift?.shiftCheckInOut?.checkInNote,
@@ -231,7 +233,11 @@ export const ShiftOverviewDialog = ({
         handleClose();
       }
 
-      if (dirtyFields.assignment?.callSign && formData.assignment.callSign) {
+      const dirtyAssignmentFields = [
+        dirtyFields.assignment?.callSign,
+        dirtyFields.assignment?.includeDriveTime,
+      ];
+      if (dirtyAssignmentFields.some(Boolean)) {
         await editAssignment({
           variables: {
             input: {

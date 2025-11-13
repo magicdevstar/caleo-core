@@ -26,6 +26,7 @@ import ConfirmDialogWithForm from "src/components/custom-dialog/confirm-dialog-w
 import QueryView from 'src/components/query-view';
 import Label from 'src/components/label';
 import { EventNotificationDialog } from 'src/components/events/notifications/event-notification-dialog';
+import CheckInOut from 'src/components/shifts/check-in-out'; // eslint-disable-line import/no-cycle
 import ShiftOverviewSection from './shift-overview-section';
 import ShiftOverviewEvent from './shift-overview-event';
 import ShiftOverviewAssignment from './shift-overview-assignment';
@@ -75,7 +76,7 @@ export const ShiftOverviewDialog = ({
 }: Props) => {
   const id = useMemo(() => controller.attribute?.id || '', [controller.attribute]);
   const { enqueueSnackbar } = useSnackbar();
-  const { vehicleCategories, operationsUnit } = useFeatures();
+  const { vehicleCategories, operationsUnit, officerCheckInOut } = useFeatures();
   const eventNotificationController = useBoolean<Shift>();
   const [editCheckInOut] = useMutation(EDIT_CHECK_IN_OUT);
   const [editAssignment] = useMutation(UPSERT_ASSIGNMENT);
@@ -90,6 +91,7 @@ export const ShiftOverviewDialog = ({
   });
   const shift = data?.shift as Shift | undefined;
   const shiftStatus = getShiftStatus(shift);
+  const isCurrentUser = useMemo(() => user?.id === shift?.userId, [user, shift]);
 
   const { data: activityData } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
     variables: {
@@ -298,6 +300,7 @@ export const ShiftOverviewDialog = ({
             refetch={refetch}
             sx={{ minHeight: '90vh', background: 'transparent' }}
           >
+            {isCurrentUser && <CheckInOut allowView={officerCheckInOut} fromSelfCheckout hiddenTitle />}
             <ShiftOverviewSection icon="solar:golf-bold-duotone" title="Event Details">
               <ShiftOverviewEvent event={shift?.event} />
             </ShiftOverviewSection>

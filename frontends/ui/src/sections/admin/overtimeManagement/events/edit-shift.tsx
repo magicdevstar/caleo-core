@@ -450,9 +450,8 @@ export default function EditShift({
         },
       },
       ...(eventCheckIn ? [{
-        getName: () => 'View Check In/Out',
-        getDisabled: (row: Shift) => !row.shiftCheckInOut,
-        getIcon: () => 'solar:stopwatch-bold-duotone',
+        getName: () => 'Edit Details',
+        getIcon: () => 'solar:info-circle-bold-duotone',
         onClick: clickCheckInOut,
       }] : []),
       ...(endOfShiftPDF ? [{
@@ -886,17 +885,6 @@ export default function EditShift({
         controller={editCheckInOutModal}
         refetch={refetch}
       />
-      {/* <EditCheckInOut
-        refetch={refetch}
-        shift={editCheckInOut!}
-        editCheckInOutModal={editCheckInOutModal}
-        handleClose={() => {
-          editCheckInOutModal.onFalse();
-          setTimeout(() => {
-            setEditCheckInOut(null);
-          }, 200);
-        }}
-      /> */}
       <AssignShiftModal
         shiftId={editShiftId}
         shiftStartTime={currentShifts?.[0]?.startTime}

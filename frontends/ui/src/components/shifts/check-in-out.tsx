@@ -16,10 +16,11 @@ import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 // Components
 import Iconify from "src/components/iconify";
 import CheckInOutItem from "src/sections/dashboard/dashboard/check-in-out/check-in-out-item";
-import CheckInOutConfirm from "./check-in-out-confirm";
+import CheckInOutConfirm from "./check-in-out-confirm"; // eslint-disable-line import/no-cycle
 import { LoadingScreen } from "../loading-screen";
 
 export default function CheckInOut({
+  hiddenTitle,
   eventId,
   userId,
   emptyView,
@@ -28,6 +29,7 @@ export default function CheckInOut({
   ignoreGeoFence = false,
   fromSelfCheckout = false,
 } : {
+  hiddenTitle?: boolean;
   eventId?: string;
   userId?: string;
   emptyView?: JSX.Element;
@@ -93,11 +95,13 @@ export default function CheckInOut({
 
   return (
     <>
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Shift Check In/Check Out
-        </Typography>
-      </Box>
+      {!hiddenTitle && (
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Shift Check In/Check Out
+          </Typography>
+        </Box>
+      )}
       <Box
         gap={3}
         display="grid"

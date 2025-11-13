@@ -12,7 +12,7 @@ export default function ActiveShift() {
   // Using this for now because LASD is the only customer using this feature
   const { lasdEventFields } = useFeatures();
   const { user } = useAuthContext();
-  const { currentShifts } = useCheckInOut();
+  const { currentShifts } = useCheckInOut({ isKiosk: true });
   const controller = useBoolean<Shift>();
 
   if (!lasdEventFields || currentShifts?.length === 0) {

@@ -92,6 +92,7 @@ export const ShiftOverviewDialog = ({
   const shift = data?.shift as Shift | undefined;
   const shiftStatus = getShiftStatus(shift);
   const isCurrentUser = useMemo(() => user?.id === shift?.userId, [user, shift]);
+  const isCheckedIn = useMemo(() => !!shift?.shiftCheckInOut?.checkInTime, [shift]);
 
   const { data: activityData } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
     variables: {
@@ -285,9 +286,11 @@ export const ShiftOverviewDialog = ({
         title={(
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             <Typography component='h2' variant='h4'>Shift Overview</Typography>
-            <Label variant="soft" color={shiftStatus.color}>
-              {shiftStatus.value}
-            </Label>
+            {isAdminView || isCheckedIn && (
+              <Label variant="soft" color={shiftStatus.color}>
+                {shiftStatus.value}
+              </Label>
+            )}
           </Stack>
         )}
         maxWidth='md'
@@ -322,37 +325,49 @@ export const ShiftOverviewDialog = ({
                 </Stack>
               ): null}
             >
-              <ShiftOverviewAssignment isAdminView={isAdminView} assignment={shift?.assignment} shift={shift} event={shift?.event} />
+              <ShiftOverviewAssignment isCheckedIn={isCheckedIn} isAdminView={isAdminView} assignment={shift?.assignment} shift={shift} event={shift?.event} />
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
             <ShiftOverviewSection icon="mdi-report" title="Reporting Instructions">
-              <ShiftOverviewReporting assignment={shift?.assignment} event={shift?.event} shift={shift} />
+              <ShiftOverviewReporting isCheckedIn={isCheckedIn} isAdminView={isAdminView} assignment={shift?.assignment} event={shift?.event} shift={shift} />
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
-            <ShiftOverviewSection icon="clarity:group-solid" title="Team">
-              <ShiftOverviewTeam event={shift?.event} assignment={shift?.assignment} />
-            </ShiftOverviewSection>
-            <Divider sx={{ borderStyle: 'dashed' }} />
+            {
+              isCheckedIn || isAdminView && (
+                <>
+                  <ShiftOverviewSection icon="clarity:group-solid" title="Team">
+                    <ShiftOverviewTeam event={shift?.event} assignment={shift?.assignment} />
+                  </ShiftOverviewSection>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                </>
+              )
+            }
             <ShiftOverviewSection icon="solar:user-id-bold" title="Personal Information">
               <ShiftOverviewPersonalInfo shift={shift} />
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
-            <ShiftOverviewSection icon="ic:baseline-directions-car" title="Equipment">
-              <ShiftOverviewEquipment shift={shift} isAdminView={isAdminView} />
-            </ShiftOverviewSection>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-            <ShiftOverviewSection icon="mdi:clock-time-four-outline" title="Timekeeping">
-              <ShiftOverviewTimeKeeping shift={shift} activityData={activityData} isAdminView={isAdminView} />
-            </ShiftOverviewSection>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-            <ShiftOverviewSection icon="mdi:chart-timeline" title="Activity">
-              <ShiftOverviewActivity activityData={activityData} />
-            </ShiftOverviewSection>
             {
-              operationsUnit && (
-                <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
-                  <ShiftNotifications shift={shift} />
-                </ShiftOverviewSection>
+              isCheckedIn || isAdminView && (
+                <>
+                  <ShiftOverviewSection icon="ic:baseline-directions-car" title="Equipment">
+                    <ShiftOverviewEquipment shift={shift} isAdminView={isAdminView} />
+                  </ShiftOverviewSection>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <ShiftOverviewSection icon="mdi:clock-time-four-outline" title="Timekeeping">
+                    <ShiftOverviewTimeKeeping shift={shift} activityData={activityData} isAdminView={isAdminView} />
+                  </ShiftOverviewSection>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <ShiftOverviewSection icon="mdi:chart-timeline" title="Activity">
+                    <ShiftOverviewActivity activityData={activityData} />
+                  </ShiftOverviewSection>
+                  {
+                    operationsUnit && (
+                      <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
+                        <ShiftNotifications shift={shift} />
+                      </ShiftOverviewSection>
+                    )
+                  }
+                </>
               )
             }
           </QueryView>

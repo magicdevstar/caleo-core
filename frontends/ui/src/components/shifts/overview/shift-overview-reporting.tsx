@@ -18,9 +18,11 @@ type Props = {
   shift?: Shift;
   event?: Event;
   assignment?: Assignment
+  isCheckedIn?: boolean;
+  isAdminView?: boolean;
 }
 
-export default function ShiftOverviewReporting ({ shift, assignment, event }: Props) {
+export default function ShiftOverviewReporting ({ shift, assignment, event, isCheckedIn, isAdminView }: Props) {
   const { timeFormat } = useDateFormats();
   const { user } = useAuthContext();
 
@@ -118,8 +120,14 @@ export default function ShiftOverviewReporting ({ shift, assignment, event }: Pr
           </Stack>
         </ShiftOverviewDetail>
         <ShiftOverviewDetail label='Uniform for the Shift' value={assignment?.uniform || event?.uniform || 'N/A'} tag />
-        <ShiftOverviewDetail label='Briefing Time' value={briefingTime} tagColor="info" tagVariant="filled" tag />
-        <ShiftOverviewDetail label='Briefing Location' value={assignment?.briefingLocation || event?.briefingLocation || 'N/A'} />
+        {
+          isCheckedIn || isAdminView && (
+            <>
+              <ShiftOverviewDetail label='Briefing Time' value={briefingTime} tagColor="info" tagVariant="filled" tag />
+              <ShiftOverviewDetail label='Briefing Location' value={assignment?.briefingLocation || event?.briefingLocation || 'N/A'} />
+            </>
+          )
+        }
       </Grid>
     </Stack>
   );

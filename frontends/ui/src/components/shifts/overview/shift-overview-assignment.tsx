@@ -22,9 +22,10 @@ type Props = {
   assignment?: Assignment;
   shift?: Shift;
   isAdminView: boolean;
+  isCheckedIn?: boolean;
 }
 
-export default function ShiftOverviewAssignment ({ shift, assignment, event, isAdminView }: Props) {
+export default function ShiftOverviewAssignment ({ shift, assignment, event, isAdminView, isCheckedIn }: Props) {
   const { officerCheckInOut, mapboxReportingLocation } = useFeatures();
 
   const radioFrequency = useMemo(() =>
@@ -68,39 +69,49 @@ export default function ShiftOverviewAssignment ({ shift, assignment, event, isA
         <ShiftOverviewDetail label='Call Sign' value={callSign} tag xs={12} md={6} xl={6}>
           {isAdminView && <RHFTextField name="assignment.callSign" size='small' />}
         </ShiftOverviewDetail>
-        <ShiftOverviewDetail label='Branch' value={assignment?.branch?.name} tag xs={12} md={3} xl={3} />
-        <ShiftOverviewDetail label='Division' value={assignment?.assignmentDivision?.name} tag xs={12} md={3} xl={3} />
-        <ShiftOverviewDetail label='Group' value={assignment?.assignmentGroup?.name} tag xs={12} md={3} xl={3} />
-        <ShiftOverviewDetail label='Radio Frequency' value={radioFrequency} tag xs={12} md={3} xl={3} />
-        <ShiftOverviewDetail label='Assignment Location' value={reportingLocation} fullRow />
+        {
+          isCheckedIn || isAdminView && (
+            <>
+              <ShiftOverviewDetail label='Branch' value={assignment?.branch?.name} tag xs={12} md={3} xl={3} />
+              <ShiftOverviewDetail label='Division' value={assignment?.assignmentDivision?.name} tag xs={12} md={3} xl={3} />
+              <ShiftOverviewDetail label='Group' value={assignment?.assignmentGroup?.name} tag xs={12} md={3} xl={3} />
+              <ShiftOverviewDetail label='Radio Frequency' value={radioFrequency} tag xs={12} md={3} xl={3} />
+              <ShiftOverviewDetail label='Assignment Location' value={reportingLocation} fullRow />
+            </>
+          )
+        }
       </Grid>
-      { officerCheckInOut && geoFence &&
+      { (isCheckedIn || isAdminView) && officerCheckInOut && geoFence &&
         <Box>
           <PolygonDrawMap initialPolygons={geoFence as any} disabled />
         </Box>
       }
-      <Stack spacing={0.5}>
-        <Typography variant="body2" color="text.secondary">
-          Notes
-        </Typography>
-        <Label
-          sx={{
-            padding: '10px !important',
-            whiteSpace: 'pre-line',
-            height: '100%',
-            lineHeight: '1.5rem',
-            fontSize: '14px',
-            justifyContent: 'flex-start',
-            width: '100%',
-            alignItems: 'flex-start',
-            textTransform: 'none',
-          }}
-          variant="soft"
-          color='default'
-        >
-          { assignmentNotes?.assignment?.description && assignmentNotes?.assignment?.description?.trim() !== '' ? reader(assignmentNotes?.assignment?.description || '') : 'N/A'}
-        </Label>
-      </Stack>
+      {
+        isCheckedIn || isAdminView && (
+          <Stack spacing={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              Notes
+            </Typography>
+            <Label
+              sx={{
+                padding: '10px !important',
+                whiteSpace: 'pre-line',
+                height: '100%',
+                lineHeight: '1.5rem',
+                fontSize: '14px',
+                justifyContent: 'flex-start',
+                width: '100%',
+                alignItems: 'flex-start',
+                textTransform: 'none',
+              }}
+              variant="soft"
+              color='default'
+            >
+              { assignmentNotes?.assignment?.description && assignmentNotes?.assignment?.description?.trim() !== '' ? reader(assignmentNotes?.assignment?.description || '') : 'N/A'}
+            </Label>
+          </Stack>
+        )
+      }
     </Stack>
   );
 }

@@ -195,7 +195,6 @@ export class NotificationService {
     organization,
     assignmentId,
   }: {
-    id: ObjectId;
     organization: IOrganization;
     assignmentId: ObjectId;
   }) {

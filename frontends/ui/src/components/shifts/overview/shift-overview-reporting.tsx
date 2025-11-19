@@ -121,7 +121,7 @@ export default function ShiftOverviewReporting ({ shift, assignment, event, isCh
         </ShiftOverviewDetail>
         <ShiftOverviewDetail label='Uniform for the Shift' value={assignment?.uniform || event?.uniform || 'N/A'} tag />
         {
-          isCheckedIn || isAdminView && (
+          (isCheckedIn || isAdminView) && (
             <>
               <ShiftOverviewDetail label='Briefing Time' value={briefingTime} tagColor="info" tagVariant="filled" tag />
               <ShiftOverviewDetail label='Briefing Location' value={assignment?.briefingLocation || event?.briefingLocation || 'N/A'} />

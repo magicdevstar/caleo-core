@@ -524,7 +524,7 @@
     orgId: String!
     callSign: String
     notifyWhenFullyStaffed: Boolean
-    reportingLocation: String
+    reportingLocation: String @deprecated(reason: "Use reportingLocationDetails instead!")
     docType: DocType!
     requiredSkillIds: [String]
     requiredEquipmentIds: [String]
@@ -552,6 +552,9 @@
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
     reportingLocationDetails: ReportingLocation
+
+    assignmentArea: [[Float]]
+    assignmentLocation: ReportingLocation
 
     assignmentDivisionId: ObjectId
     branchId: ObjectId
@@ -861,6 +864,7 @@
     action: EventUserActionLogAction!
     notes: String
     actionId: String
+    eventNotificationId: ObjectId
 
     user: User!
     modifiedBy: User
@@ -869,6 +873,7 @@
     shiftInterestRequests: [ShiftInterestRequest!]
     shiftLotteryRequests: [ShiftLotteryRequest!]
     incidentForm: IncidentForm
+    eventNotification: EventNotification
   }
 
   enum EventUserActionLogSource {
@@ -894,6 +899,7 @@
     CHECK_OUT
     OFFICER_COMMENT_ADDED
     DEMOBILIZED
+    NOTIFICATION_SENT
 
     # Incident actions
     DRAFTED
@@ -1090,6 +1096,8 @@
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
     reportingLocationDetails: UpsertReportingLocation
+    assignmentArea: [[Float]]
+    assignmentLocation: UpsertReportingLocation
     uniform: String
     radioFrequency: String
     briefingTime: DateTime

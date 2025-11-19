@@ -11,7 +11,7 @@ import logger from "../../utils/logger";
 import chunk from 'lodash.chunk';
 import { MailerEvent, MailerEvents } from "../../types/mailer";
 import { createContext, IServiceContext } from "../../utils/createContext";
-import { EventStatus, MemberStatus, ShiftStatus } from "../../__generated__/resolvers-types";
+import { EventStatus, EventUserActionLogAction, EventUserActionLogSource, EventUserActionType, MemberStatus, ShiftStatus } from "../../__generated__/resolvers-types";
 import { InAppTemplates } from "../../types/inAppTemplates";
 import { IAssignment } from "../../models/assignment";
 import { IOrganization } from "../../models/organizations/organization.entity";
@@ -3098,6 +3098,7 @@ const sendEmail = async (input: MailerEvent) => {
       ]);
 
       let user: IShiftExpanded | null;
+      const bulkActivityItems: any[] = [];
       do {
         user = await allUsersOnAssignment.next();
         if (user && user.user) {
@@ -3124,6 +3125,17 @@ const sendEmail = async (input: MailerEvent) => {
               eventNotificationId: new ObjectId(notificationId),
               assignmentId: new ObjectId(assignment.id),
             }
+          });
+          bulkActivityItems.push({
+            userId: user.user._id,
+            eventId: event._id!,
+            shiftGroupId: user._id,
+            actionType: EventUserActionType.Shift,
+            source: EventUserActionLogSource.Shift,
+            modifiedById: user._id!,
+            timestamp: new Date(),
+            action: EventUserActionLogAction.NotificationSent,
+            eventNotificationId: new ObjectId(notificationId),
           });
 
           let url = process.env.LOGIN_URL || '';
@@ -3153,6 +3165,9 @@ const sendEmail = async (input: MailerEvent) => {
           };
         }
       } while(user);
+      if (bulkActivityItems.length > 0) {
+        await context.eventUserActions.bulk(bulkActivityItems);
+      }
     }
 
     if (Object.keys(Addresses).length === 0) {

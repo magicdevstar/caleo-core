@@ -99,6 +99,15 @@ export const GET_ASSIGNMENT = gql`
       geoFence
       allowOfficerCheckIn
 
+      assignmentArea
+      assignmentLocation {
+        fullAddress
+        location {
+          latitude
+          longitude
+        }
+      }
+
       radioFrequency
       uniform
       briefingTime

@@ -1539,6 +1539,15 @@ export const GET_SHIFT_OVERVIEW = gql`
 
         useFieldSupervisorAssignmentOverride
 
+        assignmentArea
+        assignmentLocation {
+          fullAddress
+          location {
+            latitude
+            longitude
+          }
+        }
+
         shifts {
           id
           callSign

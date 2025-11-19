@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -93,6 +93,10 @@ export const ShiftOverviewDialog = ({
   const shiftStatus = getShiftStatus(shift);
   const isCurrentUser = useMemo(() => user?.id === shift?.userId, [user, shift]);
   const isCheckedIn = useMemo(() => !!shift?.shiftCheckInOut?.checkInTime, [shift]);
+
+  const setOverviewShift = useCallback((newShiftId: string) => {
+    controller.onTrue({ id: newShiftId } as unknown as Shift);
+  }, [controller]);
 
   const { data: activityData } = useQuery<EventUserActionsResponse>(GET_USER_SHIFT_ACTIVITY, {
     variables: {
@@ -333,10 +337,10 @@ export const ShiftOverviewDialog = ({
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
             {
-              isCheckedIn || isAdminView && (
+              (isCheckedIn || isAdminView) && (
                 <>
                   <ShiftOverviewSection icon="clarity:group-solid" title="Team">
-                    <ShiftOverviewTeam event={shift?.event} assignment={shift?.assignment} />
+                    <ShiftOverviewTeam userId={shift?.userId || undefined} event={shift?.event} assignment={shift?.assignment} isAdminView={isAdminView} setOverviewShift={setOverviewShift} />
                   </ShiftOverviewSection>
                   <Divider sx={{ borderStyle: 'dashed' }} />
                 </>
@@ -347,7 +351,7 @@ export const ShiftOverviewDialog = ({
             </ShiftOverviewSection>
             <Divider sx={{ borderStyle: 'dashed' }} />
             {
-              isCheckedIn || isAdminView && (
+              (isCheckedIn || isAdminView) && (
                 <>
                   <ShiftOverviewSection icon="ic:baseline-directions-car" title="Equipment">
                     <ShiftOverviewEquipment shift={shift} isAdminView={isAdminView} />

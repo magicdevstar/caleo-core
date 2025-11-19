@@ -4,6 +4,7 @@ import PhoneNumberFormatter from 'phone-number-formats';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
+import Button from '@mui/material/Button';
 // types
 import { GET_SKILL_SLIM } from 'src/api/skill';
 import { Assignment, Event, User } from 'src/__generated__/resolvers-types';
@@ -20,14 +21,18 @@ export interface DirectReportUser {
   callSign?: string;
   phone?: string;
   formattedPhone?: string;
+  shiftId: string;
 };
 
 interface Props {
+  userId?: string;
   event?: Event;
   assignment?: Assignment;
+  isAdminView?: boolean;
+  setOverviewShift: (id: string) => void;
 };
 
-export default function ShiftOverviewTeam({ event, assignment }: Props) {
+export default function ShiftOverviewTeam({ userId, event, assignment, isAdminView, setOverviewShift }: Props) {
   const { user } = useAuthContext();
   const overrideSupervisor = useMemo(() => {
     if (!assignment?.useFieldSupervisorAssignmentOverride) {
@@ -72,7 +77,7 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
     () => {
       // Show all direct reports
       if (assignment?.isSigningAuthority) {
-        const authorityId = assignment?.fieldSupervisorAssignment?.shifts?.[0]?.user?.id!;
+        const authorityId = userId;
         return (event?.assignments || []).reduce((acc, assign, i) => {
           let sup: User | null | undefined = assign?.useFieldSupervisorAssignmentOverride ? event?.overrideSupervisor : null;
           if (!sup) {
@@ -90,6 +95,7 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
                 callSign: s?.callSign || assign?.callSign || 'N/A',
                 phone: s?.user?.member?.contactInfo?.primaryPhone?.number,
                 formattedPhone: s?.user?.member?.contactInfo?.primaryPhone?.number,
+                shiftId: s?.id,
               };
 
               // try to format number
@@ -120,6 +126,7 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
           callSign: s?.callSign || assignment?.callSign || 'N/A',
           phone: s?.user?.member?.contactInfo?.primaryPhone?.number,
           formattedPhone: s?.user?.member?.contactInfo?.primaryPhone?.number,
+          shiftId: s?.id,
         };
 
         // try to format number
@@ -134,49 +141,64 @@ export default function ShiftOverviewTeam({ event, assignment }: Props) {
         // push new report
         return newReport as DirectReportUser;
       })
-    }, [event, assignment]
+    }, [userId, event, assignment]
   );
 
-  const commentTableConfig: TableConfig<DirectReportUser> = useMemo(() => ({
-    header: {
-      title: 'Team Members',
-      titleSx: { p: 0 },
-      buttons: [],
-    },
-    table: {
-      sx: {
-        minWidth: 'inherit',
-      }
-    },
-    search: {
-      data: (directReports || []),
-      query: GET_SKILL_SLIM,
-      processResult: (data) => ({
-        items: data,
-        total: data.length,
-      }),
-    },
-    rowActions: [],
-    columns: [
-      {
-        id: 'name',
-        label: 'Name',
-        columnType: 'string',
+  const commentTableConfig = useMemo(() => {
+    const config: TableConfig<DirectReportUser> = {
+      header: {
+        title: 'Team Members',
+        titleSx: { p: 0 },
+        buttons: [],
       },
-      {
-        id: 'callSign',
-        label: 'Call Sign',
-        columnType: 'string',
+      table: {
+        sx: {
+          minWidth: 'inherit',
+        }
       },
-      {
-        id: 'formattedPhone',
-        label: 'Contact Number',
-        columnType: 'string',
-        getHref: (row) => `tel:${row.phone}`,
+      search: {
+        data: (directReports || []),
+        query: GET_SKILL_SLIM,
+        processResult: (data: any) => ({
+          items: data,
+          total: data.length,
+        }),
       },
-    ],
-    filters: []
-  }), [directReports]);
+      rowActions: [],
+      columns: [
+        {
+          id: 'name',
+          label: 'Name',
+          columnType: 'string',
+        },
+        {
+          id: 'callSign',
+          label: 'Call Sign',
+          columnType: 'string',
+        },
+        {
+          id: 'formattedPhone',
+          label: 'Contact Number',
+          columnType: 'string',
+          getHref: (row: DirectReportUser) => `tel:${row.phone}`,
+        },
+      ],
+      filters: []
+    }
+
+    if (assignment?.isSigningAuthority || isAdminView) {
+      config.columns.push({
+        id: 'setOverview',
+        label: '',
+        columnType: 'action',
+        renderValue: (_val, _index, row) => (
+          <Button onClick={() => setOverviewShift(row.shiftId)}>See Details</Button>
+        ),
+      });
+    }
+
+    return config;
+  }, [assignment, isAdminView, setOverviewShift, directReports]);
 
   return (
     <Stack>

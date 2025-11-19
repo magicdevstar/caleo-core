@@ -11,7 +11,7 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { GET_ASSIGNMENT } from 'src/api/assignment';
 import QueryView from 'src/components/query-view/query-view';
-import EditAssignment from '../events/edit-assignment';
+import EditAssignment from '../events/assignment/edit';
 
 // ----------------------------------------------------------------------
 

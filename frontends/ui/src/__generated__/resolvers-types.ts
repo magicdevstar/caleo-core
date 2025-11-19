@@ -59,10 +59,12 @@ export type AllUsersSearchInput = {
 export type Assignment = {
   __typename?: 'Assignment';
   allowOfficerCheckIn?: Maybe<Scalars['Boolean']['output']>;
+  assignmentArea?: Maybe<Array<Maybe<Array<Maybe<Scalars['Float']['output']>>>>>;
   assignmentDivision?: Maybe<AssignmentDivision>;
   assignmentDivisionId?: Maybe<Scalars['ObjectId']['output']>;
   assignmentGroup?: Maybe<AssignmentGroup>;
   assignmentGroupId?: Maybe<Scalars['ObjectId']['output']>;
+  assignmentLocation?: Maybe<ReportingLocation>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   branch?: Maybe<Branch>;
   branchId?: Maybe<Scalars['ObjectId']['output']>;
@@ -98,6 +100,7 @@ export type Assignment = {
   rankIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   ranks?: Maybe<Array<Maybe<Rank>>>;
   removedAt?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use reportingLocationDetails instead! */
   reportingLocation?: Maybe<Scalars['String']['output']>;
   reportingLocationDetails?: Maybe<ReportingLocation>;
   reportingTime?: Maybe<Scalars['DateTime']['output']>;
@@ -751,6 +754,8 @@ export type EventUserAction = {
   createdAt: Scalars['DateTime']['output'];
   event: Event;
   eventId: Scalars['ObjectId']['output'];
+  eventNotification?: Maybe<EventNotification>;
+  eventNotificationId?: Maybe<Scalars['ObjectId']['output']>;
   id: Scalars['ObjectId']['output'];
   incidentForm?: Maybe<IncidentForm>;
   incidentFormId?: Maybe<Scalars['ObjectId']['output']>;
@@ -778,6 +783,7 @@ export enum EventUserActionLogAction {
   Declined = 'DECLINED',
   Demobilized = 'DEMOBILIZED',
   Drafted = 'DRAFTED',
+  NotificationSent = 'NOTIFICATION_SENT',
   OfficerCommentAdded = 'OFFICER_COMMENT_ADDED',
   Rejected = 'REJECTED',
   Relinquished = 'RELINQUISHED',
@@ -3102,8 +3108,10 @@ export type UpsertAfterShiftRemove = {
 
 export type UpsertAssignment = {
   allowOfficerCheckIn?: InputMaybe<Scalars['Boolean']['input']>;
+  assignmentArea?: InputMaybe<Array<InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>>>;
   assignmentDivisionId?: InputMaybe<Scalars['ObjectId']['input']>;
   assignmentGroupId?: InputMaybe<Scalars['ObjectId']['input']>;
+  assignmentLocation?: InputMaybe<UpsertReportingLocation>;
   branchId?: InputMaybe<Scalars['ObjectId']['input']>;
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
@@ -4313,10 +4321,12 @@ export type AfterShiftRemoveResolvers<ContextType = any, ParentType extends Reso
 
 export type AssignmentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Assignment'] = ResolversParentTypes['Assignment']> = ResolversObject<{
   allowOfficerCheckIn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  assignmentArea?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
   assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType>;
   assignmentDivisionId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType>;
   assignmentGroupId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
+  assignmentLocation?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType>;
   branchId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
@@ -4783,6 +4793,8 @@ export type EventUserActionResolvers<ContextType = any, ParentType extends Resol
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   eventId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  eventNotification?: Resolver<Maybe<ResolversTypes['EventNotification']>, ParentType, ContextType>;
+  eventNotificationId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   incidentForm?: Resolver<Maybe<ResolversTypes['IncidentForm']>, ParentType, ContextType>;
   incidentFormId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;

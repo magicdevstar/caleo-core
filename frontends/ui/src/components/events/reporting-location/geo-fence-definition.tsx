@@ -44,9 +44,9 @@ export function GeoFenceDefinition({
 
       {isEnabled && (
         <>
-          <RHFMapWithBoundingBox name={geoName} pinName={reportingLocationName} />
           {lasdEventFields && (
             <>
+              <RHFDateTimePicker disabled={disabledInput} name="reportingTime" label="Reporting Time" />
               {
                 mapboxReportingLocation ? (
                   <RHFAutocompleteGeocode disabled={disabledInput} name="reportingLocationAddress" label="Reporting Location" />
@@ -54,9 +54,9 @@ export function GeoFenceDefinition({
                   <RHFTextField disabled={disabledInput} name="reportingLocation" label="Reporting Location" />
                 )
               }
-              <RHFDateTimePicker disabled={disabledInput} name="reportingTime" label="Reporting Time" />
             </>
           )}
+          <RHFMapWithBoundingBox name={geoName} pinName={reportingLocationName} />
         </>
       )}
     </Stack>

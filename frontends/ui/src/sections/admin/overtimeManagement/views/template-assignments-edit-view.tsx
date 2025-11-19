@@ -15,7 +15,7 @@ import { GET_ASSIGNMENT } from 'src/api/assignment';
 import QueryView from 'src/components/query-view/query-view';
 import { CLONE_EVENT_BY_ID } from 'src/api/event';
 import Iconify from 'src/components/iconify';
-import EditAssignment from '../events/edit-assignment';
+import EditAssignment from '../events/assignment/edit';
 
 // ----------------------------------------------------------------------
 

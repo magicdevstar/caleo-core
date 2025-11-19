@@ -15,7 +15,7 @@ import { SxProps } from "@mui/material";
 // components
 import Image from "src/components/image";
 // types
-import { MemberRole, Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
+import { Rank, Shift, ShiftBufferRequest, ShiftLotteryRequest, Skill } from "src/__generated__/resolvers-types";
 // components
 import CustomPopover, { usePopover } from "src/components/custom-popover";
 import Iconify from "src/components/iconify";
@@ -701,7 +701,7 @@ export default function ShiftItem({
         </Stack>
       </Stack>
 
-      <ShiftOverviewDialog controller={shiftOverview} isAdminView={user?.member?.role === MemberRole.Admin} />
+      <ShiftOverviewDialog controller={shiftOverview} isAdminView={false} />
 
       <CustomPopover
         open={popover.open}

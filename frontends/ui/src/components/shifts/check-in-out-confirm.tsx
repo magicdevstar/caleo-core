@@ -8,7 +8,7 @@ import { useMutation } from '@apollo/client';
 import { DesktopDateTimePicker } from '@mui/x-date-pickers/DesktopDateTimePicker';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import { MemberRole, Shift } from 'src/__generated__/resolvers-types';
+import { Shift } from 'src/__generated__/resolvers-types';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useBoolean, UseBooleanReturnType } from "src/hooks/use-boolean"
 import { CHECK_IN, CHECK_OUT, GET_ALL_SHIFTS } from 'src/api/shifts';
@@ -20,7 +20,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { getNow } from 'src/hooks/use-datejs';
 import { useFeatures } from 'src/hooks/use-features';
 import VehicleCategoriesSelect from '../vehicle-categories/vehicle-categories-select';
-import { ShiftOverviewDialog } from './overview/shift-overview-dialog';
+import { ShiftOverviewDialog } from './overview/shift-overview-dialog'; // eslint-disable-line import/no-cycle
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -226,7 +226,7 @@ export default function CheckInOutConfirm({
           </LoadingButton>
         }
       />
-      <ShiftOverviewDialog isAdminView={user.member?.role === MemberRole.Admin} controller={overviewController} />
+      <ShiftOverviewDialog isAdminView={false} controller={overviewController} />
     </>
   )  
 }

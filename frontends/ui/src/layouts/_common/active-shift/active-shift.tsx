@@ -1,18 +1,16 @@
 import { useEffect, useState } from 'react';
 import { m } from 'framer-motion';
 import IconButton from '@mui/material/IconButton';
-import { MemberRole, Shift } from 'src/__generated__/resolvers-types';
-import { useAuthContext } from 'src/auth/hooks';
+import { Shift } from 'src/__generated__/resolvers-types';
 import Iconify from 'src/components/iconify';
 import { ShiftOverviewDialog } from 'src/components/shifts/overview/shift-overview-dialog';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { useCheckInOut } from "src/hooks/use-check-in-out";
+import { useCheckInOut } from "src/hooks/use-check-in-out"; // eslint-disable-line import/no-cycle
 import { useFeatures } from "src/hooks/use-features";
 
 export default function ActiveShift() {
   // Using this for now because LASD is the only customer using this feature
   const { lasdEventFields } = useFeatures();
-  const { user } = useAuthContext();
   const { currentShifts } = useCheckInOut({ isKiosk: true });
   const controller = useBoolean<Shift>();
   const [firstLoad, setFirstLoad] = useState(false);
@@ -41,7 +39,7 @@ export default function ActiveShift() {
       >
         <Iconify icon="mdi-assignment" width={24} />
       </IconButton>
-      <ShiftOverviewDialog controller={controller} isAdminView={user?.member?.role === MemberRole.Admin} closeOnSave />
+      <ShiftOverviewDialog controller={controller} isAdminView={false} closeOnSave />
     </>
   )
 }

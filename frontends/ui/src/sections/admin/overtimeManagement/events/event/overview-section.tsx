@@ -1,23 +1,29 @@
 import { useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import dayjs from "dayjs";
+// @mui
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Markdown from "src/components/markdown";
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+// components
+import Markdown from "src/components/markdown";
 import { RHFAutocomplete, RHFDateTimePicker, RHFSelect, RHFTextField } from "src/components/hook-form";
 import { RouterLink } from "src/routes/components";
+import { EditSection } from "src/sections/admin/overtimeManagement/events/common/section";
+// types
 import { Event, EventStatus, Venue, VenueStatus } from "src/__generated__/resolvers-types";
 import { GET_VENUE_LIST } from "src/api/venues";
+// hooks
 import { useFeatures } from "src/hooks/use-features";
 import { convertDate, useDateFormats } from "src/hooks/use-datejs";
 import { useFormContext } from "react-hook-form";
 import { useAuthContext } from "src/auth/hooks";
 import useDebounceText from "src/hooks/use-debounce-text";
-import { EditSection } from "../common/section";
-import MenuItem from "@mui/material/MenuItem";
+
+// ----------------------------------------------------------------------
 
 interface Props {
   disabled?: boolean;
@@ -26,6 +32,8 @@ interface Props {
   isComplete?: boolean;
   eventTemplateView?: boolean;
 }
+
+// ----------------------------------------------------------------------
 
 export const EventOverviewSection = ({
   disabled,
@@ -109,25 +117,23 @@ export const EventOverviewSection = ({
       )}
 
       {selectedVenue && (
-        <Box sx={{ mb: 1 }}>
-          <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
-            <Stack direction="row" spacing={1.5}>
-              <Typography variant="subtitle2">Address: </Typography>
-              <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
-              <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
-              <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
-              <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
-            </Stack>
-            {currentEvent?.requestDetails?.estimatedAttendees && <Typography variant="subtitle2">Estimated Attendees: {currentEvent?.requestDetails?.estimatedAttendees}</Typography>}
-            {currentEvent?.requestDetails?.numberOfOfficers && <Typography variant="subtitle2">Requested number of officers: {currentEvent?.requestDetails?.numberOfOfficers}</Typography>}
-            <Markdown children={selectedVenue?.notes || ''} />
-            {showVenueContractWarning && (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant='caption' color="grey">⚠️ Venue contract is is expired. Please update the contract or replace the venue.</Typography>
-                <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${(selectedVenue as any)?.id}`}>Edit venue</Button>
-              </Box>
-            )}
-          </Box>
+        <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
+          <Stack direction="row" spacing={1.5}>
+            <Typography variant="subtitle2">Address: </Typography>
+            <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
+            <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
+            <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
+            <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
+          </Stack>
+          {currentEvent?.requestDetails?.estimatedAttendees && <Typography variant="subtitle2">Estimated Attendees: {currentEvent?.requestDetails?.estimatedAttendees}</Typography>}
+          {currentEvent?.requestDetails?.numberOfOfficers && <Typography variant="subtitle2">Requested number of officers: {currentEvent?.requestDetails?.numberOfOfficers}</Typography>}
+          <Markdown children={selectedVenue?.notes || ''} />
+          {showVenueContractWarning && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant='caption' color="grey">⚠️ Venue contract is is expired. Please update the contract or replace the venue.</Typography>
+              <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${(selectedVenue as any)?.id}`}>Edit venue</Button>
+            </Box>
+          )}
         </Box>
       )}
 
@@ -174,7 +180,7 @@ export const EventOverviewSection = ({
 
       {
         currentEvent && !eventTemplateView && (
-          <>
+          <Stack>
             <Stack direction="row" spacing={1.5}>
               <RHFDateTimePicker
                 name="startTime"
@@ -211,7 +217,7 @@ export const EventOverviewSection = ({
             { !isIncident && (
               <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
             )}
-          </>
+          </Stack>
         )
       }
     </EditSection>

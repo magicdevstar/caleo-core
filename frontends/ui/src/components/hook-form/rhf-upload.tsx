@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 // @mui
 import Box from '@mui/material/Box';
@@ -80,7 +81,35 @@ export function RHFUploadBox({ name, label, helperText, ...other }: Props) {
 // ----------------------------------------------------------------------
 
 export function RHFUpload({ name, multiple, helperText, accept, ...other }: Props) {
-  const { control } = useFormContext();
+  const { control, watch, setValue } = useFormContext();
+  const attachments = watch(name);
+
+  const handleRemoveFile = useCallback(
+    (inputFile: File | string) => {
+      const filtered = attachments && attachments?.filter((file: any) => file !== inputFile);
+      setValue(name, filtered);
+    },
+    [setValue, attachments, name]
+  );
+
+  const handleDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const files: any[] = attachments || [];
+
+      const newFiles: any[] = acceptedFiles.map((file) =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        })
+      );
+
+      setValue(name, [...files, ...newFiles] as any[], { shouldValidate: true });
+    },
+    [setValue, attachments, name]
+  );
+
+  const handleRemoveAllFiles = useCallback(() => {
+    setValue(name, [] as any[]);
+  }, [setValue, name]);
 
   const uploadAccept = accept ?? { 'image/*': [] };
 
@@ -102,6 +131,9 @@ export function RHFUpload({ name, multiple, helperText, accept, ...other }: Prop
                 </FormHelperText>
               )
             }
+            onDrop={handleDrop}
+            onRemove={handleRemoveFile}
+            onRemoveAll={handleRemoveAllFiles}
             {...other}
           />
         ) : (

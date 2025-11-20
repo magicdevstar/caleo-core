@@ -1442,6 +1442,13 @@ export const GET_SHIFT_OVERVIEW = gql`
         overrideSupervisor {
           id
           name
+          member {
+            contactInfo {
+              primaryPhone {
+                number
+              }
+            }
+          }
         }
         fieldSupervisorAssignment {
           id

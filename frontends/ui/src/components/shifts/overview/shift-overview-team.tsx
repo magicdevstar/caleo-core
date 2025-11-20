@@ -192,7 +192,7 @@ export default function ShiftOverviewTeam({ userId, event, assignment, isAdminVi
         label: '',
         columnType: 'action',
         renderValue: (_val, _index, row) => (
-          <Button onClick={() => setOverviewShift(row.shiftId)}>See Details</Button>
+          <Button variant='contained' color="primary" onClick={() => setOverviewShift(row.shiftId)}>Show Details</Button>
         ),
       });
     }

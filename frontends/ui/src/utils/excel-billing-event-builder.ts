@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import dayjs from 'dayjs';
 import { Event, Shift } from 'src/__generated__/resolvers-types';
 import { FrontendUser } from 'src/api/user';
 import { convertDate } from 'src/hooks/use-datejs';
@@ -106,11 +107,11 @@ export function generatePayAndLeaveWorksheet(
         : '',
       // Check-in Time
       shift.calculatedShiftDetails?.startTime
-        ? convertDate({ date: shift.calculatedShiftDetails.startTime, user }).format(timeFormat)
+        ? dayjs(shift.calculatedShiftDetails.startTime).utc().format(timeFormat)
         : '',
       // Check-out Time
       shift.calculatedShiftDetails?.endTime
-        ? convertDate({ date: shift.calculatedShiftDetails.endTime, user }).format(timeFormat)
+        ? dayjs(shift.calculatedShiftDetails.endTime).utc().format(timeFormat)
         : '',
       // Overtime Hours Worked
       hoursWorked,
@@ -239,11 +240,11 @@ export function generateContractLawWorksheet(
         : '';
       // Check-in Time
       shiftRow.getCell(6).value = shift.calculatedShiftDetails?.startTime
-        ? convertDate({ date: shift.calculatedShiftDetails.startTime, user }).format(timeFormat)
+        ? dayjs(shift.calculatedShiftDetails.startTime).utc().format(timeFormat)
         : '';
       // Check-out Time
       shiftRow.getCell(7).value = shift.calculatedShiftDetails?.endTime
-        ? convertDate({ date: shift.calculatedShiftDetails.endTime, user }).format(timeFormat)
+        ? dayjs(shift.calculatedShiftDetails.endTime).utc().format(timeFormat)
         : '';
       // Overtime Hours Worked
       shiftRow.getCell(8).value = shift.calculatedShiftDetails?.formattedDiff || 0;

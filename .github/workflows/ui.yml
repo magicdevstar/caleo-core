@@ -62,3 +62,4 @@ jobs:
           REACT_APP_VAPID_PUBLIC_KEY: ${{ vars.REACT_APP_VAPID_PUBLIC_KEY }}
           DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
           DOMAIN_ALIASES: ${{ vars.DOMAIN_ALIASES }}
+          CI: false

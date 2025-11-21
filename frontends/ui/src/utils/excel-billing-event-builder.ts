@@ -80,12 +80,12 @@ export function generatePayAndLeaveWorksheet(
     // Some reports say it is because if opened in protected view, it will not calculate and only show the result.
     const hoursWorked = shift.calculatedShiftDetails?.formattedDiff || 0;
     const equipmentTime = shift.calculatedShiftDetails?.totalEquipmentTime || 0;
-    const travelTime = equipmentTime ? 0 : 1;
+    const travelTime = (equipmentTime || !shift.assignment.includeDriveTime) ? 0 : 1;
     const totalRowTime = hoursWorked + travelTime + equipmentTime;
 
     // add to total sums
     totalOvertimeHoursWorked += hoursWorked;
-    totalTravelTime += equipmentTime ? 0 : 1;
+    totalTravelTime += (equipmentTime || !shift.assignment.includeDriveTime) ? 0 : 1;
     totalEquipmentTime += equipmentTime;
     totalTime += totalRowTime;
 
@@ -249,7 +249,7 @@ export function generateContractLawWorksheet(
       // Overtime Hours Worked
       shiftRow.getCell(8).value = shift.calculatedShiftDetails?.formattedDiff || 0;
       // Travel Time (Default is 1)
-      shiftRow.getCell(9).value = shift.calculatedShiftDetails?.totalEquipmentTime ? 0 : 1;
+      shiftRow.getCell(9).value = (shift.calculatedShiftDetails?.totalEquipmentTime || !shift.assignment.includeDriveTime) ? 0 : 1;
       // Equipment Time
       shiftRow.getCell(10).value = shift.calculatedShiftDetails?.totalEquipmentTime || 0;
 

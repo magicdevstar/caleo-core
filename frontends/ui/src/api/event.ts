@@ -205,6 +205,7 @@ query GetEvent($id: String!) {
       id
       name
       callSign
+      includeDriveTime
       requiredEquipment {
         id
         name

@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import dayjs from 'dayjs';
 import { Event, Shift } from 'src/__generated__/resolvers-types';
 import { FrontendUser } from 'src/api/user';
-import { convertDate } from 'src/hooks/use-datejs';
+import { convertDate, convertStartAndEndDate } from 'src/hooks/use-datejs';
 import { getCellSumByColumnFormula, getColSumRangeFormula } from './excel-formulas';
 
 export function modifyReportHeader(event: Event, worksheet: ExcelJS.Worksheet, user: FrontendUser) {
@@ -78,10 +78,15 @@ export function generatePayAndLeaveWorksheet(
 
     // NOTE: Not sure if I actually have to calculate the result of formulas as it works without, but docs recommend it.
     // Some reports say it is because if opened in protected view, it will not calculate and only show the result.
-    const hoursWorked = shift.calculatedShiftDetails?.formattedDiff || 0;
+    const convertedStartAndEnd = convertStartAndEndDate({
+      startDate: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+      endDate: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
+      user,
+    });
+    const hoursWorked = convertedStartAndEnd.formattedDiff || 0;
     const equipmentTime = shift.calculatedShiftDetails?.totalEquipmentTime || 0;
     const travelTime = (equipmentTime || !shift.assignment.includeDriveTime) ? 0 : 1;
-    const totalRowTime = hoursWorked + travelTime + equipmentTime;
+    const totalRowTime = hoursWorked + equipmentTime;
 
     // add to total sums
     totalOvertimeHoursWorked += hoursWorked;
@@ -106,13 +111,9 @@ export function generatePayAndLeaveWorksheet(
         ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
         : '',
       // Check-in Time
-      shift.calculatedShiftDetails?.startTime
-        ? dayjs(shift.calculatedShiftDetails.startTime).utc().format(timeFormat)
-        : '',
+      convertedStartAndEnd.startDate ? dayjs(convertedStartAndEnd.startDate).format(timeFormat) : '',
       // Check-out Time
-      shift.calculatedShiftDetails?.endTime
-        ? dayjs(shift.calculatedShiftDetails.endTime).utc().format(timeFormat)
-        : '',
+      convertedStartAndEnd.endDate ? dayjs(convertedStartAndEnd.endDate).format(timeFormat) : '',
       // Overtime Hours Worked
       hoursWorked,
       // Travel Time (Default is 1)
@@ -225,6 +226,11 @@ export function generateContractLawWorksheet(
     });
 
     shifts.forEach((shift, shiftIdx) => {
+      const convertedStartAndEnd = convertStartAndEndDate({
+        startDate: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+        endDate: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
+        user,
+      });
       const shiftRow = worksheet.getRow(rowIdx);
       // Name
       shiftRow.getCell(1).value = shift.user ? `${shift.user?.lastName || ''}, ${shift.user?.firstName || ''}` : '';
@@ -239,15 +245,13 @@ export function generateContractLawWorksheet(
         ? convertDate({ date: shift.startTime, user }).format(miniDateFormat)
         : '';
       // Check-in Time
-      shiftRow.getCell(6).value = shift.calculatedShiftDetails?.startTime
-        ? dayjs(shift.calculatedShiftDetails.startTime).utc().format(timeFormat)
-        : '';
+      const checkInTime = convertedStartAndEnd.startDate ? dayjs(convertedStartAndEnd.startDate).format(timeFormat) : '';
+      shiftRow.getCell(6).value = checkInTime;
       // Check-out Time
-      shiftRow.getCell(7).value = shift.calculatedShiftDetails?.endTime
-        ? dayjs(shift.calculatedShiftDetails.endTime).utc().format(timeFormat)
-        : '';
+      const checkOutTime = convertedStartAndEnd.endDate ? dayjs(convertedStartAndEnd.endDate).format(timeFormat) : '';
+      shiftRow.getCell(7).value = checkOutTime;
       // Overtime Hours Worked
-      shiftRow.getCell(8).value = shift.calculatedShiftDetails?.formattedDiff || 0;
+      shiftRow.getCell(8).value = convertedStartAndEnd.formattedDiff || 0;
       // Travel Time (Default is 1)
       shiftRow.getCell(9).value = (shift.calculatedShiftDetails?.totalEquipmentTime || !shift.assignment.includeDriveTime) ? 0 : 1;
       // Equipment Time

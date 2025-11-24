@@ -6,6 +6,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useMemo } from "react";
 // types
 import { Event } from "src/__generated__/resolvers-types";
 import { GET_EVENT, RESET_EVENT_THUMBNAIL } from "src/api/event";
@@ -27,15 +28,19 @@ import { fData } from "src/utils/format-number";
 
 interface Props {
   disabled?: boolean;
+  isIncident: boolean;
   currentEvent?: Event;
 }
 
 export const EventDetailSection = ({
   disabled,
+  isIncident,
   currentEvent,
 }: Props) => {
   const { enabledEventThumbnail } = useFeatures();
   const expand = useBoolean();
+
+  const initAssetUrls = useMemo(() => (currentEvent?.attachmentPaths || []) as string[], [currentEvent?.attachmentPaths]);
 
   const [resetThumbnail, { loading: resetThumbnailLoading }] = useMutation(RESET_EVENT_THUMBNAIL, {
     variables: {
@@ -51,16 +56,22 @@ export const EventDetailSection = ({
 
   return (
     <EditSection title="Details" description="Event specific details">
-      <RHFPhoneField
-        name="commandPostContactNumber"
-        label="Command Post Contact Number"
-        disabled={disabled}
-      />
-      <RHFTextField
-        name="bodyWarnTag"
-        label="Body Warn Tag"
-        disabled={disabled}
-      />
+      {
+        !isIncident && (
+          <>
+            <RHFPhoneField
+              name="commandPostContactNumber"
+              label="Command Post Contact Number"
+              disabled={disabled}
+            />
+            <RHFTextField
+              name="bodyWarnTag"
+              label="Body Warn Tag"
+              disabled={disabled}
+            />
+          </>
+        )
+      }
 
       <Accordion
         disableGutters
@@ -136,6 +147,7 @@ export const EventDetailSection = ({
                 multiple
                 thumbnail
                 disabled={disabled}
+                initAssetUrls={initAssetUrls}
                 name="attachments"
                 maxSize={3145728}
               />
@@ -143,9 +155,6 @@ export const EventDetailSection = ({
           </Stack>
         </AccordionDetails>
       </Accordion>
-
-
-
     </EditSection>
   );
 }

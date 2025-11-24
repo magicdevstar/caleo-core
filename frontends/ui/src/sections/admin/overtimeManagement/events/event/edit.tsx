@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useCallback } from 'react';
-import { gql, useMutation, useQuery } from '@apollo/client';
+import { gql, useMutation } from '@apollo/client';
 import { client } from 'src/utils/apollo';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -17,9 +17,9 @@ import { EventHiringSection } from 'src/sections/admin/overtimeManagement/events
 import { EventAssignmentSection } from 'src/sections/admin/overtimeManagement/events/event/assigment-section';
 import { EventSupervisionSection } from 'src/sections/admin/overtimeManagement/events/event/supervision-section';
 import { EventOvertimeSection } from 'src/sections/admin/overtimeManagement/events/event/overtime-section';
+import { EditReportingLocation } from 'src/components/events/reporting-location/edit-reporting-location';
 // hooks
 import { useRouter } from 'src/routes/hooks';
-import { useDateFormats } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
 import { useSnackbar } from 'notistack';
@@ -46,48 +46,14 @@ export default function EditEvent ({
 }: Props) {
   const basePath = eventTemplateView ? paths.dashboard.admin.overtime.templates : paths.dashboard.admin.overtime
   const router = useRouter();
-  const { dateTimeFormat } = useDateFormats();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
   const {
-    venueContractDates,
-    interestLists,
-    lottery,
-    externalEventRequests,
     lasdEventFields,
-    incidentEvents,
-    enabledEventThumbnail
   } = useFeatures();
 
   const [createUploadLink] = useMutation<{eventAttachmentUploadUrl: EventAttachmentUpload}>(EVENT_UPLOAD_URL);
   const [upsertEvent, { loading: upsertEventLoading }] = useMutation(UPSERT_EVENT);
-
-  const eventStatuses = useMemo(() => {
-    const statuses = [
-      EventStatus.Draft,
-    ];
-    if (
-      lottery &&
-      user.member.org?.settings?.lottery?.enabled
-    ) {
-      statuses.push(EventStatus.ReadyForLottery);
-    }
-    if (incidentEvents) {
-      statuses.push(EventStatus.Incident);
-    }
-    if (interestLists) {
-      statuses.push(EventStatus.InterestList);
-    }
-    if (externalEventRequests) {
-      statuses.push(EventStatus.Requested);
-    }
-    return [
-      ...statuses,
-      EventStatus.FirstComeFirstServe,
-      EventStatus.Complete,
-      EventStatus.Removed,
-    ];
-  }, [user, lottery, incidentEvents, interestLists, externalEventRequests]);
 
   const allDisabled = useMemo(() => {
     const hasInvalidStatus = [EventStatus.Removed, EventStatus.Requested].includes(currentEvent?.status || '' as any);
@@ -105,21 +71,6 @@ export default function EditEvent ({
     currentEvent?.endTime,
     currentEvent?.status
   ]);
-
-  const disabledStatus = useMemo(() => {
-    let message = 'Cannot change posting type before all shifts have been assigned a time';
-    let disabled = currentEvent?.assignments?.some?.((assignment) => (assignment?.shiftSlots?.length || 0) > 0);
-
-    if (currentEvent?.status === EventStatus.Incident) {
-      disabled = true;
-      message = 'Cannot change posting type of incident events';
-    }
-
-    return {
-      disabled,
-      message
-    }
-  }, [currentEvent?.assignments, currentEvent?.status]);
 
   const defaultValues = useMemo(
     () => ({
@@ -185,10 +136,7 @@ export default function EditEvent ({
     reset,
     handleSubmit,
     getValues,
-    setValue,
-    watch,
-    trigger,
-    formState: { isSubmitting, isValid },
+    formState: { isValid },
   } = methods;
 
   useEffect(() => {
@@ -199,28 +147,6 @@ export default function EditEvent ({
 
   const currentFormValues = getValues();
   const isIncident = useMemo(() => currentFormValues.status === EventStatus.Incident, [currentFormValues.status]);
-  const autoHireEndTime = useMemo(() => {
-    if (currentFormValues?.interestListAutoAssignCutoff) {
-      return dayjs(new Date(currentFormValues?.interestListAutoAssignCutoff));
-    }
-
-    const proposedEndTime = dayjs(
-      currentEvent?.startTime ? new Date(currentEvent.startTime) : new Date()
-    ).subtract(
-      user.member.org?.settings?.interestList?.defaultAutoHireCutoff || 7,
-      'days'
-    );
-
-    if (dayjs(Date.now()).isAfter(proposedEndTime)) {
-      return dayjs(new Date(currentEvent?.startTime || Date.now())).add(24, 'hours');
-    }
-
-    return proposedEndTime;
-  }, [
-    currentEvent,
-    currentFormValues?.interestListAutoAssignCutoff,
-    user.member.org?.settings?.interestList?.defaultAutoHireCutoff
-  ]);
 
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
     try {
@@ -279,7 +205,7 @@ export default function EditEvent ({
             scheduledFirstComeFirstServe: formData?.scheduledFirstComeFirstServe,
             scheduledInterestList: formData?.scheduledInterestList,
             scheduledCloseInterestList: formData?.scheduledCloseInterestList,
-            interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff || autoHireEndTime.toISOString(),
+            interestListAutoAssignCutoff: formData?.interestListAutoAssignCutoff,
             notifyOnFirstComeFirstServe: formData?.notifyOnFirstComeFirstServe,
             lotteryNumber: formData?.lotteryNumber,
             startTime: formData?.startTime ? formData?.startTime.toISOString() : null,
@@ -354,7 +280,7 @@ export default function EditEvent ({
       console.error(error);
       return '';
     }
-  }, [upsertEvent, createUploadLink, enqueueSnackbar, autoHireEndTime, router, currentEvent, basePath]);
+  }, [upsertEvent, createUploadLink, enqueueSnackbar, router, currentEvent, basePath]);
 
   const onSubmit = handleSubmit(async (formData: any) => {
     await formSubmit(formData);
@@ -369,18 +295,47 @@ export default function EditEvent ({
           eventTemplateView={eventTemplateView}
           currentEvent={currentEvent}
         />
-        <EventDetailSection />
-        {/* Lets include lottery logic here */}
-        <EventHiringSection />
+        <EventDetailSection
+          isIncident={isIncident}
+          currentEvent={currentEvent}
+          disabled={allDisabled || isComplete}
+        />
+
         {
-          lasdEventFields && (
+          !isIncident && (
             <>
-              <EventSupervisionSection />
-              <EventOvertimeSection />
+              {/* Lets include lottery logic here */}
+              { !eventTemplateView && (
+                <EventHiringSection
+                  currentEvent={currentEvent}
+                  disabled={allDisabled || isComplete}
+                />
+              )}
+              {
+                lasdEventFields && (
+                  <>
+                    <EventSupervisionSection currentEvent={currentEvent} disabled={allDisabled || isComplete} />
+                    <EventOvertimeSection disabled={allDisabled || isComplete} />
+                    <EditReportingLocation />
+                  </>
+                )
+              }
+              <EventAssignmentSection
+                disabled={allDisabled || isComplete}
+                eventTemplateView={eventTemplateView}
+                currentEvent={currentEvent}
+                isValid={isValid}
+                upsertEventLoading={upsertEventLoading}
+                formSubmit={formSubmit}
+              />
             </>
           )
         }
-        <EventAssignmentSection />
+        {
+          isIncident && (
+            <EventOvertimeSection disabled={allDisabled || isComplete} />
+          )
+        }
       </Grid>
     </FormProvider>
   );

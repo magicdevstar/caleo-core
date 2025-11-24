@@ -12,7 +12,7 @@ import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { GET_EVENT } from 'src/api/event';
 import QueryView from 'src/components/query-view';
 import { EditEventButtons } from 'src/components/events/edit-event-buttons';
-import EditEvent from '../events/edit-event';
+import EditEvent from '../events/event/edit';
 
 // ----------------------------------------------------------------------
 

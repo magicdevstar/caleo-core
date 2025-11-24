@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 // @mui
 import Box from '@mui/material/Box';
@@ -12,6 +12,7 @@ import { UploadAvatar, Upload, UploadBox, UploadProps } from '../upload';
 interface Props extends Omit<UploadProps, 'file'> {
   name: string;
   multiple?: boolean;
+  initAssetUrls?: string[];
   accept?: { [key: string]: string[] };
   label?: string;
   helperText?: string | React.ReactNode;
@@ -80,9 +81,32 @@ export function RHFUploadBox({ name, label, helperText, ...other }: Props) {
 
 // ----------------------------------------------------------------------
 
-export function RHFUpload({ name, multiple, helperText, accept, ...other }: Props) {
+export function RHFUpload({ name, initAssetUrls, multiple, helperText, accept, ...other }: Props) {
   const { control, watch, setValue } = useFormContext();
   const attachments = watch(name);
+
+  useEffect(() => {
+    if (!initAssetUrls) return;
+    const loadImage = async (url: string, index: number) => {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const fileName = url || 'file';
+      const file = new File([blob], fileName);
+      return Object.assign(file, {
+        preview: URL.createObjectURL(file),
+        existing: true,
+        attachmentPath: initAssetUrls?.[index],
+      });
+    };
+
+    const loadAll = async () => {
+      if (initAssetUrls) {
+        const allImages = await Promise.all(initAssetUrls.map(loadImage));
+        setValue('attachments', allImages);
+      }
+    }
+    loadAll();
+  }, [initAssetUrls, setValue]);
 
   const handleRemoveFile = useCallback(
     (inputFile: File | string) => {

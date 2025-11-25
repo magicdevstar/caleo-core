@@ -9,6 +9,8 @@ import timezone from 'dayjs/plugin/timezone';
 import { paths } from 'src/routes/paths';
 // @mui
 import Grid from '@mui/material/Unstable_Grid2';
+import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton/LoadingButton';
 // components
 import FormProvider from 'src/components/hook-form';
 import { EventOverviewSection } from 'src/sections/admin/overtimeManagement/events/event/overview-section';
@@ -18,6 +20,7 @@ import { EventAssignmentSection } from 'src/sections/admin/overtimeManagement/ev
 import { EventSupervisionSection } from 'src/sections/admin/overtimeManagement/events/event/supervision-section';
 import { EventOvertimeSection } from 'src/sections/admin/overtimeManagement/events/event/overtime-section';
 import { EditReportingLocation } from 'src/components/events/reporting-location/edit-reporting-location';
+import { RouterLink } from 'src/routes/components';
 // hooks
 import { useRouter } from 'src/routes/hooks';
 import { useAuthContext } from 'src/auth/hooks';
@@ -27,6 +30,7 @@ import { useSnackbar } from 'notistack';
 import { Event, EventAttachmentUpload, EventStatus, Skill } from 'src/__generated__/resolvers-types';
 import { EVENT_UPLOAD_URL, GET_ALL_EVENTS, GET_EVENT, UPSERT_EVENT } from 'src/api/event';
 import { NewEventSchema } from './schema';
+import { EditSection } from '../common/section';
 
 // ----------------------------------------------------------------------
 
@@ -136,7 +140,7 @@ export default function EditEvent ({
     reset,
     handleSubmit,
     getValues,
-    formState: { isValid },
+    formState: { isValid, isSubmitting },
   } = methods;
 
   useEffect(() => {
@@ -152,7 +156,13 @@ export default function EditEvent ({
     try {
       let imageUploadUrls = [];
       const existingAttachments = formData.attachments
-        .filter(({ existing, attachmentPath }: any) => existing && attachmentPath);
+        .filter(({ existing }: any) => existing)
+        .map(({ attachmentPath }: any) => {
+          const url = new URL(attachmentPath);
+          return {
+            attachmentPath: url.pathname.replace(/^\//, "")
+          };
+        });
       const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
       if (getUploadUrls.length > 0) {
         let mutation: any = 'mutation {';
@@ -188,6 +198,21 @@ export default function EditEvent ({
           });
           thumbnail = res.data.eventAttachmentUploadUrl.attachmentPath;
         }
+      }
+
+      if (imageUploadUrls.length > 0) {
+        await Promise.allSettled(
+          imageUploadUrls.map(({
+            uploadUrl,
+            attachmentData,
+          }: any) => fetch(uploadUrl, {
+            method: 'PUT',
+            body: attachmentData,
+            headers: {
+              'Content-Type': attachmentData.type,
+            },
+          }))
+        );
       }
 
       const res = await upsertEvent({
@@ -248,21 +273,6 @@ export default function EditEvent ({
           },
         },
       });
-
-      if (imageUploadUrls.length > 0) {
-        await Promise.allSettled(
-          imageUploadUrls.map(({
-            uploadUrl,
-            attachmentData,
-          }: any) => fetch(uploadUrl, {
-            method: 'PUT',
-            body: attachmentData,
-            headers: {
-              'Content-Type': attachmentData.type,
-            },
-          }))
-        );
-      }
 
       await client.refetchQueries({
         include: [GET_ALL_EVENTS, GET_EVENT]
@@ -336,6 +346,25 @@ export default function EditEvent ({
             <EventOvertimeSection disabled={allDisabled || isComplete} />
           )
         }
+
+        <EditSection title="" description="" customCard sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <Button
+            component={RouterLink}
+            variant='outlined'
+            size="large"
+            href={basePath.events}
+          >Cancel</Button>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            size="large"
+            loading={isSubmitting}
+            disabled={allDisabled}
+            sx={{ ml: 2 }}
+          >
+            {!currentEvent ? 'Create Event' : 'Save Changes'}
+          </LoadingButton>
+        </EditSection>
       </Grid>
     </FormProvider>
   );

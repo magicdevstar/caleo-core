@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { client } from "src/utils/apollo";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useSnackbar } from "notistack";
 import omitDeep from "omit-deep";
@@ -74,6 +75,7 @@ export default function EditAssignment({
       name: currentAssignment?.name || '',
       callSign: currentAssignment?.callSign,
       description: currentAssignment?.description || '',
+      attachments: [],
       eventId,
       reportingLocation: currentAssignment?.reportingLocation || '',
       bwNeeded: currentAssignment?.bwNeeded || false,
@@ -153,6 +155,52 @@ export default function EditAssignment({
     reroute: 'assignment',
   }) => {
     try {
+      let imageUploadUrls = [];
+      const existingAttachments = formData.attachments
+        .filter(({ existing }: any) => existing)
+        .map(({ attachmentPath }: any) => {
+          const url = new URL(attachmentPath);
+          return {
+            attachmentPath: url.pathname.replace(/^\//, "")
+          };
+        });
+      const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
+      if (getUploadUrls.length > 0) {
+        let mutation: any = 'mutation {';
+        getUploadUrls.forEach((file: any, index: number) => {
+          mutation += `
+            attachments${index}: assignmentAttachmentUploadUrl {
+              attachmentPath
+              uploadUrl
+            }
+          `;
+        });
+        mutation += '}';
+        mutation = gql(mutation);
+        const { data } = await client.mutate({
+          mutation,
+        });
+        imageUploadUrls = Object.keys(data).map((key, index) => ({
+          ...data[key],
+          attachmentData: getUploadUrls[index],
+        }));
+      }
+
+      if (imageUploadUrls.length > 0) {
+        await Promise.allSettled(
+          imageUploadUrls.map(({
+            uploadUrl,
+            attachmentData,
+          }: any) => fetch(uploadUrl, {
+            method: 'PUT',
+            body: attachmentData,
+            headers: {
+              'Content-Type': attachmentData.type,
+            },
+          }))
+        );
+      }
+
       const res = await upsertAssignment({
         variables: {
           input: {
@@ -163,6 +211,10 @@ export default function EditAssignment({
             ...(formData?.reportingLocation?.trim() !== '' && !!formData?.reportingLocation && { reportingLocation: formData?.reportingLocation }),
             reportingLocation: formData?.reportingLocation,
             eventId,
+            attachmentPaths: [
+              ...existingAttachments,
+              ...imageUploadUrls,
+            ].map(({ attachmentPath }) => attachmentPath),
             bwNeeded: formData?.bwNeeded,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,
             requiredEquipmentIds: formData?.requiredEquipment?.map(({ id }: Equipment) => id),
@@ -211,6 +263,7 @@ export default function EditAssignment({
           },
         },
       });
+
       if (reroute === 'assignment') {
         if (!currentAssignment) {
           router.push(basePath.eventAssignmentDetail

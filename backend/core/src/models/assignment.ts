@@ -1,8 +1,9 @@
 import { Db, ObjectId, PullOperator } from 'mongodb';
+import { randomUUID as uuid } from 'crypto';
 import DataLoader from 'dataloader';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import uniq from 'lodash.uniq';
-import { Assignment, AssignmentSlotDetails, DocType } from '../__generated__/resolvers-types';
+import uniq from 'lodash/uniq';
+import { Assignment, AssignmentAttachmentUpload, AssignmentSlotDetails, DocType } from '../__generated__/resolvers-types';
 import { BaseMongo } from './base.v2';
 import logger from '../utils/logger';
 import { Action, MailerEvent, MailerEvents } from '../types/mailer';
@@ -10,6 +11,7 @@ import { IOrganization } from './organizations/organization.entity';
 import { IAssignmentShiftSlots, IUser } from '../types/common';
 import { IShift } from './shift';
 import { IEvent } from './event';
+import { DocumentModel } from './document';
 
 const lambda = new LambdaClient({});
 
@@ -68,6 +70,8 @@ export interface IAssignment extends Omit<
 }
 
 export class AssignmentModel extends BaseMongo<IAssignment> {
+  documentBasePath: string = 'assignments';
+
   public loadByEventId = new DataLoader(async (eventIds: readonly ObjectId[]) => {
     const res = await this.collection.find<IAssignment>({ eventId: { $in: eventIds }, removedAt: { $exists: false } }).toArray();
 
@@ -86,7 +90,7 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
     return eventIds.map((id) => groupedByEventId[id.toString()] || []);
   });
 
-  constructor(db: Db) {
+  constructor(db: Db, private document: DocumentModel) {
     super(db, DocType.Assignment, 'assignments');
   }
 
@@ -318,7 +322,7 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       const shiftIds = uniq([
         ...currentShiftIds,
         ...newIds
-      ] as string[]).map((id) => new ObjectId(id));
+      ] as string[]).map((id: string) => new ObjectId(id));
       this.collection.updateOne({ _id: new ObjectId(assignment.id) }, {
         $set: {
           shiftIds,
@@ -435,4 +439,21 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
       isSigningAuthority: true,
     });
   }
+
+  async getDownloadUrl(attachmentPath: string) {
+    return this.document.getDownloadUrl(attachmentPath);
+  };
+
+  async getUploadUrl({
+    orgId,
+  }: {
+    orgId: ObjectId;
+  }): Promise<AssignmentAttachmentUpload> {
+    const attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${uuid()}`;
+    const uploadUrl = await this.document.getUploadUrl(attachmentPath);
+    return {
+      attachmentPath,
+      uploadUrl,
+    };
+  };
 };

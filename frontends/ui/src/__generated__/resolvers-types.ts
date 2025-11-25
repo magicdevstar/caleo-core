@@ -65,6 +65,8 @@ export type Assignment = {
   assignmentGroup?: Maybe<AssignmentGroup>;
   assignmentGroupId?: Maybe<Scalars['ObjectId']['output']>;
   assignmentLocation?: Maybe<ReportingLocation>;
+  attachmentPaths?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  attachments?: Maybe<Array<Scalars['String']['output']>>;
   availableShifts?: Maybe<Scalars['Int']['output']>;
   branch?: Maybe<Branch>;
   branchId?: Maybe<Scalars['ObjectId']['output']>;
@@ -122,6 +124,12 @@ export type Assignment = {
   useFieldSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
   useLieutenantAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
   useSupervisorAssignmentOverride?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type AssignmentAttachmentUpload = {
+  __typename?: 'AssignmentAttachmentUpload';
+  attachmentPath: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
 };
 
 export type AssignmentDivision = {
@@ -1328,6 +1336,7 @@ export type Mutation = {
   approveEvent?: Maybe<Event>;
   approveLottoAssignment?: Maybe<Scalars['Boolean']['output']>;
   assignment?: Maybe<Assignment>;
+  assignmentAttachmentUploadUrl?: Maybe<AssignmentAttachmentUpload>;
   assignmentDivision?: Maybe<AssignmentDivision>;
   assignmentGroup?: Maybe<AssignmentGroup>;
   branch?: Maybe<Branch>;
@@ -3112,6 +3121,7 @@ export type UpsertAssignment = {
   assignmentDivisionId?: InputMaybe<Scalars['ObjectId']['input']>;
   assignmentGroupId?: InputMaybe<Scalars['ObjectId']['input']>;
   assignmentLocation?: InputMaybe<UpsertReportingLocation>;
+  attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   branchId?: InputMaybe<Scalars['ObjectId']['input']>;
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
@@ -3785,6 +3795,7 @@ export type ResolversTypes = ResolversObject<{
   AfterShiftRemove: ResolverTypeWrapper<AfterShiftRemove>;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: ResolverTypeWrapper<Assignment>;
+  AssignmentAttachmentUpload: ResolverTypeWrapper<AssignmentAttachmentUpload>;
   AssignmentDivision: ResolverTypeWrapper<AssignmentDivision>;
   AssignmentDivisionSearchInput: AssignmentDivisionSearchInput;
   AssignmentDivisionSearchResult: ResolverTypeWrapper<AssignmentDivisionSearchResult>;
@@ -4057,6 +4068,7 @@ export type ResolversParentTypes = ResolversObject<{
   AfterShiftRemove: AfterShiftRemove;
   AllUsersSearchInput: AllUsersSearchInput;
   Assignment: Assignment;
+  AssignmentAttachmentUpload: AssignmentAttachmentUpload;
   AssignmentDivision: AssignmentDivision;
   AssignmentDivisionSearchInput: AssignmentDivisionSearchInput;
   AssignmentDivisionSearchResult: AssignmentDivisionSearchResult;
@@ -4327,6 +4339,8 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType>;
   assignmentGroupId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   assignmentLocation?: Resolver<Maybe<ResolversTypes['ReportingLocation']>, ParentType, ContextType>;
+  attachmentPaths?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  attachments?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   availableShifts?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType>;
   branchId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
@@ -4381,6 +4395,12 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   useFieldSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   useLieutenantAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   useSupervisorAssignmentOverride?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AssignmentAttachmentUploadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignmentAttachmentUpload'] = ResolversParentTypes['AssignmentAttachmentUpload']> = ResolversObject<{
+  attachmentPath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -5117,6 +5137,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   approveEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationApproveEventArgs, 'id'>>;
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
+  assignmentAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['AssignmentAttachmentUpload']>, ParentType, ContextType>;
   assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType, RequireFields<MutationAssignmentDivisionArgs, 'assignmentDivision'>>;
   assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType, RequireFields<MutationAssignmentGroupArgs, 'assignmentGroup'>>;
   branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType, RequireFields<MutationBranchArgs, 'branch'>>;
@@ -5989,6 +6010,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ActivityLogEntry?: ActivityLogEntryResolvers<ContextType>;
   AfterShiftRemove?: AfterShiftRemoveResolvers<ContextType>;
   Assignment?: AssignmentResolvers<ContextType>;
+  AssignmentAttachmentUpload?: AssignmentAttachmentUploadResolvers<ContextType>;
   AssignmentDivision?: AssignmentDivisionResolvers<ContextType>;
   AssignmentDivisionSearchResult?: AssignmentDivisionSearchResultResolvers<ContextType>;
   AssignmentGroup?: AssignmentGroupResolvers<ContextType>;

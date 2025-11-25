@@ -4,6 +4,7 @@ export const NewAssignmentSchema = Yup.object().shape({
   id: Yup.string(),
   name: Yup.string().required('Name is required'),
   callSign: Yup.string().nullable(),
+  attachments: Yup.array(),
   description: Yup.string(),
   eventId: Yup.string(),
   reportingLocation: Yup.string().nullable(),

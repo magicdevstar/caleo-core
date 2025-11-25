@@ -44,7 +44,6 @@ export default function MultiFilePreview({ thumbnail, files, onRemove, sx }: Upl
               }}
             >
               <FileThumbnail
-                tooltip
                 imageView
                 file={file}
                 sx={{ position: 'absolute' }}

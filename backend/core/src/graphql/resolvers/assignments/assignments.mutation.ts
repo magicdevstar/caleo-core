@@ -5,11 +5,21 @@ import { ObjectId } from "mongodb";
 import { IAssignment } from "../../../models/assignment";
 import { EventRemoveEventType } from "../../../models/event";
 import { IShift } from "../../../models/shift";
-import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType } from "../../../__generated__/resolvers-types";
+import { AssignmentAttachmentUpload, EventUserActionLogAction, EventUserActionLogSource, EventUserActionType } from "../../../__generated__/resolvers-types";
 import { IEventNotification } from "../../../models/eventNotifications/eventNotifications.entity";
 import { DEMOBILIZE } from "../../../models/eventNotifications/eventNotifications.const";
 
 export const Mutation = {
+  assignmentAttachmentUploadUrl: async (
+    _parent: unknown,
+    _args: unknown,
+    { assignments, user }: Context
+  ): Promise<AssignmentAttachmentUpload> => {
+    adminOnly(user);
+    return assignments.getUploadUrl({
+      orgId: user.member.orgId!,
+    });
+  },
   demobilized: async (
     _parent: unknown,
     { assignmentId }: { assignmentId: ObjectId },

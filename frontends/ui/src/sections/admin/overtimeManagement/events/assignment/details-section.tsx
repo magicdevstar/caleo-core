@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -6,7 +6,7 @@ import { Assignment } from "src/__generated__/resolvers-types";
 import { GET_ASSIGNMENT_DIVISIONS } from "src/api/assignmentDivision";
 import { GET_ASSIGNMENT_GROUPS } from "src/api/assignmentGroup";
 import { GET_BRANCHES } from "src/api/branch";
-import { RHFEditor, RHFGQLSearchAutocomplete, RHFSwitch, RHFTextField } from "src/components/hook-form";
+import { RHFEditor, RHFGQLSearchAutocomplete, RHFSwitch, RHFTextField, RHFUpload } from "src/components/hook-form";
 import RHFAutocompleteGeocode from "src/components/hook-form/rhf-autocomplete-geocode";
 import { RHFMapWithBoundingBox } from "src/components/map/map-bounding-box";
 import { useFeatures } from "src/hooks/use-features";
@@ -24,6 +24,7 @@ export const AssignmentDetailsSection = ({
   signingAuthorityAssignment,
 }: Props) => {
   const { watch, setValue } = useFormContext();
+  const initAssetUrls = useMemo(() => (currentAssignment?.attachments || []) as string[], [currentAssignment?.attachments]);
   const { callSign, lasdEventFields } = useFeatures();
   const address = watch('assignmentLocationAddress');
 
@@ -92,6 +93,19 @@ export const AssignmentDetailsSection = ({
       <Stack spacing={1.5}>
         <Typography variant="subtitle2">Notes</Typography>
         <RHFEditor readOnly={disabled} simple name="description" />
+      </Stack>
+
+      <Stack spacing={1.5} sx={{ mt: 2 }}>
+        <Typography variant="subtitle2" sx={{ml: 0.5}}>Attachments</Typography>
+        <RHFUpload
+          multiple
+          accept={{'application/pdf': [], 'image/*': []}}
+          thumbnail
+          disabled={disabled}
+          initAssetUrls={initAssetUrls}
+          name="attachments"
+          maxSize={3145728}
+        />
       </Stack>
 
       <RHFSwitch disabled={disabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />

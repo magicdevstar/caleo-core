@@ -516,6 +516,11 @@
     adminNote: String
   }
 
+  type AssignmentAttachmentUpload {
+    attachmentPath: String!
+    uploadUrl: String!
+  }
+
   type Assignment {
     id: ID!
     name: String!
@@ -532,6 +537,7 @@
     bwNeeded: Boolean!
     shiftIds: [String]
     shiftSlots: [AssignmentShiftSlot]
+    attachmentPaths: [String]
     # Overrides for event
     supervisorId: String @deprecated(reason: "Use supervisorAssignmentId instead!")
     lieutenantId: String @deprecated(reason: "Use lieutenantAssignmentId instead!")
@@ -575,6 +581,7 @@
     requiredEquipment: [Equipment]
     ranks: [Rank]
     shifts: [Shift]
+    attachments: [String!]
     availableShifts: Int
     totalShifts: Int
     supervisor: User
@@ -1073,6 +1080,7 @@
     id: String
     name: String!
     callSign: String
+    attachmentPaths: [String]
     description: String
     eventId: String!
     notifyWhenFullyStaffed: Boolean
@@ -3023,6 +3031,7 @@ type Mutation {
   removeIncidentForm(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment
+  assignmentAttachmentUploadUrl: AssignmentAttachmentUpload
   removeAssignment(id: String!): ID!
   demobilized(assignmentId: ObjectId!): Boolean
   eventNotification(input: CreateEventNotification!): EventNotification

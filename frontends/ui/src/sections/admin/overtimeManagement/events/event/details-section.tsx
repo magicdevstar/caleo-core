@@ -37,10 +37,10 @@ export const EventDetailSection = ({
   isIncident,
   currentEvent,
 }: Props) => {
-  const { enabledEventThumbnail } = useFeatures();
-  const expand = useBoolean();
+  const { lasdEventFields, enabledEventThumbnail } = useFeatures();
+  const expand = useBoolean({ defaultValue: !lasdEventFields || isIncident });
 
-  const initAssetUrls = useMemo(() => (currentEvent?.attachmentPaths || []) as string[], [currentEvent?.attachmentPaths]);
+  const initAssetUrls = useMemo(() => (currentEvent?.attachments || []) as string[], [currentEvent?.attachments]);
 
   const [resetThumbnail, { loading: resetThumbnailLoading }] = useMutation(RESET_EVENT_THUMBNAIL, {
     variables: {
@@ -57,7 +57,7 @@ export const EventDetailSection = ({
   return (
     <EditSection title="Details" description="Event specific details">
       {
-        !isIncident && (
+        !isIncident && lasdEventFields && (
           <>
             <RHFPhoneField
               name="commandPostContactNumber"
@@ -146,6 +146,7 @@ export const EventDetailSection = ({
               <RHFUpload
                 multiple
                 thumbnail
+                accept={{'application/pdf': [], 'image/*': []}}
                 disabled={disabled}
                 initAssetUrls={initAssetUrls}
                 name="attachments"

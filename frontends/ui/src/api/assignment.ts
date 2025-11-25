@@ -12,6 +12,15 @@ export const DEMOBILIZE_ASSIGNMENT = gql`
   }
 `;
 
+export const ASSIGNMENT_UPLOAD_URL = gql`
+  mutation AssignmentUploadUrl {
+    assignmentAttachmentUploadUrl {
+      attachmentPath
+      uploadUrl
+    }
+  }
+`;
+
 export const GET_ASSIGNMENT_DESCRIPTION = gql`
   query GetAssignment($id: String!) {
     assignment(id: $id) {
@@ -87,6 +96,8 @@ export const GET_ASSIGNMENT = gql`
       id
       name
       callSign
+      attachments
+      attachmentPaths
       description
       notifyWhenFullyStaffed
       reportingLocation

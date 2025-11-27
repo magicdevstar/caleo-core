@@ -45,6 +45,7 @@ export const Mutation = {
     );
 
     delete shiftFilter.demobilizedTime;
+    shiftFilter['shiftCheckInOut.checkOutTime'] = { $exists: false };
     const assignmentShifts = await shifts.collection.find<IShift>(shiftFilter).toArray();
     const bulkEdits = assignmentShifts.map(shift => ({
       userId: shift.userId,

@@ -9,6 +9,7 @@ export const NewEventSchema = Yup.object().shape({
   status: Yup.string(),
   notes: Yup.string(),
   attachments: Yup.array(),
+  bypassDemobilization: Yup.boolean(),
   notifyWhenFullyStaffed: Yup.boolean(),
   lotteryNumber: Yup.number().nullable(),
   startTime: Yup.date().optional(),

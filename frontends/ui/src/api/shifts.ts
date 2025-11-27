@@ -129,6 +129,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         shiftId
         startTime
         endTime
+        demobilizedTime
         customId
         refNumber
         userId
@@ -143,6 +144,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           scheduledInterestList
           scheduledCloseInterestList
           scheduledFirstComeFirstServe
+          bypassDemobilization
           lotteryNumber
           thumbnailUrl
           startTime
@@ -170,6 +172,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
           id
           name
           bwNeeded
+          bypassDemobilization
           reportingLocation
           requiredEquipment {
             id
@@ -345,6 +348,7 @@ export const GET_ACTIVITY = gql`
         startTime
         shiftId
         endTime
+        demobilizedTime
         status
         shiftId
         customId
@@ -375,6 +379,7 @@ export const GET_ACTIVITY = gql`
           referenceId
           name
           attachments
+          bypassDemobilization
           thumbnailUrl
           startTime
           endTime
@@ -398,6 +403,7 @@ export const GET_ACTIVITY = gql`
           id
           name
           callSign
+          bypassDemobilization
           bwNeeded
           reportingLocation
           requiredEquipment {
@@ -441,6 +447,7 @@ export const GET_ALL_SHIFTS = gql`
         id
         startTime
         endTime
+        demobilizedTime
         status
         shiftId
         customId
@@ -474,6 +481,7 @@ export const GET_ALL_SHIFTS = gql`
           startTime
           endTime
           geoFence
+          bypassDemobilization
           reportingLocation {
             fullAddress
             location {
@@ -503,6 +511,7 @@ export const GET_ALL_SHIFTS = gql`
           name
           callSign
           bwNeeded
+          bypassDemobilization
           reportingLocation
           geoFence
           allowOfficerCheckIn
@@ -556,6 +565,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         assignmentId
         startTime
         endTime
+        demobilizedTime
         status
         customId
         refNumber
@@ -606,6 +616,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         event {
           id
           name
+          bypassDemobilization
           reportingLocation {
             location {
               latitude
@@ -643,6 +654,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
           id
           name
           callSign
+          bypassDemobilization
           reportingLocationDetails {
             location {
               latitude
@@ -782,6 +794,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         refNumber
         startTime
         endTime
+        demobilizedTime
         status
         callSign
         shiftCheckInOut {
@@ -832,12 +845,14 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
           id
           referenceId
           name
+          bypassDemobilization
           removedAt
         }
         assignment {
           id
           name
           removedAt
+          bypassDemobilization
           requiredSkills {
             id
             name
@@ -900,6 +915,7 @@ export const USER_SHIFT_INTEREST_REQUESTS = gql`
           id
           startTime
           endTime
+          demobilizedTime
           status
           shiftId
           customId
@@ -930,6 +946,7 @@ export const USER_SHIFT_INTEREST_REQUESTS = gql`
             name
             attachments
             thumbnailUrl
+            bypassDemobilization
             startTime
             endTime
             venue {
@@ -954,6 +971,7 @@ export const USER_SHIFT_INTEREST_REQUESTS = gql`
             callSign
             bwNeeded
             reportingLocation
+            bypassDemobilization
             requiredEquipment {
               id
               name
@@ -986,6 +1004,7 @@ export const GET_GROUPED_SHIFTS = gql`
       shiftId
       startTime
       endTime
+      demobilizedTime
       status
       locked
       userId
@@ -1036,6 +1055,7 @@ export const GET_GROUPED_SHIFTS = gql`
         name
         removedAt
         isSigningAuthority
+        bypassDemobilization
         requiredEquipment {
           id
           requiresEquipmentTime
@@ -1047,6 +1067,7 @@ export const GET_GROUPED_SHIFTS = gql`
         id
         name
         status
+        bypassDemobilization
         removedAt
         endTime
 
@@ -1078,6 +1099,7 @@ query GetShiftDetails($id: String!) {
     id
     startTime
     endTime
+    demobilizedTime
     customId
     refNumber
     userId
@@ -1087,6 +1109,7 @@ query GetShiftDetails($id: String!) {
       id
       referenceId
       name
+      bypassDemobilization
       attachments
       venue {
         id
@@ -1108,6 +1131,7 @@ query GetShiftDetails($id: String!) {
       id
       name
       bwNeeded
+      bypassDemobilization
       requiredSkills {
         id
         name
@@ -1164,6 +1188,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         createdAt
         startTime
         endTime
+        demobilizedTime
         org {
           settings {
             userRelinquishShift {
@@ -1183,6 +1208,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
             attachments
             startTime
             endTime
+            bypassDemobilization
             venue {
               id
               name
@@ -1203,6 +1229,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
             id
             name
             bwNeeded
+            bypassDemobilization
             requiredSkills {
               id
               name
@@ -1417,6 +1444,7 @@ export const GET_SHIFT_OVERVIEW = gql`
         id
         referenceId
         name
+        bypassDemobilization
         attachments
         startTime
         endTime
@@ -1528,6 +1556,7 @@ export const GET_SHIFT_OVERVIEW = gql`
       assignment {
         id
         name
+        bypassDemobilization
         isSigningAuthority
         bwNeeded
         callSign

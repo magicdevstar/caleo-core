@@ -218,12 +218,14 @@ export class NotificationService {
     description,
     organization,
     assignmentId,
+    dispatchedById,
   }: {
     id: ObjectId;
     title: string;
     description: string;
     organization: IOrganization;
     assignmentId: ObjectId;
+    dispatchedById: ObjectId;
   }) {
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
@@ -237,6 +239,7 @@ export class NotificationService {
           description,
           assignmentId,
           organization,
+          dispatchedById,
         }
       } as MailerEvent),
     }));

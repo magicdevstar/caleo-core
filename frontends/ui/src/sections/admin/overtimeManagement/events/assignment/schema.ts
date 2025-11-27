@@ -19,6 +19,7 @@ export const NewAssignmentSchema = Yup.object().shape({
   lieutenantAssignment: Yup.object().nullable(),
   fieldSupervisorAssignment: Yup.object().nullable(),
   allowOfficerCheckIn: Yup.boolean().nullable(),
+  bypassDemobilization: Yup.boolean(),
   geoFence: Yup.array().nullable(),
   reportingLocationPosition: Yup.array().nullable(),
   reportingLocationAddress: Yup.object().nullable(),

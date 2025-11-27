@@ -5,10 +5,11 @@ import ListItemText from '@mui/material/ListItemText';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
 import { SxProps } from '@mui/system';
 import { Theme } from '@mui/material/styles/createTheme';
-import TextField from '@mui/material/TextField';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -34,9 +35,15 @@ export type CheckInOutItemProps = {
 
 export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, fromSelfCheckout }: CheckInOutItemProps) {
   const { user } = useAuthContext();
-  const { eventCheckIn } = useFeatures();
+  const { eventCheckIn, lasdEventFields } = useFeatures();
   const addCommentDialog = useBoolean();
   const [comment, setComment] = useState('');
+  const canCheckout = useMemo(() => {
+    if (!lasdEventFields) return true;
+    const bypassDemob = shift.event.bypassDemobilization || shift.assignment.bypassDemobilization;
+    if (bypassDemob) return true;
+    return !!shift.demobilizedTime;
+  }, [shift, lasdEventFields]);
   const [addComment, { loading: addingCommentLoading }] = useMutation(ADD_SHIFT_COMMENT);
   const geoDetails = useMemo(() => {
     const coords = [
@@ -74,18 +81,23 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
   const action = (
     <Stack spacing={1}>
       <Stack spacing={1} direction="row">
-        <Button
-          onClick={() => {
-            onClick?.(shift);
-          }}
-          size="small"
-          variant="contained"
-        >
-          {isCheckOut ? 'Check Out' : 'Check In'}
-        </Button>
+        <Tooltip title={(isCheckOut && !canCheckout) ? "You must be demobilized to check out." : ""}>
+          <span>
+            <Button
+              disabled={!!(isCheckOut && !canCheckout)}
+              onClick={() => {
+                onClick?.(shift);
+              }}
+              size="small"
+              variant="contained"
+            >
+              {isCheckOut ? 'Check Out' : 'Check In'}
+            </Button>
+          </span>
+        </Tooltip>
         {!isCheckOut && (<Button size="small" variant="outlined" onClick={addCommentDialog.onTrue}>Contact</Button>)}
       </Stack>
-      <Typography variant='caption' color="textSecondary" component="p">You can remotely check in now! Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
+      <Typography variant='caption' color="textSecondary" component="p">You can remotely check in/out now! Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
     </Stack>
   );
 

@@ -59,7 +59,6 @@ export const AssignmentDetailsSection = ({
             />
           )
         }
-        { lasdEventFields && (<RHFSwitch name="includeDriveTime" label="Include Drive Time" />) }
       </Stack>
 
       {

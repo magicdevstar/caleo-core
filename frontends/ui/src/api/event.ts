@@ -422,6 +422,7 @@ export const GET_EVENT = gql`
       createdById
       overtimeNarrative
       thumbnailUrl
+      bypassDemobilization
 
       geoFence
       allowOfficerCheckIn

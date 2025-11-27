@@ -470,6 +470,7 @@ export class ShiftModel extends BaseMongo<IShift> {
 
   async editCheckInOut({
     id,
+    callSign,
     checkInTime,
     checkOutTime,
     checkInEquipmentTime,
@@ -481,6 +482,7 @@ export class ShiftModel extends BaseMongo<IShift> {
     customShiftId,
   } : {
     id: string,
+    callSign?: string | null,
     checkInTime?: string | null,
     checkOutTime?: string | null,
     adminNotes?: string | null,
@@ -498,6 +500,7 @@ export class ShiftModel extends BaseMongo<IShift> {
         modifiedById: user._id!,
         updatedAt: new Date(),
         'shiftCheckInOut.noShow': noShow,
+        ...(callSign ? { callSign } : {}),
         ...(customShiftId ? { customId: customShiftId } : {}),
         ...(vehicleCategoryId && { 'shiftCheckInOut.equipmentDetails.vehicleCategoryId': vehicleCategoryId }),
         ...(checkInTime ? { 'shiftCheckInOut.checkInTime': new Date(checkInTime) } : {}),

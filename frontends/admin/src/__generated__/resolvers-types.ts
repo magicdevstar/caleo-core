@@ -73,6 +73,7 @@ export type Assignment = {
   briefingLocation?: Maybe<Scalars['String']['output']>;
   briefingTime?: Maybe<Scalars['DateTime']['output']>;
   bwNeeded: Scalars['Boolean']['output'];
+  bypassDemobilization?: Maybe<Scalars['Boolean']['output']>;
   callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
@@ -592,6 +593,7 @@ export type Event = {
   briefingLocation?: Maybe<Scalars['String']['output']>;
   briefingTime?: Maybe<Scalars['DateTime']['output']>;
   budgetActivityCode?: Maybe<Scalars['String']['output']>;
+  bypassDemobilization?: Maybe<Scalars['Boolean']['output']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: Maybe<Scalars['String']['output']>;
   commandPostContactNumber?: Maybe<Scalars['String']['output']>;
@@ -2647,6 +2649,7 @@ export type Shift = {
 
 export type ShiftAdminCheckInOutEvent = {
   adminNotes?: InputMaybe<Scalars['String']['input']>;
+  callSign?: InputMaybe<Scalars['String']['input']>;
   /** @deprecated Use equipmentDetails instead! */
   checkInEquipmentTime?: InputMaybe<Scalars['Float']['input']>;
   checkInTime?: InputMaybe<Scalars['String']['input']>;
@@ -3126,6 +3129,7 @@ export type UpsertAssignment = {
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   bwNeeded?: InputMaybe<Scalars['Boolean']['input']>;
+  bypassDemobilization?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   eventId: Scalars['String']['input'];
@@ -3220,6 +3224,7 @@ export type UpsertEvent = {
   briefingLocation?: InputMaybe<Scalars['String']['input']>;
   briefingTime?: InputMaybe<Scalars['DateTime']['input']>;
   budgetActivityCode?: InputMaybe<Scalars['String']['input']>;
+  bypassDemobilization?: InputMaybe<Scalars['Boolean']['input']>;
   /** @deprecated Use the assignments callSign instead! */
   callSign?: InputMaybe<Scalars['String']['input']>;
   commandPostContactNumber?: InputMaybe<Scalars['String']['input']>;
@@ -4347,6 +4352,7 @@ export type AssignmentResolvers<ContextType = any, ParentType extends ResolversP
   briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   bwNeeded?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  bypassDemobilization?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -4688,6 +4694,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   briefingLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   briefingTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   budgetActivityCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  bypassDemobilization?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   commandPostContactNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

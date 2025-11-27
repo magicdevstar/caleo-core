@@ -48,11 +48,11 @@ interface Props {
 
 const OverviewForm = Yup.object().shape({
   id: Yup.string().required(),
+  callSign: Yup.string().nullable(),
   assignment: Yup.object().shape({
     id: Yup.string().required(),
     name: Yup.string().nullable(),
     eventId: Yup.string().nullable(),
-    callSign: Yup.string().nullable(),
     includeDriveTime: Yup.boolean().default(false),
   }),
   customId: Yup.string().nullable(),
@@ -112,9 +112,9 @@ export const ShiftOverviewDialog = ({
 
   const defaultValues = useMemo(() => ({
     id: shift?.id || '',
+    callSign: shift?.callSign || shift?.assignment.callSign || '',
     assignment: {
       id: shift?.assignment.id || '',
-      callSign: shift?.assignment.callSign || '',
       name: shift?.assignment.name || '',
       eventId: shift?.event.id || '',
       includeDriveTime: shift?.assignment.includeDriveTime || false,
@@ -193,6 +193,10 @@ export const ShiftOverviewDialog = ({
         noShow: formData.noShow,
         regenerateDocusign: formData.regenerateDocusign,
       }
+
+      if (dirtyFields.callSign && formData.callSign) {
+        payload.callSign = formData.callSign;
+      }
       
       if (dirtyFields.checkInTime && formData.checkInTime) {
         payload.checkInTime = formData.checkInTime.toISOString();
@@ -241,7 +245,6 @@ export const ShiftOverviewDialog = ({
       }
 
       const dirtyAssignmentFields = [
-        dirtyFields.assignment?.callSign,
         dirtyFields.assignment?.includeDriveTime,
       ];
       if (dirtyAssignmentFields.some(Boolean)) {
@@ -249,7 +252,7 @@ export const ShiftOverviewDialog = ({
           variables: {
             input: {
               id: formData.assignment.id,
-              callSign: formData.assignment.callSign,
+              includeDriveTime: formData.assignment.includeDriveTime,
               name: formData.assignment.name,
               eventId: formData.assignment.eventId,
             }
@@ -290,7 +293,7 @@ export const ShiftOverviewDialog = ({
         title={(
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             <Typography component='h2' variant='h4'>Shift Overview</Typography>
-            {isAdminView || isCheckedIn && (
+            {(isAdminView || isCheckedIn) && (
               <Label variant="soft" color={shiftStatus.color}>
                 {shiftStatus.value}
               </Label>

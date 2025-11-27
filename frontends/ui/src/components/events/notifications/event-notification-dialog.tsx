@@ -14,6 +14,7 @@ import { UseBooleanReturnType } from "src/hooks/use-boolean";
 import ConfirmDialogWithForm from "src/components/custom-dialog/confirm-dialog-with-form";
 import { RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { CREATE_EVENT_NOTIFICATION, GET_EVENT_NOTIFICATIONS } from 'src/api/eventNotifications';
+import { GET_USER_SHIFT_ACTIVITY } from 'src/api/user';
 
 interface Props {
   controller: UseBooleanReturnType<Shift>;
@@ -46,19 +47,20 @@ export const EventNotificationDialog = ({ controller }: Props) => {
     defaultValues,
   });
 
-  const {
-    setValue,
-    getValues,
-    reset,
-  } = methods;
-  const values = getValues();
+  const { reset } = methods;
 
   const onSubmit = methods.handleSubmit(async (formData) => {
     try {
       setSaving(true);
       let imageUploadUrls = [];
       const existingAttachments = formData.attachments
-        .filter(({ existing, attachmentPath }: any) => existing && attachmentPath);
+        .filter(({ existing }: any) => existing)
+        .map(({ attachmentPath }: any) => {
+          const url = new URL(attachmentPath);
+          return {
+            attachmentPath: url.pathname.replace(/^\//, "")
+          };
+        });
       const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
       if (getUploadUrls.length > 0) {
         let mutation: any = 'mutation {';
@@ -81,6 +83,21 @@ export const EventNotificationDialog = ({ controller }: Props) => {
         }));
       }
 
+      if (imageUploadUrls.length > 0) {
+        await Promise.allSettled(
+          imageUploadUrls.map(({
+            uploadUrl,
+            attachmentData,
+          }: any) => fetch(uploadUrl, {
+            method: 'PUT',
+            body: attachmentData,
+            headers: {
+              'Content-Type': attachmentData.type,
+            },
+          }))
+        );
+      }
+
       await create({
         variables: {
           input: {
@@ -93,7 +110,7 @@ export const EventNotificationDialog = ({ controller }: Props) => {
             ].map(({ attachmentPath }) => attachmentPath),
           },
         },
-        refetchQueries: [GET_EVENT_NOTIFICATIONS],
+        refetchQueries: [GET_EVENT_NOTIFICATIONS, GET_USER_SHIFT_ACTIVITY],
       })
 
       handleClose();
@@ -108,33 +125,6 @@ export const EventNotificationDialog = ({ controller }: Props) => {
     controller.onFalse();
     reset();
   }, [reset, controller]);
-
-  const handleDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const files: any[] = values.attachments || [];
-
-      const newFiles: any[] = acceptedFiles.map((file) =>
-        Object.assign(file, {
-          preview: URL.createObjectURL(file),
-        })
-      );
-
-      setValue('attachments', [...files, ...newFiles] as any[], { shouldValidate: true });
-    },
-    [setValue, values.attachments]
-  );
-
-  const handleRemoveFile = useCallback(
-    (inputFile: File | string) => {
-      const filtered = values.attachments && values.attachments?.filter((file: any) => file !== inputFile);
-      setValue('attachments', filtered);
-    },
-    [setValue, values.attachments]
-  );
-
-  const handleRemoveAllFiles = useCallback(() => {
-    setValue('attachments', [] as any[]);
-  }, [setValue]);
 
   return (
     <ConfirmDialogWithForm
@@ -171,11 +161,9 @@ export const EventNotificationDialog = ({ controller }: Props) => {
           <RHFUpload
             multiple
             thumbnail
+            accept={{'application/pdf': [], 'image/*': []}}
             name="attachments"
             maxSize={3145728}
-            onDrop={handleDrop}
-            onRemove={handleRemoveFile}
-            onRemoveAll={handleRemoveAllFiles}
           />
         </Stack>
       )}

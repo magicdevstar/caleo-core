@@ -10,6 +10,7 @@ import { GeoFenceDefinition } from 'src/components/events/reporting-location/geo
 import {
   RHFDateTimePicker,
   RHFGQLSearchAutocomplete,
+  RHFSwitch,
   RHFTextField
 } from 'src/components/hook-form';
 // hooks
@@ -89,6 +90,7 @@ export const EditReportingLocation = ({
                 <RHFTextField disabled={disabledInput} name="radioFrequency" label="Radio Frequency" />
                 <RHFDateTimePicker disabled={disabledInput} name="briefingTime" label="Briefing Time" />
                 <RHFTextField disabled={disabledInput} name="briefingLocation" label="Briefing Location" />
+                <RHFSwitch name="bypassDemobilization" label="Bypass Demobilization" />
                 {
                   includeAssignmentFields && (
                     <Stack spacing={3}>

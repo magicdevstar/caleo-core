@@ -460,6 +460,7 @@
     modifiedById: String
 
     # LASD specific fields
+    bypassDemobilization: Boolean
     ocn: String
     outsideOrgCode: String
     overtimeReasonCode: String
@@ -554,6 +555,7 @@
     # we will only allow a single locked shift to be assigned to it
     isSigningAuthority: Boolean
 
+    bypassDemobilization: Boolean
     includeDriveTime: Boolean
     allowOfficerCheckIn: Boolean
     geoFence: [[Float]]
@@ -959,6 +961,7 @@
 
   input ShiftAdminCheckInOutEvent {
     id: String!
+    callSign: String
     checkInTime: String
     checkOutTime: String
     checkInEquipmentTime: Float @deprecated(reason: "Use equipmentDetails instead!")
@@ -1009,6 +1012,7 @@
     reportingLocation: UpsertReportingLocation
 
     # LASD specific fields
+    bypassDemobilization: Boolean
     ocn: String
     outsideOrgCode: String
     overtimeReasonCode: String
@@ -1096,6 +1100,7 @@
     supervisorAssignmentId: ObjectId
     useSupervisorAssignmentOverride: Boolean
     lieutenantAssignmentId: ObjectId
+    bypassDemobilization: Boolean
     useLieutenantAssignmentOverride: Boolean
     fieldSupervisorAssignmentId: ObjectId
     useFieldSupervisorAssignmentOverride: Boolean

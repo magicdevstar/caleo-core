@@ -106,6 +106,7 @@ export const GET_ASSIGNMENT = gql`
       createdAt
       removedAt
       isSigningAuthority
+      bypassDemobilization
 
       geoFence
       allowOfficerCheckIn

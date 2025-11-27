@@ -51,6 +51,7 @@ export const Mutation = {
     {
       input: {
         id,
+        callSign,
         checkInTime,
         checkOutTime,
         adminNotes,
@@ -79,6 +80,7 @@ export const Mutation = {
 
     const response = await shifts.editCheckInOut({
       id,
+      callSign,
       checkInTime,
       checkOutTime,
       ...(equipmentDetails?.vehicleCategoryId && { vehicleCategoryId: new ObjectId(equipmentDetails?.vehicleCategoryId) }),

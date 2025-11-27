@@ -22,6 +22,7 @@ export const Mutation = {
         description: input.description,
         organization,
         assignmentId: input.assignmentId,
+        dispatchedById: user._id!,
       });
     }
 

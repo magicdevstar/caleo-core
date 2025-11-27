@@ -2987,6 +2987,7 @@ const sendEmail = async (input: MailerEvent) => {
           $match: {
             assignmentId: new ObjectId(assignment.id),
             removedAt: { $exists: false },
+            'shiftCheckInOut.checkOutTime': { $exists: false },
             status: ShiftStatus.Assigned,
           },
         },
@@ -3054,12 +3055,13 @@ const sendEmail = async (input: MailerEvent) => {
         }
       } while(user);
     } else if (input.template === MailerEvents.OfficerDirectEventNotification) {
-      const { assignmentId, organization, title, description, notificationId }: {
+      const { assignmentId, organization, title, description, notificationId, dispatchedById }: {
         assignmentId: string;
         organization: IOrganization;
         title: string;
         description: string;
         notificationId: string;
+        dispatchedById: string;
       } = input.data;
 
       fromEmail = organization.fromEmail || fromEmail;
@@ -3129,10 +3131,10 @@ const sendEmail = async (input: MailerEvent) => {
           bulkActivityItems.push({
             userId: user.user._id,
             eventId: event._id!,
-            shiftGroupId: user._id,
+            shiftGroupId: user.shiftId,
             actionType: EventUserActionType.Shift,
             source: EventUserActionLogSource.Shift,
-            modifiedById: user._id!,
+            modifiedById: new ObjectId(dispatchedById),
             timestamp: new Date(),
             action: EventUserActionLogAction.NotificationSent,
             eventNotificationId: new ObjectId(notificationId),

@@ -82,6 +82,18 @@ export default function PolygonDrawMap({
   const syncingRef = useRef<boolean>(false);
   const lastEmittedRef = useRef<string>(JSON.stringify(initialPolygon ?? null));
   const dialogOpen = useBoolean<any>();
+  const isDraggingRef = useRef(false);
+
+  // Watch for external pin changes 
+  useEffect(() => {
+    if (!!loadedRef.current && initialPin && !isDraggingRef.current) {
+      mapRef.current?.flyTo({
+        center: initialPin,
+        zoom: 17,
+        speed: 2,
+      });
+    }
+  }, [mapRef, initialPin, loadedRef]);
   
   // Pin state
   const [pinMode, setPinMode] = useState(false);
@@ -448,6 +460,15 @@ export default function PolygonDrawMap({
     onPinChange?.(newPin);
   }, [disabled, onPinChange]);
 
+  const handleDragStart = useCallback(() => {
+    isDraggingRef.current = true;
+  }, []);
+
+  const handleDragEnd = useCallback((event: any) => {
+    isDraggingRef.current = false;
+    handlePinDrag(event);
+  }, [handlePinDrag]);
+
   // Respond to external initialPolygon or initialPolygons changes after mount
   useEffect(() => {
     if (mapLoaded) {
@@ -547,8 +568,9 @@ export default function PolygonDrawMap({
               longitude={initialPin[0]}
               latitude={initialPin[1]}
               draggable={!disabled}
+              onDragStart={handleDragStart}
               onDrag={handlePinDrag}
-              onDragEnd={handlePinDrag}
+              onDragEnd={handleDragEnd}
             />
           )}
         </Map>

@@ -50,7 +50,7 @@ export default function ShiftOverviewAssignment ({ shift, assignment, event, isA
       <Grid container spacing={2}>
         <ShiftOverviewDetail label='Name' value={assignment?.name} xs={12} md={6} xl={6} />
         <ShiftOverviewDetail label='Call Sign' value={callSign} tag xs={12} md={6} xl={6}>
-          {isAdminView && <RHFTextField name="assignment.callSign" size='small' />}
+          {isAdminView && <RHFTextField name="callSign" size='small' />}
         </ShiftOverviewDetail>
         {
           (isCheckedIn || isAdminView) && (

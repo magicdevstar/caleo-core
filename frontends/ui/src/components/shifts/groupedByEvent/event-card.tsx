@@ -1,20 +1,24 @@
-import { useMemo } from "react";
-import PhoneNumberFormatter from 'phone-number-formats';
+import { useCallback, useMemo, useState } from "react";
+import { useMutation } from "@apollo/client";
+import { client } from "src/utils/apollo";
 // @mui
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
+import LoadingButton from "@mui/lab/LoadingButton";
 // hooks
 import { useFeatures } from "src/hooks/use-features";
-import { convertDate, useDateFormats } from "src/hooks/use-datejs";
-import { useAuthContext } from "src/auth/hooks";
 import { useUpcomingOvertimeLabels } from "src/hooks/use-upcoming-overtime-labels";
+import { useAuthContext } from "src/auth/hooks";
+import { useSnackbar } from "notistack";
 // components
 import Image from "src/components/image";
 import Label from "src/components/label";
+import Iconify from "src/components/iconify";
 // types
-import { EventStatus, IncidentForm } from "src/__generated__/resolvers-types";
+import { EventStatus, IncidentForm, Shift } from "src/__generated__/resolvers-types";
+import { GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, SHIFT_INTEREST_REQUEST, USER_SHIFT_INTEREST_REQUESTS } from "src/api/shifts";
 import { EventNotes } from "./event-notes";
 import { EventCardShifts, CombinedShift } from "./event-card-shifts";
 import { EventCardIncidents } from "./event-card-incidents";
@@ -28,10 +32,41 @@ interface Props {
 }
 
 export function EventCard({ items, isUpcoming = false, myOvertime = false }: Props) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [showInterestLoading, setShowInterestLoading] = useState(false);
   const { labels: eventLabels } = useUpcomingOvertimeLabels();
-  const { dateTimeFormat } = useDateFormats();
+  const [interestRequest] = useMutation(SHIFT_INTEREST_REQUEST);
   const { user } = useAuthContext();
   const { enabledEventThumbnail, incidentEvents } = useFeatures();
+
+  const showInterestOnAllShifts = useCallback(async () => {
+    try {
+      setShowInterestLoading(true);
+      const shiftsToRequest = (items as unknown as Shift[])
+        .filter((item) => !item.shiftInterestRequest?.id)
+        .map((item) => interestRequest({
+          variables: {
+            shiftInterestRequest: {
+              shiftGroupId: item?.shiftId,
+              userId: user?.id,
+            },
+          },
+        }));
+      await Promise.all(shiftsToRequest);
+      if (shiftsToRequest.length === 0) {
+        enqueueSnackbar('Interest has already been shown on all shifts', { variant: 'info', autoHideDuration: 5000 });
+      } else {
+        enqueueSnackbar('Interest shown on all shifts', { variant: 'success', autoHideDuration: 5000 });
+      }
+    } catch(error) {
+      enqueueSnackbar('Error showing interest on all shifts', { variant: 'error', autoHideDuration: 5000 });
+    } finally {
+      setShowInterestLoading(false);
+      await client.refetchQueries({
+        include: [GET_ALL_SHIFTS, GET_AVAILABLE_SHIFTS, USER_SHIFT_INTEREST_REQUESTS],
+      });
+    }
+  }, [items, user, setShowInterestLoading, enqueueSnackbar, interestRequest]);
 
   const event = useMemo(() => {
     if (items.length === 0) return null;
@@ -40,51 +75,7 @@ export function EventCard({ items, isUpcoming = false, myOvertime = false }: Pro
     return firstShift.event;
   }, [items]);
 
-  const totalHours = useMemo(() => {
-    const start = new Date(event?.startTime || new Date());
-    const end = new Date(event?.endTime || new Date());
-    const diff = Math.abs(end.getTime() - start.getTime());
-    const hours = Math.ceil(diff / (1000 * 60 * 60));
-    return hours;
-  }, [event]);
-
-  const venueInfo = useMemo(() => {
-    const venue = event?.venue;
-    if (!venue) {
-      return {
-        name: 'N/A',
-      };
-    }
-    const details: any = {
-      name: venue.name,
-    };
-    if (venue.address) {
-      details.address = `${venue.address} ${venue.city}, ${venue.state} ${venue.zip}`;
-    }
-    if (venue.phone) {
-      let phoneThing = venue.phone;
-      try {
-        phoneThing = new PhoneNumberFormatter(venue.phone).format({type: 'domestic'}).string;
-      } catch(error) {
-        console.error(error);
-      }
-      details.phone = phoneThing;
-    }
-    return details;
-  }, [event?.venue]);
-
   if (!event) return null;
-
-  const dates = {
-    startTime: convertDate({
-      date: new Date(event.startTime!),
-      user,
-    }).format(dateTimeFormat),
-    endTime: convertDate({
-      date: new Date(event.endTime!),
-      user,
-    }).format(dateTimeFormat),
-  };
 
   let label = null;
   if (isUpcoming) {
@@ -161,6 +152,7 @@ export function EventCard({ items, isUpcoming = false, myOvertime = false }: Pro
           sx={{
             width: '100%',
             p: (theme) => theme.spacing(3, 3, 0, 3),
+            height: 175,
           }}
         >
           <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">
@@ -182,17 +174,19 @@ export function EventCard({ items, isUpcoming = false, myOvertime = false }: Pro
             {label}
           </Stack>
 
-          <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>
-            <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
-              {totalHours} hours | {dates.startTime} - {dates.endTime}
-            </Box>
-
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
-              {venueInfo.name}
-              {venueInfo.address && (<><br/>{venueInfo.address}</>)}
-              {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
-            </Typography>
-          </Stack>
+          <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
+            {event?.venue?.contract?.name || 'N/A'}
+          </Box>
+          { (event.status === EventStatus.InterestList) && (
+            <LoadingButton
+              loading={showInterestLoading}
+              onClick={showInterestOnAllShifts}
+              variant="outlined"
+              color="info"
+              sx={{ maxWidth: 250 }}
+              startIcon={<Iconify icon="ic:round-front-hand" />}
+            >Show interest on all shifts</LoadingButton>
+          )}
           <EventNotes eventId={event.id} attachments={event?.attachments || []} />
         </Stack>
       </Stack>

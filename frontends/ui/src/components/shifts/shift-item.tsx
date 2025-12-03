@@ -93,7 +93,7 @@ export default function ShiftItem({
   shiftActions: ShiftAction[];
   sx?: SxProps,
 }) {
-  const { dateTimeFormat } = useDateFormats();
+  const { dateTimeFormat, dateFormat, timeFormat } = useDateFormats();
   const shiftOverview = useBoolean<Shift>();
   const { user } = useAuthContext();
   const [detailHeight, setDetailHeight] = useState<string>(collapsed ? '100%' : '0px');
@@ -126,6 +126,22 @@ export default function ShiftItem({
     }
     return inputShift as Shift;
   }, [inputShift]);
+
+  const reportingTime = useMemo(() => {
+    const rawReportTime = shift?.assignment?.reportingTime || shift?.event?.reportingTime || shift?.startTime;
+    if (!rawReportTime) {
+      return null;
+    }
+    const convertedDate = convertDate({
+      date: new Date(rawReportTime),
+      user
+    });
+    return {
+      date: convertedDate.format(dateFormat),
+      time: convertedDate.format(timeFormat),
+    };
+  }, [shift, dateFormat, timeFormat, user]);
+
   const reportingLocation = useMemo(() => {
     let assignmentAddress = shift.assignment?.reportingLocationDetails?.fullAddress;
     if (!mapboxReportingLocation) {
@@ -556,22 +572,38 @@ export default function ShiftItem({
           </Stack>
 
           <Stack spacing={1} flexGrow={1} sx={{ mb: 2 }}>
-            <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
-              {totalHours} hours | {dates.startTime} - {dates.endTime}
-            </Box>
-
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: compact && detailHeight === '0px' ? 1 : '' }}>
-              {venueInfo.name}
-              {venueInfo.address && (<><br/>{venueInfo.address}</>)}
-              {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
-            </Typography>
-
-            {/* Above the fold grid content */}
-            {!compact && (
-              <Grid container spacing={2}>
-                {renderFirstRowDetails}
-              </Grid>
-            )}
+            {
+              lasdEventFields ? (
+                <>
+                  <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
+                    Reporting Date: {reportingTime?.date || '-'}, Reporting Time: {reportingTime?.time || '-'}
+                  </Box>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: compact && detailHeight === '0px' ? 1 : '' }}>
+                    Reporting Location<br />
+                    {reportingLocation.address}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Box component="span" sx={{ typography: 'body1', fontWeight: 'bold', opacity: '0.8' }}>
+                    {totalHours} hours | {dates.startTime} - {dates.endTime}
+                  </Box>
+      
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: compact && detailHeight === '0px' ? 1 : '' }}>
+                    {venueInfo.name}
+                    {venueInfo.address && (<><br/>{venueInfo.address}</>)}
+                    {venueInfo.phone && (<><br/>{venueInfo.phone}</>)}
+                  </Typography>
+      
+                  {/* Above the fold grid content */}
+                  {!compact && (
+                    <Grid container spacing={2}>
+                      {renderFirstRowDetails}
+                    </Grid>
+                  )}
+                </>
+              )
+            }
           </Stack>
 
 

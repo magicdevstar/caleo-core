@@ -160,6 +160,10 @@ export const GET_AVAILABLE_SHIFTS = gql`
             state
             zip
             phone
+            contract {
+              expirationDate
+              name
+            }
             contact {
               firstName
               lastName
@@ -498,6 +502,10 @@ export const GET_ALL_SHIFTS = gql`
             state
             zip
             phone
+            contract {
+              expirationDate
+              name
+            }
             contact {
               firstName
               lastName
@@ -1119,6 +1127,10 @@ query GetShiftDetails($id: String!) {
         state
         zip
         phone
+        contract {
+          expirationDate
+          name
+        }
         contact {
           firstName
           lastName
@@ -1188,7 +1200,6 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
         createdAt
         startTime
         endTime
-        demobilizedTime
         org {
           settings {
             userRelinquishShift {
@@ -1201,6 +1212,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
           id
           startTime
           endTime
+          demobilizedTime
           event {
             id
             referenceId

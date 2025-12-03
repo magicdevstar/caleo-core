@@ -33,6 +33,8 @@ export type CheckInOutItemProps = {
   fromSelfCheckout: boolean;
 };
 
+const NOT_DEMOBILIZED_MESSAGE = "You are not cleared to check out at this time. Please wait until you have been demobilized. If you have already been demobilized, contact the Command Post to update your status.";
+
 export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, fromSelfCheckout }: CheckInOutItemProps) {
   const { user } = useAuthContext();
   const { eventCheckIn, lasdEventFields } = useFeatures();
@@ -81,7 +83,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
   const action = (
     <Stack spacing={1}>
       <Stack spacing={1} direction="row">
-        <Tooltip title={(isCheckOut && !canCheckout) ? "You must be demobilized to check out." : ""}>
+        <Tooltip title={(isCheckOut && !canCheckout) ? NOT_DEMOBILIZED_MESSAGE : ""}>
           <span>
             <Button
               disabled={!!(isCheckOut && !canCheckout)}

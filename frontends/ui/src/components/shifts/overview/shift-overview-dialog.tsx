@@ -13,9 +13,9 @@ import Button from '@mui/material/Button';
 // types
 import { Shift } from "src/__generated__/resolvers-types";
 import { useBoolean, UseBooleanReturnType } from "src/hooks/use-boolean";
-import { EDIT_CHECK_IN_OUT, GET_SHIFT_OVERVIEW } from 'src/api/shifts';
+import { EDIT_CHECK_IN_OUT, GET_SHIFT_OVERVIEW, DEMOBILIZE_SHIFT } from 'src/api/shifts';
 import { GET_USER_SHIFT_ACTIVITY } from 'src/api/user';
-import { DEMOBILIZE_ASSIGNMENT, UPSERT_ASSIGNMENT } from 'src/api/assignment';
+import { UPSERT_ASSIGNMENT } from 'src/api/assignment';
 // hooks
 import { convertDate } from 'src/hooks/use-datejs';
 import { useAuthContext } from 'src/auth/hooks';
@@ -80,7 +80,7 @@ export const ShiftOverviewDialog = ({
   const eventNotificationController = useBoolean<Shift>();
   const [editCheckInOut] = useMutation(EDIT_CHECK_IN_OUT);
   const [editAssignment] = useMutation(UPSERT_ASSIGNMENT);
-  const [demobilizeAssignment, { loading: demobilizeLoading }] = useMutation(DEMOBILIZE_ASSIGNMENT);
+  const [demobilizeShift, { loading: demobilizeLoading }] = useMutation(DEMOBILIZE_SHIFT);
   const { user } = useAuthContext();
   const { data, loading, error, refetch } = useQuery(GET_SHIFT_OVERVIEW, {
     fetchPolicy: 'no-cache',
@@ -167,20 +167,20 @@ export const ShiftOverviewDialog = ({
 
   const triggerDemobilize = async () => {
     try {
-      if (shift?.assignmentId) {
-        await demobilizeAssignment({
+      if (shift?.shiftId) {
+        await demobilizeShift({
           variables: {
-            assignmentId: shift.assignmentId,
+            shiftId: shift.shiftId,
           }
         });
-        enqueueSnackbar('Assignment demobilized successfully', { variant: 'success', autoHideDuration: 4000 });
+        enqueueSnackbar('Shift group demobilized successfully', { variant: 'success', autoHideDuration: 4000 });
         refetch();
         if (inputRefetch) {
           inputRefetch();
         }
       }
     } catch(_) {
-      enqueueSnackbar('Failed to demobilize assignment', { variant: 'error', autoHideDuration: 4000 });
+      enqueueSnackbar('Failed to demobilize shift group', { variant: 'error', autoHideDuration: 4000 });
     }
   }
 

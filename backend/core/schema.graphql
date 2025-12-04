@@ -801,6 +801,7 @@
     docusignEnvelopeId: String
     hasComments: Boolean!
     demobilizedTime: DateTime
+    bypassDemobilization: Boolean
 
     calculatedShiftDetails: CalculatedShiftDetails
     shiftComment: ShiftComment
@@ -1144,6 +1145,7 @@
     startTime: String!
     endTime: String!
     status: ShiftStatus
+    bypassDemobilization: Boolean
     locked: Boolean
     eventId: String!
     assignmentId: String!
@@ -1154,6 +1156,7 @@
   input ShiftUpdates {
     startTime: String
     endTime: String
+    bypassDemobilization: Boolean
   }
 ###### END Events ######
 
@@ -2095,6 +2098,7 @@ type DocusignSignerDetailsData {
     eventId: ObjectId
     assignmentId: ObjectId
     shiftId: ObjectId
+    shiftGroupId: String
     title: String!
     description: String!
     attachmentPaths: [String]
@@ -3038,7 +3042,8 @@ type Mutation {
   assignment(assignment: UpsertAssignment!): Assignment
   assignmentAttachmentUploadUrl: AssignmentAttachmentUpload
   removeAssignment(id: String!): ID!
-  demobilized(assignmentId: ObjectId!): Boolean
+  demobilize(shiftId: String!): Boolean
+  demobilized(assignmentId: ObjectId!): Boolean @deprecated(reason: "Use demobilize mutation with shiftId instead")
   eventNotification(input: CreateEventNotification!): EventNotification
   eventNotificationAttachmentUploadUrl: EventAttachmentUpload
 

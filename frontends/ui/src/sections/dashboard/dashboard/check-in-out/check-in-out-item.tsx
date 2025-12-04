@@ -42,7 +42,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
   const [comment, setComment] = useState('');
   const canCheckout = useMemo(() => {
     if (!lasdEventFields) return true;
-    const bypassDemob = shift.event.bypassDemobilization || shift.assignment.bypassDemobilization;
+    const bypassDemob = shift.event.bypassDemobilization || shift.assignment.bypassDemobilization || shift.bypassDemobilization;
     if (bypassDemob) return true;
     return !!shift.demobilizedTime;
   }, [shift, lasdEventFields]);

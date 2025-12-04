@@ -6,6 +6,8 @@ import { useMutation } from '@apollo/client';
 import { v4 as uuid } from 'uuid';
 import PhoneNumberFormatter from 'phone-number-formats';
 // @mui
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -210,6 +212,8 @@ export default function EditShift({
     ],
   });
 
+  const [bypassDemobilization, setBypassDemobilization] = useState<boolean>(currentShifts?.[0]?.bypassDemobilization || false);
+
   const [startTime, setStartTime] = useState<Date | null>(
     currentShifts?.[0]?.startTime
       ? new Date(currentShifts[0].startTime)
@@ -314,6 +318,7 @@ export default function EditShift({
           {
             startTime: startTime?.toISOString(),
             endTime: endTime?.toISOString(),
+            bypassDemobilization,
             assignmentId,
             eventId,
             shiftId: groupId,
@@ -338,6 +343,7 @@ export default function EditShift({
         input: new Array(shiftsToCreate).fill('i').map(() => ({
           startTime: startTime?.toISOString(),
           endTime: endTime?.toISOString(),
+          bypassDemobilization,
           assignmentId,
           eventId,
           shiftId: groupId,
@@ -355,6 +361,7 @@ export default function EditShift({
     createSlotsConfirm.onFalse();
   }, [
     createSlotsConfirm,
+    bypassDemobilization,
     router,
     startTime,
     endTime,
@@ -737,6 +744,36 @@ export default function EditShift({
               }}
             />
           </Stack>
+          {
+            lasdEventFields && (
+              <Stack direction="row" spacing={3} sx={{ px: 3, pb: 3 }}>
+                <FormControlLabel
+                  label="Bypass Demobilization"
+                  control={
+                    <Switch
+                      defaultChecked={bypassDemobilization}
+                      value={bypassDemobilization}
+                      onChange={async (_e, checked) => {
+                        setBypassDemobilization(checked);
+                        if (currentShifts.length > 0) {
+                          await updateShifts({
+                            variables: {
+                              shiftId,
+                              updates: {
+                                startTime: currentShifts[0].startTime,
+                                endTime: currentShifts[0].endTime,
+                                bypassDemobilization: checked,
+                              },
+                            },
+                          });
+                        }
+                      }}
+                    />
+                  }
+                />
+              </Stack>
+            )
+          }
         </Card>
       </Grid>
 
@@ -814,6 +851,7 @@ export default function EditShift({
                     customId: lockShift?.customId,
                     refNumber: lockShift?.refNumber,
                     startTime: lockShift?.startTime,
+                    bypassDemobilization,
                     endTime: lockShift?.endTime,
                     assignmentId,
                     eventId,
@@ -860,6 +898,7 @@ export default function EditShift({
                     refNumber: editCallSign.attribute?.refNumber,
                     startTime: editCallSign.attribute?.startTime,
                     endTime: editCallSign.attribute?.endTime,
+                    bypassDemobilization,
                     assignmentId,
                     eventId,
                     callSign,

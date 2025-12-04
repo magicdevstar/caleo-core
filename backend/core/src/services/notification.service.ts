@@ -194,9 +194,11 @@ export class NotificationService {
   async demobilizeNotification({
     organization,
     assignmentId,
+    shiftId,
   }: {
     organization: IOrganization;
     assignmentId: ObjectId;
+    shiftId: string;
   }) {
     await lambda.send(new InvokeCommand({
       FunctionName: process.env.MAILER_LAMBDA!,
@@ -207,6 +209,7 @@ export class NotificationService {
         data: {
           organization,
           assignmentId,
+          shiftId,
         }
       } as MailerEvent),
     }));

@@ -152,7 +152,6 @@ export function EventCard({ items, isUpcoming = false, myOvertime = false }: Pro
           sx={{
             width: '100%',
             p: (theme) => theme.spacing(3, 3, 0, 3),
-            height: 175,
           }}
         >
           <Stack sx={{ mb: 1, gap: '10px' }} direction="row" alignItems="center" justifyContent="space-between">

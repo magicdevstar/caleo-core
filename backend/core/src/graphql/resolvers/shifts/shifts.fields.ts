@@ -42,7 +42,7 @@ export const fields = {
     shiftComment: (shift: IShift, _: unknown, { shifts }: Context) =>
       shifts.loadCommentsById.load(shift.id || shift._id!.toString()),
     hasComments: (shift: IShift, _: unknown, context: Context) => {
-      if (!!shift.shiftCheckInOut?.adminNotes) return true;
+      if (!!shift.shiftCheckInOut?.adminNotes) return true; // eslint-disable-line no-extra-boolean-cast
       if (!shift.userId) return false;
       return context.eventUserActions.loadHasActionsForShifts.load({ shiftId: shift.shiftId, userId: shift.userId, action: EventUserActionLogAction.OfficerCommentAdded });
     },

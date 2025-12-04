@@ -10,6 +10,7 @@ import { Context } from "../../../utils/createContext";
 import {
   EventUserActionLogAction,
   EventUserActionLogSource,
+  EventUserActionType,
   MemberRole,
   ShiftAdminCheckInOutEvent,
   ShiftCheckInOutEvent,
@@ -23,8 +24,69 @@ import { MailerEvents } from "../../../types/mailer";
 import logger from "../../../utils/logger";
 import { IShift, UpsertShiftExtended } from "../../../models/shift";
 import { ShiftNotificationType } from "../../../services/notification.service";
+import { IEventNotification } from "../../../models/eventNotifications/eventNotifications.entity";
+import { DEMOBILIZE } from "../../../models/eventNotifications/eventNotifications.const";
 
 export const Mutation = {
+  demobilize: async (
+    _parent: unknown,
+    { shiftId }: { shiftId: string },
+    { shifts, eventUserActions, notificationService, eventNotifications, user, organization }: Context,
+  ): Promise<boolean> => {
+    adminOnly(user);
+
+    const shiftFilter: any = {
+      shiftId,
+      userId: {$exists: true},
+      removedAt: { $exists: false },
+      demobilizedTime: { $exists: false },
+    };
+    await shifts.collection.updateMany(
+      shiftFilter,
+      {
+        $set: {
+          demobilizedTime: new Date(),
+          modifiedById: user!._id!,
+          updatedAt: new Date(),
+        }
+      }
+    );
+
+    delete shiftFilter.demobilizedTime;
+    shiftFilter['shiftCheckInOut.checkOutTime'] = { $exists: false };
+    const shiftSlots = await shifts.collection.find<IShift>(shiftFilter).toArray();
+    if (shiftSlots.length === 0) {
+      return true;
+    }
+    await eventUserActions.bulk(shiftSlots.map(shift => ({
+      userId: shift.userId,
+      eventId: shift.eventId,
+      shiftGroupId: shift.shiftId,
+      actionType: EventUserActionType.Shift,
+      source: EventUserActionLogSource.Shift,
+      modifiedById: user._id!,
+      timestamp: new Date(),
+      action: EventUserActionLogAction.Demobilized,
+    })));
+
+    await eventNotifications.bulkWrite<IEventNotification>(shiftSlots.map(shift => ({
+      title: DEMOBILIZE.title,
+      description: DEMOBILIZE.description,
+      shiftId: shift._id!,
+      orgId: user!.member.orgId,
+      modifiedById: user!._id!,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })));
+
+    await notificationService.demobilizeNotification({
+      organization,
+      assignmentId: shiftSlots[0].assignmentId,
+      shiftId,
+    });
+
+    return true;
+  },
   shiftComment: async (
     _parent: unknown,
     { input }: { input: UpsertShiftComment },
@@ -69,7 +131,6 @@ export const Mutation = {
       organization,
       docusign,
       notificationService,
-      eventUserActions,
     }: Context
   ): Promise<IShift> => {
     adminOnly(user);
@@ -96,7 +157,6 @@ export const Mutation = {
       await docusign.resubmitEndOfShiftEnvelope({
         shift: response,
         organization: organization!,
-        modifiedBy: user,
       });
       await notificationService.shiftCheckInOutNotification({
         organization: organization!,
@@ -367,6 +427,7 @@ export const Mutation = {
 
     await shifts.updateByShiftGroupId(shiftId, {
       modifiedById: user._id!,
+      ...('bypassDemobilization' in updates && { bypassDemobilization: updates.bypassDemobilization }),
       ...((updates.endTime || updates.startTime) && { availability }),
       ...(updates.startTime && { startTime }),
       ...(updates.endTime && { endTime }),

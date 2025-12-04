@@ -431,9 +431,7 @@ export class Docusign {
   async resubmitEndOfShiftEnvelope({
     shift,
     organization,
-    modifiedBy,
   }: {
-    modifiedBy: IUser;
     shift: IShift | null;
     organization: IOrganization;
   }) {

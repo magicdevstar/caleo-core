@@ -7,6 +7,12 @@ export const REMOVE_SHIFT = gql`
   }
 `;
 
+export const DEMOBILIZE_SHIFT = gql`
+  mutation DemobilizeShift($shiftId: String!) {
+    demobilize(shiftId: $shiftId)
+  }
+`;
+
 export const REMOVE_SHIFTS = gql`
   mutation RemoveShifts($id: String!) {
     removeShifts(shiftId: $id)
@@ -135,6 +141,7 @@ export const GET_AVAILABLE_SHIFTS = gql`
         userId
         locked
         callSign
+        bypassDemobilization
         event {
           id
           referenceId
@@ -361,6 +368,7 @@ export const GET_ACTIVITY = gql`
         locked
         callSign
         userId
+        bypassDemobilization
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -459,6 +467,7 @@ export const GET_ALL_SHIFTS = gql`
         userId
         locked
         callSign
+        bypassDemobilization
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -583,6 +592,7 @@ export const SHIFTS_FOR_EVENT_DASHBOARD = gql`
         docusignEnvelopeId
         demobilizedTime
         hasComments
+        bypassDemobilization
         shiftComment {
           id
           comment
@@ -805,6 +815,7 @@ export const DYNAMIC_SHIFT_SEARCH = gql`
         demobilizedTime
         status
         callSign
+        bypassDemobilization
         shiftCheckInOut {
           checkInTime
           checkOutTime
@@ -931,6 +942,7 @@ export const USER_SHIFT_INTEREST_REQUESTS = gql`
           userId
           locked
           callSign
+          bypassDemobilization
           shiftCheckInOut {
             checkInTime
             checkOutTime
@@ -1017,6 +1029,7 @@ export const GET_GROUPED_SHIFTS = gql`
       locked
       userId
       callSign
+      bypassDemobilization
       docusignEnvelopeId
 
       shiftComment {
@@ -1113,6 +1126,7 @@ query GetShiftDetails($id: String!) {
     userId
     locked
     callSign
+    bypassDemobilization
     event {
       id
       referenceId
@@ -1213,6 +1227,7 @@ export const GET_SHIFT_BUFFER_REQUESTS = gql`
           startTime
           endTime
           demobilizedTime
+          bypassDemobilization
           event {
             id
             referenceId
@@ -1381,6 +1396,7 @@ export const GET_SHIFT_OVERVIEW = gql`
       locked
       callSign
       userId
+      bypassDemobilization
       user {
         id
         name

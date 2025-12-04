@@ -341,6 +341,7 @@ export type CreateEventNotification = {
   attachmentPaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   description: Scalars['String']['input'];
   eventId?: InputMaybe<Scalars['ObjectId']['input']>;
+  shiftGroupId?: InputMaybe<Scalars['String']['input']>;
   shiftId?: InputMaybe<Scalars['ObjectId']['input']>;
   title: Scalars['String']['input'];
 };
@@ -1348,6 +1349,8 @@ export type Mutation = {
   cloneEvent?: Maybe<Event>;
   createOrganization?: Maybe<Organization>;
   defaultEventThumbnailUploadUrl: OrganizationEventSettingsUpload;
+  demobilize?: Maybe<Scalars['Boolean']['output']>;
+  /** @deprecated Use demobilize mutation with shiftId instead */
   demobilized?: Maybe<Scalars['Boolean']['output']>;
   division?: Maybe<Division>;
   editCheckInOut: Shift;
@@ -1490,6 +1493,11 @@ export type MutationCloneEventArgs = {
 
 export type MutationCreateOrganizationArgs = {
   organization: CreateOrganization;
+};
+
+
+export type MutationDemobilizeArgs = {
+  shiftId: Scalars['String']['input'];
 };
 
 
@@ -2607,6 +2615,7 @@ export type Shift = {
   assignment: Assignment;
   assignmentId: Scalars['String']['output'];
   availability?: Maybe<ShiftAvailabilityTime>;
+  bypassDemobilization?: Maybe<Scalars['Boolean']['output']>;
   calculatedShiftDetails?: Maybe<CalculatedShiftDetails>;
   callSign?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
@@ -2992,6 +3001,7 @@ export type ShiftTabResponse = {
 };
 
 export type ShiftUpdates = {
+  bypassDemobilization?: InputMaybe<Scalars['Boolean']['input']>;
   endTime?: InputMaybe<Scalars['String']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;
 };
@@ -3435,6 +3445,7 @@ export type UpsertReportingLocation = {
 
 export type UpsertShift = {
   assignmentId: Scalars['String']['input'];
+  bypassDemobilization?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['String']['input']>;
   createdById?: InputMaybe<Scalars['String']['input']>;
   customId?: InputMaybe<Scalars['String']['input']>;
@@ -5154,6 +5165,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   cloneEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationCloneEventArgs, 'id'>>;
   createOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, RequireFields<MutationCreateOrganizationArgs, 'organization'>>;
   defaultEventThumbnailUploadUrl?: Resolver<ResolversTypes['OrganizationEventSettingsUpload'], ParentType, ContextType>;
+  demobilize?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationDemobilizeArgs, 'shiftId'>>;
   demobilized?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationDemobilizedArgs, 'assignmentId'>>;
   division?: Resolver<Maybe<ResolversTypes['Division']>, ParentType, ContextType, RequireFields<MutationDivisionArgs, 'division'>>;
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
@@ -5575,6 +5587,7 @@ export type ShiftResolvers<ContextType = any, ParentType extends ResolversParent
   assignment?: Resolver<ResolversTypes['Assignment'], ParentType, ContextType>;
   assignmentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   availability?: Resolver<Maybe<ResolversTypes['ShiftAvailabilityTime']>, ParentType, ContextType>;
+  bypassDemobilization?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   calculatedShiftDetails?: Resolver<Maybe<ResolversTypes['CalculatedShiftDetails']>, ParentType, ContextType>;
   callSign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

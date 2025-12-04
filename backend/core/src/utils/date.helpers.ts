@@ -7,7 +7,6 @@ import {
   differenceInMinutes,
   roundToNearestMinutes,
   subHours,
-  differenceInHours
 } from "date-fns";
 import { Timezone } from "../models/scheduler";
 import logger from "./logger";

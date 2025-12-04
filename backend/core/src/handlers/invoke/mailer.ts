@@ -2964,7 +2964,8 @@ const sendEmail = async (input: MailerEvent) => {
 
       await Promise.all(inAppPromises);
     } else if (input.template === MailerEvents.OfficerDemobilize) {
-      const { assignmentId, organization }: {
+      const { shiftId, assignmentId, organization }: {
+        shiftId: string;
         assignmentId: string;
         organization: IOrganization;
       } = input.data;
@@ -2985,6 +2986,7 @@ const sendEmail = async (input: MailerEvent) => {
       const allUsersOnAssignment = await context.shifts.collection.aggregate<IShiftExpanded>([
         {
           $match: {
+            shiftId,
             assignmentId: new ObjectId(assignment.id),
             removedAt: { $exists: false },
             'shiftCheckInOut.checkOutTime': { $exists: false },

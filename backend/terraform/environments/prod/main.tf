@@ -37,12 +37,6 @@ locals {
   )
 }
 
-module "amplify_domains" {
-  source = "../../modules/amplify-domain"
-  app_id = local.amplify_id
-  domains = local.domains
-}
-
 module "cognito" {
   source = "../../modules/cognito"
 

@@ -99,7 +99,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
         </Tooltip>
         {!isCheckOut && (<Button size="small" variant="outlined" onClick={addCommentDialog.onTrue}>Contact</Button>)}
       </Stack>
-      <Typography variant='caption' color="textSecondary" component="p">You can remotely check in/out now! Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
+      <Typography variant='caption' color="textSecondary" component="p">Your location will be shared to confirm you’re within the check-in/out boundaries.</Typography>
     </Stack>
   );
 

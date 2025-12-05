@@ -183,7 +183,7 @@ export default function ShiftItem({
   }, [shift, mapboxReportingLocation]);
 
   const openDetails = () => {
-    if (collapsible) {
+    if (collapsible && !lasdEventFields) {
       fetchEventNotes({ variables: { id: shift.event.id } });
       fetchAssignmentNotes({ variables: { id: shift.assignment.id } });
       setDetailHeight((c) => c === '0px' ? '100%' : '0px');
@@ -468,7 +468,7 @@ export default function ShiftItem({
         onClick={openDetails}
         component={Card}
         direction={{ sm: 'column', md: 'row' }}
-        sx={{ cursor, width: '100%', height: '100%' }}
+        sx={{ cursor: lasdEventFields ? 'default' : cursor, width: '100%', height: '100%' }}
       >
         {enabledEventThumbnail && shift.event.thumbnailUrl && (
           <Box

@@ -103,7 +103,7 @@ export const AssignmentDetailsSection = ({
           disabled={disabled}
           initAssetUrls={initAssetUrls}
           name="attachments"
-          maxSize={3145728}
+          maxSize={1e+9} // 1 GB
         />
       </Stack>
 

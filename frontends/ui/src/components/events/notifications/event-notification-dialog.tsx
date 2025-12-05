@@ -163,7 +163,7 @@ export const EventNotificationDialog = ({ controller }: Props) => {
             thumbnail
             accept={{'application/pdf': [], 'image/*': []}}
             name="attachments"
-            maxSize={3145728}
+            maxSize={1e+9} // 1 GB
           />
         </Stack>
       )}

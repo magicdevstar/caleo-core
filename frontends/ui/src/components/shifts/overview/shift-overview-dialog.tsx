@@ -76,7 +76,7 @@ export const ShiftOverviewDialog = ({
 }: Props) => {
   const id = useMemo(() => controller.attribute?.id || '', [controller.attribute]);
   const { enqueueSnackbar } = useSnackbar();
-  const { vehicleCategories, operationsUnit, officerCheckInOut } = useFeatures();
+  const { vehicleCategories, officerCheckInOut } = useFeatures();
   const eventNotificationController = useBoolean<Shift>();
   const [editCheckInOut] = useMutation(EDIT_CHECK_IN_OUT);
   const [editAssignment] = useMutation(UPSERT_ASSIGNMENT);
@@ -318,7 +318,7 @@ export const ShiftOverviewDialog = ({
             <ShiftOverviewSection
               icon="mdi-assignment"
               title="Assignment Details"
-              sectionActions={isAdminView && operationsUnit ? (
+              sectionActions={isAdminView ? (
                 <Stack direction="row" spacing={2}>
                   <Button onClick={(e) => {
                     e.stopPropagation();
@@ -367,13 +367,9 @@ export const ShiftOverviewDialog = ({
                   <ShiftOverviewSection icon="mdi:chart-timeline" title="Activity">
                     <ShiftOverviewActivity activityData={activityData} />
                   </ShiftOverviewSection>
-                  {
-                    operationsUnit && (
-                      <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
-                        <ShiftNotifications shift={shift} />
-                      </ShiftOverviewSection>
-                    )
-                  }
+                  <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
+                    <ShiftNotifications shift={shift} />
+                  </ShiftOverviewSection>
                 </>
               )
             }

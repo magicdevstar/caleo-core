@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AnimatePresence, m } from "framer-motion";
 import PhoneNumberFormatter from 'phone-number-formats';
 // mui
 import Box from "@mui/material/Box";
@@ -11,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
-import { SxProps } from "@mui/material";
+import { alpha, SxProps } from "@mui/material";
 // components
 import Image from "src/components/image";
 // types
@@ -32,6 +33,8 @@ import { GET_EVENT_NOTES } from "src/api/event";
 import { GET_ASSIGNMENT_DESCRIPTION } from "src/api/assignment";
 import { StyledMapContainer } from "../map/styles";
 import { ShiftOverviewDialog } from "./overview/shift-overview-dialog";
+import { varFade } from "../animate";
+import FileThumbnail from "../file-thumbnail";
 
 export type ShiftAction = {
   key: string;
@@ -241,15 +244,41 @@ export default function ShiftItem({
       );
     }
 
-    return (shift as Shift)?.event?.attachments?.map((url: string, i: number) => (
-      <Label key={url} variant="soft" color='info' sx={{...labelSx, width: 'fit-content', cursor}} onClick={(e) => {
-        e.stopPropagation();
-        window.open(url, '_blank');
-      }}>
-        Attachment # {i + 1}
-      </Label>
-    ));
-  }, [shift, cursor]);
+    return (
+      <AnimatePresence initial={false}>
+        {
+          (shift?.event?.attachments || []).map((url: string, i: number) => (
+            <Stack
+              key={url}
+              component={m.div}
+              {...varFade().inUp}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                m: 0.5,
+                width: 80,
+                height: 80,
+                borderRadius: 1.25,
+                overflow: 'hidden',
+                position: 'relative',
+                border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.16)}`,
+              }}
+            >
+              <FileThumbnail
+                imageView
+                file={url}
+                sx={{ position: 'absolute' }}
+                imgSx={{ position: 'absolute' }}
+              />
+            </Stack>
+          ))
+        }
+      </AnimatePresence>
+    );
+  }, [shift]);
 
   const contactInfo = useMemo(() => {
     let value: any = (
@@ -724,7 +753,7 @@ export default function ShiftItem({
               {/* Include contact info */}
               <Stack spacing={1} sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Attachments</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                   {attachmentLabels}
                 </Box>
               </Stack>

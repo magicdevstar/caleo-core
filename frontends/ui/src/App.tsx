@@ -7,6 +7,10 @@ import 'simplebar-react/dist/simplebar.min.css';
 // map
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+// pdfjs
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
 // image
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
@@ -18,6 +22,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 // ----------------------------------------------------------------------
+import { pdfjs } from 'react-pdf';
 
 // @mui
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -42,6 +47,7 @@ import { SnackbarProvider } from './components/snackbar';
 import ErrorComponent from "./components/error/Error";
 import { initG4 } from './utils/ga4';
 
+
 // ----------------------------------------------------------------------
 
 // MUI X License Key
@@ -49,6 +55,12 @@ LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyO
 
 // GA
 initG4();
+
+// Init PDFJS worker
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
 
 export default function App() {
   const charAt = `

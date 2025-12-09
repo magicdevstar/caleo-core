@@ -1,16 +1,24 @@
 import { useMemo } from "react";
+import { AnimatePresence, m } from "framer-motion";
 import { useLazyQuery } from "@apollo/client";
+// @mui
 import Stack from "@mui/material/Stack";
 import Skeleton from "@mui/material/Skeleton";
-import Label from "src/components/label";
-import { GET_EVENT_NOTES } from "src/api/event";
-import { reader } from "src/layouts/_common/notifications-popover/notification-item";
+import { alpha } from "@mui/material/styles";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
-import Iconify from "src/components/iconify";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+// components
+import Label from "src/components/label";
+import FileThumbnail from "src/components/file-thumbnail";
+import Iconify from "src/components/iconify";
+import { reader } from "src/layouts/_common/notifications-popover/notification-item";
+// hooks
+import { varFade } from "src/components/animate";
+// types
+import { GET_EVENT_NOTES } from "src/api/event";
 
 interface Props {
   eventId: string;
@@ -36,15 +44,41 @@ export function EventNotes({ eventId, attachments = [] }: Props) {
           </Label>
         );
       }
-  
-      return attachments.map((url: string, i: number) => (
-        <Label key={url} variant="soft" color='info' sx={{...labelSx, width: 'fit-content', cursor: 'pointer' }} onClick={(e) => {
-          e.stopPropagation();
-          window.open(url, '_blank');
-        }}>
-          Attachment # {i + 1}
-        </Label>
-      ));
+
+      return (
+        <AnimatePresence initial={false}>
+          {
+            (attachments || []).map((url: string, i: number) => (
+              <Stack
+                key={url}
+                component={m.div}
+                {...varFade().inUp}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  m: 0.5,
+                  width: 80,
+                  height: 80,
+                  borderRadius: 1.25,
+                  overflow: 'hidden',
+                  position: 'relative',
+                  border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.16)}`,
+                }}
+              >
+                <FileThumbnail
+                  imageView
+                  file={url}
+                  sx={{ position: 'absolute' }}
+                  imgSx={{ position: 'absolute' }}
+                />
+              </Stack>
+            ))
+          }
+        </AnimatePresence>
+      );
     }, [attachments]);
 
   return (
@@ -89,7 +123,7 @@ export function EventNotes({ eventId, attachments = [] }: Props) {
 
         <Stack spacing={1} sx={{ mt: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Attachments</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: '10px' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {attachmentLabels}
           </Box>
         </Stack>

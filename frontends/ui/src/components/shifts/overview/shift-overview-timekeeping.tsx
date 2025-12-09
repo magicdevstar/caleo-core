@@ -12,7 +12,9 @@ import { useAuthContext } from 'src/auth/hooks';
 import { useFeatures } from 'src/hooks/use-features';
 import { RHFDateTimePicker, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 import { docusignStatusColor, docusignStatusLabel } from 'src/utils/docusign';
+import { useBoolean } from 'src/hooks/use-boolean';
 // components
+import { IFileDetails, PreviewDialog } from 'src/components/preview/preview-dialog';
 import MapMarkersPopups from 'src/components/map/map-marker-popups';
 import GQLTable from 'src/components/table/gql/table';
 import ShiftOverviewDetail from './shift-overview-detail';
@@ -35,6 +37,8 @@ export default function ShiftOverviewTimeKeeping({ shift, activityData, isAdminV
   const { officerCheckInOut, lasdEventFields, eventCheckIn, eventCheckOut } = useFeatures();
   const { timeFormat, dateTimeFormat } = useDateFormats();
   const { user } = useAuthContext();
+
+  const previewDialog = useBoolean<IFileDetails>();
 
   const docusignStatus = useMemo(() => ({
     label: docusignStatusLabel(shift?.docusignEvent?.status),
@@ -124,83 +128,90 @@ export default function ShiftOverviewTimeKeeping({ shift, activityData, isAdminV
   }, [activityData]);
 
   return (
-    <Stack spacing={3}>
-      <Grid container spacing={2}>
-        <ShiftOverviewDetail label='Shift ID' value={shift?.customId} xs={12} md={4} xl={4}>
-          {isAdminView && <RHFTextField name="customId" />}
-        </ShiftOverviewDetail>
-        <ShiftOverviewDetail label='Scheduled start time' value={startTime} tagColor="default" tagVariant='filled' tag xs={12} md={4} xl={4} />
-        <ShiftOverviewDetail label='Scheduled end time' value={endTime} tagColor="default" tagVariant='filled' tag xs={12} md={4} xl={4} />
-        {
-          eventCheckIn && (
-          <ShiftOverviewDetail label='Check-in' value={checkInTime} tagColor="info" tagVariant='filled' tag xs={12} md={4} xl={4}>
-            {isAdminView && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={timeSteps} ampm={false} name="checkInTime" />}
+    <>
+      <Stack spacing={3}>
+        <Grid container spacing={2}>
+          <ShiftOverviewDetail label='Shift ID' value={shift?.customId} xs={12} md={4} xl={4}>
+            {isAdminView && <RHFTextField name="customId" />}
           </ShiftOverviewDetail>
-        )}
-        {eventCheckOut && (
-          <ShiftOverviewDetail label='Check-out' value={checkOutTime} tagColor="info" tagVariant='filled' tag xs={12} md={4} xl={4}>
-            {isAdminView && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={timeSteps} ampm={false} name="checkOutTime" />}
+          <ShiftOverviewDetail label='Scheduled start time' value={startTime} tagColor="default" tagVariant='filled' tag xs={12} md={4} xl={4} />
+          <ShiftOverviewDetail label='Scheduled end time' value={endTime} tagColor="default" tagVariant='filled' tag xs={12} md={4} xl={4} />
+          {
+            eventCheckIn && (
+            <ShiftOverviewDetail label='Check-in' value={checkInTime} tagColor="info" tagVariant='filled' tag xs={12} md={4} xl={4}>
+              {isAdminView && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={timeSteps} ampm={false} name="checkInTime" />}
+            </ShiftOverviewDetail>
+          )}
+          {eventCheckOut && (
+            <ShiftOverviewDetail label='Check-out' value={checkOutTime} tagColor="info" tagVariant='filled' tag xs={12} md={4} xl={4}>
+              {isAdminView && <RHFDateTimePicker timezone={user.member.org?.timezone} timeSteps={timeSteps} ampm={false} name="checkOutTime" />}
+            </ShiftOverviewDetail>
+          )}
+          {lasdEventFields && <ShiftOverviewDetail label='18 Hour Time' value={hour18Time} tagColor="warning" tagVariant='filled' tag  xs={12} md={4} xl={4} />}
+          <ShiftOverviewDetail label='No Show' value={shift?.shiftCheckInOut?.noShow ? 'Yes' : 'No'} tagColor={shift?.shiftCheckInOut?.noShow ? "error" : 'default'} tagVariant='outlined' tag>
+            {isAdminView && <RHFSwitch name="noShow" label="" />}
           </ShiftOverviewDetail>
-        )}
-        {lasdEventFields && <ShiftOverviewDetail label='18 Hour Time' value={hour18Time} tagColor="warning" tagVariant='filled' tag  xs={12} md={4} xl={4} />}
-        <ShiftOverviewDetail label='No Show' value={shift?.shiftCheckInOut?.noShow ? 'Yes' : 'No'} tagColor={shift?.shiftCheckInOut?.noShow ? "error" : 'default'} tagVariant='outlined' tag>
-          {isAdminView && <RHFSwitch name="noShow" label="" />}
-        </ShiftOverviewDetail>
-        <ShiftOverviewDetail
-          label='Docusign Status'
-          value={docusignStatus.label}
-          tagColor={docusignStatus.color as any}
-          tagVariant='filled'
-          onClick={() => {
-            if (shift?.docusignEvent?.documentUrl) {
-              window.open(shift?.docusignEvent?.documentUrl, '_blank');
-            };
-          }}
-          tag
-        />
-        {isAdminView && (
-          <>
-            <ShiftOverviewDetail label='Regenerate Docusign'>
-              <RHFSwitch name="regenerateDocusign" label="" />
-            </ShiftOverviewDetail>
-            <ShiftOverviewDetail label='Include Drive Time'>
-              <RHFSwitch name="assignment.includeDriveTime" label="" />
-            </ShiftOverviewDetail>
-          </>
-        )}
-      </Grid>
-      { hasCoordinates && officerCheckInOut && lasdEventFields &&
-        <StyledMapContainer sx={{ mt: 2 }}>
-          <MapMarkersPopups
-            {...baseSettings}
-            initialViewState={{
-              zoom: 16,
-              latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude || shift?.shiftCheckInOut?.checkOutCoords?.latitude as any,
-              longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude || shift?.shiftCheckInOut?.checkOutCoords?.longitude as any,
+          <ShiftOverviewDetail
+            label='Docusign Status'
+            value={docusignStatus.label}
+            tagColor={docusignStatus.color as any}
+            tagVariant='filled'
+            onClick={() => {
+              if (shift?.docusignEvent?.documentUrl) {
+                previewDialog.onTrue({
+                  format: 'pdf',
+                  url: shift.docusignEvent.documentUrl,
+                  fileName: `${shift?.event?.name} - ${shift?.assignment?.name} - ${shift?.user?.name}`
+                });
+              };
             }}
-            data={[
-              ...(shift?.shiftCheckInOut?.checkInCoords?.latitude ? [{
-                name: 'Check In',
-                latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude as any,
-                longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude as any,
-              }] : []),
-              ...(shift?.shiftCheckInOut?.checkOutCoords?.latitude ? [{
-                name: 'Check Out',
-                latitude: shift?.shiftCheckInOut?.checkOutCoords?.latitude as any,
-                longitude: shift?.shiftCheckInOut?.checkOutCoords?.longitude as any,
-              }] : []),
-            ]}
+            tag
           />
-        </StyledMapContainer>
-      }
-      {
-        isAdminView && (
-        <Stack>
-          <RHFTextField name="adminNotes" label="Admin Notes" multiline rows={3} fullWidth />
-        </Stack>
-      )}
+          {isAdminView && (
+            <>
+              <ShiftOverviewDetail label='Regenerate Docusign'>
+                <RHFSwitch name="regenerateDocusign" label="" />
+              </ShiftOverviewDetail>
+              <ShiftOverviewDetail label='Include Drive Time'>
+                <RHFSwitch name="assignment.includeDriveTime" label="" />
+              </ShiftOverviewDetail>
+            </>
+          )}
+        </Grid>
+        { hasCoordinates && officerCheckInOut && lasdEventFields &&
+          <StyledMapContainer sx={{ mt: 2 }}>
+            <MapMarkersPopups
+              {...baseSettings}
+              initialViewState={{
+                zoom: 16,
+                latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude || shift?.shiftCheckInOut?.checkOutCoords?.latitude as any,
+                longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude || shift?.shiftCheckInOut?.checkOutCoords?.longitude as any,
+              }}
+              data={[
+                ...(shift?.shiftCheckInOut?.checkInCoords?.latitude ? [{
+                  name: 'Check In',
+                  latitude: shift?.shiftCheckInOut?.checkInCoords?.latitude as any,
+                  longitude: shift?.shiftCheckInOut?.checkInCoords?.longitude as any,
+                }] : []),
+                ...(shift?.shiftCheckInOut?.checkOutCoords?.latitude ? [{
+                  name: 'Check Out',
+                  latitude: shift?.shiftCheckInOut?.checkOutCoords?.latitude as any,
+                  longitude: shift?.shiftCheckInOut?.checkOutCoords?.longitude as any,
+                }] : []),
+              ]}
+            />
+          </StyledMapContainer>
+        }
+        {
+          isAdminView && (
+          <Stack>
+            <RHFTextField name="adminNotes" label="Admin Notes" multiline rows={3} fullWidth />
+          </Stack>
+        )}
 
-      <GQLTable config={commentTableConfig} />
-    </Stack>
+        <GQLTable config={commentTableConfig} />
+      </Stack>
+      <PreviewDialog controller={previewDialog} />
+    </>
   );
 }

@@ -3,17 +3,13 @@ import { Theme, SxProps } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import { Document, Page, pdfjs } from 'react-pdf';
 //
 import { useBoolean } from 'src/hooks/use-boolean';
 import { fileData, fileFormat, fileThumb } from './utils';
 import DownloadButton from './download-button';
+import { IFileDetails, PreviewDialog } from '../preview/preview-dialog';
 
 // ----------------------------------------------------------------------
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 type FileIconProps = {
   file: File | string;
@@ -32,15 +28,16 @@ export default function FileThumbnail({
   sx,
   imgSx,
 }: FileIconProps) {
-  const dialog = useBoolean();
+  const dialog = useBoolean<IFileDetails>();
   const { name = '', path = '', preview = '', type } = fileData(file);
   const [realFormat, setRealFormat] = useState<string | null>(null);
 
   useEffect(() => {
     setRealFormat(null);
-    if (typeof file !== 'string' && file?.type === '') {
+    if (typeof file === 'string' || (typeof file !== 'string' && file?.type === '')) {
+      const url = typeof file === 'string' ? file : file.name;
       const fetchType = (retries: number, delay: number) => {
-        fetch(file.name)
+        fetch(url)
           .then((response) => {
             const contentType = response.headers.get('Content-Type');
             if (contentType?.includes('application/pdf')) {
@@ -69,7 +66,7 @@ export default function FileThumbnail({
       {
         (format === 'image' && imageView || (preview.includes('.s3.us-west-2.amazonaws.com') && format !== 'pdf')) ? (
           <Box
-            onClick={() => dialog.onTrue()}
+            onClick={() => dialog.onTrue({ format, url: preview })}
             component="img"
             src={preview}
             sx={{
@@ -82,7 +79,7 @@ export default function FileThumbnail({
           />
         ) : (
           <Box
-            onClick={() => dialog.onTrue()}
+            onClick={() => dialog.onTrue({ format, url: preview })}
             component="img"
             src={fileThumb(format)}
             sx={{
@@ -94,32 +91,7 @@ export default function FileThumbnail({
           />
         )
       }
-      <Dialog
-        fullWidth
-        maxWidth="md"
-        open={dialog.value}
-        onClose={() => dialog.onFalse()}
-      >
-        <DialogContent>
-          {format === 'pdf' ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Document file={preview}>
-                <Page pageNumber={1} />
-              </Document>
-            </Box>
-          ) : (
-            <Box
-              component="img"
-              src={preview}
-              sx={{
-                width: 1,
-                height: 1,
-                objectFit: 'contain',
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <PreviewDialog controller={dialog} />
     </>
   );
 

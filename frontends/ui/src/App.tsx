@@ -22,7 +22,6 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 // ----------------------------------------------------------------------
-import { pdfjs } from 'react-pdf';
 
 // @mui
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -55,12 +54,6 @@ LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyO
 
 // GA
 initG4();
-
-// Init PDFJS worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
 
 export default function App() {
   const charAt = `

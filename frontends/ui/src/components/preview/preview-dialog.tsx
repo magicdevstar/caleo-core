@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 // @mui
 import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
@@ -5,10 +6,14 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
 // components
-import { Document, Page } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
 import Iconify from "src/components/iconify";
 // hooks
 import { UseBooleanReturnType } from "src/hooks/use-boolean";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
 
 export interface IFileDetails {
   fileName?: string;
@@ -21,6 +26,12 @@ interface IProps {
 }
 
 export const PreviewDialog = ({ controller }: IProps) => {
+  const [pageLoaded, setPageLoaded] = useState(false);
+
+  useEffect(() => {
+    setPageLoaded(false);
+  }, [controller.attribute?.url]);
+
   if (!controller.attribute?.url) {
     return null;
   }
@@ -73,13 +84,28 @@ export const PreviewDialog = ({ controller }: IProps) => {
           <Iconify icon="mingcute:close-line" />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ pb: 3 }}>
+      <DialogContent sx={{ height: '75vh', overflow: 'hidden' }}>
         {controller.attribute?.format === 'pdf' ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Document file={controller.attribute?.url}>
-              <Page pageNumber={1} />
-            </Document>
-          </Box>
+          <TransformWrapper
+            minScale={0.5}
+            key={`${controller.attribute?.url}-${pageLoaded}`}
+          >
+            <TransformComponent
+              wrapperStyle={{
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <Document file={controller.attribute?.url}>
+                <Page
+                  pageNumber={1}
+                  onLoadSuccess={() => setPageLoaded(true)}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                />
+              </Document>
+            </TransformComponent>
+          </TransformWrapper>
         ) : (
           <Box
             component="img"

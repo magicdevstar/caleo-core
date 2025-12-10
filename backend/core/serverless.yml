@@ -60,7 +60,8 @@ params:
     incidentSubmissionChangeStreamId: 689d6760ce8933a3ace924aa
 provider:
   name: aws
-  runtime: nodejs20.x
+  architecture: arm64
+  runtime: nodejs24.x
   region: us-west-2
   versionFunctions: false
   logRetentionInDays: 3

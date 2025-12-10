@@ -186,6 +186,22 @@ export const ShiftOverviewDialog = ({
 
   const onSubmit = handleSubmit(async (formData) => {
     try {
+      const dirtyAssignmentFields = [
+        dirtyFields.assignment?.includeDriveTime,
+      ];
+      if (dirtyAssignmentFields.some(Boolean)) {
+        await editAssignment({
+          variables: {
+            input: {
+              id: formData.assignment.id,
+              includeDriveTime: formData.assignment.includeDriveTime,
+              name: formData.assignment.name,
+              eventId: formData.assignment.eventId,
+            }
+          },
+        });
+      }
+
       const payload: any = {
         id: formData.id,
         customShiftId: formData.customId,
@@ -242,22 +258,6 @@ export const ShiftOverviewDialog = ({
       }
       if (closeOnSave) {
         handleClose();
-      }
-
-      const dirtyAssignmentFields = [
-        dirtyFields.assignment?.includeDriveTime,
-      ];
-      if (dirtyAssignmentFields.some(Boolean)) {
-        await editAssignment({
-          variables: {
-            input: {
-              id: formData.assignment.id,
-              includeDriveTime: formData.assignment.includeDriveTime,
-              name: formData.assignment.name,
-              eventId: formData.assignment.eventId,
-            }
-          },
-        });
       }
     } catch(err) {
       enqueueSnackbar('Failed to update shift details', { variant: 'error', autoHideDuration: 4000 });

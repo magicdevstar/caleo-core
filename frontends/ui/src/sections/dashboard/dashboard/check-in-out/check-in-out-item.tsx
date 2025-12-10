@@ -83,7 +83,7 @@ export default function CheckInOutItem({ shift, mapSx, onClick, ignoreGeoFence, 
   const action = (
     <Stack spacing={1}>
       <Stack spacing={1} direction="row">
-        <Tooltip title={(isCheckOut && !canCheckout) ? NOT_DEMOBILIZED_MESSAGE : ""}>
+        <Tooltip title={(isCheckOut && !canCheckout) ? NOT_DEMOBILIZED_MESSAGE : ""} enterTouchDelay={0}>
           <span>
             <Button
               disabled={!!(isCheckOut && !canCheckout)}

@@ -310,7 +310,11 @@ export const ShiftOverviewDialog = ({
             refetch={refetch}
             sx={{ minHeight: '90vh', background: 'transparent' }}
           >
-            {isCurrentUser && <CheckInOut allowView={officerCheckInOut} fromSelfCheckout hiddenTitle />}
+            {isCurrentUser && (<CheckInOut allowView={officerCheckInOut} fromSelfCheckout hiddenTitle />)}
+            <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
+              <ShiftNotifications shift={shift} />
+            </ShiftOverviewSection>
+            <Divider sx={{ borderStyle: 'dashed' }} />
             <ShiftOverviewSection icon="solar:golf-bold-duotone" title="Event Details">
               <ShiftOverviewEvent event={shift?.event} />
             </ShiftOverviewSection>
@@ -366,9 +370,6 @@ export const ShiftOverviewDialog = ({
                   <Divider sx={{ borderStyle: 'dashed' }} />
                   <ShiftOverviewSection icon="mdi:chart-timeline" title="Activity">
                     <ShiftOverviewActivity activityData={activityData} />
-                  </ShiftOverviewSection>
-                  <ShiftOverviewSection icon="ic:baseline-notifications-active" title="Notifications">
-                    <ShiftNotifications shift={shift} />
                   </ShiftOverviewSection>
                 </>
               )

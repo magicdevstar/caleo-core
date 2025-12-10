@@ -131,6 +131,7 @@ export const Mutation = {
       organization,
       docusign,
       notificationService,
+      eventUserActions,
     }: Context
   ): Promise<IShift> => {
     adminOnly(user);
@@ -152,6 +153,30 @@ export const Mutation = {
       noShow: !!noShow,
       customShiftId,
     });
+
+    if (checkInTime && shift.shiftCheckInOut?.checkInTime?.getTime() !== new Date(checkInTime).getTime()) {
+      await eventUserActions.createItem({
+        userId: shift!.userId!,
+        eventId: shift!.eventId,
+        shiftGroupId: shift!.shiftId,
+        source: EventUserActionLogSource.Shift,
+        modifiedById: shift.userId!,
+        timestamp: new Date(checkInTime),
+        action: EventUserActionLogAction.CheckIn,
+      });
+    }
+
+    if (checkOutTime && shift.shiftCheckInOut?.checkOutTime?.getTime() !== new Date(checkOutTime).getTime()) {
+      await eventUserActions.createItem({
+        userId: shift!.userId!,
+        eventId: shift!.eventId,
+        shiftGroupId: shift!.shiftId,
+        source: EventUserActionLogSource.Shift,
+        modifiedById: shift.userId!,
+        timestamp: new Date(checkOutTime),
+        action: EventUserActionLogAction.CheckOut,
+      });
+    }
 
     if (regenerateDocusign) {
       await docusign.resubmitEndOfShiftEnvelope({

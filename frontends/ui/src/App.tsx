@@ -47,7 +47,7 @@ import ErrorComponent from "./components/error/Error";
 import { initG4 } from './utils/ga4';
 
 
-// ----------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // MUI X License Key
 LicenseInfo.setLicenseKey('0b119d6cb6188113472796c7ab220bf7Tz03OTI0MSxFPTE3MzIyOTU1NzQwMDAsUz1wcm8sTE09cGVycGV0dWFsLEtWPTI=');

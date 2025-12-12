@@ -49,7 +49,8 @@ export const fields = {
     calculatedShiftDetails: async (shift: IShift, _: unknown, { organization, assignments }: Context) => {
       const assignment = await assignments.loader.load(shift.assignmentId.toString());
       return docusignDates({
-        startTime: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+        shiftStartTime: shift.startTime,
+        checkInTime: shift.shiftCheckInOut?.checkInTime,
         endTime: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
         startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
         endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,

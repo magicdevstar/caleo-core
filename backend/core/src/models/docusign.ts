@@ -202,7 +202,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       formattedDiff,
       totalEquipmentTime,
     }  = docusignDates({
-      startTime: shift.shiftCheckInOut!.checkInTime!,
+      shiftStartTime: shift.startTime,
+      checkInTime: shift.shiftCheckInOut?.checkInTime,
       endTime: shift.shiftCheckInOut!.checkOutTime!,
       startEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkInTime,
       endEquipmentTime: shift.shiftCheckInOut!.equipmentDetails?.checkOutTime,
@@ -372,7 +373,8 @@ export class DocusignModel extends BaseMongo<IDocusign> {
       formattedDiff,
       totalEquipmentTime,
     }  = docusignDates({
-      startTime: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+      shiftStartTime: shift.startTime,
+      checkInTime: shift.shiftCheckInOut?.checkInTime,
       endTime: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
       startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
       endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,

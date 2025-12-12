@@ -76,10 +76,14 @@ export function generatePayAndLeaveWorksheet(
   shifts.forEach((shift, index) => {
     const rowIdx = headerRows + index + 1;
 
+    const checkInTime = shift.shiftCheckInOut?.checkInTime ? new Date(shift.shiftCheckInOut?.checkInTime) : new Date();
+    const startTime = new Date(shift.startTime);
+    const latestStartTime = checkInTime.getTime() > startTime.getTime() ? checkInTime : startTime;
+
     // NOTE: Not sure if I actually have to calculate the result of formulas as it works without, but docs recommend it.
     // Some reports say it is because if opened in protected view, it will not calculate and only show the result.
     const convertedStartAndEnd = convertStartAndEndDate({
-      startDate: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+      startDate: latestStartTime,
       endDate: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
       user,
     });
@@ -226,8 +230,11 @@ export function generateContractLawWorksheet(
     });
 
     shifts.forEach((shift, shiftIdx) => {
+      const shiftCheckInTime = shift.shiftCheckInOut?.checkInTime ? new Date(shift.shiftCheckInOut?.checkInTime) : new Date();
+      const startTime = new Date(shift.startTime);
+      const latestStartTime = shiftCheckInTime.getTime() > startTime.getTime() ? shiftCheckInTime : startTime;
       const convertedStartAndEnd = convertStartAndEndDate({
-        startDate: shift.shiftCheckInOut?.checkInTime || shift.startTime,
+        startDate: latestStartTime,
         endDate: shift.shiftCheckInOut?.checkOutTime || shift.endTime,
         user,
       });

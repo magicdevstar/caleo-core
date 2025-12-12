@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { endOfWeek, startOfWeek } from 'date-fns';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
@@ -27,7 +27,7 @@ export const useWeeklyShifts = ({
     }
     const weekStartsOn: any = DayMap[user?.member?.org?.weekBegins?.toLowerCase() || 'sunday'];
     const orgTimezone = user?.member?.org?.timezone || 'America/Los_Angeles';
-    const shiftStartTime = utcToZonedTime(new Date(date), orgTimezone);
+    const shiftStartTime = toZonedTime(new Date(date), orgTimezone);
     const startOfShiftWeek = startOfWeek(shiftStartTime, { weekStartsOn });
     const endOfShiftWeek = endOfWeek(shiftStartTime, { weekStartsOn });
 
@@ -37,8 +37,8 @@ export const useWeeklyShifts = ({
       status: [ShiftStatus.Assigned],
       range: {
         startTime: {
-          gte: zonedTimeToUtc(startOfShiftWeek, orgTimezone).toISOString(),
-          lte: zonedTimeToUtc(endOfShiftWeek, orgTimezone).toISOString(),
+          gte: fromZonedTime(startOfShiftWeek, orgTimezone).toISOString(),
+          lte: fromZonedTime(endOfShiftWeek, orgTimezone).toISOString(),
         },
       },
     }

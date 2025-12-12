@@ -316,7 +316,8 @@ export class FinanceService {
 
     return allShifts.map((shift): IFinanceShift => {
       const { formattedDiff } = docusignDates({
-        startTime: shift.shiftCheckInOut?.checkInTime ? shift.shiftCheckInOut.checkInTime : shift.startTime,
+        shiftStartTime: shift.startTime,
+        checkInTime: shift.shiftCheckInOut?.checkInTime,
         endTime: shift.shiftCheckInOut?.checkOutTime ? shift.shiftCheckInOut.checkOutTime : shift.endTime,
         startEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkInTime,
         endEquipmentTime: shift.shiftCheckInOut?.equipmentDetails?.checkOutTime,

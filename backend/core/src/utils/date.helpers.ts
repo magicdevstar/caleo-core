@@ -16,20 +16,26 @@ export const truncateToMinute = (date: string | Date): Date => {
 }
 
 export const docusignDates = ({
-  startTime,
+  shiftStartTime,
+  checkInTime,
   endTime,
   timezone,
   startEquipmentTime,
   endEquipmentTime,
   includeDriveTime,
 } : {
-  startTime?: Date;
+  shiftStartTime: Date;
+  checkInTime?: Date;
   endTime?: Date;
   timezone: Timezone;
   startEquipmentTime?: Date;
   endEquipmentTime?: Date;
   includeDriveTime: boolean;
 }) => {
+  const shiftCheckInTime = checkInTime ? new Date(checkInTime) : new Date();
+  const shiftStart = new Date(shiftStartTime);
+  const startTime = shiftCheckInTime.getTime() > shiftStart.getTime() ? shiftCheckInTime : shiftStart;
+
   if (!startTime || !endTime) {
     return {
       startTime: null,

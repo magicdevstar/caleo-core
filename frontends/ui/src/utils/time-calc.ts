@@ -1,4 +1,4 @@
-import { utcToZonedTime } from "date-fns-tz";
+import { toZonedTime } from "date-fns-tz";
 import {
   differenceInMinutes,
   roundToNearestMinutes,
@@ -23,12 +23,12 @@ export const calculateCheckInOutHours = ({
   startEquipmentTime?: string;
   endEquipmentTime?: string;
 }) => {
-  const zonedStartTime = utcToZonedTime(startTime, timezone);
-  const zonedEndTime = utcToZonedTime(endTime, timezone);
+  const zonedStartTime = toZonedTime(startTime, timezone);
+  const zonedEndTime = toZonedTime(endTime, timezone);
 
   let totalEquipmentTime = 0;
   if (startEquipmentTime) {
-    const zonedStartEquipmentTime = utcToZonedTime(startEquipmentTime, timezone);
+    const zonedStartEquipmentTime = toZonedTime(startEquipmentTime, timezone);
     let equipmentDiff = differenceInHours(zonedStartTime, zonedStartEquipmentTime, { roundingMethod: 'ceil' });
     // Ensure no negative time
     if (equipmentDiff < 0) {
@@ -38,7 +38,7 @@ export const calculateCheckInOutHours = ({
   }
 
   if (endEquipmentTime) {
-    const zonedEndEquipmentTime = utcToZonedTime(endEquipmentTime, timezone);
+    const zonedEndEquipmentTime = toZonedTime(endEquipmentTime, timezone);
     totalEquipmentTime += differenceInHours(zonedEndEquipmentTime, zonedEndTime, { roundingMethod: 'ceil' });
   }
 

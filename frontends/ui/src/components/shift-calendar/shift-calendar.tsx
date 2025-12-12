@@ -6,7 +6,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import timelinePlugin from '@fullcalendar/timeline';
 import { EventClickArg } from '@fullcalendar/core';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 // @mui
 import { useTheme } from '@mui/material/styles';
 import Card from '@mui/material/Card';
@@ -93,8 +93,8 @@ export default function ShiftCalendar({ shifts, loading = false, timezone, start
       color: color || getShiftColor(inputShift as Shift),
       textColor: color || getShiftColor(inputShift as Shift),
       title: `${shift?.event?.name} - ${shift?.assignment?.name}`,
-      start: utcToZonedTime(inputShift?.startTime || 0, timezone || 'America/Los_Angeles').toISOString(),
-      end: utcToZonedTime(inputShift?.endTime || 0, timezone || 'America/Los_Angeles').toISOString(),
+      start: toZonedTime(inputShift?.startTime || 0, timezone || 'America/Los_Angeles').toISOString(),
+      end: toZonedTime(inputShift?.endTime || 0, timezone || 'America/Los_Angeles').toISOString(),
       extendedProps: shift,
     };
   }), [shifts, getShiftColor, timezone]);

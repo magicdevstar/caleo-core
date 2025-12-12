@@ -10,7 +10,7 @@ import {
   setSeconds,
   differenceInMinutes,
 } from 'date-fns';
-import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
+import { toZonedTime } from 'date-fns-tz';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -36,14 +36,14 @@ export const convertStartAndEndDate = ({
 }) => {
   const tz = user?.member?.org?.timezone || 'UTC';
   const zonedStartTime = roundToNearestMinutes(
-    truncateToMinute(utcToZonedTime(startDate, tz)),
+    truncateToMinute(toZonedTime(startDate, tz)),
     {
       nearestTo: 15,
       roundingMethod: 'floor',
     }
   );
   const zonedEndTime = roundToNearestMinutes(
-    truncateToMinute(utcToZonedTime(endDate, tz)),
+    truncateToMinute(toZonedTime(endDate, tz)),
     {
       nearestTo: 15,
       roundingMethod: 'ceil',

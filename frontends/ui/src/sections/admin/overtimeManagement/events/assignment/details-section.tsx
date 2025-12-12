@@ -107,6 +107,11 @@ export const AssignmentDetailsSection = ({
         />
       </Stack>
 
+      {
+        !lasdEventFields && (
+          <RHFSwitch disabled={disabled} name="bwNeeded" label="B&W Needed" />
+        )
+      }
       <RHFSwitch disabled={disabled} name="notifyWhenFullyStaffed" label="Notify when fully staffed" />
     </EditSection>
   )

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -70,15 +70,24 @@ export const EventLotterySection = ({
   disabled,
   currentEvent,
 }: Props) => {
-  const { getValues } = useFormContext();
+  const { setValue, watch } = useFormContext();
+  const status = watch("status");
+  const lotteryNumber = watch("lotteryNumber");
   const { dateTimeFormat } = useDateFormats();
-  const values = getValues();
   const { user } = useAuthContext();
   const { options } = useLotteryCounterOptions({
     org: user.member.org!,
     countValue: currentEvent?.lotteryCounter,
     dateLimit: currentEvent?.endTime || undefined,
   });
+
+  // Auto select the first lottery option if none is selected
+  useEffect(() => {
+    if(!lotteryNumber) {
+      setValue('lotteryNumber', options[0]?.counter);
+    }
+  }, [options, status, lotteryNumber, setValue]);
+
   return (
     <RHFSelect
       fullWidth
@@ -88,7 +97,7 @@ export const EventLotterySection = ({
       InputLabelProps={{ shrink: true }}
       PaperPropsSx={{ textTransform: 'capitalize' }}
       helperText={`FCFS: ${options
-        .find(({ counter }) => counter === values?.lotteryNumber)
+        .find(({ counter }) => counter === lotteryNumber)
         ?.endDate.add(user?.member?.org?.settings?.lottery?.fcfsShiftsDelay || 1, 'hours')?.format(dateTimeFormat)
       }`}
     >

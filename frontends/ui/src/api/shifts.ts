@@ -1612,6 +1612,14 @@ export const GET_SHIFT_OVERVIEW = gql`
           }
         }
 
+        reportingLocationDetails {
+          fullAddress
+          location {
+            latitude
+            longitude
+          }
+        }
+
         shifts {
           id
           callSign

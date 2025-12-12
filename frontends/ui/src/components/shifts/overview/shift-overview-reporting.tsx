@@ -54,7 +54,7 @@ export default function ShiftOverviewReporting ({ shift, assignment, event, isCh
   }, [assignment, event]);
 
   const reportingLocation = useMemo(() =>
-    assignment?.reportingLocation || assignment?.reportingLocationDetails?.fullAddress || event?.reportingLocation?.fullAddress || 'N/A', [assignment,  event]);
+    assignment?.reportingLocationDetails?.fullAddress || event?.reportingLocation?.fullAddress || 'N/A', [assignment,  event]);
 
   const reportingTime = useMemo(() => {
     const rawReportTime = assignment?.reportingTime || event?.reportingTime || shift?.startTime;

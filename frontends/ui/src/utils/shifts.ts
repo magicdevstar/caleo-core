@@ -10,10 +10,27 @@ import { IMarkerDetails } from "src/types/event-dashboard";
 const truncateToMinute = (date: Date) =>
   setSeconds(setMilliseconds(date, 0), 0);
 
-export const awaitingArrival = (shift: Shift) =>
-  !!shift.userId &&
-  !shift.shiftCheckInOut?.noShow &&
-  !shift.shiftCheckInOut?.checkInTime;
+export const late = (shift: Shift) => {
+  const baseConditions = !!shift.userId && !shift.shiftCheckInOut?.noShow;
+
+  let userTime = truncateToMinute(new Date());
+  let startTimeExtension = 1;
+
+  if (shift.shiftCheckInOut?.checkInTime) {
+    userTime = truncateToMinute(new Date(shift.shiftCheckInOut?.checkInTime));
+    startTimeExtension = 15;
+  }
+
+  return baseConditions && isAfter(userTime, addMinutes(truncateToMinute(new Date(shift.startTime)), startTimeExtension));
+}
+
+export const awaitingArrival = (shift: Shift) => {
+  const baseConditions = !!shift.userId &&
+    !shift.shiftCheckInOut?.noShow &&
+    !shift.shiftCheckInOut?.checkInTime;
+
+  return baseConditions && !late(shift);
+};
 
 export const checkedIn = (shift: Shift) =>
   !!shift.userId &&
@@ -37,20 +54,6 @@ export const demobilized = (shift: Shift) =>
   !!shift.shiftCheckInOut?.checkInTime &&
   !shift.shiftCheckInOut?.checkOutTime &&
   !!shift.demobilizedTime;
-
-export const late = (shift: Shift) => {
-  const baseConditions = !!shift.userId && !shift.shiftCheckInOut?.noShow;
-
-  let userTime = truncateToMinute(new Date());
-  let startTimeExtension = 1;
-
-  if (shift.shiftCheckInOut?.checkInTime) {
-    userTime = truncateToMinute(new Date(shift.shiftCheckInOut?.checkInTime));
-    startTimeExtension = 15;
-  }
-
-  return baseConditions && isAfter(userTime, addMinutes(truncateToMinute(new Date(shift.startTime)), startTimeExtension));
-}
 
 export const operationsShiftStatus = (shifts: Shift[]): IMarkerDetails[] => {
   // Group shifts by assignment ID

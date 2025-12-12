@@ -132,7 +132,7 @@ export default function Analytics({
 
       <Grid item xs={12} md={4}>
         <SummaryWidget
-          title="Total Check Ins"
+          title="Total Checked In"
           percent={parseFloat(((data.checkedIn.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
           total={data.checkedIn.total}
           chart={{ series: [] }}
@@ -141,7 +141,7 @@ export default function Analytics({
 
       <Grid item xs={12} md={4}>
         <SummaryWidget
-          title="Total Check Outs"
+          title="Total Checked Out"
           percent={parseFloat(((data.checkedOut.total / (data.assignedShifts.total || 1)) * 100).toFixed(2))}
           total={data.checkedOut.total}
           chart={{ series: [] }}

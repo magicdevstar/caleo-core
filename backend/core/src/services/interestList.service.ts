@@ -143,16 +143,17 @@ export class InterestListService {
     }
 
     const orgId = event.orgId;
-    const closingEvents = subHours(
-      event.scheduledCloseInterestList || new Date(),
+    const now = new Date();
+    const closingEvents = event.scheduledCloseInterestList ? subHours(
+      event.scheduledCloseInterestList,
       organization.settings?.interestList?.defaultNotificationTime || 24
-    );
+    ) : undefined;
     const events = [
       {
+        date: event.scheduledInterestList,
         event: ScheduleEvent.EVENT_INTEREST_GO_LIVE,
         orgId,
         customEventName: `${ScheduleEvent.EVENT_INTEREST_GO_LIVE}-${event?.id}`,
-        eventTime: `at(${format(event.scheduledInterestList || new Date(), 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
         eventTimeZone: Timezone.UTC,
         input: {
           orgId: orgId.toString(),
@@ -161,10 +162,10 @@ export class InterestListService {
       },
       // The step function will take care of scheduled events if auto assign is false
       {
+        date: event.scheduledCloseInterestList,
         event: ScheduleEvent.EVENT_INTEREST_CLOSE,
         orgId,
         customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSE}-${event?.id}`,
-        eventTime: `at(${format(event.scheduledCloseInterestList || new Date(), 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
         eventTimeZone: Timezone.UTC,
         input: {
           orgId: orgId.toString(),
@@ -173,10 +174,10 @@ export class InterestListService {
         },
       },
       {
+        date: closingEvents,
         event: ScheduleEvent.EVENT_INTEREST_CLOSING,
         orgId,
         customEventName: `${ScheduleEvent.EVENT_INTEREST_CLOSING}-${event?.id}`,
-        eventTime: `at(${format(closingEvents, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
         eventTimeZone: Timezone.UTC,
         input: {
           orgId: orgId.toString(),
@@ -185,10 +186,10 @@ export class InterestListService {
         },
       },
       {
+        date: event.interestListAutoAssignCutoff,
         event: ScheduleEvent.EVENT_INTEREST_AUTO_ASSIGN_END,
         orgId,
         customEventName: `${ScheduleEvent.EVENT_INTEREST_AUTO_ASSIGN_END}-${event?.id}`,
-        eventTime: `at(${format(event.interestListAutoAssignCutoff || new Date(), 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
         eventTimeZone: Timezone.UTC,
         input: {
           orgId: orgId.toString(),
@@ -212,17 +213,19 @@ export class InterestListService {
     // Schedule events or don't depending if we have
     // already scheduled them or not
     return Promise.allSettled(
-      events.map((e) => this.scheduler.updateScheduledEvent({
-        event: e.event,
-        orgId,
-        eventTime: e.eventTime,
-        eventTimeZone: e.eventTimeZone,
-        customEventName: e.customEventName,
-        eventInput: {
-          action: e.event,
-          ...e.input
-        },
-      }))
+      events
+        .filter((e) => !!e.date && !isBefore(e.date, now))
+        .map((e) => this.scheduler.updateScheduledEvent({
+          event: e.event,
+          orgId,
+          eventTime: `at(${format(e.date!, 'yyyy-MM-dd&&HH:mm:ss').replace('&&','T')})`,
+          eventTimeZone: e.eventTimeZone,
+          customEventName: e.customEventName,
+          eventInput: {
+            action: e.event,
+            ...e.input
+          },
+        }))
     );
   }
 

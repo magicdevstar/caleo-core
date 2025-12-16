@@ -3,6 +3,7 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { ObjectId } from 'mongodb';
 import difference from 'lodash.difference';
+import { addMinutes } from 'date-fns/addMinutes';
 
 import logger from '../../../utils/logger';
 import { createContext } from '../../../utils/createContext';
@@ -57,7 +58,16 @@ const assignShiftGroup = async ({
   if (!event) {
     throw new Error('Event not found for shift');
   }
-  if (!InterestListService.shouldTriggerInterestListAssignment(event, shifts[0])) {
+
+  // Add some buffer time to the cutoff to account for delays in processing
+  const eventToCheck = {
+    ...event,
+    interestListAutoAssignCutoff: event.interestListAutoAssignCutoff
+      ? addMinutes(event.interestListAutoAssignCutoff, 45)
+      : event.interestListAutoAssignCutoff,
+  };
+
+  if (!InterestListService.shouldTriggerInterestListAssignment(eventToCheck, shifts[0])) {
     return {
       orgId: shifts[0].orgId,
       dryRun: !!dryRun,

@@ -62,7 +62,7 @@ interface ShiftReminderEvent {
   };
 }
 
-const scheduledEvents = async (event) => {
+const scheduledEvents = async (event: string | ParsedEvent | TierResetEvent | ShiftReminderEvent) => {
   try {
     const context = await createContext();
     const { action, orgId, ...eventParams } = (typeof event === 'string' ? JSON.parse(event) : event) as ParsedEvent | TierResetEvent | ShiftReminderEvent;
@@ -174,6 +174,6 @@ const scheduledEvents = async (event) => {
 
 export const handler = middy(scheduledEvents)
   .use(injectLambdaContext(logger, {
-    logEvent: process.env.STAGE !== 'prod',
+    logEvent: true,
     clearState: true
   }));

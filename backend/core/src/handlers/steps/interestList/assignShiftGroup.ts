@@ -85,7 +85,7 @@ const assignShiftGroup = async ({
       continue;
     }
     if (assignmentSkillIds.length > 0) {
-      const mSkills = await memberSkills.findAll(request.user?.member?.memberSkillIds.map((id) => new ObjectId(id)));
+      const mSkills = await memberSkills.findAll((request.user?.member?.memberSkillIds || []).map((id) => new ObjectId(id)));
       const skillIds = mSkills.map(({ skillId }) => skillId.toString());
       if (difference(assignmentSkillIds, skillIds).length > 0) {
         logger.info('Request skills do not match assignment skills', {  assignmentSkillIds, requestSkillIds: skillIds });
@@ -93,7 +93,7 @@ const assignShiftGroup = async ({
       }
     }
     if (assignmentEquipmentIds.length > 0) {
-      const mEquipment = await memberEquipments.findAll(request.user?.member?.memberEquipmentIds.map((id) => new ObjectId(id)));
+      const mEquipment = await memberEquipments.findAll((request.user?.member?.memberEquipmentIds || []).map((id) => new ObjectId(id)));
       const equipmentIds = mEquipment.map(({ equipmentId }) => equipmentId.toString());
       if (difference(assignmentEquipmentIds, equipmentIds).length > 0) {
         logger.info('Request equipment does not match assignment equipment', { assignmentEquipmentIds, requestEquipmentIds: equipmentIds });

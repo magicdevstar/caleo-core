@@ -20,7 +20,7 @@ describe('DocusignDates', () => {
     const date = new Date('2023-10-01T12:34:56Z');
     const endDate = new Date('2023-10-01T13:34:56Z');
     const timezone = 'America/Los_Angeles' as Timezone;
-    const result = docusignDates({ startTime: date, endTime: endDate, timezone, includeDriveTime: true });
+    const result = docusignDates({ shiftStartTime: date, checkInTime: date, endTime: endDate, timezone, includeDriveTime: true });
     expect(result.startTime?.getMinutes()).toBe(30);
     expect(result.endTime?.getMinutes()).toBe(45);
     expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
@@ -31,7 +31,7 @@ describe('DocusignDates', () => {
     const date = new Date('2023-10-01T12:15:00Z');
     const endDate = new Date('2023-10-01T13:30:00Z');
     const timezone = 'America/Los_Angeles' as Timezone;
-    const result = docusignDates({ startTime: date, endTime: endDate, timezone, includeDriveTime: true });
+    const result = docusignDates({ shiftStartTime: date, checkInTime: date, endTime: endDate, timezone, includeDriveTime: true });
     expect(result.startTime?.getMinutes()).toBe(15); // Should stay at 15
     expect(result.endTime?.getMinutes()).toBe(30); // Should stay at 30
     expect(result.formattedDiff).toBe(2.25); // 2 hours and 15 minutes
@@ -42,7 +42,7 @@ describe('DocusignDates', () => {
     const date = new Date('2023-10-01T12:14:00Z');
     const endDate = new Date('2023-10-01T12:16:00Z');
     const timezone = 'America/Los_Angeles' as Timezone;
-    const result = docusignDates({ startTime: date, endTime: endDate, timezone, includeDriveTime: true });
+    const result = docusignDates({ shiftStartTime: date, checkInTime: date, endTime: endDate, timezone, includeDriveTime: true });
     expect(result.formattedDiff).toBe(1.5); // Should be minimum 1 hour and 15 minutes
     expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
   });
@@ -51,7 +51,7 @@ describe('DocusignDates', () => {
     const date = new Date('2023-10-01T22:52:00Z');
     const endDate = new Date('2023-10-02T23:02:00Z');
     const timezone = 'America/Los_Angeles' as Timezone;
-    const result = docusignDates({ startTime: date, endTime: endDate, timezone, includeDriveTime: true });
+    const result = docusignDates({ shiftStartTime: date, checkInTime: date, endTime: endDate, timezone, includeDriveTime: true });
     // Check day transition is maintained properly
     expect(result.startTime?.getDate()).not.toBe(result.endTime?.getDate());
     expect(result.totalEquipmentTime).toBe(0); // No equipment time by default
@@ -62,7 +62,7 @@ describe('DocusignDates', () => {
     const date = new Date('2023-03-12T09:45:00Z'); // Day when DST starts in the US
     const endDate = new Date('2023-03-12T10:15:00Z');
     const timezone = 'America/Los_Angeles' as Timezone;
-    const result = docusignDates({ startTime: date, endTime: endDate, timezone, includeDriveTime: true });
+    const result = docusignDates({ shiftStartTime: date, checkInTime: date, endTime: endDate, timezone, includeDriveTime: true });
     // Mainly checks that the function doesn't throw errors and handles the transition
     expect(result.startTime).toBeDefined();
     expect(result.endTime).toBeDefined();
@@ -77,7 +77,7 @@ describe('DocusignDates', () => {
     
     // With 2 hours of start equipment time
     const result = docusignDates({ 
-      startTime: date, 
+      shiftStartTime: date, checkInTime: date, 
       endTime: endDate, 
       timezone,
       startEquipmentTime,
@@ -100,7 +100,7 @@ describe('DocusignDates', () => {
     
     // With 3 hours of end equipment time
     const result = docusignDates({ 
-      startTime: date, 
+      shiftStartTime: date, checkInTime: date, 
       endTime: endDate, 
       timezone,
       endEquipmentTime,
@@ -122,7 +122,7 @@ describe('DocusignDates', () => {
     const timezone = 'America/Los_Angeles' as Timezone;
     
     const result = docusignDates({ 
-      startTime: date, 
+      shiftStartTime: date, checkInTime: date, 
       endTime: endDate, 
       timezone,
       startEquipmentTime,
@@ -146,7 +146,7 @@ describe('DocusignDates', () => {
     const timezone = 'America/Los_Angeles' as Timezone;
     
     const result = docusignDates({ 
-      startTime: date, 
+      shiftStartTime: date, checkInTime: date, 
       endTime: endDate, 
       timezone,
       includeDriveTime: true,
@@ -164,8 +164,9 @@ describe('DocusignDates', () => {
     const timezone = 'America/Los_Angeles' as Timezone;
     const includeDriveTime = false;
     
-    const result = docusignDates({ 
-      startTime, 
+    const result = docusignDates({
+      shiftStartTime: startTime,
+      checkInTime: startTime, 
       endTime,
       startEquipmentTime,
       endEquipmentTime,

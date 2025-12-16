@@ -29,6 +29,21 @@ export class InterestListService {
     private scheduler: SchedulerModel,
   ) {}
 
+  static shouldTriggerInterestListAssignment(event: IEvent, shift: IShift): boolean {
+    const now = new Date();
+    const interestListClose = new Date(event.scheduledCloseInterestList || 0);
+    const interestListCutoff = new Date(event.interestListAutoAssignCutoff || addSeconds(now, 1));
+
+    return (
+      // Check if the interest list auto assignment has already happened
+      isAfter(now, interestListClose) &&
+      // Check if the shift is locked
+      !shift.locked &&
+      // Check that the interest list cutoff has not passed
+      isBefore(now, interestListCutoff)
+    );
+  }
+
   async maybeTriggerNextAssignment({
     shift,
     organization,
@@ -64,19 +79,7 @@ export class InterestListService {
       return;
     }
 
-    const currentUTCTime = new Date();
-    const now = toZonedTime(currentUTCTime, organization?.timezone || 'America/Los_Angeles' as any);
-    const interestListClose = toZonedTime(new Date(event.scheduledCloseInterestList), organization?.timezone || 'America/Los_Angeles' as any);
-    const interestListCutoff = toZonedTime(new Date(event.interestListAutoAssignCutoff || addSeconds(currentUTCTime, 1)), organization?.timezone || 'America/Los_Angeles' as any);
-
-    if (
-      // Check if the interest list auto assignment has already happened
-      isAfter(now, interestListClose) &&
-      // Check if the shift is locked
-      !shift.locked &&
-      // Check that the interest list cutoff has not passed
-      isBefore(now, interestListCutoff)
-    ) {
+    if (InterestListService.shouldTriggerInterestListAssignment(event, shift)) {
       try {
         await lambda.send(new InvokeCommand({
           FunctionName: `caleo-core-${process.env.STAGE}-assignShiftGroup`,
@@ -89,15 +92,6 @@ export class InterestListService {
       } catch (error: any) {
         logger.error('Failed to invoke assignShiftGroup', error);
       }
-    } else {
-      logger.warn('Not triggering interest list assignment - conditions not met', {
-        now,
-        interestListClose,
-        interestListCutoff,
-        id: shift._id,
-        shiftId: shift.shiftId,
-        locked: shift.locked,
-      });
     }
   }
 

@@ -319,8 +319,8 @@ describe('Shifts', () => {
       },
     });
 
-    // Validate the user no longer sees the shift
+    // Validate the user still sees shift even if all are locked/assigned
     const shiftWithAssignmentInterest = onlyShifts(await testingService.findAvailableShifts());
-    expect(shiftWithAssignmentInterest.length).toEqual(0);
+    expect(shiftWithAssignmentInterest.length).toEqual(1);
   });
 });

@@ -10,6 +10,7 @@ import { IShift } from '../../../models/shift';
 import { NotificationType, ShiftNotificationAction, ShiftUpsertNotification } from '../../../types/notifications';
 import { EventUserActionLogAction, EventUserActionLogSource, EventUserActionType, ShiftInterestRequestStatus, ShiftStatus } from '../../../__generated__/resolvers-types';
 import { Action, MailerEvent, MailerEvents } from '../../../types/mailer';
+import { InterestListService } from '../../../services/interestList.service';
 
 interface InputEvent {
   _id: string;
@@ -32,6 +33,7 @@ const assignShiftGroup = async ({
     shifts: shiftsModel,
     assignments,
     eventUserActions,
+    events,
   } = await createContext();
 
   const shifts = await shiftsModel.findAllUnassignedShiftsByGroupId({
@@ -50,6 +52,18 @@ const assignShiftGroup = async ({
   if (!organization) {
     throw new Error('Organization not found');
   }
+
+  const event = await events.get(shifts[0].eventId);
+  if (!event) {
+    throw new Error('Event not found for shift');
+  }
+  if (!InterestListService.shouldTriggerInterestListAssignment(event, shifts[0])) {
+    return {
+      orgId: shifts[0].orgId,
+      dryRun: !!dryRun,
+    }
+  }
+
 
   const requests = await interestList.sortedInterestRequests({
     org: organization,

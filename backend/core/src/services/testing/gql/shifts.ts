@@ -97,6 +97,12 @@ export const GET_AVAILABLE_SHIFTS = gql`
   }
 `;
 
+export const REMOVE_SHIFT = gql`
+  mutation RemoveShift($id: String!) {
+    removeShift(id: $id)
+  }
+`;
+
 export const CREATE_SHIFTS = gql`
   mutation CreateShifts($input: [UpsertShift]!, $removeSlots: Boolean) {
     shifts(shifts: $input, removeSlots: $removeSlots) {

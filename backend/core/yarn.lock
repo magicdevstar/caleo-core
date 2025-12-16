@@ -6575,6 +6575,18 @@
   dependencies:
     "@types/node" "*"
 
+"@types/lodash.difference@^4.5.9":
+  version "4.5.9"
+  resolved "https://registry.yarnpkg.com/@types/lodash.difference/-/lodash.difference-4.5.9.tgz#69e82a68557779abac489585f43159997cab874c"
+  integrity sha512-MNlajcjtwzLpXk+cw38UkBvEXJNEPhULgS8A4EHwtUwT7f7yFH/SFKD0iw5Rfilwh60yJIgFo0vsMr7xsa5+aw==
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*":
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.21.tgz#b806831543d696b14f8112db600ea9d3a1df6ea4"
+  integrity sha512-FOvQ0YPD5NOfPgMzJihoT+Za5pdkDJWcbpuj1DjaKZIr/gxodQjY/uWEFlTNqW2ugXHUiL8lRQgw63dzKHZdeQ==
+
 "@types/lodash@^4.14.123":
   version "4.14.202"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.202.tgz#f09dbd2fb082d507178b2f2a5c7e74bd72ff98f8"

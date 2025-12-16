@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { v4 as uuid } from "uuid";
 import { MongoClient, ObjectId } from "mongodb";
-import { InvokeCommand } from '@aws-sdk/client-lambda';
+import { InvokeCommand, LambdaClientResolvedConfig, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-lambda';
 import { Context, createContext, IServiceContext } from "../../utils/createContext";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { mockLambdaClient } = require('../../../__mocks__/@aws-sdk/client-lambda');
@@ -20,11 +20,12 @@ import { IEvent } from "../../models/event";
 import { server } from "../../handlers/api/graphql";
 import { CREATE_ASSIGNMENT } from "./gql/assignments";
 import { expect } from "@jest/globals";
-import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_DETAILS, SHIFT_INTEREST_REQUEST } from "./gql/shifts";
+import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_DETAILS, REMOVE_SHIFT, SHIFT_INTEREST_REQUEST } from "./gql/shifts";
 import { MailerEvents } from "../../types/mailer";
 import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
 import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
 import { CREATE_INCIDENT_SUBMISSION } from "./gql/incidentForm";
+import { AwsStub } from "aws-sdk-client-mock";
 
 export interface ITestingDefaults {
   org: IOrganization;
@@ -379,6 +380,41 @@ export class TestingService {
     throw new Error('Unexpected response kind');
   }
 
+  async removeShift(id: string) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.context is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: REMOVE_SHIFT,
+        variables: {
+          id,
+        }
+      },
+      {
+          contextValue: testingService.requestContext!,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    // The body.kind should be 'single' for a single GraphQL operation
+    expect(res.body.kind).toEqual('single');
+    
+    // Properly parse the body based on its kind - Apollo server can return 'single' or 'batch' responses
+    if (res.body.kind === 'single') {
+      // Extract the actual result data from the singleResult property 
+      const { errors } = res.body.singleResult;
+      
+      // Verify there are no errors in the response
+      expect(errors).toBeUndefined();
+
+      // Return nothing on success
+      return;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
   async upsertShifts(inputShifts: UpsertShift[]) {
     if (!this.requestContext) {
       throw new Error('TestingService.context is not initialized');
@@ -681,13 +717,13 @@ export class TestingService {
     payloadValidation?: (payload: any) => void
   }) {
     // Validate lambda invoke event
-    const allCalls = mockLambdaClient.commandCalls(InvokeCommand);
+    const allCalls = (mockLambdaClient as AwsStub<ServiceInputTypes, ServiceOutputTypes, LambdaClientResolvedConfig>).commandCalls(InvokeCommand);
     expect(allCalls.length).toBeGreaterThan(0);
 
     // Get the most recent call
     const reminderCall = allCalls.find((call) => call.args[0].input.FunctionName === process.env.SHIFT_NOTIFICATION_SCHEDULER);
     expect(reminderCall).toBeDefined();
-    const params = reminderCall.args[0];
+    const params = reminderCall!.args[0];
 
     expect(params.input.FunctionName).toEqual(process.env.SHIFT_NOTIFICATION_SCHEDULER);
 
@@ -706,13 +742,13 @@ export class TestingService {
     payloadValidation?: (payload: any) => void
   }) {
     // Validate lambda invoke event
-    const interestLambdaCalls = mockLambdaClient.commandCalls(InvokeCommand);
+    const interestLambdaCalls = (mockLambdaClient as AwsStub<ServiceInputTypes, ServiceOutputTypes, LambdaClientResolvedConfig>).commandCalls(InvokeCommand);
     expect(interestLambdaCalls.length).toBeGreaterThan(0);
 
     // Get the most recent call
     const mailerCall = interestLambdaCalls.find((call) => call.args[0].input.FunctionName === process.env.MAILER_LAMBDA);
     expect(mailerCall).toBeDefined();
-    const interestParams = mailerCall.args[0];
+    const interestParams = mailerCall!.args[0];
 
     expect(interestParams.input.FunctionName).toEqual(process.env.MAILER_LAMBDA);
     

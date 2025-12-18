@@ -29,7 +29,7 @@ export const awaitingArrival = (shift: Shift) => {
     !shift.shiftCheckInOut?.noShow &&
     !shift.shiftCheckInOut?.checkInTime;
 
-  return baseConditions && !late(shift);
+  return baseConditions;
 };
 
 export const checkedIn = (shift: Shift) =>
@@ -85,13 +85,13 @@ export const operationsShiftStatus = (shifts: Shift[]): IMarkerDetails[] => {
     // Determine status based on rules (evaluated in order)
     let status = 'default';
     
-    // Check if any shift is awaiting arrival (start time ahead and no check in)
-    if (activeShifts.some(shift => awaitingArrival(shift))) {
-      status = 'Awaiting arrival';
-    }
     // Check if any shift is late (start time behind current time and no check in)
-    else if (activeShifts.some(shift => late(shift))) {
+    if (activeShifts.some(shift => late(shift))) {
       status = 'Late';
+    }
+    // Check if any shift is awaiting arrival (start time ahead and no check in)
+    else if (activeShifts.some(shift => awaitingArrival(shift))) {
+      status = 'Awaiting arrival';
     }
     // Check if all shifts are checked out
     else if (activeShifts.length > 0 && activeShifts.every(shift => checkedOut(shift))) {
@@ -167,14 +167,14 @@ export const getShiftStatus = (shift?: Shift) => {
     status.color = 'success';
     return status;
   }
-  if (awaitingArrival(shift)) {
-    status.value = 'Awaiting Arrival';
-    status.color = 'warning';
-    return status;
-  }
   if (late(shift)) {
     status.value = 'Late';
     status.color = 'error';
+    return status;
+  }
+  if (awaitingArrival(shift)) {
+    status.value = 'Awaiting Arrival';
+    status.color = 'warning';
     return status;
   }
   return status;

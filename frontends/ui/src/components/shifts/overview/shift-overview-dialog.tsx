@@ -27,6 +27,7 @@ import QueryView from 'src/components/query-view';
 import Label from 'src/components/label';
 import { EventNotificationDialog } from 'src/components/events/notifications/event-notification-dialog';
 import CheckInOut from 'src/components/shifts/check-in-out'; // eslint-disable-line import/no-cycle
+import { ConfirmDialog } from 'src/components/custom-dialog';
 import ShiftOverviewSection from './shift-overview-section';
 import ShiftOverviewEvent from './shift-overview-event';
 import ShiftOverviewAssignment from './shift-overview-assignment';
@@ -77,6 +78,7 @@ export const ShiftOverviewDialog = ({
   const id = useMemo(() => controller.attribute?.id || '', [controller.attribute]);
   const { enqueueSnackbar } = useSnackbar();
   const { vehicleCategories, officerCheckInOut } = useFeatures();
+  const demobilizationConfirm = useBoolean();
   const eventNotificationController = useBoolean<Shift>();
   const [editCheckInOut] = useMutation(EDIT_CHECK_IN_OUT);
   const [editAssignment] = useMutation(UPSERT_ASSIGNMENT);
@@ -93,6 +95,9 @@ export const ShiftOverviewDialog = ({
   const shiftStatus = getShiftStatus(shift);
   const isCurrentUser = useMemo(() => user?.id === shift?.userId, [user, shift]);
   const isCheckedIn = useMemo(() => !!shift?.shiftCheckInOut?.checkInTime, [shift]);
+  const bypassDemobilization = useMemo(() =>
+    shift?.event.bypassDemobilization || shift?.assignment.bypassDemobilization || shift?.bypassDemobilization
+  , [shift]);
 
   const setOverviewShift = useCallback((newShiftId: string) => {
     controller.onTrue({ id: newShiftId } as unknown as Shift);
@@ -328,11 +333,14 @@ export const ShiftOverviewDialog = ({
                     e.stopPropagation();
                     eventNotificationController.onTrue(controller.attribute);
                   }} variant='outlined' color='info'>Notify</Button>
-                  <LoadingButton loading={demobilizeLoading} onClick={(e) => {
-                    e.stopPropagation();
-                    triggerDemobilize();
-                  }} variant='outlined' color='warning'>Demobilize</LoadingButton>
-
+                  {
+                    !bypassDemobilization && (
+                      <LoadingButton onClick={(e) => {
+                        e.stopPropagation();
+                        demobilizationConfirm.onTrue();
+                      }} variant='outlined' color='warning'>Demobilize</LoadingButton>
+                    )
+                  }
                 </Stack>
               ): null}
             >
@@ -378,6 +386,22 @@ export const ShiftOverviewDialog = ({
         )}
       />
       <EventNotificationDialog controller={eventNotificationController} />
+      <ConfirmDialog
+        open={demobilizationConfirm.value}
+        onClose={demobilizationConfirm.onFalse}
+        title="Demobilize assignment"
+        content="Are you sure you want to demobilize this assignment?"
+        action={
+          <LoadingButton 
+            variant="outlined"
+            color="warning"
+            loading={demobilizeLoading}
+            onClick={() => triggerDemobilize()}
+          >
+            Demobilize
+          </LoadingButton>
+        }
+      />
     </>
   )
 };

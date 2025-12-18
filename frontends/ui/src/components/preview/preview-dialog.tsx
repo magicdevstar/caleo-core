@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // @mui
 import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 // components
 import { Document, Page, pdfjs } from 'react-pdf';
 import Iconify from "src/components/iconify";
@@ -27,10 +29,18 @@ interface IProps {
 
 export const PreviewDialog = ({ controller }: IProps) => {
   const [pageLoaded, setPageLoaded] = useState(false);
+  const [numOfPages, setNumOfPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     setPageLoaded(false);
+    setNumOfPages(null);
+    setPageNumber(1);
   }, [controller.attribute?.url]);
+
+  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
+    setNumOfPages(numPages);
+  }, [setNumOfPages]);
 
   if (!controller.attribute?.url) {
     return null;
@@ -76,13 +86,30 @@ export const PreviewDialog = ({ controller }: IProps) => {
       open={controller.value}
       onClose={() => controller.onFalse()}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-        <IconButton onClick={handleDownload}>
-          <Iconify icon="eva:download-fill" />
-        </IconButton>
-        <IconButton onClick={() => controller.onFalse()}>
-          <Iconify icon="mingcute:close-line" />
-        </IconButton>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {controller.attribute?.format === 'pdf' && numOfPages && (
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <IconButton disabled={pageNumber <= 1} onClick={() => setPageNumber(prev => prev - 1)}>
+                <Iconify icon="eva:arrow-ios-back-fill" />
+              </IconButton>
+              <Typography variant="body2">
+                {pageNumber} / {numOfPages}
+              </Typography>
+              <IconButton disabled={pageNumber >= numOfPages} onClick={() => setPageNumber(prev => prev + 1)}>
+                <Iconify icon="eva:arrow-ios-forward-fill" />
+              </IconButton>
+            </Stack>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton onClick={handleDownload}>
+            <Iconify icon="eva:download-fill" />
+          </IconButton>
+          <IconButton onClick={() => controller.onFalse()}>
+            <Iconify icon="mingcute:close-line" />
+          </IconButton>
+        </Box>
       </DialogTitle>
       <DialogContent sx={{ height: '75vh', overflow: 'hidden' }}>
         {controller.attribute?.format === 'pdf' ? (
@@ -96,9 +123,12 @@ export const PreviewDialog = ({ controller }: IProps) => {
                 height: '100%',
               }}
             >
-              <Document file={controller.attribute?.url}>
+              <Document
+                file={controller.attribute?.url}
+                onLoadSuccess={onDocumentLoadSuccess}
+              >
                 <Page
-                  pageNumber={1}
+                  pageNumber={pageNumber}
                   onLoadSuccess={() => setPageLoaded(true)}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}

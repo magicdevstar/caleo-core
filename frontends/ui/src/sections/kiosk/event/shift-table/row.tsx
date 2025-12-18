@@ -60,7 +60,7 @@ export default function Row({
         {mappedHeader['user.name'] && <StringCell value={row.user?.name || '-'} />}
         {mappedHeader['user.member.rank.name'] && <StringCell labelColor={row.user?.member?.rank?.name ? 'primary' : 'default'} value={row.user?.member?.rank?.name || '-'} />}
         {mappedHeader['user.member.pNumber'] && <StringCell value={row.user?.member?.pNumber || '-'} />}
-        {mappedHeader['user.member.contactInfo.primaryPhone.number'] && <StringCell value={parsed?.format?.("NATIONAL") || '-'} />}
+        {mappedHeader['user.member.contactInfo.primaryPhone.number'] && <StringCell href={`tel:${parsed?.number}`} value={parsed?.format?.("NATIONAL") || '-'} />}
         {mappedHeader['docusignEvent.status'] && docusignCheckout && <StringCell labelColor={docusignStatusColor(row.docusignEvent?.status)} value={row.docusignEvent?.status || '-'} />}
         {mappedHeader['shiftCheckInOut.noShow'] && <BooleanCell value={!!row.shiftCheckInOut?.noShow} />}
         {mappedHeader['shiftCheckInOut.adminNotes'] && <BooleanCell value={row.hasComments} />}

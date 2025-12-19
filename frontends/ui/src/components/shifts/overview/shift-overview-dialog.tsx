@@ -183,6 +183,7 @@ export const ShiftOverviewDialog = ({
         if (inputRefetch) {
           inputRefetch();
         }
+        demobilizationConfirm.onFalse();
       }
     } catch(_) {
       enqueueSnackbar('Failed to demobilize shift group', { variant: 'error', autoHideDuration: 4000 });

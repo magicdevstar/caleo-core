@@ -262,6 +262,7 @@ query GetEvent($id: String!) {
         shiftCheckInOut {
           checkInTime
           checkOutTime
+          noShow
           equipmentDetails {
             checkInTime
             checkOutTime

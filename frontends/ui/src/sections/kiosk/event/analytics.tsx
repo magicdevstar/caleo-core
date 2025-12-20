@@ -49,21 +49,11 @@ export default function Analytics({
     }
 
     data.awaitingArrival.items
-      .filter((shift) => !data.late.items.find(s => s.id === shift.id))
       .forEach((shift) => {
         // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
         const assignmentName = shift.assignment?.name || 'Unassigned';
         initAssignment(assignmentName);
         groups[assignmentName].awaitingArrival += 1;
-      });
-
-    data.late.items
-      .filter((shift) => !shift.shiftCheckInOut?.checkInTime)
-      .forEach((shift) => {
-        // Group by assignment: use shift.assignment?.name if available, otherwise fallback to 'Unassigned'
-        const assignmentName = shift.assignment?.name || 'Unassigned';
-        initAssignment(assignmentName);
-        groups[assignmentName].late += 1;
       });
 
     data.checkedIn.items
@@ -91,7 +81,6 @@ export default function Analytics({
       });
 
     const names = Object.keys(groups);
-    const lateData = names.map((name) => groups[name].late);
     const awaitingArrivalData = names.map((name) => groups[name].awaitingArrival);
     const noShowData = names.map((name) => groups[name].noShow);
     const checkedInData = names.map((name) => groups[name].checkedIn);
@@ -102,7 +91,6 @@ export default function Analytics({
       colors: graphColors,
       graph: [
         { name: 'Awaiting Arrival', data: awaitingArrivalData },
-        { name: 'Late', data: lateData },
         { name: 'Checked In', data: checkedInData },
         { name: 'Checked Out', data: checkedOutData },
         { name: 'No Show', data: noShowData },
@@ -110,22 +98,15 @@ export default function Analytics({
     };
   }, [data]);
 
-  const checkInProgressPieChartData = useMemo(() => {
-    const noLateAwaitingArrival = data.awaitingArrival.items
-      .filter((shift) => !data.late.items.find(s => s.id === shift.id));
-    const filteredLate = data.late.items
-      .filter((shift) => !shift.shiftCheckInOut?.checkInTime);
-    return {
-      colors: graphColors,
-      series: [
-        { label: 'Awaiting Arrival', value: noLateAwaitingArrival.length },
-        { label: 'Late', value: filteredLate.length },
-        { label: 'Checked In', value: data.checkedIn.total },
-        { label: 'Checked Out', value: data.checkedOut.total },
-        { label: 'No Show', value: data.noShow.total },
-      ],
-    }
-  }, [data]);
+  const checkInProgressPieChartData = useMemo(() => ({
+    colors: graphColors,
+    series: [
+      { label: 'Awaiting Arrival', value: data.awaitingArrival.total },
+      { label: 'Checked In', value: data.checkedIn.total },
+      { label: 'Checked Out', value: data.checkedOut.total },
+      { label: 'No Show', value: data.noShow.total },
+    ],
+  }), [data]);
 
   return (
     <>

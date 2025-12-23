@@ -445,11 +445,24 @@ export class AssignmentModel extends BaseMongo<IAssignment> {
   };
 
   async getUploadUrl({
+    name,
+    assignmentId,
     orgId,
   }: {
+    name?: string;
+    assignmentId?: string;
     orgId: ObjectId;
   }): Promise<AssignmentAttachmentUpload> {
-    const attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${uuid()}`;
+    let fileName = name ? name : uuid();
+    let attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${assignmentId ? assignmentId + '/' : ''}${fileName}`;
+    const docExists = await this.document.documentExists(attachmentPath);
+    if (docExists) {
+      const fileNameParts = name?.split('.');
+      const fileExt = fileNameParts && fileNameParts.length > 1 ? `.${fileNameParts.pop()}` : '';
+      const baseName = fileNameParts ? fileNameParts.join('.') : fileName;
+      fileName = `${baseName}-${uuid().split('-').pop()}${fileExt}`;
+      attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${assignmentId ? assignmentId + '/' : ''}${fileName}`;
+    }
     const uploadUrl = await this.document.getUploadUrl(attachmentPath);
     return {
       attachmentPath,

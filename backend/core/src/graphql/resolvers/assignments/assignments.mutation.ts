@@ -9,11 +9,13 @@ import { AssignmentAttachmentUpload } from "../../../__generated__/resolvers-typ
 export const Mutation = {
   assignmentAttachmentUploadUrl: async (
     _parent: unknown,
-    _args: unknown,
+    { name, assignmentId }: { name?: string; assignmentId?: string },
     { assignments, user }: Context
   ): Promise<AssignmentAttachmentUpload> => {
     adminOnly(user);
     return assignments.getUploadUrl({
+      name,
+      assignmentId,
       orgId: user.member.orgId!,
     });
   },

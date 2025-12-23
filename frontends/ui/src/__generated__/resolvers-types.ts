@@ -1456,6 +1456,12 @@ export type MutationAssignmentArgs = {
 };
 
 
+export type MutationAssignmentAttachmentUploadUrlArgs = {
+  assignmentId?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationAssignmentDivisionArgs = {
   assignmentDivision: UpsertAssignmentDivision;
 };
@@ -1523,6 +1529,12 @@ export type MutationEquipmentArgs = {
 
 export type MutationEventArgs = {
   event: UpsertEvent;
+};
+
+
+export type MutationEventAttachmentUploadUrlArgs = {
+  eventId?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -5155,7 +5167,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   approveEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationApproveEventArgs, 'id'>>;
   approveLottoAssignment?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationApproveLottoAssignmentArgs, 'id' | 'shiftId' | 'userId'>>;
   assignment?: Resolver<Maybe<ResolversTypes['Assignment']>, ParentType, ContextType, RequireFields<MutationAssignmentArgs, 'assignment'>>;
-  assignmentAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['AssignmentAttachmentUpload']>, ParentType, ContextType>;
+  assignmentAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['AssignmentAttachmentUpload']>, ParentType, ContextType, Partial<MutationAssignmentAttachmentUploadUrlArgs>>;
   assignmentDivision?: Resolver<Maybe<ResolversTypes['AssignmentDivision']>, ParentType, ContextType, RequireFields<MutationAssignmentDivisionArgs, 'assignmentDivision'>>;
   assignmentGroup?: Resolver<Maybe<ResolversTypes['AssignmentGroup']>, ParentType, ContextType, RequireFields<MutationAssignmentGroupArgs, 'assignmentGroup'>>;
   branch?: Resolver<Maybe<ResolversTypes['Branch']>, ParentType, ContextType, RequireFields<MutationBranchArgs, 'branch'>>;
@@ -5171,7 +5183,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editCheckInOut?: Resolver<ResolversTypes['Shift'], ParentType, ContextType, RequireFields<MutationEditCheckInOutArgs, 'input'>>;
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType, RequireFields<MutationEquipmentArgs, 'equipment'>>;
   event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationEventArgs, 'event'>>;
-  eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
+  eventAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType, Partial<MutationEventAttachmentUploadUrlArgs>>;
   eventNotification?: Resolver<Maybe<ResolversTypes['EventNotification']>, ParentType, ContextType, RequireFields<MutationEventNotificationArgs, 'input'>>;
   eventNotificationAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['EventAttachmentUpload']>, ParentType, ContextType>;
   generateDSInvoice?: Resolver<Maybe<ResolversTypes['EventInvoiceResponse']>, ParentType, ContextType, RequireFields<MutationGenerateDsInvoiceArgs, 'eventId'>>;

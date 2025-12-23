@@ -68,11 +68,13 @@ export const Mutation = {
   },
   eventAttachmentUploadUrl: async (
     _parent: unknown,
-    _args: unknown,
+    { name, eventId }: { name?: string; eventId?: string },
     { events, user }: Context
   ): Promise<EventAttachmentUpload> => {
     adminOnly(user);
     return events.getUploadUrl({
+      name,
+      eventId,
       orgId: user.member.orgId!,
     });
   },

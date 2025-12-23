@@ -167,9 +167,9 @@ export default function EditEvent ({
       const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
       if (getUploadUrls.length > 0) {
         let mutation: any = 'mutation {';
-        getUploadUrls.forEach((file: any, index: number) => {
+        getUploadUrls.forEach((file: File, index: number) => {
           mutation += `
-            attachments${index}: eventAttachmentUploadUrl {
+            attachments${index}: eventAttachmentUploadUrl(name: "${file.name}"${formData.id ? `, eventId: "${formData.id}"` : ''}) {
               attachmentPath
               uploadUrl
             }

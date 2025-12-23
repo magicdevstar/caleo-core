@@ -3031,7 +3031,7 @@ type Mutation {
   templateEvent(id: String!): Event
   approveEvent(id: String!): Event
   rejectEvent(id: String!, reason: String): Event
-  eventAttachmentUploadUrl: EventAttachmentUpload
+  eventAttachmentUploadUrl(name: String, eventId: String): EventAttachmentUpload
   removeEvent(id: String!): ID!
   notifyUsersOfEvent(eventId: String!): Boolean
   
@@ -3040,7 +3040,7 @@ type Mutation {
   removeIncidentForm(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment
-  assignmentAttachmentUploadUrl: AssignmentAttachmentUpload
+  assignmentAttachmentUploadUrl(name: String, assignmentId: String): AssignmentAttachmentUpload
   removeAssignment(id: String!): ID!
   demobilize(shiftId: String!): Boolean
   demobilized(assignmentId: ObjectId!): Boolean @deprecated(reason: "Use demobilize mutation with shiftId instead")

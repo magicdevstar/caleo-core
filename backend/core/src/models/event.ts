@@ -364,11 +364,24 @@ export class EventModel extends BaseMongo<IEvent> {
   }
 
   async getUploadUrl({
+    name,
+    eventId,
     orgId,
   }: {
+    name?: string;
+    eventId?: string;
     orgId: ObjectId;
   }): Promise<EventAttachmentUpload> {
-    const attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${uuid()}`;
+    let fileName = name ? name : uuid();
+    let attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${eventId ? eventId + '/' : ''}${fileName}`;
+    const docExists = await this.document.documentExists(attachmentPath);
+    if (docExists) {
+      const fileNameParts = name?.split('.');
+      const fileExt = fileNameParts && fileNameParts.length > 1 ? `.${fileNameParts.pop()}` : '';
+      const baseName = fileNameParts ? fileNameParts.join('.') : fileName;
+      fileName = `${baseName}-${uuid().split('-').pop()}${fileExt}`;
+      attachmentPath = `${orgId.toString()}/${this.documentBasePath}/${eventId ? eventId + '/' : ''}${fileName}`;
+    }
     const uploadUrl = await this.document.getUploadUrl(attachmentPath);
     return {
       attachmentPath,

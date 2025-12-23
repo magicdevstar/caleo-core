@@ -168,9 +168,9 @@ export default function EditAssignment({
       const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
       if (getUploadUrls.length > 0) {
         let mutation: any = 'mutation {';
-        getUploadUrls.forEach((file: any, index: number) => {
+        getUploadUrls.forEach((file: File, index: number) => {
           mutation += `
-            attachments${index}: assignmentAttachmentUploadUrl {
+            attachments${index}: assignmentAttachmentUploadUrl(name: "${file.name}"${formData.id ? `, assignmentId: "${formData.id}"` : ''}) {
               attachmentPath
               uploadUrl
             }

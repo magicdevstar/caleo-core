@@ -3,9 +3,10 @@ import { Theme, SxProps } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 //
 import { useBoolean } from 'src/hooks/use-boolean';
-import { fileData, fileFormat, fileThumb } from './utils';
+import { fileData, fileFormat, fileThumb, fileNameByUrl } from './utils';
 import DownloadButton from './download-button';
 import { IFileDetails, PreviewDialog } from '../preview/preview-dialog';
 
@@ -31,6 +32,7 @@ export default function FileThumbnail({
   const dialog = useBoolean<IFileDetails>();
   const { name = '', path = '', preview = '', type } = fileData(file);
   const [realFormat, setRealFormat] = useState<string | null>(null);
+  const fileName = fileNameByUrl(name);
 
   useEffect(() => {
     setRealFormat(null);
@@ -66,7 +68,7 @@ export default function FileThumbnail({
       {
         (format === 'image' && imageView || (preview.includes('.s3.us-west-2.amazonaws.com') && format !== 'pdf')) ? (
           <Box
-            onClick={() => dialog.onTrue({ format, url: preview })}
+            onClick={() => dialog.onTrue({ format, fileName, url: preview })}
             component="img"
             src={preview}
             sx={{
@@ -79,7 +81,7 @@ export default function FileThumbnail({
           />
         ) : (
           <Box
-            onClick={() => dialog.onTrue({ format, url: preview })}
+            onClick={() => dialog.onTrue({ format, fileName, url: preview })}
             component="img"
             src={fileThumb(format)}
             sx={{
@@ -97,7 +99,7 @@ export default function FileThumbnail({
 
   if (tooltip) {
     return (
-      <Tooltip title={name}>
+      <Tooltip title={fileName}>
         <Stack
           flexShrink={0}
           component="span"
@@ -119,6 +121,22 @@ export default function FileThumbnail({
     <>
       {renderContent}
       {onDownload && <DownloadButton onDownload={onDownload} />}
+      <Typography
+        variant="caption"
+        sx={{
+          marginTop: 'auto',
+          background: (theme) => theme.palette.background.paper,
+          pb: 1,
+          pt: 1,
+          zIndex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          width: '100%',
+        }}
+      >
+        {fileName}
+      </Typography>
     </>
   );
 }

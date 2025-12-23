@@ -87,7 +87,20 @@ export const PreviewDialog = ({ controller }: IProps) => {
       onClose={() => controller.onFalse()}
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+          {controller.attribute?.fileName && (
+            <Typography
+              variant="body1"
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '50%',
+              }}
+            >
+              {controller.attribute.fileName}
+            </Typography>
+          )}
           {controller.attribute?.format === 'pdf' && numOfPages && (
             <Stack direction="row" alignItems="center" spacing={1}>
               <IconButton disabled={pageNumber <= 1} onClick={() => setPageNumber(prev => prev - 1)}>

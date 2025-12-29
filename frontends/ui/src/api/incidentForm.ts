@@ -359,9 +359,13 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
         }
 
         event {
-          id,
-          name,
-          referenceId,
+          id
+          name
+          referenceId
+          ocn
+          budgetActivityCode
+          outsideOrgCode
+          overtimeReasonCode
         }
 
         user {

@@ -57,7 +57,11 @@ export const useIncidentSummary = () => {
         return;
       }
 
-      const formattedJson = items.map((incidentForm: IncidentForm) => ({
+      const formattedJson = items
+        .filter((incidentForm: IncidentForm) =>
+          capitalize(incidentForm.docusignEvent?.status || incidentForm.status || 'DRAFT') !== 'DRAFT'
+        )
+        .map((incidentForm: IncidentForm) => ({
         'Status': capitalize(incidentForm.docusignEvent?.status || incidentForm.status || 'DRAFT'),
         'Event Name': incidentForm.event?.name || '',
         'Event Reference ID': incidentForm.event?.referenceId || '',

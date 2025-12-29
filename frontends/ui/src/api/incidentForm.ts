@@ -371,6 +371,8 @@ export const GET_INCIDENT_SUBMISSIONS_FOR_REPORT = gql`
         user {
           id
           name
+          firstName
+          lastName
           member {
             pNumber
             division {

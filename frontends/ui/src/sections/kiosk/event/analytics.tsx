@@ -5,7 +5,7 @@ import PieChart from 'src/components/widgets/pie-chart';
 import ChartColumnStacked from 'src/components/widgets/chart-column-stacked';
 import { IShiftData } from 'src/types/event-dashboard';
 
-const graphColors = ['orange', '#fa7d61ff', '#21C55E', '#919EAB', '#ff2f00ff' ];
+const graphColors = ['orange', '#21C55E', '#919EAB', '#ff2f00ff' ];
 
 export default function Analytics({
   data

@@ -96,7 +96,7 @@ export default function Upload({
 
   const renderMultiPreview = hasFiles && (
     <>
-      <Box sx={{ my: 3 }}>
+      <Box sx={{ display: 'flex', my: 3 }}>
         <MultiFilePreview files={files} thumbnail={thumbnail} onRemove={onRemove} />
       </Box>
 

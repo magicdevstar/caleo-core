@@ -1,31 +1,35 @@
 import { useState, useEffect } from 'react';
-import { Theme, SxProps } from '@mui/material/styles';
+import { m } from 'framer-motion';
+import { Theme, SxProps, alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 //
 import { useBoolean } from 'src/hooks/use-boolean';
+import Iconify from 'src/components/iconify';
 import { fileData, fileFormat, fileThumb, fileNameByUrl } from './utils';
 import DownloadButton from './download-button';
 import { IFileDetails, PreviewDialog } from '../preview/preview-dialog';
+import { CustomFile } from '../upload/types';
+import { varFade } from '../animate';
 
 // ----------------------------------------------------------------------
 
 type FileIconProps = {
   file: File | string;
-  tooltip?: boolean;
   imageView?: boolean;
   onDownload?: VoidFunction;
+  onRemove?: (file: CustomFile | string) => void;
   sx?: SxProps<Theme>;
   imgSx?: SxProps<Theme>;
 };
 
 export default function FileThumbnail({
   file,
-  tooltip,
   imageView,
   onDownload,
+  onRemove,
   sx,
   imgSx,
 }: FileIconProps) {
@@ -68,7 +72,6 @@ export default function FileThumbnail({
       {
         (format === 'image' && imageView || (preview.includes('.s3.us-west-2.amazonaws.com') && format !== 'pdf')) ? (
           <Box
-            onClick={() => dialog.onTrue({ format, fileName, url: preview })}
             component="img"
             src={preview}
             sx={{
@@ -81,14 +84,14 @@ export default function FileThumbnail({
           />
         ) : (
           <Box
-            onClick={() => dialog.onTrue({ format, fileName, url: preview })}
             component="img"
             src={fileThumb(format)}
             sx={{
-              width: 32,
-              height: 32,
+              width: 1,
+              height: 1,
               flexShrink: 0,
-              ...sx,
+              objectFit: 'cover',
+              ...imgSx,
             }}
           />
         )
@@ -97,28 +100,26 @@ export default function FileThumbnail({
     </>
   );
 
-  if (tooltip) {
-    return (
-      <Tooltip title={fileName}>
-        <Stack
-          flexShrink={0}
-          component="span"
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            width: 'fit-content',
-            height: 'inherit',
-          }}
-        >
-          {renderContent}
-          {onDownload && <DownloadButton onDownload={onDownload} />}
-        </Stack>
-      </Tooltip>
-    );
-  }
-
   return (
-    <>
+    <Stack
+      component={m.div}
+      {...varFade().inUp}
+      onClick={() => dialog.onTrue({ format, fileName, url: preview })}
+      alignItems="center"
+      display="inline-grid"
+      justifyContent="center"
+      sx={{
+        m: 0.5,
+        width: 80,
+        height: 80,
+        borderRadius: 1.25,
+        overflow: 'hidden',
+        position: 'relative',
+        cursor: 'pointer',
+        border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.16)}`,
+        ...sx,
+      }}
+    >
       {renderContent}
       {onDownload && <DownloadButton onDownload={onDownload} />}
       <Typography
@@ -133,10 +134,35 @@ export default function FileThumbnail({
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
           width: '100%',
+          position: 'absolute',
+          bottom: 0,
         }}
       >
         {fileName}
       </Typography>
-    </>
+
+      {onRemove && (
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(file)
+          }}
+          sx={{
+            p: 0.5,
+            top: 4,
+            right: 4,
+            position: 'absolute',
+            color: 'common.white',
+            bgcolor: (theme) => alpha(theme.palette.grey[900], 0.48),
+            '&:hover': {
+              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72),
+            },
+          }}
+        >
+          <Iconify icon="mingcute:close-line" width={14} />
+        </IconButton>
+      )}
+    </Stack>
   );
 }

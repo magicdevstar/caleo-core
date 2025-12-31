@@ -86,8 +86,8 @@ export const PreviewDialog = ({ controller }: IProps) => {
       open={controller.value}
       onClose={() => controller.onFalse()}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+      <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
           {controller.attribute?.fileName && (
             <Typography
               variant="body1"
@@ -95,34 +95,35 @@ export const PreviewDialog = ({ controller }: IProps) => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                maxWidth: '50%',
+                flex: 1,
+                minWidth: 0,
               }}
             >
               {controller.attribute.fileName}
             </Typography>
           )}
-          {controller.attribute?.format === 'pdf' && numOfPages && (
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <IconButton disabled={pageNumber <= 1} onClick={() => setPageNumber(prev => prev - 1)}>
-                <Iconify icon="eva:arrow-ios-back-fill" />
-              </IconButton>
-              <Typography variant="body2">
-                {pageNumber} / {numOfPages}
-              </Typography>
-              <IconButton disabled={pageNumber >= numOfPages} onClick={() => setPageNumber(prev => prev + 1)}>
-                <Iconify icon="eva:arrow-ios-forward-fill" />
-              </IconButton>
-            </Stack>
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton onClick={handleDownload}>
+              <Iconify icon="eva:download-fill" />
+            </IconButton>
+            <IconButton onClick={() => controller.onFalse()}>
+              <Iconify icon="mingcute:close-line" />
+            </IconButton>
+          </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton onClick={handleDownload}>
-            <Iconify icon="eva:download-fill" />
-          </IconButton>
-          <IconButton onClick={() => controller.onFalse()}>
-            <Iconify icon="mingcute:close-line" />
-          </IconButton>
-        </Box>
+        {controller.attribute?.format === 'pdf' && numOfPages && (
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ justifyContent: 'center' }}>
+            <IconButton disabled={pageNumber <= 1} onClick={() => setPageNumber(prev => prev - 1)}>
+              <Iconify icon="eva:arrow-ios-back-fill" />
+            </IconButton>
+            <Typography variant="body2">
+              {pageNumber} / {numOfPages}
+            </Typography>
+            <IconButton disabled={pageNumber >= numOfPages} onClick={() => setPageNumber(prev => prev + 1)}>
+              <Iconify icon="eva:arrow-ios-forward-fill" />
+            </IconButton>
+          </Stack>
+        )}
       </DialogTitle>
       <DialogContent sx={{ height: '75vh', overflow: 'hidden' }}>
         {controller.attribute?.format === 'pdf' ? (

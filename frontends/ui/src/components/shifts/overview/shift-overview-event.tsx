@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@apollo/client';
 import PhoneNumberFormatter from 'phone-number-formats';
 // types
@@ -10,7 +9,6 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
-import { alpha } from '@mui/material/styles';
 // hooks
 import { useFeatures } from 'src/hooks/use-features';
 import { useAuthContext } from 'src/auth/hooks';
@@ -19,10 +17,9 @@ import { useBoolean } from 'src/hooks/use-boolean';
 // components
 import { IFileDetails, PreviewDialog } from 'src/components/preview/preview-dialog';
 import Label from 'src/components/label';
+import { MultiFilePreview } from 'src/components/upload';
 import { reader } from 'src/layouts/_common/notifications-popover/notification-item';
-import FileThumbnail from 'src/components/file-thumbnail';
 import Image from 'src/components/image';
-import { varFade } from 'src/components/animate';
 import { GET_EVENT_NOTES } from 'src/api/event';
 import ShiftOverviewDetail from './shift-overview-detail';
 
@@ -74,38 +71,7 @@ export default function ShiftOverviewEvent({ event }: Props) {
     }
 
     return (
-      <AnimatePresence initial={false}>
-        {
-          (event?.attachments || []).map((url: string, i: number) => (
-            <Stack
-              key={url}
-              component={m.div}
-              {...varFade().inUp}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                m: 0.5,
-                width: 80,
-                height: 80,
-                borderRadius: 1.25,
-                overflow: 'hidden',
-                position: 'relative',
-                border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.16)}`,
-              }}
-            >
-              <FileThumbnail
-                imageView
-                file={url}
-                sx={{ position: 'absolute' }}
-                imgSx={{ position: 'absolute' }}
-              />
-            </Stack>
-          ))
-        }
-      </AnimatePresence>
+      <MultiFilePreview files={(event?.attachments || [])} thumbnail />
     );
   }, [event]);
 

@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { AnimatePresence, m } from "framer-motion";
 import PhoneNumberFormatter from 'phone-number-formats';
 // mui
 import Box from "@mui/material/Box";
@@ -12,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
-import { alpha, SxProps } from "@mui/material";
+import { SxProps } from "@mui/material";
 // components
 import Image from "src/components/image";
 // types
@@ -33,8 +32,7 @@ import { GET_EVENT_NOTES } from "src/api/event";
 import { GET_ASSIGNMENT_DESCRIPTION } from "src/api/assignment";
 import { StyledMapContainer } from "../map/styles";
 import { ShiftOverviewDialog } from "./overview/shift-overview-dialog";
-import { varFade } from "../animate";
-import FileThumbnail from "../file-thumbnail";
+import MultiFilePreview from "../upload/preview-multi-file";
 
 export type ShiftAction = {
   key: string;
@@ -105,11 +103,12 @@ export default function ShiftItem({
   const {
     eventCheckIn,
     eventCheckOut,
-    lasdEventFields,
+    // lasdEventFields,
     callSign,
     enabledEventThumbnail,
     mapboxReportingLocation
   } = useFeatures();
+  const lasdEventFields = false;
   const [fetchEventNotes, { data: eventNotes }] = useLazyQuery(GET_EVENT_NOTES);
   const [fetchAssignmentNotes, { data: assignmentNotes }] = useLazyQuery(GET_ASSIGNMENT_DESCRIPTION);
   const labelComponent = useMemo(() => {
@@ -245,39 +244,7 @@ export default function ShiftItem({
     }
 
     return (
-      <AnimatePresence initial={false}>
-        {
-          (shift?.event?.attachments || []).map((url: string, i: number) => (
-            <Stack
-              key={url}
-              component={m.div}
-              {...varFade().inUp}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                m: 0.5,
-                width: 80,
-                height: 80,
-                borderRadius: 1.25,
-                overflow: 'hidden',
-                position: 'relative',
-                border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.16)}`,
-              }}
-            >
-              <FileThumbnail
-                imageView
-                file={url}
-                sx={{ position: 'absolute' }}
-                imgSx={{ position: 'absolute' }}
-              />
-            </Stack>
-          ))
-        }
-      </AnimatePresence>
-    );
+      <MultiFilePreview files={(shift?.event?.attachments || [])} thumbnail />);
   }, [shift]);
 
   const contactInfo = useMemo(() => {

@@ -124,6 +124,7 @@ const IncidentFormSchema = Yup.object().shape({
             'Ending mileage must be greater than starting mileage',
             function(value) { // eslint-disable-line func-names
               const { startingMileage } = this.parent;
+              if (startingMileage && !value) return false;
               return !startingMileage || !value || value >= startingMileage;
             }
           ),

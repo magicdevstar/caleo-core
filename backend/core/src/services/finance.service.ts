@@ -166,20 +166,23 @@ export class FinanceService {
           },
         },
       ]).toArray();
-      const mappedResponse = allSubmissions.map((submission): IFinanceShift => ({
-        user: submission.user,
-        rank: submission.rank,
-        division: submission.division,
-        unit: submission.unit,
-        startTime: submission.operationalPeriod.date,
-        endTime: submission.operationalPeriod.date,
-        totalOvertimeHours: submission.timekeeping.overtimeHours || 0,
-        totalStraightHours: submission.timekeeping.straightHours || 0,
-        totalVehicleMilage: ((submission.vehicleInformation?.endingMileage || 0) -
-        (submission.vehicleInformation?.startingMileage || 0)),
-        vehicleCategory: submission.vehicleCategory || null,
-        docusignEvent: submission.docusignEvent,
-      }));
+      const mappedResponse = allSubmissions.map((submission): IFinanceShift => {
+        const totalVehicleMilage = ((submission.vehicleInformation?.endingMileage || 0) -
+          (submission.vehicleInformation?.startingMileage || 0));
+        return {
+          user: submission.user,
+          rank: submission.rank,
+          division: submission.division,
+          unit: submission.unit,
+          startTime: submission.operationalPeriod.date,
+          endTime: submission.operationalPeriod.date,
+          totalOvertimeHours: submission.timekeeping.overtimeHours || 0,
+          totalStraightHours: submission.timekeeping.straightHours || 0,
+          totalVehicleMilage: totalVehicleMilage > 0 ? totalVehicleMilage : 0,
+          vehicleCategory: submission.vehicleCategory || null,
+          docusignEvent: submission.docusignEvent,
+        };
+      });
       logger.info('FinanceResponse', { mappedResponse });
       return mappedResponse;
     }

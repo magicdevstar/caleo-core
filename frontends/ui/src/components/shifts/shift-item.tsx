@@ -103,12 +103,11 @@ export default function ShiftItem({
   const {
     eventCheckIn,
     eventCheckOut,
-    // lasdEventFields,
+    lasdEventFields,
     callSign,
     enabledEventThumbnail,
     mapboxReportingLocation
   } = useFeatures();
-  const lasdEventFields = false;
   const [fetchEventNotes, { data: eventNotes }] = useLazyQuery(GET_EVENT_NOTES);
   const [fetchAssignmentNotes, { data: assignmentNotes }] = useLazyQuery(GET_ASSIGNMENT_DESCRIPTION);
   const labelComponent = useMemo(() => {

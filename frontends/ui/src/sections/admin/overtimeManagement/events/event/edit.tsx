@@ -155,21 +155,17 @@ export default function EditEvent ({
 
   const formSubmit = useCallback(async (formData: any, shouldReroute = true) => {
     try {
-      let imageUploadUrls = [];
-      const existingAttachments = formData.attachments
-        .filter(({ existing }: any) => existing)
-        .map(({ attachmentPath }: any) => {
-          const url = new URL(attachmentPath);
-          return {
-            attachmentPath: url.pathname.replace(/^\//, "")
-          };
-        });
-      const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
-      if (getUploadUrls.length > 0) {
+      // Get files that need uploading (new files or modified existing files)
+      const filesToUpload = formData.attachments.filter(({ existing, modified }: any) => !existing || modified);
+      let uploadedFiles: any[] = [];
+
+      if (filesToUpload.length > 0) {
         let mutation: any = 'mutation {';
-        getUploadUrls.forEach((file: File, index: number) => {
+        filesToUpload.forEach((file: any, index: number) => {
+          // Use displayName if available, otherwise fall back to file.name
+          const fileName = file.displayName || file.name;
           mutation += `
-            attachments${index}: eventAttachmentUploadUrl(name: "${file.name}"${formData.id ? `, eventId: "${formData.id}"` : ''}) {
+            attachments${index}: eventAttachmentUploadUrl(name: "${fileName}"${formData.id ? `, eventId: "${formData.id}"` : ''}) {
               attachmentPath
               uploadUrl
             }
@@ -180,11 +176,25 @@ export default function EditEvent ({
         const { data } = await client.mutate({
           mutation,
         });
-        imageUploadUrls = Object.keys(data).map((key, index) => ({
+        uploadedFiles = Object.keys(data).map((key, index) => ({
           ...data[key],
-          attachmentData: getUploadUrls[index],
+          attachmentData: filesToUpload[index],
         }));
       }
+
+      // Build final attachment paths array preserving original order
+      let uploadIndex = 0;
+      const finalAttachments = formData.attachments.map((file: any) => {
+        // If file is existing and not modified, use original path
+        if (file.existing && !file.modified) {
+          const url = new URL(file.attachmentPath);
+          return {
+            attachmentPath: url.pathname.replace(/^\//, "")
+          };
+        }
+        // If file is new or modified, use newly uploaded path
+        return uploadedFiles[uploadIndex++]; // eslint-disable-line no-plusplus
+      });
 
       let thumbnail;
       if (formData?.thumbnail && !formData?.thumbnail?.existing) {
@@ -201,9 +211,9 @@ export default function EditEvent ({
         }
       }
 
-      if (imageUploadUrls.length > 0) {
+      if (uploadedFiles.length > 0) {
         await Promise.allSettled(
-          imageUploadUrls.map(({
+          uploadedFiles.map(({
             uploadUrl,
             attachmentData,
           }: any) => fetch(uploadUrl, {
@@ -238,10 +248,7 @@ export default function EditEvent ({
             startTime: formData?.startTime ? formData?.startTime.toISOString() : null,
             endTime: formData?.endTime ? formData?.endTime.toISOString() : null,
             overrideSupervisorId: formData?.overrideSupervisor?.id || null,
-            attachmentPaths: [
-              ...existingAttachments,
-              ...imageUploadUrls,
-            ].map(({ attachmentPath }) => attachmentPath),
+            attachmentPaths: finalAttachments.map(({ attachmentPath }: any) => attachmentPath),
             venueId: formData?.venueId,
             createdById: formData?.createdById,
             outsideOrgCode: formData?.outsideOrgCode || '15778',

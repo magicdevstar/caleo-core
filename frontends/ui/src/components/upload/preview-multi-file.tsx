@@ -15,7 +15,7 @@ import { UploadProps } from './types';
 
 // ----------------------------------------------------------------------
 
-export default function MultiFilePreview({ thumbnail, files, onRemove, sx }: UploadProps) {
+export default function MultiFilePreview({ thumbnail, files, onRemove, onUpdateFileName, sx }: UploadProps) {
   return (
     <AnimatePresence initial={false}>
       {files?.map((file) => {
@@ -31,6 +31,7 @@ export default function MultiFilePreview({ thumbnail, files, onRemove, sx }: Upl
               file={file}
               sx={sx}
               onRemove={onRemove}
+              onUpdateFileName={onUpdateFileName}
             />
           );
         }
@@ -52,7 +53,7 @@ export default function MultiFilePreview({ thumbnail, files, onRemove, sx }: Upl
               ...sx,
             }}
           >
-            <FileThumbnail file={file} />
+            <FileThumbnail file={file} onUpdateFileName={onUpdateFileName} />
 
             <ListItemText
               primary={isNotFormatFile ? file : name}

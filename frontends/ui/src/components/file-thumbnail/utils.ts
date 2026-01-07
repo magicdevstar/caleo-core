@@ -121,7 +121,7 @@ export function fileTypeByUrl(fileUrl = '') {
 // ----------------------------------------------------------------------
 
 export function fileNameByUrl(fileUrl: string) {
-  return fileUrl.split('/').pop()?.split('?')?.[0] || 'file';
+  return decodeURIComponent(fileUrl.split('/').pop()?.split('?')?.[0] || 'file');
 }
 
 // ----------------------------------------------------------------------
@@ -137,10 +137,10 @@ export function fileData(file: ExtendFile | string) {
     };
   }
 
-  // File
+  // File - use displayName if available
   return {
     key: file.preview,
-    name: file.name,
+    name: file.displayName || file.name,
     size: file.size,
     path: file.path,
     type: file.type,

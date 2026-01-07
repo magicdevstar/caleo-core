@@ -32,6 +32,7 @@ export default function Upload({
   onUpload,
   onRemove,
   onRemoveAll,
+  onUpdateFileName,
   sx,
   ...other
 }: UploadProps) {
@@ -97,7 +98,7 @@ export default function Upload({
   const renderMultiPreview = hasFiles && (
     <>
       <Box sx={{ display: 'flex', my: 3 }}>
-        <MultiFilePreview files={files} thumbnail={thumbnail} onRemove={onRemove} />
+        <MultiFilePreview files={files} thumbnail={thumbnail} onRemove={onRemove} onUpdateFileName={onUpdateFileName} />
       </Box>
 
       <Stack direction="row" justifyContent="flex-end" spacing={1.5}>

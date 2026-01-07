@@ -8,6 +8,10 @@ export interface CustomFile extends File {
   path?: string;
   preview?: string;
   lastModifiedDate?: Date;
+  displayName?: string;
+  existing?: boolean;
+  attachmentPath?: string;
+  modified?: boolean;
 }
 
 export interface UploadProps extends DropzoneOptions {
@@ -25,4 +29,5 @@ export interface UploadProps extends DropzoneOptions {
   onUpload?: VoidFunction;
   onRemove?: (file: CustomFile | string) => void;
   onRemoveAll?: VoidFunction;
+  onUpdateFileName?: (file: CustomFile | string, newName: string) => void;
 }

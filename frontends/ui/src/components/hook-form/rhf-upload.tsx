@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import FormHelperText from '@mui/material/FormHelperText';
 //
 import { UploadAvatar, Upload, UploadBox, UploadProps } from '../upload';
+import { fileNameByUrl } from '../file-thumbnail/utils';
 
 // ----------------------------------------------------------------------
 
@@ -90,12 +91,15 @@ export function RHFUpload({ name, initAssetUrls, multiple, helperText, accept, .
     const loadImage = async (url: string, index: number) => {
       const res = await fetch(url);
       const blob = await res.blob();
-      const fileName = url || 'file';
-      const file = new File([blob], fileName);
+      // Extract proper filename from URL instead of using full URL
+      const extractedFileName = fileNameByUrl(url);
+      // Preserve content type to prevent file corruption (especially for PDFs)
+      const file = new File([blob], url, { type: blob.type });
       return Object.assign(file, {
         preview: URL.createObjectURL(file),
         existing: true,
         attachmentPath: initAssetUrls?.[index],
+        displayName: extractedFileName, // Use extracted filename as displayName
       });
     };
 
@@ -135,6 +139,29 @@ export function RHFUpload({ name, initAssetUrls, multiple, helperText, accept, .
     setValue(name, [] as any[]);
   }, [setValue, name]);
 
+  const handleUpdateFileName = useCallback(
+    (file: File | string, newName: string) => {
+      if (!attachments) return;
+
+      // Find the file by reference and update it
+      const updatedFiles = attachments.map((f: any) => {
+        if (f === file) {
+          // Update the file with new displayName and mark as modified
+          // Keep existing: true to preserve position, but add modified flag
+          return Object.assign(f, {
+            displayName: newName,
+            modified: true, // Mark as modified (needs re-upload)
+          });
+        }
+        return f;
+      });
+
+      // Immediately update form state
+      setValue(name, updatedFiles, { shouldValidate: true });
+    },
+    [setValue, attachments, name]
+  );
+
   const uploadAccept = accept ?? { 'image/*': [] };
 
   return (
@@ -158,6 +185,7 @@ export function RHFUpload({ name, initAssetUrls, multiple, helperText, accept, .
             onDrop={handleDrop}
             onRemove={handleRemoveFile}
             onRemoveAll={handleRemoveAllFiles}
+            onUpdateFileName={handleUpdateFileName}
             {...other}
           />
         ) : (

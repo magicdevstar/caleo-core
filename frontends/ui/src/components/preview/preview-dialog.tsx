@@ -7,6 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
 // components
 import { Document, Page, pdfjs } from 'react-pdf';
 import Iconify from "src/components/iconify";
@@ -21,34 +22,105 @@ export interface IFileDetails {
   fileName?: string;
   format: string;
   url: string;
+  existing?: boolean;
+  fileReference?: any;
 }
 
 interface IProps {
   controller: UseBooleanReturnType<IFileDetails>;
+  onRemove?: (file: any) => void;
+  onUpdateFileName?: (file: any, newName: string) => void;
 }
 
-export const PreviewDialog = ({ controller }: IProps) => {
+export const PreviewDialog = ({ controller, onRemove, onUpdateFileName }: IProps) => {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [numOfPages, setNumOfPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedFileName, setEditedFileName] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const [displayFileName, setDisplayFileName] = useState<string>('');
 
   useEffect(() => {
     setPageLoaded(false);
     setNumOfPages(null);
     setPageNumber(1);
-  }, [controller.attribute?.url]);
+    setIsEditingName(false);
+    setValidationError('');
+    setDisplayFileName(controller.attribute?.fileName || '');
+  }, [controller.attribute?.url, controller.attribute?.fileName]);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumOfPages(numPages);
   }, [setNumOfPages]);
 
-  if (!controller.attribute?.url) {
-    return null;
-  }
+  // File name validation
+  const validateFileName = useCallback((name: string): string => {
+    if (!name.trim()) {
+      return 'File name cannot be empty';
+    }
 
-  const handleDownload = () => {
+    const invalidChars = /[/\\:*?<>|]/;
+    if (invalidChars.test(name)) {
+      return 'File name cannot contain: / \\ : * ? < > |';
+    }
+
+    return '';
+  }, []);
+
+  // Extract file name without extension
+  const getFileNameWithoutExtension = useCallback((fullName: string): string => {
+    const lastDotIndex = fullName.lastIndexOf('.');
+    if (lastDotIndex === -1) return fullName;
+    return fullName.substring(0, lastDotIndex);
+  }, []);
+
+  // Get file extension
+  const getFileExtension = useCallback((fullName: string): string => {
+    const lastDotIndex = fullName.lastIndexOf('.');
+    if (lastDotIndex === -1) return '';
+    return fullName.substring(lastDotIndex);
+  }, []);
+
+  // Handle edit mode entry
+  const handleEditClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!displayFileName) return;
+
+    const nameWithoutExt = getFileNameWithoutExtension(displayFileName);
+    setEditedFileName(nameWithoutExt);
+    setValidationError('');
+    setIsEditingName(true);
+  }, [displayFileName, getFileNameWithoutExtension]);
+
+  // Handle save
+  const handleSave = useCallback(() => {
+    const error = validateFileName(editedFileName);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    const extension = getFileExtension(displayFileName);
+    const newFullName = editedFileName + extension;
+
+    if (onUpdateFileName && controller.attribute?.fileReference) {
+      onUpdateFileName(controller.attribute.fileReference, newFullName);
+    }
+
+    // Update the displayed name immediately
+    setDisplayFileName(newFullName);
+    setIsEditingName(false);
+  }, [editedFileName, validateFileName, getFileExtension, onUpdateFileName, controller.attribute?.fileReference, displayFileName]);
+
+  // Handle cancel
+  const handleCancel = useCallback(() => {
+    setIsEditingName(false);
+    setValidationError('');
+  }, []);
+
+  const handleDownload = useCallback(() => {
     const url = controller.attribute?.url;
-    const providedFileName = controller.attribute?.fileName;
     if (!url) return;
 
     fetch(url)
@@ -61,8 +133,8 @@ export const PreviewDialog = ({ controller }: IProps) => {
         const urlFileName = url.split('?')[0].split('/').pop() || 'download';
         let fileName = urlFileName;
 
-        if (providedFileName) {
-          fileName = providedFileName;
+        if (displayFileName) {
+          fileName = displayFileName;
           const parts = urlFileName.split('.');
           const extension = parts.length > 1 ? parts.pop() : '';
           if (extension && !fileName.endsWith(`.${extension}`)) {
@@ -77,7 +149,11 @@ export const PreviewDialog = ({ controller }: IProps) => {
         window.URL.revokeObjectURL(blobUrl);
       })
       .catch((error) => console.error('Error downloading file:', error));
-  };
+  }, [controller.attribute?.url, displayFileName]);
+
+  if (!controller.attribute?.url) {
+    return null;
+  }
   
   return (
     <Dialog
@@ -88,19 +164,70 @@ export const PreviewDialog = ({ controller }: IProps) => {
     >
       <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-          {controller.attribute?.fileName && (
-            <Typography
-              variant="body1"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
-              {controller.attribute.fileName}
-            </Typography>
+          {displayFileName && (
+            <>
+              {isEditingName ? (
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flex: 1 }}>
+                  <TextField
+                    size="small"
+                    value={editedFileName}
+                    onChange={(e) => {
+                      setEditedFileName(e.target.value);
+                      setValidationError('');
+                    }}
+                    error={!!validationError}
+                    helperText={validationError}
+                    autoFocus
+                    fullWidth
+                    sx={{ flex: 1 }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={handleSave}
+                    color="primary"
+                  >
+                    <Iconify icon="eva:checkmark-fill" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={handleCancel}
+                  >
+                    <Iconify icon="eva:close-fill" />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="body1"
+                    onClick={onUpdateFileName ? handleEditClick : undefined}
+                    sx={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flex: 1,
+                      minWidth: 0,
+                      ...(onUpdateFileName && {
+                        cursor: 'pointer',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }),
+                    }}
+                  >
+                    {displayFileName}
+                  </Typography>
+                  {onUpdateFileName && (
+                    <IconButton
+                      size="small"
+                      onClick={handleEditClick}
+                      sx={{ flexShrink: 0 }}
+                    >
+                      <Iconify icon="eva:edit-2-fill" />
+                    </IconButton>
+                  )}
+                </Box>
+              )}
+            </>
           )}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton onClick={handleDownload}>

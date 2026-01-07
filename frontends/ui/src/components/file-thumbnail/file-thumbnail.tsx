@@ -21,6 +21,7 @@ type FileIconProps = {
   imageView?: boolean;
   onDownload?: VoidFunction;
   onRemove?: (file: CustomFile | string) => void;
+  onUpdateFileName?: (file: CustomFile | string, newName: string) => void;
   sx?: SxProps<Theme>;
   imgSx?: SxProps<Theme>;
 };
@@ -30,13 +31,18 @@ export default function FileThumbnail({
   imageView,
   onDownload,
   onRemove,
+  onUpdateFileName,
   sx,
   imgSx,
 }: FileIconProps) {
   const dialog = useBoolean<IFileDetails>();
   const { name = '', path = '', preview = '', type } = fileData(file);
   const [realFormat, setRealFormat] = useState<string | null>(null);
-  const fileName = fileNameByUrl(name);
+
+  // Use displayName if available, otherwise extract from name
+  const fileName = (typeof file !== 'string' && (file as CustomFile).displayName)
+    ? (file as CustomFile).displayName!
+    : fileNameByUrl(name);
 
   useEffect(() => {
     setRealFormat(null);
@@ -96,7 +102,11 @@ export default function FileThumbnail({
           />
         )
       }
-      <PreviewDialog controller={dialog} />
+      <PreviewDialog
+        controller={dialog}
+        onRemove={onRemove}
+        onUpdateFileName={onUpdateFileName}
+      />
     </>
   );
 
@@ -104,7 +114,7 @@ export default function FileThumbnail({
     <Stack
       component={m.div}
       {...varFade().inUp}
-      onClick={() => dialog.onTrue({ format, fileName, url: preview })}
+      onClick={() => dialog.onTrue({ format, fileName, url: preview, fileReference: file })}
       alignItems="center"
       display="inline-grid"
       justifyContent="center"

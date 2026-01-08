@@ -3037,6 +3037,7 @@ type Mutation {
   
   # Returns signingUrl
   incidentForm(input: IIncidentForm!, saveOnly: Boolean, resubmit: Boolean): IncidentFormResponse!
+  voidIncidentForm(id: ObjectId!, voidReason: String): Boolean
   removeIncidentForm(id: String!): ID!
 
   assignment(assignment: UpsertAssignment!): Assignment

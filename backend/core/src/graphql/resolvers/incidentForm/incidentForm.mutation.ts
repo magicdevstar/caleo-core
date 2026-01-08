@@ -6,6 +6,35 @@ import logger from '../../../utils/logger';
 import { adminOrOwnerOnly } from '../../../utils/access';
 
 export const Mutation = {
+  voidIncidentForm: async (
+    _: unknown,
+    { id, voidReason }: { id: string; voidReason?: string },
+    { incidentSubmissionModel, docusign, user, organization }: Context,
+  ): Promise<boolean> => {
+    // Fetch the incident form for permission check
+    const incidentForm = await incidentSubmissionModel.get(id);
+    if (!incidentForm) {
+      throw new GraphQLError('Incident form not found');
+    }
+
+    // Check permissions
+    adminOrOwnerOnly(incidentForm.userId.toHexString(), user);
+
+    // Void the incident form via the docusign service
+    try {
+      await docusign.voidIncidentForm({
+        incidentFormId: id,
+        voidReason,
+        org: organization,
+        userId: user._id!,
+      });
+      return true;
+    } catch (error) {
+      const e = error as Error;
+      logger.error('Error voiding incident form:', { error });
+      throw new GraphQLError(e.message || 'Failed to void incident form');
+    }
+  },
   incidentForm: async (
     _: unknown,
     { input, saveOnly, resubmit }: { input: InputIncidentForm, saveOnly?: boolean, resubmit: boolean },

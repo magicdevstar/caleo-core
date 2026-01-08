@@ -128,12 +128,14 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     tokenRecord,
     envelopeId,
     org,
+    voidedReason,
   }: {
     tokenRecord?: ITokenRecord;
     envAPI?: ds.EnvelopesApi,
     currentStatus: string;
     envelopeId: string;
     org: IOrganization;
+    voidedReason?: string;
   }) {
     const validStatuses = ['completed', 'created', 'delivered', 'sent', 'signed'];
     if (!validStatuses.includes(currentStatus)) {
@@ -154,7 +156,7 @@ export class DocusignModel extends BaseMongo<IDocusign> {
     return envAPI.update(tokenRecord.accountId, envelopeId!, {
       envelope: {
         status: 'voided',
-        voidedReason: 'Resubmitting the envelope',
+        voidedReason: voidedReason || 'Resubmitting the envelope',
       }
     });
   }

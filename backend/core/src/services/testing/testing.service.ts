@@ -24,7 +24,7 @@ import { ASSIGN_SHIFT, CREATE_SHIFTS, GET_AVAILABLE_SHIFTS, GET_SHIFT_DETAILS, R
 import { MailerEvents } from "../../types/mailer";
 import { REMOVE_DIVISION, UPSERT_DIVISION } from "./gql/division";
 import { GET_UNIT, UPSERT_UNIT } from "./gql/unit";
-import { CREATE_INCIDENT_SUBMISSION } from "./gql/incidentForm";
+import { CREATE_INCIDENT_SUBMISSION, VOID_INCIDENT_FORM } from "./gql/incidentForm";
 import { AwsStub } from "aws-sdk-client-mock";
 
 export interface ITestingDefaults {
@@ -195,6 +195,33 @@ export class TestingService {
       // Verify the data has the expected structure
       expect(data).toBeDefined();
       return (data as any).incidentForm as string;
+    }
+    throw new Error('Unexpected response kind');
+  }
+
+  async voidIncidentForm(id: string, voidReason?: string) {
+    if (!this.requestContext) {
+      throw new Error('TestingService.requestContext is not initialized');
+    }
+
+    const res = await server.executeOperation(
+      {
+        query: VOID_INCIDENT_FORM,
+        variables: {
+          id,
+          voidReason,
+        }
+      },
+      {
+          contextValue: this.requestContext,
+      }
+    );
+
+    // Apollo Server v4 returns a Response object with a body property
+    expect(res.body.kind).toEqual('single');
+    if (res.body.kind === 'single') {
+      const { data, errors } = res.body.singleResult;
+      return { data, errors };
     }
     throw new Error('Unexpected response kind');
   }

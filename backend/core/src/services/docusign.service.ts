@@ -775,4 +775,70 @@ export class Docusign {
       incidentForm: savedForm as any,
     }
   }
+
+  async voidIncidentForm({
+    incidentFormId,
+    voidReason,
+    org,
+    userId,
+  }: {
+    incidentFormId: string;
+    voidReason?: string;
+    org: IOrganization;
+    userId: ObjectId;
+  }): Promise<void> {
+    // Fetch the incident form
+    const incidentForm = await this.incidentSubmission.get(incidentFormId);
+    if (!incidentForm) {
+      throw new Error('Incident form not found');
+    }
+
+    // Validate that the form has an envelope
+    if (!incidentForm.envelopeId) {
+      throw new Error('Incident form does not have an attached envelope');
+    }
+
+    // Check if already voided
+    const dsEvent = await this.docusignEvent.findByEnvelopeId(incidentForm.envelopeId);
+    if (dsEvent && ['voided', 'declined'].includes(dsEvent.status.toLowerCase())) {
+      throw new Error('Incident form is already voided');
+    }
+
+    // Attempt to void via DocuSign
+    // voidEnvelope returns a result if void succeeds, undefined if it can't void
+    let voidResult;
+    try {
+      voidResult = await this.docusign.voidEnvelope({
+        envelopeId: incidentForm.envelopeId,
+        currentStatus: dsEvent?.status || 'unknown',
+        org,
+        voidedReason: voidReason || 'Form voided by user',
+      });
+    } catch (error) {
+      logger.warn('Failed to void envelope in DocuSign', { 
+        error, 
+        envelopeId: incidentForm.envelopeId 
+      });
+    }
+
+    // Mark the dsEvent as voided in the database if DocuSign void didn't succeed
+    if (dsEvent && !voidResult) {
+      await this.docusignEvent.markCompletedEventAsVoid(dsEvent._id!);
+    }
+
+    // Only create audit trail event if DocuSign void did not succeed
+    // (because the DocuSign webhook will create the event if void succeeds)
+    if (!voidResult) {
+      await this.eventUserActions.createItem({
+        userId: incidentForm.userId,
+        eventId: incidentForm.eventId,
+        incidentFormId: incidentForm._id!,
+        source: EventUserActionLogSource.IncidentSubmission,
+        modifiedById: userId,
+        timestamp: new Date(),
+        action: EventUserActionLogAction.Voided,
+        notes: voidReason,
+      });
+    }
+  }
 };

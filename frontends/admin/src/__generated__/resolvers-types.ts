@@ -1425,6 +1425,7 @@ export type Mutation = {
   userSkillAttachmentUploadUrl?: Maybe<MemberSkillAttachmentUpload>;
   vehicleCategory?: Maybe<VehicleCategories>;
   venue?: Maybe<Venue>;
+  voidIncidentForm?: Maybe<Scalars['Boolean']['output']>;
 };
 
 
@@ -1864,6 +1865,12 @@ export type MutationVehicleCategoryArgs = {
 
 export type MutationVenueArgs = {
   venue: UpsertVenue;
+};
+
+
+export type MutationVoidIncidentFormArgs = {
+  id: Scalars['ObjectId']['input'];
+  voidReason?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type NewContactInfo = {
@@ -5252,6 +5259,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   userSkillAttachmentUploadUrl?: Resolver<Maybe<ResolversTypes['MemberSkillAttachmentUpload']>, ParentType, ContextType>;
   vehicleCategory?: Resolver<Maybe<ResolversTypes['VehicleCategories']>, ParentType, ContextType, RequireFields<MutationVehicleCategoryArgs, 'vehicleCategory'>>;
   venue?: Resolver<Maybe<ResolversTypes['Venue']>, ParentType, ContextType, RequireFields<MutationVenueArgs, 'venue'>>;
+  voidIncidentForm?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationVoidIncidentFormArgs, 'id'>>;
 }>;
 
 export type NotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{

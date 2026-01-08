@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from 'pdf-lib';
 import { useSnackbar } from 'notistack';
 import orderBy from 'lodash/orderBy';
 // @mui
-import Stack from "@mui/material/Stack";
+import Stack from '@mui/material/Stack';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -11,19 +11,20 @@ import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 // hooks
-import { useBoolean } from "src/hooks/use-boolean";
+import { useBoolean } from 'src/hooks/use-boolean';
 import { useDownloadPdf } from 'src/hooks/use-download-pdf';
 import { useRouter } from 'src/routes/hooks';
 // components
-import GQLTable from "src/components/table/gql/table";
-import Iconify from "src/components/iconify";
+import GQLTable from 'src/components/table/gql/table';
+import Iconify from 'src/components/iconify';
 // types
 import { paths } from 'src/routes/paths';
-import { IncidentForm } from "src/__generated__/resolvers-types";
-import { TableConfig } from "src/components/table/table-config";
+import { IncidentForm } from 'src/__generated__/resolvers-types';
+import { TableConfig } from 'src/components/table/table-config';
 import { GET_INCIDENT_SUBMISSIONS } from 'src/api/incidentForm';
-import { docusignStatusColor, docusignStatusLabel } from 'src/utils/docusign';
+import { docusignStatusColor, docusignStatusLabel, DocusignStatus } from 'src/utils/docusign';
 import { ShiftActivityDialog } from './shift-activitiy-dialog';
+import { VoidSubmissionDialog } from './void-submission-dialog';
 
 interface Props {
   incidents: IncidentForm[];
@@ -35,38 +36,44 @@ export function EventCardIncidents({ incidents }: Props) {
   const downloadLoading = useBoolean<IncidentForm>();
   const menuOpen = useBoolean<IncidentForm>();
   const activityDialogOpen = useBoolean<IncidentForm>();
+  const voidDialogOpen = useBoolean<IncidentForm>();
   const { download } = useDownloadPdf({
     fileName: 'incident-submission',
   });
 
-  const downloadDocuments = useCallback(async (incidentSubmission: IncidentForm) => {
-    try {
-      downloadLoading.onTrue(incidentSubmission);
-      if (incidentSubmission?.docusignEvent?.documentUrls) {
-        const pdfDoc = await PDFDocument.create();
-        // eslint-disable-next-line no-restricted-syntax
-        for (const url of incidentSubmission?.docusignEvent?.documentUrls || []) {
-          // download overtime slip
-          const slipPdfBytes = await fetch(url as string).then(response => response.arrayBuffer()); // eslint-disable-line no-await-in-loop
-          // load/convert the slip into a PDFDocument object
-          const slipPdfDoc = await PDFDocument.load(slipPdfBytes); // eslint-disable-line no-await-in-loop
-          // iterate over slip's pages
-          const slipPages = await pdfDoc.copyPages(slipPdfDoc, slipPdfDoc.getPageIndices()); // eslint-disable-line no-await-in-loop
-          // add pages to main pdf
-          slipPages.forEach((page) => pdfDoc.addPage(page));
+  const downloadDocuments = useCallback(
+    async (incidentSubmission: IncidentForm) => {
+      try {
+        downloadLoading.onTrue(incidentSubmission);
+        if (incidentSubmission?.docusignEvent?.documentUrls) {
+          const pdfDoc = await PDFDocument.create();
+          // eslint-disable-next-line no-restricted-syntax
+          for (const url of incidentSubmission?.docusignEvent?.documentUrls || []) {
+            // download overtime slip
+            const slipPdfBytes = await fetch(url as string).then((response) =>
+              response.arrayBuffer()
+            );
+            // load/convert the slip into a PDFDocument object
+            const slipPdfDoc = await PDFDocument.load(slipPdfBytes);
+            // iterate over slip's pages
+            const slipPages = await pdfDoc.copyPages(slipPdfDoc, slipPdfDoc.getPageIndices());
+            // add pages to main pdf
+            slipPages.forEach((page) => pdfDoc.addPage(page));
+          }
+
+          // convert pdf into file buffer
+          const pdfDocBuffer = await pdfDoc.save();
+
+          download(pdfDocBuffer, `${incidentSubmission.event?.name || 'incident-submission'}`);
         }
-  
-        // convert pdf into file buffer
-        const pdfDocBuffer = await pdfDoc.save();
-  
-        download(pdfDocBuffer, `${incidentSubmission.event?.name || 'incident-submission'}`);
+      } catch (error) {
+        enqueueSnackbar('Failed to download document', { variant: 'error' });
+      } finally {
+        downloadLoading.onFalse();
       }
-    } catch(error) {
-      enqueueSnackbar('Failed to download document', { variant: 'error' });
-    } finally {
-      downloadLoading.onFalse();
-    }
-  }, [downloadLoading, enqueueSnackbar, download]);
+    },
+    [downloadLoading, enqueueSnackbar, download]
+  );
 
   const config: TableConfig<IncidentForm> = {
     header: {
@@ -78,7 +85,7 @@ export function EventCardIncidents({ incidents }: Props) {
       denseHeight: 1,
       sx: {
         minWidth: 'inherit',
-      }
+      },
     },
     search: {
       data: incidents || [],
@@ -91,8 +98,8 @@ export function EventCardIncidents({ incidents }: Props) {
 
         return {
           ...res,
-          items: orderBy<any>(res.items, [options?.orderBy], [options?.order || 'asc' as any]),
-        }
+          items: orderBy<any>(res.items, [options?.orderBy], [options?.order || ('asc' as any)]),
+        };
       },
     },
     rowActions: [],
@@ -105,7 +112,7 @@ export function EventCardIncidents({ incidents }: Props) {
           docusignStatusLabel(incident.docusignEvent?.status || '') || '-',
         getLabelColor: (incident: IncidentForm) =>
           docusignStatusColor(incident.docusignEvent?.status || '') || 'default',
-        width: '20%'
+        width: '20%',
       },
       {
         id: 'operationalPeriod.date',
@@ -122,7 +129,9 @@ export function EventCardIncidents({ incidents }: Props) {
           <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
             <LoadingButton
               loading={downloadLoading.value && downloadLoading.attribute?.id === incident.id}
-              disabled={!['completed', 'voided', 'declined'].includes(incident.docusignEvent?.status || '')}
+              disabled={
+                !['completed', 'voided', 'declined'].includes(incident.docusignEvent?.status || '')
+              }
               size="small"
               startIcon={<Iconify icon="ic:baseline-arrow-circle-down" />}
               onClick={(e: any) => {
@@ -131,7 +140,9 @@ export function EventCardIncidents({ incidents }: Props) {
               }}
               sx={{ flex: '0 0 auto' }}
               variant="outlined"
-            >Download Document</LoadingButton>
+            >
+              Download Document
+            </LoadingButton>
             <IconButton
               size="small"
               id={`shift-actions-${incident.id}`}
@@ -150,7 +161,7 @@ export function EventCardIncidents({ incidents }: Props) {
         ),
       },
     ],
-    filters: []
+    filters: [],
   };
 
   return (
@@ -159,7 +170,9 @@ export function EventCardIncidents({ incidents }: Props) {
 
       <Menu
         id={`shift-menu-${menuOpen.attribute?.id}`}
-        anchorEl={menuOpen.value ? document.getElementById(`shift-actions-${menuOpen.attribute?.id}`) : null}
+        anchorEl={
+          menuOpen.value ? document.getElementById(`shift-actions-${menuOpen.attribute?.id}`) : null
+        }
         open={menuOpen.value}
         onClose={menuOpen.onFalse}
         MenuListProps={{
@@ -176,7 +189,9 @@ export function EventCardIncidents({ incidents }: Props) {
       >
         <MenuItem
           onClick={() => {
-            router.push(`${paths.dashboard.incidents.form.replace(':id', menuOpen.attribute?.event?.id || '')}?submissionId=${menuOpen.attribute?.id}`);
+            router.push(
+              `${paths.dashboard.incidents.form.replace(':id', menuOpen.attribute?.event?.id || '')}?submissionId=${menuOpen.attribute?.id}`
+            );
             menuOpen.onFalse();
           }}
         >
@@ -186,10 +201,30 @@ export function EventCardIncidents({ incidents }: Props) {
           <ListItemText>Modify Submission</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => {
-          menuOpen.onFalse();
-          activityDialogOpen.onTrue(menuOpen.attribute)
-        }}>
+        <MenuItem
+          disabled={
+            !menuOpen.attribute?.docusignEvent?.status ||
+            ![DocusignStatus.SENT, DocusignStatus.COMPLETED].includes(
+              menuOpen.attribute.docusignEvent.status.toUpperCase() as DocusignStatus
+            )
+          }
+          onClick={() => {
+            menuOpen.onFalse();
+            voidDialogOpen.onTrue(menuOpen.attribute);
+          }}
+        >
+          <ListItemIcon>
+            <Iconify icon="solar:close-circle-bold-duotone" />
+          </ListItemIcon>
+          <ListItemText>Void Submission</ListItemText>
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            menuOpen.onFalse();
+            activityDialogOpen.onTrue(menuOpen.attribute);
+          }}
+        >
           <ListItemIcon>
             <Iconify icon="solar:history-bold" />
           </ListItemIcon>
@@ -200,9 +235,11 @@ export function EventCardIncidents({ incidents }: Props) {
       <ShiftActivityDialog
         opener={activityDialogOpen}
         userId={activityDialogOpen.attribute?.userId}
-        entityKey='incidentFormId'
+        entityKey="incidentFormId"
         entityId={(activityDialogOpen.attribute as any)?.id}
       />
+
+      <VoidSubmissionDialog opener={voidDialogOpen} />
     </>
   );
 }

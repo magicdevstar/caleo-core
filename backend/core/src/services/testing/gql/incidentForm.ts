@@ -9,3 +9,9 @@ export const CREATE_INCIDENT_SUBMISSION = gql`
     }
   }
 `;
+
+export const VOID_INCIDENT_FORM = gql`
+  mutation VoidIncidentForm($id: ObjectId!, $voidReason: String) {
+    voidIncidentForm(id: $id, voidReason: $voidReason)
+  }
+`;

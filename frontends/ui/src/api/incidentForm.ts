@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const GET_INCIDENT_SUBMISSIONS = gql`
   query IncidentForms($input: IncidentFormSearchInput!, $report: Boolean) {
@@ -402,7 +402,7 @@ export const GET_INCIDENT_SUBMISSIONS_DOC_DOWNLOAD = gql`
           date
         }
         user {
-          id,
+          id
           lastName
         }
         docusignEvent {
@@ -420,5 +420,11 @@ export const GET_INCIDENT_SUBMISSIONS_DOC_DOWNLOAD = gql`
 export const REMOVE_INCIDENT_SUBMISSION = gql`
   mutation RemoveIncidentForm($id: String!) {
     removeIncidentForm(id: $id)
+  }
+`;
+
+export const VOID_INCIDENT_FORM = gql`
+  mutation VoidIncidentForm($id: ObjectId!, $voidReason: String) {
+    voidIncidentForm(id: $id, voidReason: $voidReason)
   }
 `;

@@ -156,19 +156,13 @@ export default function EditAssignment({
     reroute: 'assignment',
   }) => {
     try {
-      let imageUploadUrls = [];
-      const existingAttachments = formData.attachments
-        .filter(({ existing }: any) => existing)
-        .map(({ attachmentPath }: any) => {
-          const url = new URL(attachmentPath);
-          return {
-            attachmentPath: url.pathname.replace(/^\//, "")
-          };
-        });
-      const getUploadUrls = formData.attachments.filter(({ existing }: any) => !existing);
-      if (getUploadUrls.length > 0) {
+      // Get files that need uploading (new files or modified existing files)
+      const filesToUpload = formData.attachments.filter(({ existing, modified }: any) => !existing || modified);
+      let uploadedFiles: any[] = [];
+
+      if (filesToUpload.length > 0) {
         let mutation: any = 'mutation {';
-        getUploadUrls.forEach((file: any, index: number) => {
+        filesToUpload.forEach((file: any, index: number) => {
           // Use displayName if available, otherwise fall back to file.name
           const fileName = file.displayName || file.name;
           mutation += `
@@ -183,15 +177,29 @@ export default function EditAssignment({
         const { data } = await client.mutate({
           mutation,
         });
-        imageUploadUrls = Object.keys(data).map((key, index) => ({
+        uploadedFiles = Object.keys(data).map((key, index) => ({
           ...data[key],
-          attachmentData: getUploadUrls[index],
+          attachmentData: filesToUpload[index],
         }));
       }
 
-      if (imageUploadUrls.length > 0) {
+      // Build final attachment paths array preserving original order
+      let uploadIndex = 0;
+      const finalAttachments = formData.attachments.map((file: any) => {
+        // If file is existing and not modified, use original path
+        if (file.existing && !file.modified) {
+          const url = new URL(file.attachmentPath);
+          return {
+            attachmentPath: url.pathname.replace(/^\//, "")
+          };
+        }
+        // If file is new or modified, use newly uploaded path
+        return uploadedFiles[uploadIndex++]; // eslint-disable-line no-plusplus
+      });
+
+      if (uploadedFiles.length > 0) {
         await Promise.allSettled(
-          imageUploadUrls.map(({
+          uploadedFiles.map(({
             uploadUrl,
             attachmentData,
           }: any) => fetch(uploadUrl, {
@@ -214,10 +222,7 @@ export default function EditAssignment({
             ...(formData?.reportingLocation?.trim() !== '' && !!formData?.reportingLocation && { reportingLocation: formData?.reportingLocation }),
             reportingLocation: formData?.reportingLocation,
             eventId,
-            attachmentPaths: [
-              ...existingAttachments,
-              ...imageUploadUrls,
-            ].map(({ attachmentPath }) => attachmentPath),
+            attachmentPaths: finalAttachments.map(({ attachmentPath }: any) => attachmentPath),
             bwNeeded: formData?.bwNeeded,
             bypassDemobilization: formData?.bypassDemobilization,
             notifyWhenFullyStaffed: formData?.notifyWhenFullyStaffed,

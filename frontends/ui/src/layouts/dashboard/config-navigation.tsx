@@ -104,7 +104,7 @@ export function useNavData() {
                 path: paths.dashboard.admin.eventManagement.root,
                 icon: ICONS.tour,
                 children: [
-                  { title: 'Resource Unit', path: paths.dashboard.admin.eventManagement.eventDashboards },
+                  { title: 'Resource Unit', path: paths.dashboard.admin.eventManagement.resourceUnit, internalChildRoutes: true },
                   ...(operationsUnit ? [
                     { title: 'Operations Unit', path: paths.dashboard.admin.eventManagement.operationsTable, internalChildRoutes: true },
                   ] : []),

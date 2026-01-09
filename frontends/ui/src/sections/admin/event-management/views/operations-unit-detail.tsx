@@ -16,7 +16,7 @@ import { paths } from 'src/routes/paths';
 import QueryView from 'src/components/query-view';
 import { IShiftData } from 'src/types/event-dashboard';
 import { GET_EVENT_SLIM } from 'src/api/event';
-import ShiftTable from 'src/sections/kiosk/event/shift-table/table';
+import ShiftTable from 'src/sections/admin/event-management/resource-unit/shift-table/table';
 import MapMarkerPopups from 'src/components/map/map-marker-popups';
 import { StyledMapContainer } from 'src/components/map';
 

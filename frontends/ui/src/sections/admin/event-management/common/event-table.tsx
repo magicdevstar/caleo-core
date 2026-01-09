@@ -8,7 +8,7 @@ import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
-export default function FinanceUnitTable({
+export default function EventTable({
   pathLink = paths.dashboard.admin.eventManagement.financeUnitDetail,
 }: {
   pathLink?: string;

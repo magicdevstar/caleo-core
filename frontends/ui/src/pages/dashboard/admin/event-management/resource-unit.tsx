@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 // sections
-import DashboardsView from 'src/sections/admin/overtimeManagement/views/dashboards-view';
+import ResourceUnitView from 'src/sections/admin/event-management/views/resource-unit';
 
 // ----------------------------------------------------------------------
 
-export default function EventDashboards() {
+export default function ResourceUnit() {
   return (
     <>
       <Helmet>
         <title> Caleo: Dashboards</title>
       </Helmet>
 
-      <DashboardsView />
+      <ResourceUnitView />
     </>
   );
 }

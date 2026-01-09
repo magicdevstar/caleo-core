@@ -28,7 +28,7 @@ export const KioskMenuItems = ({
     <>
       <MenuItem onClick={() => {
         router.push(
-          paths.kiosk.dashboard.replace(':eventId', eventId)
+          paths.dashboard.admin.eventManagement.resourceUnitDetail.replace(':eventId', eventId)
         );
         menuClose();
       }}>

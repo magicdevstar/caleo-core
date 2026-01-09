@@ -1,18 +1,18 @@
 import { Helmet } from 'react-helmet-async';
 // sections
-import EventDashboardView from 'src/sections/kiosk/view/event-dashboard-view';
+import ResourceUnitDetailView from 'src/sections/admin/event-management/views/resource-unit-detail';
 
 
 // ----------------------------------------------------------------------
 
-export default function EventDashboard() {
+export default function ResourceUnit() {
   return (
     <>
       <Helmet>
         <title> Caleo: Event Dashboard</title>
       </Helmet>
 
-      <EventDashboardView />
+      <ResourceUnitDetailView />
     </>
   );
 }

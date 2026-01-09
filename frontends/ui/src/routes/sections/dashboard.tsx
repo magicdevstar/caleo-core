@@ -35,7 +35,8 @@ const DynamicShiftFilter = lazyWithRetry(() => import('src/pages/dashboard/admin
 const EditVenue = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/editVenue'));
 const Events = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/events'));
 const EventsTemplates = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/events'));
-const EventDashboards = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/eventDashboards'));
+const ResourceUnit = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/resource-unit'));
+const ResourceUnitDetail = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/resource-unit-detail'));
 const EventOperationsTable = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/event-operations-table'));
 const EventOperations = lazyWithRetry(() => import('src/pages/dashboard/admin/event-management/event-operations'));
 const EventsTemplateEdit = lazyWithRetry(() => import('src/pages/dashboard/admin/overtimeManagement/templates/editEvent'));
@@ -77,7 +78,8 @@ export const dashboardRoutes = [
           {
             path: 'event-management',
             children: [
-              { path: 'dashboards', element: <EventDashboards /> },
+              { path: 'dashboards', element: <ResourceUnit /> },
+              { path: 'dashboards/:eventId', element: <ResourceUnitDetail /> },
               { path: 'operations', element: <EventOperationsTable /> },
               { path: 'operations/:eventId', element: <EventOperations /> },
               { path: 'finance-unit', element: <FinanceUnit /> },

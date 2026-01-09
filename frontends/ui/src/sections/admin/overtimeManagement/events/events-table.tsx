@@ -270,7 +270,7 @@ export default function EventsTable() {
           ].includes(row.status),
           onClick: (row: Event) => {
             router.push(
-              paths.kiosk.dashboard.replace(':eventId', row.id)
+              paths.dashboard.admin.eventManagement.resourceUnitDetail.replace(':eventId', row.id)
             );
           },
         },

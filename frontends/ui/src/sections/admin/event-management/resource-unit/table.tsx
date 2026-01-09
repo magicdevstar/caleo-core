@@ -67,7 +67,7 @@ export default function DashboardsTable() {
         ].includes(row.status),
         onClick: (row: Event) => {
           router.push(
-            paths.kiosk.dashboard.replace(':eventId', row.id)
+            paths.dashboard.admin.eventManagement.resourceUnitDetail.replace(':eventId', row.id)
           );
         },
       },
@@ -78,13 +78,13 @@ export default function DashboardsTable() {
         label: 'Ref #',
         columnType: 'string',
         width: 100,
-        getHref: (row: any) => paths.kiosk.dashboard.replace(':eventId', row.id),
+        getHref: (row: any) => paths.dashboard.admin.eventManagement.resourceUnitDetail.replace(':eventId', row.id),
       },
       {
         id: 'name',
         label: 'Name',
         columnType: 'string',
-        getHref: (row: any) => paths.kiosk.dashboard.replace(':eventId', row.id),
+        getHref: (row: any) => paths.dashboard.admin.eventManagement.resourceUnitDetail.replace(':eventId', row.id),
       },
       { id: 'startTime', label: 'Starts At', width: 160, columnType: 'date' },
       {

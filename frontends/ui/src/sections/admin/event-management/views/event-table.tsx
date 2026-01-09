@@ -5,7 +5,7 @@ import { paths } from 'src/routes/paths';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import FinanceUnitTable from '../finance-unit/finance-unit-table';
+import EventTable from '../common/event-table';
 
 // ----------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ export default function EventTableView({
           mb: { xs: 3, md: 3 },
         }}
       />
-      <FinanceUnitTable pathLink={pathLink} />
+      <EventTable pathLink={pathLink} />
     </Container>
   );
 }

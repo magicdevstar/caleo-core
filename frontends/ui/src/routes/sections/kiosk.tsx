@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from 'react-router-dom';
 // auth
 import { AuthGuard } from 'src/auth/guard';
 // layouts
@@ -13,7 +13,13 @@ import AuthModernLayout from 'src/layouts/auth/modern';
 
 const IndexPage = lazyWithRetry(() => import('src/pages/kiosk/event'));
 const UserKioskPage = lazyWithRetry(() => import('src/pages/kiosk/user'));
-const EventDashboard = lazyWithRetry(() => import('src/pages/kiosk/eventDashboard'));
+
+// ----------------------------------------------------------------------
+
+function EventDashboardRedirect() {
+  const { eventId } = useParams();
+  return <Navigate to={`/dashboard/admin/event-management/dashboards/${eventId}`} replace />;
+}
 
 // ----------------------------------------------------------------------
 
@@ -44,8 +50,6 @@ export const kioskRoutes = [
         </Suspense>
       </AuthGuard>
     ),
-    children: [
-      { element: <EventDashboard />, index: true },
-    ],
+    children: [{ element: <EventDashboardRedirect />, index: true }],
   },
 ];

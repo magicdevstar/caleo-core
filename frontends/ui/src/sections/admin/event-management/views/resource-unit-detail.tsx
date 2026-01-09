@@ -12,11 +12,11 @@ import QueryView from 'src/components/query-view';
 // types
 import { ShiftData, SHIFTS_FOR_EVENT_DASHBOARD } from 'src/api/shifts';
 import { IShiftData } from 'src/types/event-dashboard';
-import Analytics from '../event/analytics';
-import ShiftTable from '../event/shift-table/table';
-import Actions, { IActions } from '../event/header/actions';
+import Analytics from '../resource-unit/analytics';
+import ShiftTable from '../resource-unit/shift-table/table';
+import Actions, { IActions } from '../resource-unit/header/actions';
 
-export default function EventDashboardView() {
+export default function ResourceUnitDetailView() {
   const params = useParams();
   const [filters, setFilters] = useState<IActions>({
     divisionIds: [],

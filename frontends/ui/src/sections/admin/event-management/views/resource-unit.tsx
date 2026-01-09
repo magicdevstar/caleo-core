@@ -3,11 +3,11 @@ import Container from '@mui/material/Container';
 // components
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import DashboardsTable from '../events/dashboards-table';
+import EventTable from '../resource-unit/table';
 
 // ----------------------------------------------------------------------
 
-export default function DashboardsView() {
+export default function ResourceUnitView() {
   const settings = useSettingsContext();
 
   return (
@@ -21,7 +21,7 @@ export default function DashboardsView() {
           mb: { xs: 3, md: 3 },
         }}
       />
-      <DashboardsTable />
+      <EventTable />
     </Container>
   );
 }

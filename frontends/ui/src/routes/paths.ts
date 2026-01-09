@@ -24,7 +24,6 @@ export const paths = {
   kiosk: {
     root: '/kiosk/:eventId',
     userView: '/kiosk/:eventId/users/:userId',
-    dashboard: '/events/:eventId/dashboard',
   },
   // DASHBOARD
   dashboard: {
@@ -43,7 +42,8 @@ export const paths = {
       reports: `${ROOTS.DASHBOARD}/admin/reports`,
       eventManagement: {
         root: `${ROOTS.DASHBOARD}/admin/event-management`,
-        eventDashboards: `${ROOTS.DASHBOARD}/admin/event-management/dashboards`,
+        resourceUnit: `${ROOTS.DASHBOARD}/admin/event-management/dashboards`,
+        resourceUnitDetail: `${ROOTS.DASHBOARD}/admin/event-management/dashboards/:eventId`,
         operationsTable: `${ROOTS.DASHBOARD}/admin/event-management/operations`,
         operations: `${ROOTS.DASHBOARD}/admin/event-management/operations/:eventId`,
         financeUnit: `${ROOTS.DASHBOARD}/admin/event-management/finance-unit`,

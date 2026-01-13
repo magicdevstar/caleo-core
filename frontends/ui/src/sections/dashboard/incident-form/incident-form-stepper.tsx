@@ -319,7 +319,7 @@ export default function IncidentFormStepper({
         /An incident form with overlapping time range already exists/.test(error.message),
         /Missing required time field/.test(error.message),
       ].some(Boolean)) {
-        message = error.message;
+        message = error.message; // eslint-disable-line prefer-destructuring
       }
       enqueueSnackbar(
         message, 

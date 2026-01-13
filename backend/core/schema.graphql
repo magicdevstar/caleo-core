@@ -475,6 +475,7 @@
 
     # Incident only fields
     requiredSkillIds: [String]
+    incidentSubmissionCuttoff: DateTime
 
     venue: Venue
     org: Organization!
@@ -1041,6 +1042,7 @@
 
     # Incident only field
     requiredSkillIds: [String]
+    incidentSubmissionCuttoff: DateTime
   }
   
   input UpsertReportingLocation {
@@ -2928,6 +2930,7 @@ type Query {
 
   event(id: String!): Event
   events(input: EventSearchInput): EventSearchResult
+  fetchActiveIncidents: EventSearchResult
   eventNotifications(input: EventNotificationSearchInput): EventNotificationSearchResult
 
   incidentForms(input: IncidentFormSearchInput, report: Boolean): IncidentFormSearchResult

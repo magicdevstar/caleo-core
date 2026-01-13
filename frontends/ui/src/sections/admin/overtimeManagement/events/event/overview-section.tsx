@@ -1,35 +1,41 @@
-import { useCallback, useMemo, useState } from "react";
-import { useSnackbar } from "notistack";
-import { useMutation, useQuery } from "@apollo/client";
-import dayjs from "dayjs";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSnackbar } from 'notistack';
+import { useMutation, useQuery } from '@apollo/client';
+import dayjs from 'dayjs';
 // @mui
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import LoadingButton from "@mui/lab/LoadingButton";
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import LoadingButton from '@mui/lab/LoadingButton';
 // components
-import Markdown from "src/components/markdown";
-import { RHFAutocomplete, RHFDateTimePicker, RHFSelect, RHFSkillAutocomplete, RHFTextField } from "src/components/hook-form";
-import { RouterLink } from "src/routes/components";
-import { EditSection } from "src/sections/admin/overtimeManagement/events/common/section";
-import Iconify from "src/components/iconify";
-import { ConfirmDialog } from "src/components/custom-dialog";
+import Markdown from 'src/components/markdown';
+import {
+  RHFAutocomplete,
+  RHFDateTimePicker,
+  RHFSelect,
+  RHFSkillAutocomplete,
+  RHFTextField,
+} from 'src/components/hook-form';
+import { RouterLink } from 'src/routes/components';
+import { EditSection } from 'src/sections/admin/overtimeManagement/events/common/section';
+import Iconify from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 // types
-import { Event, EventStatus, Venue, VenueStatus } from "src/__generated__/resolvers-types";
-import { GET_VENUE_LIST } from "src/api/venues";
+import { Event, EventStatus, Venue, VenueStatus } from 'src/__generated__/resolvers-types';
+import { GET_VENUE_LIST } from 'src/api/venues';
 // hooks
-import { useFeatures } from "src/hooks/use-features";
-import { convertDate, useDateFormats } from "src/hooks/use-datejs";
-import { useFormContext } from "react-hook-form";
-import { useAuthContext } from "src/auth/hooks";
-import useDebounceText from "src/hooks/use-debounce-text";
-import { useBoolean } from "src/hooks/use-boolean";
-import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT } from "src/api/event";
-import { useRouter } from "src/routes/hooks";
+import { useFeatures } from 'src/hooks/use-features';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
+import { useFormContext } from 'react-hook-form';
+import { useAuthContext } from 'src/auth/hooks';
+import useDebounceText from 'src/hooks/use-debounce-text';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { APPROVE_EVENT, GET_ALL_EVENTS, GET_EVENT, REJECT_EVENT } from 'src/api/event';
+import { useRouter } from 'src/routes/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -50,7 +56,7 @@ const eventStatusNames = {
   [EventStatus.Incident]: 'Incident',
   [EventStatus.FirstComeFirstServe]: 'First come first serve',
   [EventStatus.Requested]: 'Requested',
-}
+};
 
 // ----------------------------------------------------------------------
 
@@ -63,28 +69,44 @@ export const EventOverviewSection = ({
 }: Props) => {
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
-  const { watch } = useFormContext();
+  const { watch, setValue } = useFormContext();
   const rejectEventConfirm = useBoolean();
   const { dateTimeFormat } = useDateFormats();
   const router = useRouter();
   const [rejectEventNote, setRejectEventNote] = useState('');
-  const { incidentEvents, venueContractDates, lottery, interestLists, externalEventRequests } = useFeatures();
+  const { incidentEvents, venueContractDates, lottery, interestLists, externalEventRequests } =
+    useFeatures();
   const { setText: setVenueSearchText, debouncedText: venueSearch } = useDebounceText({ ms: 500 });
   const selectedVenue = watch('venueId') as Venue | null;
   const startTime = watch('startTime');
+  const endTime = watch('endTime');
+  const incidentSubmissionCuttoff = watch('incidentSubmissionCuttoff');
+
+  // Auto-populate incidentSubmissionCuttoff from endTime when empty
+  useEffect(() => {
+    if (isIncident && endTime && !incidentSubmissionCuttoff) {
+      setValue('incidentSubmissionCuttoff', endTime);
+    }
+  }, [isIncident, endTime, incidentSubmissionCuttoff, setValue]);
 
   const [rejectEvent, { loading: rejectEventLoading }] = useMutation(REJECT_EVENT, {
-    refetchQueries: [GET_ALL_EVENTS, {
-      query: GET_EVENT,
-    }],
+    refetchQueries: [
+      GET_ALL_EVENTS,
+      {
+        query: GET_EVENT,
+      },
+    ],
   });
   const [approveEvent, { loading: approveEventLoading }] = useMutation(APPROVE_EVENT, {
-    refetchQueries: [GET_ALL_EVENTS, {
-      query: GET_EVENT,
-      variables: {
-        id: currentEvent?.id,
+    refetchQueries: [
+      GET_ALL_EVENTS,
+      {
+        query: GET_EVENT,
+        variables: {
+          id: currentEvent?.id,
+        },
       },
-    }],
+    ],
   });
 
   const submitEventRejection = useCallback(async () => {
@@ -99,20 +121,16 @@ export const EventOverviewSection = ({
         },
       });
       router.push('/dashboard/admin/overtime/events');
-    } catch(error) {
+    } catch (error) {
       enqueueSnackbar('Failed to reject event', { variant: 'error', autoHideDuration: 5000 });
     }
-  }, [
-    router,
-    currentEvent,
-    rejectEventNote,
-    rejectEvent,
-    enqueueSnackbar,
-  ]);
+  }, [router, currentEvent, rejectEventNote, rejectEvent, enqueueSnackbar]);
 
   const disabledStatus = useMemo(() => {
     let message = 'Cannot change posting type before all shifts have been assigned a time';
-    let disable = currentEvent?.assignments?.some?.((assignment) => (assignment?.shiftSlots?.length || 0) > 0);
+    let disable = currentEvent?.assignments?.some?.(
+      (assignment) => (assignment?.shiftSlots?.length || 0) > 0
+    );
 
     if (currentEvent?.status === EventStatus.Incident) {
       disable = true;
@@ -121,18 +139,13 @@ export const EventOverviewSection = ({
 
     return {
       disabled: disable,
-      message
-    }
+      message,
+    };
   }, [currentEvent?.assignments, currentEvent?.status]);
 
   const eventStatuses = useMemo(() => {
-    const statuses = [
-      EventStatus.Draft,
-    ];
-    if (
-      lottery &&
-      user.member.org?.settings?.lottery?.enabled
-    ) {
+    const statuses = [EventStatus.Draft];
+    if (lottery && user.member.org?.settings?.lottery?.enabled) {
       statuses.push(EventStatus.ReadyForLottery);
     }
     if (incidentEvents) {
@@ -156,7 +169,10 @@ export const EventOverviewSection = ({
     if (!venueContractDates) {
       return false;
     }
-    const convertedDate = convertDate({ date: new Date(selectedVenue?.contract?.expirationDate || 0), user });
+    const convertedDate = convertDate({
+      date: new Date(selectedVenue?.contract?.expirationDate || 0),
+      user,
+    });
     if (!selectedVenue?.contract?.expirationDate || convertedDate.isBefore(dayjs())) {
       return true;
     }
@@ -187,31 +203,35 @@ export const EventOverviewSection = ({
         helperText={`Ref #: ${currentEvent?.referenceId || ''}`}
       />
 
-      {
-        currentEvent?.status === EventStatus.Requested && (
-          <>
-            <Button
-              sx={{ minWidth: '150px' }}
-              color="error"
-              variant="outlined"
-              onClick={rejectEventConfirm.onTrue as any}
-              startIcon={<Iconify icon="mdi:shield-remove" />}
-            >Reject</Button>
-            <LoadingButton
-              sx={{ minWidth: '150px' }}
-              color="primary"
-              variant="contained"
-              loading={approveEventLoading}
-              onClick={() => approveEvent({
+      {currentEvent?.status === EventStatus.Requested && (
+        <>
+          <Button
+            sx={{ minWidth: '150px' }}
+            color="error"
+            variant="outlined"
+            onClick={rejectEventConfirm.onTrue as any}
+            startIcon={<Iconify icon="mdi:shield-remove" />}
+          >
+            Reject
+          </Button>
+          <LoadingButton
+            sx={{ minWidth: '150px' }}
+            color="primary"
+            variant="contained"
+            loading={approveEventLoading}
+            onClick={() =>
+              approveEvent({
                 variables: {
                   id: currentEvent?.id,
                 },
-              })}
-              startIcon={<Iconify icon="mdi:shield-check" />}
-            >Approve</LoadingButton>
-          </>
-        )
-      }
+              })
+            }
+            startIcon={<Iconify icon="mdi:shield-check" />}
+          >
+            Approve
+          </LoadingButton>
+        </>
+      )}
 
       {!isIncident && (
         <RHFAutocomplete
@@ -222,7 +242,11 @@ export const EventOverviewSection = ({
           options={venues}
           filterOptions={(x: any) => x}
           loading={venuesLoading}
-          helperText={currentEvent?.requestDetails?.estimatedAttendees ? `Estimated attendees: ${currentEvent?.requestDetails?.estimatedAttendees}` : ''}
+          helperText={
+            currentEvent?.requestDetails?.estimatedAttendees
+              ? `Estimated attendees: ${currentEvent?.requestDetails?.estimatedAttendees}`
+              : ''
+          }
           loadingText={
             <>
               Loading...
@@ -248,145 +272,193 @@ export const EventOverviewSection = ({
         <Box sx={{ p: 2, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
           <Stack direction="row" spacing={1.5}>
             <Typography variant="subtitle2">Address: </Typography>
-            <Typography variant="subtitle2">{ selectedVenue?.address }</Typography>
-            <Typography variant="subtitle2">{ `${selectedVenue?.city},` }</Typography>
-            <Typography variant="subtitle2">{ selectedVenue?.state }</Typography>
-            <Typography variant="subtitle2">{ selectedVenue?.zip }</Typography>
+            <Typography variant="subtitle2">{selectedVenue?.address}</Typography>
+            <Typography variant="subtitle2">{`${selectedVenue?.city},`}</Typography>
+            <Typography variant="subtitle2">{selectedVenue?.state}</Typography>
+            <Typography variant="subtitle2">{selectedVenue?.zip}</Typography>
           </Stack>
-          {currentEvent?.requestDetails?.estimatedAttendees && <Typography variant="subtitle2">Estimated Attendees: {currentEvent?.requestDetails?.estimatedAttendees}</Typography>}
-          {currentEvent?.requestDetails?.numberOfOfficers && <Typography variant="subtitle2">Requested number of officers: {currentEvent?.requestDetails?.numberOfOfficers}</Typography>}
+          {currentEvent?.requestDetails?.estimatedAttendees && (
+            <Typography variant="subtitle2">
+              Estimated Attendees: {currentEvent?.requestDetails?.estimatedAttendees}
+            </Typography>
+          )}
+          {currentEvent?.requestDetails?.numberOfOfficers && (
+            <Typography variant="subtitle2">
+              Requested number of officers: {currentEvent?.requestDetails?.numberOfOfficers}
+            </Typography>
+          )}
           <Markdown children={selectedVenue?.notes || ''} />
           {showVenueContractWarning && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant='caption' color="grey">⚠️ Venue contract is is expired. Please update the contract or replace the venue.</Typography>
-              <Button sx={{ minWidth: '90px' }} component={RouterLink} href={`/dashboard/admin/overtime/venues/${(selectedVenue as any)?.id}`}>Edit venue</Button>
+              <Typography variant="caption" color="grey">
+                ⚠️ Venue contract is is expired. Please update the contract or replace the venue.
+              </Typography>
+              <Button
+                sx={{ minWidth: '90px' }}
+                component={RouterLink}
+                href={`/dashboard/admin/overtime/venues/${(selectedVenue as any)?.id}`}
+              >
+                Edit venue
+              </Button>
             </Box>
           )}
         </Box>
       )}
 
-      {
-        isIncident && (
-          <RHFSkillAutocomplete
-            name="requiredSkills"
-            label="Required Skills"
-            disabled={disabled}
-            helperText="Leave empty to not require any skills"
-          />
-        )
-      }
+      {isIncident && (
+        <RHFSkillAutocomplete
+          name="requiredSkills"
+          label="Required Skills"
+          disabled={disabled}
+          helperText="Leave empty to not require any skills"
+        />
+      )}
 
-      {
-        currentEvent && !eventTemplateView && (
-          <RHFSelect
-            fullWidth
-            name="status"
-            label="Posting type"
-            disabled={disabled || disabledStatus.disabled}
-            helperText={disabledStatus.disabled ? disabledStatus.message : ''}
-            InputLabelProps={{ shrink: true }}
-            PaperPropsSx={{ textTransform: 'capitalize' }}
-          >
-            {eventStatuses.map((option) => (
-              <MenuItem disabled={[EventStatus.Complete, EventStatus.Removed, EventStatus.Incident].includes(option)} key={option} value={option}>
-                {(eventStatusNames as any)[option]}
-              </MenuItem>
-            ))}
-          </RHFSelect>
-        )
-      }
+      {currentEvent && !eventTemplateView && (
+        <RHFSelect
+          fullWidth
+          name="status"
+          label="Posting type"
+          disabled={disabled || disabledStatus.disabled}
+          helperText={disabledStatus.disabled ? disabledStatus.message : ''}
+          InputLabelProps={{ shrink: true }}
+          PaperPropsSx={{ textTransform: 'capitalize' }}
+        >
+          {eventStatuses.map((option) => (
+            <MenuItem
+              disabled={[EventStatus.Complete, EventStatus.Removed, EventStatus.Incident].includes(
+                option
+              )}
+              key={option}
+              value={option}
+            >
+              {(eventStatusNames as any)[option]}
+            </MenuItem>
+          ))}
+        </RHFSelect>
+      )}
 
-      {
-        incidentEvents && !currentEvent && (
-          <RHFSelect
-            fullWidth
-            name="status"
-            required
-            label="Posting type"
-            disabled={disabled || isComplete}
-            InputLabelProps={{ shrink: true }}
-            PaperPropsSx={{ textTransform: 'capitalize' }}
-          >
-            <MenuItem value={EventStatus.Draft}>Pre Planned</MenuItem>
-            <MenuItem value={EventStatus.Incident}>Incident</MenuItem>
-          </RHFSelect>
-        )
-      }
+      {incidentEvents && !currentEvent && (
+        <RHFSelect
+          fullWidth
+          name="status"
+          required
+          label="Posting type"
+          disabled={disabled || isComplete}
+          InputLabelProps={{ shrink: true }}
+          PaperPropsSx={{ textTransform: 'capitalize' }}
+        >
+          <MenuItem value={EventStatus.Draft}>Pre Planned</MenuItem>
+          <MenuItem value={EventStatus.Incident}>Incident</MenuItem>
+        </RHFSelect>
+      )}
 
       {incidentEvents && !currentEvent && (
         <>
-          { isIncident && (
-            <Stack direction="row" spacing={1.5}>
-              <RHFDateTimePicker
-                timezone={user.member.org?.timezone}
-                ampm={false}
-                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                name="startTime"
-                label="Start Time"
-              />
+          {isIncident && (
+            <>
+              <Stack direction="row" spacing={1.5}>
+                <RHFDateTimePicker
+                  timezone={user.member.org?.timezone}
+                  ampm={false}
+                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                  name="startTime"
+                  label="Start Time"
+                />
+                <RHFDateTimePicker
+                  timezone={user.member.org?.timezone}
+                  minDate={startTime ? dayjs(new Date(startTime)) : dayjs(new Date())}
+                  timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+                  ampm={false}
+                  name="endTime"
+                  label="End Time"
+                />
+              </Stack>
               <RHFDateTimePicker
                 timezone={user.member.org?.timezone}
                 minDate={startTime ? dayjs(new Date(startTime)) : dayjs(new Date())}
                 timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 ampm={false}
-                name="endTime"
-                label="End Time"
+                name="incidentSubmissionCuttoff"
+                label="ICS 214 Submission Deadline"
               />
-            </Stack>
+            </>
           )}
         </>
       )}
 
-      {
-        currentEvent && !eventTemplateView && (
-          <Stack>
-            <Stack direction="row" spacing={1.5}>
-              <RHFDateTimePicker
-                name="startTime"
-                label="Start time"
-                timezone={user.member.org?.timezone}
-                ampm={false}
-                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                disabled={!isIncident}
-                textFieldProps={{
-                  fullWidth: true,
-                    margin: 'normal',
-                    ...(currentEvent.requestDetails?.startTime ? {
-                      helperText: `Suggested start time: ${convertDate({ date: currentEvent.requestDetails?.startTime, user }).format(dateTimeFormat)}`
-                    } : {}),
-                }}
-              />
+      {currentEvent && !eventTemplateView && (
+        <Stack>
+          <Stack direction="row" spacing={1.5}>
+            <RHFDateTimePicker
+              name="startTime"
+              label="Start time"
+              timezone={user.member.org?.timezone}
+              ampm={false}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+              disabled={!isIncident}
+              textFieldProps={{
+                fullWidth: true,
+                margin: 'normal',
+                ...(currentEvent.requestDetails?.startTime
+                  ? {
+                      helperText: `Suggested start time: ${convertDate({ date: currentEvent.requestDetails?.startTime, user }).format(dateTimeFormat)}`,
+                    }
+                  : {}),
+              }}
+            />
 
-              <RHFDateTimePicker
-                name="endTime"
-                label="End Time"
-                timezone={user.member.org?.timezone}
-                ampm={false}
-                disabled={!isIncident}
-                timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
-                textFieldProps={{
-                  fullWidth: true,
-                    margin: 'normal',
-                    ...(currentEvent.requestDetails?.endTime ? {
-                      helperText: `Suggested end time: ${convertDate({ date: currentEvent.requestDetails?.endTime, user }).format(dateTimeFormat)}`
-                    } : {}),
-                }}
-              />
-            </Stack>
-            { !isIncident && (
-              <Typography color="grey" variant="subtitle2">The start and end time are calculated based on the open shifts.</Typography>
-            )}
+            <RHFDateTimePicker
+              name="endTime"
+              label="End Time"
+              timezone={user.member.org?.timezone}
+              ampm={false}
+              disabled={!isIncident}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+              textFieldProps={{
+                fullWidth: true,
+                margin: 'normal',
+                ...(currentEvent.requestDetails?.endTime
+                  ? {
+                      helperText: `Suggested end time: ${convertDate({ date: currentEvent.requestDetails?.endTime, user }).format(dateTimeFormat)}`,
+                    }
+                  : {}),
+              }}
+            />
           </Stack>
-        )
-      }
+
+          {isIncident && (
+            <RHFDateTimePicker
+              name="incidentSubmissionCuttoff"
+              label="ICS 214 Submission Deadline"
+              timezone={user.member.org?.timezone}
+              ampm={false}
+              disabled={!isIncident}
+              timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
+              textFieldProps={{
+                fullWidth: true,
+                margin: 'normal',
+              }}
+            />
+          )}
+
+          {!isIncident && (
+            <Typography color="grey" variant="subtitle2">
+              The start and end time are calculated based on the open shifts.
+            </Typography>
+          )}
+        </Stack>
+      )}
 
       <ConfirmDialog
         open={rejectEventConfirm.value}
         onClose={rejectEventConfirm.onFalse}
         title="Reject Event"
-        content={(
+        content={
           <>
-            <Typography variant='body1' sx={{ mb: 1 }}>Are you sure want to reject this event?</Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              Are you sure want to reject this event?
+            </Typography>
             <TextField
               label="Reason for rejection"
               multiline
@@ -394,11 +466,11 @@ export const EventOverviewSection = ({
               sx={{ mt: 1 }}
               rows={4}
               onBlur={(event) => {
-                setRejectEventNote(event.target.value)
+                setRejectEventNote(event.target.value);
               }}
             />
           </>
-        )}
+        }
         action={
           <LoadingButton
             loading={rejectEventLoading}
@@ -412,4 +484,4 @@ export const EventOverviewSection = ({
       />
     </EditSection>
   );
-}
+};

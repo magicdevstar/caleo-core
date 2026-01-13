@@ -610,6 +610,7 @@ export type Event = {
   fieldSupervisorAssignmentId?: Maybe<Scalars['ObjectId']['output']>;
   geoFence?: Maybe<Array<Maybe<Array<Maybe<Scalars['Float']['output']>>>>>;
   id: Scalars['ID']['output'];
+  incidentSubmissionCuttoff?: Maybe<Scalars['DateTime']['output']>;
   interestListAutoAssignCutoff?: Maybe<Scalars['String']['output']>;
   interestListTransition?: Maybe<EventStatus>;
   lieutenant?: Maybe<User>;
@@ -2187,6 +2188,7 @@ export type Query = {
   eventNotifications?: Maybe<EventNotificationSearchResult>;
   eventUserActions?: Maybe<EventUserActionSearchResult>;
   events?: Maybe<EventSearchResult>;
+  fetchActiveIncidents?: Maybe<EventSearchResult>;
   financeShifts?: Maybe<Array<Maybe<FinanceShift>>>;
   groupedShifts?: Maybe<Array<Maybe<Shift>>>;
   health?: Maybe<Scalars['String']['output']>;
@@ -3262,6 +3264,7 @@ export type UpsertEvent = {
   fieldSupervisorAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
   geoFence?: InputMaybe<Array<InputMaybe<Array<InputMaybe<Scalars['Float']['input']>>>>>;
   id?: InputMaybe<Scalars['String']['input']>;
+  incidentSubmissionCuttoff?: InputMaybe<Scalars['DateTime']['input']>;
   interestListAutoAssignCutoff?: InputMaybe<Scalars['String']['input']>;
   interestListTransition?: InputMaybe<EventStatus>;
   lieutenantAssignmentId?: InputMaybe<Scalars['ObjectId']['input']>;
@@ -4739,6 +4742,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   fieldSupervisorAssignmentId?: Resolver<Maybe<ResolversTypes['ObjectId']>, ParentType, ContextType>;
   geoFence?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  incidentSubmissionCuttoff?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   interestListAutoAssignCutoff?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   interestListTransition?: Resolver<Maybe<ResolversTypes['EventStatus']>, ParentType, ContextType>;
   lieutenant?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -5504,6 +5508,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   eventNotifications?: Resolver<Maybe<ResolversTypes['EventNotificationSearchResult']>, ParentType, ContextType, Partial<QueryEventNotificationsArgs>>;
   eventUserActions?: Resolver<Maybe<ResolversTypes['EventUserActionSearchResult']>, ParentType, ContextType, RequireFields<QueryEventUserActionsArgs, 'input'>>;
   events?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType, Partial<QueryEventsArgs>>;
+  fetchActiveIncidents?: Resolver<Maybe<ResolversTypes['EventSearchResult']>, ParentType, ContextType>;
   financeShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['FinanceShift']>>>, ParentType, ContextType, RequireFields<QueryFinanceShiftsArgs, 'eventId'>>;
   groupedShifts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Shift']>>>, ParentType, ContextType, RequireFields<QueryGroupedShiftsArgs, 'shiftId'>>;
   health?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

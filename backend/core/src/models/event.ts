@@ -65,6 +65,7 @@ export interface IEvent extends Omit<
   'lieutenantAssignment' |
   'fieldSupervisorAssignmentId' |
   'fieldSupervisorAssignment' |
+  'incidentSubmissionCuttoff' |
   '__typename'
 > {
   _id?: ObjectId;
@@ -92,6 +93,7 @@ export interface IEvent extends Omit<
   scheduledCloseInterestList?: Date;
   scheduledFirstComeFirstServe?: Date;
   interestListAutoAssignCutoff?: Date;
+  incidentSubmissionCuttoff?: Date;
   createdAt?: Date;
   updatedAt?: Date;
   removedAt?: Date;

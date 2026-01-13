@@ -128,5 +128,21 @@ export const Query = {
       ...(!(input as any).status ? { status: { $ne: EventStatus.Template } } : {}),
       queryField: 'searchAttribute',
     });
+  },
+  fetchActiveIncidents: async (
+    _parent: unknown,
+    _args: unknown,
+    { events, user }: Context,
+  ): Promise<SearchResults<IEvent>> => {
+    const now = new Date()
+
+    return await events.search({
+      orgId: user.member.orgId,
+      status: EventStatus.Incident,
+      incidentSubmissionCuttoff: { $gt: now },
+      queryField: 'searchAttribute',
+      orderBy: 'incidentSubmissionCuttoff',
+      order: 'asc',
+    })
   }
 };

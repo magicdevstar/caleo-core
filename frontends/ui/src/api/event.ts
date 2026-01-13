@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const REMOVE_EVENT = gql`
   mutation RemoveEvent($id: String!) {
@@ -160,6 +160,62 @@ export const GET_ALL_EVENTS = gql`
   }
 `;
 
+export const FETCH_ACTIVE_INCIDENTS = gql`
+  query FetchActiveIncidents {
+    fetchActiveIncidents {
+      items {
+        id
+        referenceId
+        name
+        startTime
+        endTime
+        incidentSubmissionCuttoff
+        ocn
+        # When the interest list will stop automatically assigning officers
+        interestListAutoAssignCutoff
+        # When the interest list will start automatically assigning officers
+        scheduledCloseInterestList
+        scheduledInterestList
+        scheduledFirstComeFirstServe
+        autoAssignInterestList
+        status
+        availableShifts
+        totalShifts
+        docusignEvent {
+          id
+          status
+          documentUrl
+        }
+        createdBy {
+          member {
+            pNumber
+          }
+        }
+        requiredSkills {
+          id
+          name
+        }
+        assignments {
+          id
+          shiftSlots {
+            id
+            slotCount
+          }
+        }
+        venue {
+          id
+          name
+          contract {
+            expirationDate
+          }
+        }
+        createdAt
+      }
+      total
+    }
+  }
+`;
+
 export const GET_LOTTERY_COUNTER = gql`
   query GetLotteryCounter {
     lotteryCounter {
@@ -183,100 +239,99 @@ export const GET_SELECTED_LOTTERY_COUNTER = gql`
 `;
 
 export const GET_EVENT_FOR_REPORT = gql`
-query GetEvent($id: String!) {
-  event(id: $id) {
-    id
-    referenceId
-    name
-    startTime
-    endTime
-    ocn
-    createdBy {
-      member {
-        pNumber
+  query GetEvent($id: String!) {
+    event(id: $id) {
+      id
+      referenceId
+      name
+      startTime
+      endTime
+      ocn
+      createdBy {
+        member {
+          pNumber
+        }
       }
-    }
-    venue {
-      id
-      city
-      name
-    }
-    assignments {
-      id
-      name
-      callSign
-      includeDriveTime
-      requiredEquipment {
+      venue {
         id
+        city
         name
       }
-      shifts {
+      assignments {
         id
-        startTime
-        endTime
-        status
-        customId
-        refNumber
-        calculatedShiftDetails {
+        name
+        callSign
+        includeDriveTime
+        requiredEquipment {
+          id
+          name
+        }
+        shifts {
+          id
           startTime
           endTime
-          formattedDiff
-          totalEquipmentTime
-        }
-        docusignEvent {
-          id
           status
-          documentUrl
-          signerDetails {
-            roleName
+          customId
+          refNumber
+          calculatedShiftDetails {
+            startTime
+            endTime
+            formattedDiff
+            totalEquipmentTime
+          }
+          docusignEvent {
+            id
             status
-            data {
-              callSign
-              vehicleModel
-              vehicleNumber
-              vehicleMake
-              endingMilage
-              totalMilage
-              startingMilage
+            documentUrl
+            signerDetails {
+              roleName
+              status
+              data {
+                callSign
+                vehicleModel
+                vehicleNumber
+                vehicleMake
+                endingMilage
+                totalMilage
+                startingMilage
+              }
             }
           }
-        }
-        user {
-          id
-          firstName
-          lastName
-          name
-          member {
-            pNumber
-            rankId
-            rank {
-              name
+          user {
+            id
+            firstName
+            lastName
+            name
+            member {
+              pNumber
+              rankId
+              rank {
+                name
+              }
+              contactInfo {
+                primaryPhone {
+                  number
+                }
+              }
             }
-            contactInfo {
-              primaryPhone {
-                number
+          }
+          shiftCheckInOut {
+            checkInTime
+            checkOutTime
+            noShow
+            equipmentDetails {
+              checkInTime
+              checkOutTime
+              vehicleCategory {
+                id
+                name
               }
             }
           }
         }
-        shiftCheckInOut {
-          checkInTime
-          checkOutTime
-          noShow
-          equipmentDetails {
-            checkInTime
-            checkOutTime
-            vehicleCategory {
-              id
-              name
-            }
-          }
-        }
       }
     }
-
   }
-}
 `;
 
 export const GET_EVENT_FOR_SUMMARY = gql`
@@ -379,7 +434,6 @@ export const GET_EVENT_FOR_SUMMARY = gql`
           }
         }
       }
-
     }
   }
 `;
@@ -420,6 +474,7 @@ export const GET_EVENT = gql`
       autoAssignInterestList
       startTime
       endTime
+      incidentSubmissionCuttoff
       createdById
       overtimeNarrative
       thumbnailUrl
@@ -545,7 +600,6 @@ export const GET_EVENT = gql`
           userId
         }
       }
-
     }
   }
 `;

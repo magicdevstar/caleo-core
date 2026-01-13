@@ -57,7 +57,11 @@ export const Mutation = {
       return res;
     } catch(error) {
       const e = error as Error;
-      if (e.message === 'An incident form already exists for this event and date') {
+      if (
+        e.message === 'An incident form already exists for this event and date' ||
+        e.message.includes('overlapping time range already exists') ||
+        e.message.includes('Missing required time field')
+      ) {
         throw new GraphQLError(e.message);
       }
       logger.error('Error in incidentForm mutation:', { error });

@@ -315,6 +315,11 @@ export default function IncidentFormStepper({
       let message = 'Failed to submit incident form';
       if (error.message === 'An incident form already exists for this event and date') {
         message = 'A submission already exists for this date. Please review the operational period before continuing.';
+      } else if ([
+        /An incident form with overlapping time range already exists/.test(error.message),
+        /Missing required time field/.test(error.message),
+      ].some(Boolean)) {
+        message = error.message;
       }
       enqueueSnackbar(
         message, 

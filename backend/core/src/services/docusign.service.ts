@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns/format';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { DocumentModel } from "../models/document";
 import { DocusignModel } from "../models/docusign";
@@ -28,6 +29,7 @@ import { InvoiceService } from "./invoice.service";
 import { IncidentSubmissionModel, InputIncidentForm } from "../models/incidentForm";
 import { OutsideUserService } from "../models/outsideUsers/outsideUser.service";
 import { requestToPDFForm } from "../models/incidentForm/lasd";
+import { checkForTimeRangeOverlaps } from "../utils/incidentForm.helpers";
 import { FormEntityType, IGenerateFormResponse, IIncidentInput, IncidentFormType } from "../types/incidentForm";
 import { buildDescription } from "../utils/formDetails";
 import { EventUserActionService } from "../models/eventUserActions/eventUserAction.service";
@@ -691,9 +693,41 @@ export class Docusign {
     if (!saveOnly) {
       let pastEnvelopeId;
       if (!resubmit) {
-        const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);
-        if (existing && existing?._id?.toHexString() !== savedForm.id && !['voided', 'declined'].includes(existing?.docusignEvent?.status)) {
-          throw new Error('An incident form already exists for this event and date');
+        // Fetch all existing submissions for this user/event/date
+        const existingForms = await this.incidentSubmission.findExistingFormsOnDate(
+          user._id!,
+          incidentForm.eventId,
+          incidentForm.operationalPeriod.date
+        );
+
+        // Filter to only valid (non-voided/declined) submissions, excluding current form
+        const validForms = existingForms.filter(
+          (form) =>
+            form._id?.toHexString() !== savedForm.id &&
+            form.docusignEvent &&
+            !['voided', 'declined'].includes(form.docusignEvent.status)
+        );
+
+        // Check for time range overlaps (this also validates required fields)
+        if (validForms.length > 0) {
+          const overlapResult = checkForTimeRangeOverlaps(
+            validForms,
+            incidentForm.timekeeping
+          );
+
+          if (overlapResult.hasOverlap) {
+            const { overlappingRange, newRange } = overlapResult;
+            // Format times in organization's timezone
+            const existingStart = format(toZonedTime(overlappingRange!.startTime, org.timezone), 'HH:mm');
+            const existingEnd = format(toZonedTime(overlappingRange!.endTime, org.timezone), 'HH:mm');
+            const newStart = format(toZonedTime(newRange!.startTime, org.timezone), 'HH:mm');
+            const newEnd = format(toZonedTime(newRange!.endTime, org.timezone), 'HH:mm');
+            throw new Error(
+              `An incident form with overlapping time range already exists for this event and date. ` +
+              `Existing submission: ${existingStart} - ${existingEnd}, ` +
+              `New submission: ${newStart} - ${newEnd}`
+            );
+          }
         }
       } else {
         const existing = await this.incidentSubmission.findExistingByEventId(user._id!, incidentForm.eventId, incidentForm.operationalPeriod.date);

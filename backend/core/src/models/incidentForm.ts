@@ -67,8 +67,8 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
     );
   }
 
-  findExistingByEventId(userId: ObjectId, eventId: ObjectId, submissionDate: Date) {
-    return this.collection.aggregate<IIncidentForm>([
+  findExistingFormsOnDate(userId: ObjectId, eventId: ObjectId, submissionDate: Date) {
+    return this.collection.aggregate<IIncidentForm & { docusignEvent?: DocusignEvent[] }>([
       {
         $match: {
           userId,
@@ -86,14 +86,19 @@ export class IncidentSubmissionModel extends BaseMongo<IIncidentForm> {
         },
       },
     ]).toArray().then((docs) => {
-      if (!docs || docs.length === 0) {
+      return docs.map((doc) => ({
+        ...doc,
+        docusignEvent: doc?.docusignEvent?.[0] as DocusignEvent | undefined,
+      }));
+    });
+  }
+
+  findExistingByEventId(userId: ObjectId, eventId: ObjectId, submissionDate: Date) {
+    return this.findExistingFormsOnDate(userId, eventId, submissionDate).then((forms) => {
+      if (!forms || forms.length === 0) {
         return null;
       }
-      const doc = docs[0]!;
-      return {
-        ...doc,
-        docusignEvent: doc?.docusignEvent?.[0] as DocusignEvent,
-      };
+      return forms[0];
     });
   }
 

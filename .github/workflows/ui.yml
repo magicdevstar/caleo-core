@@ -13,12 +13,12 @@ on:
     inputs:
       stage:
         type: choice
-        description: 'Select the target environment'
+        description: "Select the target environment"
         required: true
         options:
-          - 'dev'
-          - 'prod'
-        default: 'dev'
+          - "dev"
+          - "prod"
+        default: "dev"
 defaults:
   run:
     working-directory: ./frontends/ui
@@ -32,8 +32,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
-          cache: 'yarn'
+          node-version: "24.x"
+          cache: "yarn"
           cache-dependency-path: frontends/ui/yarn.lock
 
       - name: Configure AWS Credentials
@@ -54,9 +54,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: frontends/ui/.sst
-          key: ${{ runner.os }}-frontends-ui-sst-cache-${{ hashFiles('frontends/ui/yarn.lock') }}
+          key: ${{ runner.os }}-frontends-ui-sst-v2-${{ hashFiles('frontends/ui/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-frontends-ui-sst-cache-
+            ${{ runner.os }}-frontends-ui-sst-v2-
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline

@@ -169,6 +169,16 @@ export const GET_SUBMITTED_INCIDENT_SUBMISSIONS = gql`
         operationalPeriod {
           date
         }
+        timekeeping {
+          rdo
+          overtimeHours
+          straightHours
+          timeIn
+          timeOut
+          overtimeTimeIn
+          overtimeTimeOut
+          type
+        }
         docusignEvent {
           id
           status

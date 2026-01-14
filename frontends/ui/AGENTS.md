@@ -33,6 +33,7 @@ yarn re-build            # Clean reinstall and build
 ## Code Style Guidelines
 
 ### Imports
+
 - **Use absolute imports** with `src/` as base path (configured in tsconfig.json)
 - **Import order**: External packages → Internal modules → Types → Styles
 - **Examples**:
@@ -45,6 +46,7 @@ yarn re-build            # Clean reinstall and build
   ```
 
 ### Formatting (Prettier)
+
 - **Print width**: 100 characters
 - **Quotes**: Single quotes (`'`)
 - **Trailing commas**: ES5 style (objects, arrays)
@@ -52,11 +54,13 @@ yarn re-build            # Clean reinstall and build
 - **Semicolons**: Always required
 
 ### TypeScript
+
 - **Strict mode enabled**: `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`
 - **Prefer explicit types** for function parameters and return values
 - **Use interfaces** for object shapes, especially props
 - **Type imports**: Use `import type` when importing only types
 - **Examples**:
+
   ```typescript
   // Good
   export function fDate(date: InputValue, newFormat?: string): string {
@@ -74,6 +78,7 @@ yarn re-build            # Clean reinstall and build
   ```
 
 ### Naming Conventions
+
 - **Components**: PascalCase (`ConfirmDialog`, `UserTable`)
 - **Files**: kebab-case for utilities/hooks (`use-boolean.ts`, `format-time.ts`)
 - **Hooks**: Prefix with `use` (`useBoolean`, `useAuthContext`)
@@ -83,6 +88,7 @@ yarn re-build            # Clean reinstall and build
 - **Functions**: camelCase (`fDate`, `onToggle`, `setValue`)
 
 ### Component Patterns
+
 - **Prefer function components** (no class components)
 - **Default exports** for page/section components
 - **Named exports** for reusable utilities, hooks, types
@@ -110,6 +116,7 @@ yarn re-build            # Clean reinstall and build
   ```
 
 ### Custom Hooks
+
 - **Always use useCallback** for returned functions
 - **Memoize appropriately** with useMemo/useCallback
 - **Return objects** with descriptive property names
@@ -117,21 +124,72 @@ yarn re-build            # Clean reinstall and build
   ```typescript
   export function useBoolean<T>({ defaultValue }: { defaultValue?: boolean } = {}) {
     const [value, setValue] = useState(!!defaultValue);
-    
+
     const onTrue = useCallback(() => {
       setValue(true);
     }, []);
-    
+
     return { value, onTrue, setValue };
   }
   ```
 
+### Date and Time Handling
+
+**CRITICAL: Always use dayjs with timezone awareness for displaying dates/times to users.**
+
+- **Never use `new Date()` or `date-fns` directly** for displaying dates to users
+- **Always use `convertDate()` from `src/hooks/use-datejs`** to convert dates to organization timezone
+- **Always use `useDateFormats()` hook** to get organization-specific format strings
+- **Use `useAuthContext()`** to get the user object for timezone conversion
+
+#### Correct Pattern
+
+```typescript
+import { useAuthContext } from 'src/auth/hooks';
+import { convertDate, useDateFormats } from 'src/hooks/use-datejs';
+
+function MyComponent() {
+  const { user } = useAuthContext();
+  const { dateFormat, timeFormat, dateTimeFormat } = useDateFormats();
+
+  // Display a date
+  const formattedDate = convertDate({ date: myDate, user }).format(dateFormat);
+
+  // Display a time
+  const formattedTime = convertDate({ date: myDate, user }).format(timeFormat);
+
+  // Display date and time
+  const formattedDateTime = convertDate({ date: myDate, user }).format(dateTimeFormat);
+
+  // Compare dates (use dayjs methods)
+  const date1Dayjs = convertDate({ date: date1, user });
+  const date2Dayjs = convertDate({ date: date2, user });
+  const isEarlier = date1Dayjs.isBefore(date2Dayjs);
+  const isLater = date1Dayjs.isAfter(date2Dayjs);
+}
+```
+
+#### Why This Matters
+
+- Organizations operate in different timezones (LASD in Los Angeles, LVMPD in Las Vegas, etc.)
+- User browsers may be in different timezones than the organization
+- Without timezone conversion, a shift starting at 8:00 AM PST could display as 11:00 AM EST to a user in that timezone
+- The backend stores dates in UTC; `convertDate()` converts them to the organization's timezone
+
+#### When NOT to Use Timezone Conversion
+
+- Internal calculations that don't involve display to users
+- API requests/responses (backend handles timezone conversion)
+- Storing dates (always store in UTC/ISO format)
+
 ### GraphQL Patterns
+
 - **All queries/mutations** in `src/api/[domain].ts` files
 - **Use gql template literals** from `@apollo/client`
 - **Define reusable fragments** as template strings (e.g., `userDetailProperties`)
 - **Import generated types** from `src/__generated__/resolvers-types`
 - **Example**:
+
   ```typescript
   import { gql } from '@apollo/client';
   import { User } from 'src/__generated__/resolvers-types';
@@ -152,13 +210,15 @@ yarn re-build            # Clean reinstall and build
   ```
 
 ### Error Handling
+
 - **No try-catch required** for Apollo queries (use error from hook)
 - **Use react-error-boundary** for component-level error boundaries
 - **Log errors with console.error** (console is allowed per ESLint config)
 - **Example**:
+
   ```typescript
   const { data, loading, error } = useQuery(GET_USER, { variables: { id } });
-  
+
   if (error) {
     console.error('Failed to fetch user:', error);
     return <ErrorComponent error={error} />;
@@ -166,6 +226,7 @@ yarn re-build            # Clean reinstall and build
   ```
 
 ### ESLint Rules (Notable)
+
 - **Console allowed**: `console.log`, `console.error` permitted
 - **No unused imports enforcement**: `unused-imports` plugin disabled
 - **camelCase not enforced**: `camelcase: 0`
@@ -193,6 +254,7 @@ src/
 ```
 
 ### Component Placement
+
 - **Reusable across features** → `src/components/`
 - **Feature-specific** → `src/sections/[feature]/`
 - **Page wrappers** → `src/pages/`
@@ -201,7 +263,9 @@ src/
 ## Common Patterns
 
 ### Lazy Loading Routes
+
 Always use `lazyWithRetry` for route components:
+
 ```typescript
 import { lazyWithRetry } from 'src/routes/components/lazy-with-retry';
 
@@ -209,7 +273,9 @@ const UserPage = lazyWithRetry(() => import('src/pages/dashboard/user'));
 ```
 
 ### Form Validation
+
 Use React Hook Form + Yup:
+
 ```typescript
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -223,6 +289,7 @@ const methods = useForm({ resolver: yupResolver(schema) });
 ```
 
 ### Styling
+
 - **Use MUI's `sx` prop** for component-level styles
 - **Theme values**: Access via `theme` object in sx
 - **Example**: `<Box sx={{ pb: 2, typography: 'body2' }}>`
@@ -230,6 +297,7 @@ const methods = useForm({ resolver: yupResolver(schema) });
 ## Environment Variables
 
 All variables **must** be prefixed with `REACT_APP_`:
+
 - `REACT_APP_HOST_API` - REST API endpoint
 - `REACT_APP_APOLLO_API` - GraphQL endpoint
 - `REACT_APP_MAPBOX_API` - Mapbox API key

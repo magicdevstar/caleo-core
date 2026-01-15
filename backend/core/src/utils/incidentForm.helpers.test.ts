@@ -42,7 +42,7 @@ describe('incidentForm.helpers', () => {
       }
 
       expect(() => extractTimeRange(timekeeping)).toThrow(GraphQLError)
-      expect(() => extractTimeRange(timekeeping)).toThrow("timeIn is required when rdo is 'no'")
+      expect(() => extractTimeRange(timekeeping)).toThrow("Straight time in is required when rdo is 'no'")
     })
 
     it('should throw error when rdo=no and timeOut is missing', () => {
@@ -54,27 +54,27 @@ describe('incidentForm.helpers', () => {
       }
 
       expect(() => extractTimeRange(timekeeping)).toThrow(GraphQLError)
-      expect(() => extractTimeRange(timekeeping)).toThrow("timeOut is required when rdo is 'no'")
+      expect(() => extractTimeRange(timekeeping)).toThrow("Straight time out is required when rdo is 'no'")
     })
 
-    it('should throw error when overtimeTimeIn is missing', () => {
+    it('should throw error when rdo=yes and overtimeTimeIn is missing', () => {
       const timekeeping = {
         rdo: 'yes',
         overtimeTimeOut: new Date('2025-06-12T12:00:00Z'),
       }
 
       expect(() => extractTimeRange(timekeeping)).toThrow(GraphQLError)
-      expect(() => extractTimeRange(timekeeping)).toThrow('overtimeTimeIn is required')
+      expect(() => extractTimeRange(timekeeping)).toThrow("Overtime time in is required when rdo is 'yes'")
     })
 
-    it('should throw error when overtimeTimeOut is missing', () => {
+    it('should throw error when rdo=yes and overtimeTimeOut is missing', () => {
       const timekeeping = {
         rdo: 'yes',
         overtimeTimeIn: new Date('2025-06-12T08:00:00Z'),
       }
 
       expect(() => extractTimeRange(timekeeping)).toThrow(GraphQLError)
-      expect(() => extractTimeRange(timekeeping)).toThrow('overtimeTimeOut is required')
+      expect(() => extractTimeRange(timekeeping)).toThrow("Overtime time out is required when rdo is 'yes'")
     })
 
     it('should normalize times to minute precision', () => {
@@ -89,6 +89,67 @@ describe('incidentForm.helpers', () => {
       // Should round down to the minute
       expect(result.startTime.toISOString()).toBe('2025-06-12T08:00:00.000Z')
       expect(result.endTime.toISOString()).toBe('2025-06-12T12:30:00.000Z')
+    })
+
+    it('should extract time range when rdo=no with only straight time', () => {
+      const timekeeping = {
+        rdo: 'no',
+        timeIn: new Date('2025-06-12T08:00:00Z'),
+        timeOut: new Date('2025-06-12T16:00:00Z'),
+      }
+
+      const result = extractTimeRange(timekeeping)
+
+      expect(result.startTime.toISOString()).toBe('2025-06-12T08:00:00.000Z')
+      expect(result.endTime.toISOString()).toBe('2025-06-12T16:00:00.000Z')
+    })
+
+    it('should extract time range when rdo=no with straight time and partial overtime', () => {
+      const timekeeping = {
+        rdo: 'no',
+        timeIn: new Date('2025-06-12T08:00:00Z'),
+        timeOut: new Date('2025-06-12T16:00:00Z'),
+        overtimeTimeIn: new Date('2025-06-12T16:00:00Z'),
+        // overtimeTimeOut is missing - this is OK when rdo=no
+      }
+
+      const result = extractTimeRange(timekeeping)
+
+      // Should only use straight time since overtime is incomplete
+      expect(result.startTime.toISOString()).toBe('2025-06-12T08:00:00.000Z')
+      expect(result.endTime.toISOString()).toBe('2025-06-12T16:00:00.000Z')
+    })
+
+    it('should ignore straight time fields when rdo=yes', () => {
+      const timekeeping = {
+        rdo: 'yes',
+        timeIn: new Date('2025-06-12T06:00:00Z'),  // Should be ignored
+        timeOut: new Date('2025-06-12T07:00:00Z'),  // Should be ignored
+        overtimeTimeIn: new Date('2025-06-12T08:00:00Z'),
+        overtimeTimeOut: new Date('2025-06-12T12:00:00Z'),
+      }
+
+      const result = extractTimeRange(timekeeping)
+
+      // Should only use overtime fields, not straight time
+      expect(result.startTime.toISOString()).toBe('2025-06-12T08:00:00.000Z')
+      expect(result.endTime.toISOString()).toBe('2025-06-12T12:00:00.000Z')
+    })
+
+    it('should include optional overtime when rdo=no and overtime is complete', () => {
+      const timekeeping = {
+        rdo: 'no',
+        timeIn: new Date('2025-06-12T08:00:00Z'),
+        timeOut: new Date('2025-06-12T16:00:00Z'),
+        overtimeTimeIn: new Date('2025-06-12T16:00:00Z'),
+        overtimeTimeOut: new Date('2025-06-12T20:00:00Z'),
+      }
+
+      const result = extractTimeRange(timekeeping)
+
+      // Should use earliest (timeIn: 08:00) and latest (overtimeTimeOut: 20:00)
+      expect(result.startTime.toISOString()).toBe('2025-06-12T08:00:00.000Z')
+      expect(result.endTime.toISOString()).toBe('2025-06-12T20:00:00.000Z')
     })
   })
 

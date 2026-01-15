@@ -99,7 +99,7 @@ export const ActiveIncidentsTable = () => {
       },
       {
         id: 'incidentSubmissionCuttoff',
-        label: 'ICS 214 Deadline',
+        label: 'Submission Deadline',
         columnType: 'date',
         getHref: (row: any) => getHref(row.id),
       },

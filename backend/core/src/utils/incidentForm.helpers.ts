@@ -40,23 +40,30 @@ export function extractTimeRange(
   // When rdo === "no", timeIn and timeOut are required
   if (timekeeping.rdo === 'no') {
     if (!timekeeping.timeIn) {
-      throw new GraphQLError("Missing required time field: timeIn is required when rdo is 'no'")
+      throw new GraphQLError("Missing required time field: Straight time in is required when rdo is 'no'")
     }
     if (!timekeeping.timeOut) {
-      throw new GraphQLError("Missing required time field: timeOut is required when rdo is 'no'")
+      throw new GraphQLError("Missing required time field: Straight time out is required when rdo is 'no'")
     }
     times.push(timekeeping.timeIn, timekeeping.timeOut)
+
+    // When rdo === "no", overtime fields are optional but if provided, include them
+    if (timekeeping.overtimeTimeIn && timekeeping.overtimeTimeOut) {
+      times.push(timekeeping.overtimeTimeIn, timekeeping.overtimeTimeOut)
+    }
   }
 
-  // overtimeTimeIn and overtimeTimeOut are always required
-  if (!timekeeping.overtimeTimeIn) {
-    throw new GraphQLError('Missing required time field: overtimeTimeIn is required')
+  // When rdo === "yes", overtimeTimeIn and overtimeTimeOut are required
+  // Straight time fields are ignored even if present
+  if (timekeeping.rdo === 'yes') {
+    if (!timekeeping.overtimeTimeIn) {
+      throw new GraphQLError("Missing required time field: Overtime time in is required when rdo is 'yes'")
+    }
+    if (!timekeeping.overtimeTimeOut) {
+      throw new GraphQLError("Missing required time field: Overtime time out is required when rdo is 'yes'")
+    }
+    times.push(timekeeping.overtimeTimeIn, timekeeping.overtimeTimeOut)
   }
-  if (!timekeeping.overtimeTimeOut) {
-    throw new GraphQLError('Missing required time field: overtimeTimeOut is required')
-  }
-
-  times.push(timekeeping.overtimeTimeIn, timekeeping.overtimeTimeOut)
 
   // Find the earliest and latest times
   const normalizedTimes = times.map(normalizeToMinute)

@@ -380,7 +380,7 @@ export const EventOverviewSection = ({
                 timeSteps={{ hours: 1, minutes: 15, seconds: 5 }}
                 ampm={false}
                 name="incidentSubmissionCuttoff"
-                label="ICS 214 Submission Deadline"
+                label="Submission Deadline"
               />
             </>
           )}
@@ -430,7 +430,7 @@ export const EventOverviewSection = ({
           {isIncident && (
             <RHFDateTimePicker
               name="incidentSubmissionCuttoff"
-              label="ICS 214 Submission Deadline"
+              label="Submission Deadline"
               timezone={user.member.org?.timezone}
               ampm={false}
               disabled={!isIncident}

@@ -54,6 +54,11 @@ export const Query = {
         timeFilters.endTime = new Date(endTime.value);
       } else if (endTime.gte || endTime?.lte) {
         $or.push({
+          incidentSubmissionCuttoff: {
+            ...(endTime.gte ? { $gte: new Date(endTime.gte) } : {}),
+            ...(endTime.lte ? { $lte: new Date(endTime.lte) } : {}),
+          },
+        }, {
           endTime: {
             ...(endTime.gte ? { $gte: new Date(endTime.gte) } : {}),
             ...(endTime.lte ? { $lte: new Date(endTime.lte) } : {}),

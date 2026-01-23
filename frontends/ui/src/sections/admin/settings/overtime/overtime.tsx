@@ -7,7 +7,7 @@ import { useMutation } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import omitDeep from 'omit-deep';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 // @mui
 import CardHeader from "@mui/material/CardHeader";
 import Card from "@mui/material/Card";

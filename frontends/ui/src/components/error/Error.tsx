@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 // Amplify
 import { Auth } from '@aws-amplify/auth';
 import { ErrorBoundary } from 'react-error-boundary';

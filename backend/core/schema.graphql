@@ -1751,6 +1751,7 @@ type DocusignSignerDetailsData {
     showShiftsByEvent: Boolean!
     mapboxReportingLocation: Boolean!
     operationsUnit: Boolean!
+    adminManagedProfilePhotos: Boolean!
   }
 
   type OrganizationFeatureOptions {
@@ -1981,6 +1982,7 @@ type DocusignSignerDetailsData {
     showShiftsByEvent: Boolean
     mapboxReportingLocation: Boolean
     operationsUnit: Boolean
+    adminManagedProfilePhotos: Boolean
   }
 
   input UpsertInterestListSetting {

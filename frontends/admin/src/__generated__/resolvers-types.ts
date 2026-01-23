@@ -2056,6 +2056,7 @@ export type OrganizationFeatureOptions = {
 
 export type OrganizationFeatures = {
   __typename?: 'OrganizationFeatures';
+  adminManagedProfilePhotos: Scalars['Boolean']['output'];
   autoEnroll: Scalars['Boolean']['output'];
   callSign: Scalars['Boolean']['output'];
   customizableShiftId: Scalars['Boolean']['output'];
@@ -3388,6 +3389,7 @@ export type UpsertOrganizationEventSettings = {
 };
 
 export type UpsertOrganizationFeatures = {
+  adminManagedProfilePhotos?: InputMaybe<Scalars['Boolean']['input']>;
   autoEnroll?: InputMaybe<Scalars['Boolean']['input']>;
   callSign?: InputMaybe<Scalars['Boolean']['input']>;
   customizableShiftId?: InputMaybe<Scalars['Boolean']['input']>;
@@ -5386,6 +5388,7 @@ export type OrganizationFeatureOptionsResolvers<ContextType = any, ParentType ex
 }>;
 
 export type OrganizationFeaturesResolvers<ContextType = any, ParentType extends ResolversParentTypes['OrganizationFeatures'] = ResolversParentTypes['OrganizationFeatures']> = ResolversObject<{
+  adminManagedProfilePhotos?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   autoEnroll?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   callSign?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   customizableShiftId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

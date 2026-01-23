@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { m } from 'framer-motion';
 import { useSnackbar } from 'notistack';
 import * as Yup from 'yup';

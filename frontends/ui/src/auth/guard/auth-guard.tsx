@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useLocalStorage } from 'react-use';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 // routes
 import { paths } from 'src/routes/paths';
 import { usePathname, useRouter } from 'src/routes/hooks';

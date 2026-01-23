@@ -71,6 +71,7 @@ export const featureDefinitions = [
   { value: 'showShiftsByEvent', label: 'Show Shifts By Event', defaultEnabled: false },
   { value: 'mapboxReportingLocation', label: 'Mapbox Reporting Location', defaultEnabled: false },
   { value: 'operationsUnit', label: 'Operations Unit', defaultEnabled: false },
+  { value: 'adminManagedProfilePhotos', label: 'Admin Managed Profile Photos', defaultEnabled: false },
 ];
 
 // Generate features object from featureDefinitions

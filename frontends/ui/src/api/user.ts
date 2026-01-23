@@ -30,42 +30,7 @@ const userDetailProperties = `
       docusign {
         templateId
       }
-      features {
-        lottery
-        venueContractDates
-        eventCheckIn
-        eventCheckOut
-        officerCheckInOut
-        interestLists
-        monthlyMaxHours
-        weeklyMaxShifts
-        disabledTiers
-        disabledTierUntil
-        externalEventRequests
-        sso
-        equipment
-        lasdEventFields
-        lasdUserFields
-        docusign
-        kiosk
-        eventTemplates
-        noShowReport
-        rankHourlyRate
-        callSign
-        eventInvoice
-        vehicleCategories
-        rankGrouping
-        endOfShiftPDF
-        docusignCheckout
-        customizableShiftId
-        incidentEvents
-        outsideUserList
-        signingAuthorityAssignment
-        financeUnit
-        showShiftsByEvent
-        mapboxReportingLocation
-        operationsUnit
-      }
+      flatFeatures
       customizations {
         pNumber
         tiers {

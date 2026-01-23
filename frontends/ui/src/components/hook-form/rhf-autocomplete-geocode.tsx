@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 // @mui
 import TextField from '@mui/material/TextField';
 import { InputLabelProps } from '@mui/material/InputLabel';

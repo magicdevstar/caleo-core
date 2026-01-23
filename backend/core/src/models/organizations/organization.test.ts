@@ -10,6 +10,7 @@ import { OrganizationService } from './organization.service';
 import { OrganizationRepo } from './organization.repository';
 import { SchedulerModel } from '../scheduler';
 import { DocumentModel } from '../document';
+import { featureDefinitions, features } from './organization.defaults';
 
 const config = {
   timezone: 'America/Los_Angeles',
@@ -38,6 +39,32 @@ describe('organization service', () => {
     {} as unknown as SchedulerModel,
     {} as unknown as DocumentModel,
   );
+
+  describe('Feature Definitions', () => {
+    test('adminManagedProfilePhotos feature should be defined', () => {
+      const feature = featureDefinitions.find(f => f.value === 'adminManagedProfilePhotos')
+      expect(feature).toBeDefined()
+      expect(feature?.value).toBe('adminManagedProfilePhotos')
+      expect(feature?.label).toBe('Admin Managed Profile Photos')
+      expect(feature?.defaultEnabled).toBe(false)
+    })
+
+    test('adminManagedProfilePhotos should be included in features object', () => {
+      expect(features).toHaveProperty('adminManagedProfilePhotos')
+      expect(features.adminManagedProfilePhotos).toBe(false)
+    })
+
+    test('all feature definitions should have required properties', () => {
+      featureDefinitions.forEach(feature => {
+        expect(feature).toHaveProperty('value')
+        expect(feature).toHaveProperty('label')
+        expect(feature).toHaveProperty('defaultEnabled')
+        expect(typeof feature.value).toBe('string')
+        expect(typeof feature.label).toBe('string')
+        expect(typeof feature.defaultEnabled).toBe('boolean')
+      })
+    })
+  })
 
   describe('activeLottery - Close day before open day', () => {
     describe('Start of year', () => {

@@ -1,11 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
+import get from 'lodash/get';
 // @mui
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 // types
-import { get } from 'lodash';
 import { FrontendUser } from 'src/api/user';
 import { MemberStatus } from 'src/__generated__/resolvers-types';
+// hooks
+import { useFeatures } from 'src/hooks/use-features';
 // components
 import Iconify from 'src/components/iconify';
 import AccountGeneral from './account-general';
@@ -30,7 +32,7 @@ const TABS = [
     value: 'overtime',
     label: 'Overtime Availability',
     visible: (hidden = false) => !hidden,
-    userKey: 'member.org.features.lasdUserFields',
+    featureKey: 'lasdUserFields',
     icon: <Iconify icon="solar:bell-bing-bold" width={24} />,
   },
   {
@@ -43,7 +45,7 @@ const TABS = [
     value: 'equipment',
     label: 'Equipment',
     visible: (canView = true) => canView,
-    userKey: 'member.org.features.equipment',
+    featureKey: 'equipment',
     icon: <Iconify icon="ic:baseline-directions-car" width={24} />,
   },
   {
@@ -56,14 +58,14 @@ const TABS = [
     value: 'lottoAnalytics',
     label: 'Lottery Analytics',
     visible: (canView = true) => canView,
-    userKey: 'member.org.features.lottery',
+    featureKey: 'lottery',
     icon: <Iconify icon="ic:baseline-area-chart" width={24} />,
   },
   {
     value: 'security',
     label: 'Password',
     visible: (hidden = false) => !hidden,
-    userKey: 'member.org.features.lasdUserFields',
+    featureKey: 'lasdUserFields',
     icon: <Iconify icon="ic:round-vpn-key" width={24} />,
   },
 ];
@@ -79,6 +81,7 @@ export default function MainAccountView({
   adminViewer: boolean;
   excludePassword?: boolean;
 }) {
+  const features = useFeatures();
   const [currentTab, setCurrentTab] = useState('general');
 
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
@@ -105,8 +108,8 @@ export default function MainAccountView({
         }}
       >
         {TABS
-          .filter(({value, userKey, visible}) =>
-            userKey ? visible(get(user, userKey)) : visible(adminViewer))
+          .filter(({value, featureKey, visible}) =>
+            featureKey ? visible(get(features, featureKey)) : visible(adminViewer))
           .map((tab) => (
             <Tab key={tab.value} label={tab.label} icon={tab.icon} value={tab.value} />
           ))

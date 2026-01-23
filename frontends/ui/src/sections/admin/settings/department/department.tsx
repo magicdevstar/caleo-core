@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 import * as Yup from 'yup';
 import { useMutation } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';

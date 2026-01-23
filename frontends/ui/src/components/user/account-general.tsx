@@ -122,12 +122,22 @@ export default function AccountGeneral({
 }) {
   const { user: currentUser, reInitialize } = useAuthContext();
   const { dateTimeFormat, dateFormat } = useDateFormats();
-  const { disabledTiers, disabledTierUntil, lasdUserFields, rankHourlyRate, officerCheckInOut } = useFeatures();
+  const {
+    disabledTiers,
+    disabledTierUntil,
+    lasdUserFields,
+    rankHourlyRate,
+    officerCheckInOut,
+    adminManagedProfilePhotos,
+  } = useFeatures();
   const { tierNames, enabledTiers } = useTiers();
   const { pNumberLabel } = usePNumberLabel();
   const { data: lotteryData } = useQuery(GET_LOTTERY_COUNTER)
   const { enqueueSnackbar } = useSnackbar();
   const [loadingImage, setLoadingImage] = useState(!!user?.image);
+  const disabledEditProfilePhoto = useMemo(() => {
+    return allDisabled || (adminManagedProfilePhotos && !adminViewer);
+  }, [adminManagedProfilePhotos, allDisabled, adminViewer]);
 
   const statusHelperText = useMemo(() => {
     const res = [];
@@ -393,7 +403,7 @@ export default function AccountGeneral({
                 </Skeleton>
               ) : (
                 <RHFUploadAvatar
-                  disabled={allDisabled}
+                  disabled={disabledEditProfilePhoto}
                   name="photoURL"
                   maxSize={3145728}
                   onDrop={handleDrop}

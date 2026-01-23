@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { isAfter, subHours } from 'date-fns';
-import { capitalize, isEqual } from 'lodash';
+import capitalize from 'lodash/capitalize';
+import isEqual from 'lodash/isEqual';
 // @mui
 import Stack from '@mui/material/Stack';
 import Tabs from '@mui/material/Tabs';

@@ -6,24 +6,24 @@ This is a serverless GraphQL API built with TypeScript, Apollo Server, AWS Lambd
 ## Build & Test Commands
 
 ### Core Commands
-- `npm run lint` - Run ESLint on all source files
-- `npm run lint:fix` - Auto-fix linting issues
-- `npm run test` - Run all tests with UTC timezone
-- `npm run generate` (or `npm run gen`) - Generate GraphQL types from schema
+- `yarn lint` - Run ESLint on all source files
+- `yarn lint:fix` - Auto-fix linting issues
+- `yarn test` - Run all tests with UTC timezone
+- `yarn generate` (or `yarn gen`) - Generate GraphQL types from schema
 
 ### Running Specific Tests
-- `npm run test -- <test-file-name>` - Run a specific test file (e.g., `npm run test -- organization.test.ts`)
+- `yarn test <test-file-name>` - Run a specific test file (e.g., `yarn test organization.test.ts`)
 - `TZ=UTC jest --testPathPattern=<pattern>` - Run tests matching pattern
 - Pre-configured test patterns:
-  - `npm run test:assignments` - Assignment-related tests
-  - `npm run test:shifts` - Shift-related tests
-  - `npm run test:interest` - Interest list tests
-  - `npm run test:dates` - Date utility tests
+  - `yarn test:assignments` - Assignment-related tests
+  - `yarn test:shifts` - Shift-related tests
+  - `yarn test:interest` - Interest list tests
+  - `yarn test:dates` - Date utility tests
 
 ### Deployment
-- `npm run deploy` - Generate types and deploy all functions
-- `npm run deploy:graphql` - Deploy only the GraphQL handler
-- `npm run offline` - Run serverless offline for local development
+- `yarn deploy` - Generate types and deploy all functions
+- `yarn deploy:graphql` - Deploy only the GraphQL handler
+- `yarn offline` - Run serverless offline for local development
 
 ## Code Style Guidelines
 
@@ -56,7 +56,7 @@ import { IOrganization } from "../../../models/organizations/organization.entity
 - **Interfaces over types** for entity definitions (prefix with `I`, e.g., `IOrganization`)
 - **No `any` type** when possible - use proper typing or generics
 - **Optional chaining** (`?.`) for potentially undefined values
-- Generate GraphQL types with `npm run generate` - never manually edit `__generated__/` files
+- Generate GraphQL types with `yarn generate` - never manually edit `__generated__/` files
 
 ### Naming Conventions
 - **Files**: kebab-case (e.g., `organization.service.ts`)
@@ -159,8 +159,8 @@ export const Query = {
 
 ## Git Workflow
 - Never commit generated files (`src/__generated__/*`)
-- Run `npm run lint` before committing
-- Generate types before deploying: `npm run generate`
+- Run `yarn lint` before committing
+- Generate types before deploying: `yarn generate`
 
 ## Key Files
 - `schema.graphql` - GraphQL schema definition
@@ -237,7 +237,7 @@ input UpsertOrganizationFeatures {
 Run the code generation command to update TypeScript definitions:
 
 ```bash
-npm run generate
+yarn generate
 ```
 
 This updates `src/__generated__/resolvers-types.ts` with your new feature type definitions.
@@ -277,20 +277,20 @@ describe('Feature Definitions', () => {
 
 **Run Tests:**
 ```bash
-npm run test -- organization.test.ts
+yarn test -- organization.test.ts
 ```
 
 #### 5. Code Quality Checks
 
 ```bash
 # Check linting
-npm run lint
+yarn lint
 
 # Fix linting issues
-npm run lint:fix
+yarn lint:fix
 
 # Run all tests
-npm run test
+yarn test
 ```
 
 ### Using Feature Flags in Code
@@ -492,7 +492,7 @@ expect(result).toBe(expectedValueWhenEnabled)
 ### Troubleshooting
 
 **Feature not appearing in GraphQL:**
-- Run `npm run generate` to regenerate types
+- Run `yarn generate` to regenerate types
 - Check schema.graphql has feature in both type and input
 - Verify no syntax errors in schema
 
@@ -512,10 +512,10 @@ When adding a new feature flag:
 - [ ] Add to `featureDefinitions` in `organization.defaults.ts`
 - [ ] Add to `OrganizationFeatures` type in `schema.graphql`
 - [ ] Add to `UpsertOrganizationFeatures` input in `schema.graphql`
-- [ ] Run `npm run generate`
+- [ ] Run `yarn generate`
 - [ ] Add tests in `organization.test.ts`
-- [ ] Run `npm run lint` and fix any issues
-- [ ] Run `npm run test` to verify all tests pass
+- [ ] Run `yarn lint` and fix any issues
+- [ ] Run `yarn test` to verify all tests pass
 - [ ] Implement feature-specific logic with guard clauses
 - [ ] Document the feature purpose in code comments
 

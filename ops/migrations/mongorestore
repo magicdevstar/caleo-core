@@ -1,1 +1,0 @@
-mongorestore --uri mongodb+srv://atlas-admin:PASSWORD@caleo-pro-prod.tdhff.mongodb.net --nsFrom="caleo-dev.*" --nsTo="caleo-prod.*"
